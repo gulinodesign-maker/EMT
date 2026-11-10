@@ -1566,8 +1566,8 @@ private struct GPSCockpitMap: View {
     }
 }
 
-// Le sei misure rimangono reali: SOC, V, A, potenza, km parziali e totali.
-// Lato destro della mappa con icone arancioni come nello screenshot approvato.
+// Le sei letture continuano a usare dati reali dal BMS e dal GPS.
+// Ogni valore è in un pannello di vetro indipendente, non su banda nera.
 @MainActor
 private struct GPSCompactReadings: View {
     @EnvironmentObject private var gps: GPSRideManager
@@ -1577,62 +1577,82 @@ private struct GPSCompactReadings: View {
     var body: some View {
         GeometryReader { geo in
             let h = geo.size.height
+            let gap = max(5, h * 0.018)
+            let tileHeight = max(28, (h - 5 * gap) / 6)
             let live = bluetooth.snapshot
-            VStack(alignment: .trailing, spacing: h * 0.022) {
-                reading(live.map { "\($0.soc)%" } ?? "—%", icon: "bolt.fill", height: h)
-                reading(live.map { String(format: "%.0f V", $0.voltage) } ?? "— V", icon: "v.circle", height: h)
-                reading(live.map { String(format: "%.0f A", -$0.current) } ?? "— A", icon: "a.circle", height: h)
-                reading(live.map { String(format: "%.1f kW", -$0.power / 1000) } ?? "— kW", icon: "chart.bar.fill", height: h)
-                reading(String(format: "%.1f km", gps.tripKm),
-                        icon: "point.topleft.down.curvedto.point.bottomright.up",
-                        height: h, resettable: true)
-                reading(gps.hasOdometer ? String(format: "%.0f km", gps.totalKm) : "— km",
-                        icon: "speedometer", height: h)
+            VStack(spacing: gap) {
+                glassReading(live.map { "\($0.soc)%" } ?? "—%",
+                             icon: "bolt.fill", height: tileHeight)
+                glassReading(live.map { String(format: "%.0f V", $0.voltage) } ?? "— V",
+                             icon: "v.circle", height: tileHeight)
+                glassReading(live.map { String(format: "%.0f A", -$0.current) } ?? "— A",
+                             icon: "a.circle", height: tileHeight)
+                glassReading(live.map { String(format: "%.1f kW", -$0.power / 1000) } ?? "— kW",
+                             icon: "chart.bar.fill", height: tileHeight)
+                glassReading(String(format: "%.1f km", gps.tripKm),
+                             icon: "point.topleft.down.curvedto.point.bottomright.up",
+                             height: tileHeight, resettable: true)
+                glassReading(gps.hasOdometer ? String(format: "%.0f km", gps.totalKm) : "— km",
+                             icon: "speedometer", height: tileHeight)
             }
-            .padding(.vertical, h * 0.07)
-            .padding(.horizontal, 7)
             .frame(width: geo.size.width, height: h, alignment: .trailing)
-            .background {
-                LinearGradient(colors: [.clear, .black.opacity(0.35), .black.opacity(0.75)],
-                               startPoint: .leading, endPoint: .trailing)
-                    .allowsHitTesting(false)
-            }
         }
     }
 
-    private func reading(_ value: String, icon: String, height: CGFloat,
-                         resettable: Bool = false) -> some View {
-        HStack(spacing: 6) {
+    private func glassReading(_ value: String, icon: String, height: CGFloat,
+                              resettable: Bool = false) -> some View {
+        let corner = max(10, height * 0.21)
+        return HStack(spacing: max(4, height * 0.07)) {
             Spacer(minLength: 0)
             Text(value)
-                .font(.system(size: min(48, max(12, height * 0.063)), weight: .semibold))
+                .font(.system(size: min(37, max(12, height * 0.38)), weight: .semibold))
                 .monospacedDigit()
                 .lineLimit(1)
-                .minimumScaleFactor(0.65)
+                .minimumScaleFactor(0.54)
                 .foregroundStyle(.white)
+                .shadow(color: .black.opacity(0.65), radius: 2, y: 1)
             Rectangle()
-                .fill(.white.opacity(0.55))
-                .frame(width: 1, height: height * 0.052)
+                .fill(.white.opacity(0.53))
+                .frame(width: 1, height: height * 0.44)
             Image(systemName: icon)
-                .font(.system(size: min(44, max(13, height * 0.060))))
+                .font(.system(size: min(30, max(12, height * 0.34))))
                 .foregroundStyle(theme.accent)
-                .frame(width: height * 0.080)
+                .frame(width: height * 0.40)
         }
-        .frame(height: hRow(height))
-        .contentShape(Rectangle())
+        .padding(.horizontal, max(8, height * 0.10))
+        .frame(height: height)
+        .background(.ultraThinMaterial,
+                    in: RoundedRectangle(cornerRadius: corner, style: .continuous))
+        .background {
+            RoundedRectangle(cornerRadius: corner, style: .continuous)
+                .fill(LinearGradient(colors: [
+                    .white.opacity(0.17),
+                    .white.opacity(0.06),
+                    .black.opacity(0.05)
+                ], startPoint: .topLeading, endPoint: .bottomTrailing))
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: corner, style: .continuous)
+                .stroke(LinearGradient(colors: [
+                    .white.opacity(0.48),
+                    .white.opacity(0.12),
+                    .white.opacity(0.27)
+                ], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        lineWidth: 1)
+                .allowsHitTesting(false)
+        }
+        .shadow(color: .black.opacity(0.28), radius: 5, y: 2)
+        .contentShape(RoundedRectangle(cornerRadius: corner))
         .onLongPressGesture(minimumDuration: 1.3) {
             guard resettable else { return }
             gps.resetTrip()
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         }
         .allowsHitTesting(resettable)
-        .accessibilityHint(resettable ? "Tieni premuto per 1,3 secondi per azzerare il viaggio parziale." : "")
+        .accessibilityHint(resettable
+            ? "Tieni premuto per 1,3 secondi per azzerare il viaggio parziale." : "")
         .accessibilityAction(named: "Azzera chilometri parziali") {
             if resettable { gps.resetTrip() }
         }
-    }
-
-    private func hRow(_ height: CGFloat) -> CGFloat {
-        height * 0.12
     }
 }
