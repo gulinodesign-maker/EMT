@@ -2,29 +2,37 @@ import SwiftUI
 import UIKit
 import Darwin
 
-// EJ 1.16 — top bar ribassata, tachimetro al 97%, arco inferiore aperto.
+// EJ 1.17 — cockpit definitivo: 6 schede, curve C1, palette sei colori.
 // Geometry, rings, numerals and panels are real SwiftUI controls (no reference bitmap as UI).
 // Misure esclusivamente da Core Location / JK BLE, senza campioni sintetici.
 enum CockpitTheme: String, CaseIterable, Identifiable {
+    // Sei kit colore persistenti: due righe per tre colonne nel menu.
     case copper = "Rame"
     case glacier = "Ghiaccio"
-    case graphite = "Grafite"
+    case green = "Verde"
+    case aquamarine = "Acquamarina"
+    case brown = "Marrone"
     case racing = "Racing"
+
     var id: String { rawValue }
     var accent: Color {
         switch self {
-        case .copper: Color(red: 1, green: 0.47, blue: 0.04)
-        case .glacier: Color(red: 0.18, green: 0.79, blue: 0.91)
-        case .graphite: Color(red: 0.80, green: 0.82, blue: 0.85)
-        case .racing: Color(red: 0.95, green: 0.18, blue: 0.17)
+        case .copper: Color(red: 1.00, green: 0.44, blue: 0.03)
+        case .glacier: Color(red: 0.69, green: 0.88, blue: 0.98)
+        case .green: Color(red: 0.26, green: 0.86, blue: 0.41)
+        case .aquamarine: Color(red: 0.28, green: 0.88, blue: 0.81)
+        case .brown: Color(red: 0.73, green: 0.43, blue: 0.22)
+        case .racing: Color(red: 0.97, green: 0.23, blue: 0.22)
         }
     }
     var secondary: Color {
         switch self {
-        case .copper: Color(red: 0.72, green: 0.21, blue: 0.13)
-        case .glacier: Color(red: 0.13, green: 0.44, blue: 0.68)
-        case .graphite: Color(red: 0.38, green: 0.43, blue: 0.48)
-        case .racing: Color(red: 0.69, green: 0.12, blue: 0.13)
+        case .copper: Color(red: 0.75, green: 0.24, blue: 0.09)
+        case .glacier: Color(red: 0.19, green: 0.51, blue: 0.73)
+        case .green: Color(red: 0.10, green: 0.48, blue: 0.26)
+        case .aquamarine: Color(red: 0.10, green: 0.47, blue: 0.49)
+        case .brown: Color(red: 0.37, green: 0.19, blue: 0.12)
+        case .racing: Color(red: 0.63, green: 0.09, blue: 0.15)
         }
     }
     var steel: Color { Color(red: 0.85, green: 0.87, blue: 0.89) }
@@ -57,6 +65,8 @@ private struct CarbonBackdrop: View {
 private struct WingReading {
     let value: String
     let title: String
+    let icon: String
+    let showsBar: Bool
     let fraction: Double?
 }
 
@@ -82,14 +92,13 @@ private struct MetricGlowBar: View {
                                               Swift.max(1.0, w * CGFloat(progress) - h * 0.18))
                     Capsule()
                         .fill(LinearGradient(stops: [
-                            .init(color: theme.accent.opacity(0.86), location: 0),
-                            .init(color: theme.accent, location: 0.70),
-                            .init(color: Color(red: 1.0, green: 0.77, blue: 0.38), location: 1)
+                            .init(color: Color(red: 0.55, green: 0.02, blue: 0.13), location: 0),
+                            .init(color: Color(red: 0.91, green: 0.06, blue: 0.23), location: 0.70),
+                            .init(color: Color(red: 0.99, green: 0.20, blue: 0.32), location: 1)
                         ], startPoint: .leading, endPoint: .trailing))
                         .frame(width: fillWidth, height: h * 0.84)
                         .padding(.leading, h * 0.10)
-                        .shadow(color: theme.accent.opacity(0.90), radius: h * 1.2)
-                        .shadow(color: theme.accent.opacity(0.55), radius: h * 0.52)
+                        .shadow(color: Color.red.opacity(0.45), radius: h * 0.7)
                 }
             }
             .frame(width: w, height: h)
@@ -99,8 +108,8 @@ private struct MetricGlowBar: View {
     }
 }
 
-// Un'unica ala per lato, con tre strumenti e relative barre di valore luminose.
-// Il quadrante viene renderizzato sopra le ali: la sua superficie è opaca.
+// Sei schede indipendenti, come nel cockpit finale approvato.
+// Le tre letture in chilometri NON hanno barre, neppure quando il GPS è attivo.
 private struct PremiumWing: View {
     let readings: [WingReading]
     let theme: CockpitTheme
@@ -110,72 +119,104 @@ private struct PremiumWing: View {
         GeometryReader { geometry in
             let w = geometry.size.width
             let h = geometry.size.height
-            ZStack {
-                RoundedRectangle(cornerRadius: h * 0.16, style: .continuous)
-                    .fill(LinearGradient(stops: [
-                        .init(color: Color(white: 0.23), location: 0),
-                        .init(color: Color(white: 0.10), location: 0.24),
-                        .init(color: Color(white: 0.12), location: 0.60),
-                        .init(color: Color(white: 0.16), location: 1)
-                    ], startPoint: .top, endPoint: .bottom))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: h * 0.16, style: .continuous)
-                            .stroke(LinearGradient(colors: [.white.opacity(0.35),
-                                                           .white.opacity(0.035), .white.opacity(0.30)],
-                                                   startPoint: .top, endPoint: .bottom), lineWidth: 1.0)
-                    }
-                    .shadow(color: .black.opacity(0.83), radius: h * 0.08, y: 5)
-
+            let gap = max(6, h * 0.029)
+            let tileHeight = (h - 2 * gap) / 3
+            VStack(spacing: gap) {
                 ForEach(readings.indices, id: \.self) { index in
                     let reading = readings[index]
-                    VStack(spacing: h * 0.028) {
-                        Text(reading.value)
-                            .font(.system(size: Swift.min(h * 0.144, w * 0.135),
-                                          weight: .semibold, design: .default))
-                            .monospacedDigit()
-                            .tracking(-0.5)
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.49)
-                            .shadow(color: .black.opacity(0.83), radius: 2, y: 2)
-                            .frame(height: h * 0.145)
-                        MetricGlowBar(fraction: reading.fraction, theme: theme)
-                            .frame(height: Swift.max(5, h * 0.038))
-                    }
-                    .frame(width: w * 0.65, height: h / 3)
-                    .position(x: w * (left ? 0.345 : 0.655),
-                              y: h * (CGFloat(index) + 0.48) / 3)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("\(reading.title): \(reading.value)")
+                    metricTile(reading, width: w, height: tileHeight)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("\(reading.title): \(reading.value)")
                 }
             }
             .frame(width: w, height: h)
         }
         .accessibilityElement(children: .contain)
     }
+
+    private func metricTile(_ reading: WingReading, width: CGFloat, height: CGFloat) -> some View {
+        let leadingInset = width * (left ? 0.060 : 0.355)
+        let iconSide = min(height * 0.38, width * 0.095)
+        return ZStack {
+            RoundedRectangle(cornerRadius: height * 0.28, style: .continuous)
+                .fill(LinearGradient(colors: [Color(white: 0.105), Color(white: 0.045)],
+                                     startPoint: .top, endPoint: .bottom))
+                .overlay {
+                    RoundedRectangle(cornerRadius: height * 0.28, style: .continuous)
+                        .stroke(LinearGradient(colors: [.white.opacity(0.52), .white.opacity(0.09),
+                                                        .white.opacity(0.36)],
+                                               startPoint: .top, endPoint: .bottom), lineWidth: 1.0)
+                }
+                .shadow(color: .black.opacity(0.75), radius: height * 0.08, y: 3)
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: max(7, width * 0.024)) {
+                    ZStack {
+                        Circle()
+                            .stroke(theme.accent, lineWidth: max(1.5, height * 0.020))
+                            .shadow(color: theme.accent.opacity(0.35), radius: 3)
+                        if reading.icon == "voltage" {
+                            Text("V")
+                                .font(.system(size: iconSide * 0.54, weight: .bold))
+                                .foregroundStyle(.white)
+                        } else {
+                            Image(systemName: reading.icon)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: iconSide * 0.54, height: iconSide * 0.54)
+                                .foregroundStyle(theme.accent)
+                        }
+                    }
+                    .frame(width: iconSide, height: iconSide)
+
+                    Text(reading.value)
+                        .font(.system(size: min(height * 0.31, width * 0.075), weight: .bold))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.48)
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.85), radius: 2, y: 2)
+                    Spacer(minLength: 0)
+                }
+                .frame(height: reading.showsBar ? height * 0.72 : height * 0.97)
+                if reading.showsBar {
+                    MetricGlowBar(fraction: reading.fraction, theme: theme)
+                        .frame(width: width * (left ? 0.54 : 0.54), height: max(5, height * 0.085))
+                }
+            }
+            .padding(.leading, leadingInset)
+            .padding(.trailing, width * 0.035)
+        }
+        .frame(width: width, height: height)
+    }
 }
 
-// EJ 1.14: linea della top bar veramente continua sull'intera larghezza.
-/// E' dietro il quadrante opaco, che la nasconde naturalmente nella zona centrale.
-/// Nessuna interruzione geometrica, nessuna dissolvenza ai bordi del tachimetro.
+// EJ 1.17 — unica linea di top bar, con raccordi laterali C1 attorno alla corona.
+// Si estende su tutta la larghezza ed è coperta naturalmente dal quadrante opaco.
 private struct ContinuousHorizonLine: View {
     let theme: CockpitTheme
     var body: some View {
         GeometryReader { geometry in
             let w = geometry.size.width
             let h = geometry.size.height
-            let y = h * 0.73
             let line = Path { p in
-                p.move(to: CGPoint(x: 0, y: y))
-                p.addLine(to: CGPoint(x: w, y: y))
+                p.move(to: CGPoint(x: 0, y: h * 0.085))
+                p.addLine(to: CGPoint(x: w * 0.255, y: h * 0.085))
+                p.addCurve(to: CGPoint(x: w * 0.355, y: h * 0.238),
+                           control1: CGPoint(x: w * 0.308, y: h * 0.085),
+                           control2: CGPoint(x: w * 0.333, y: h * 0.238))
+                p.addLine(to: CGPoint(x: w * 0.645, y: h * 0.238))
+                p.addCurve(to: CGPoint(x: w * 0.745, y: h * 0.085),
+                           control1: CGPoint(x: w * 0.667, y: h * 0.238),
+                           control2: CGPoint(x: w * 0.692, y: h * 0.085))
+                p.addLine(to: CGPoint(x: w, y: h * 0.085))
             }
             ZStack {
-                line.stroke(theme.accent.opacity(0.28), lineWidth: max(4, h * 0.22))
-                    .blur(radius: max(2, h * 0.13))
-                line.stroke(theme.accent.opacity(0.78), lineWidth: max(2.5, h * 0.085))
-                    .blur(radius: max(1, h * 0.035))
+                line.stroke(theme.accent.opacity(0.31), lineWidth: max(5, h * 0.010))
+                    .blur(radius: max(4, h * 0.012))
+                line.stroke(theme.accent.opacity(0.77), lineWidth: max(2.5, h * 0.004))
+                    .blur(radius: max(2, h * 0.004))
                 line.stroke(theme.accent,
-                            style: StrokeStyle(lineWidth: max(1.4, h * 0.034), lineCap: .butt))
+                            style: StrokeStyle(lineWidth: max(1.4, h * 0.002), lineCap: .round))
             }
             .frame(width: w, height: h)
         }
