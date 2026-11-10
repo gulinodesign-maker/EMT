@@ -125,7 +125,11 @@ struct EcojumboRootView: View {
 // EJ 1.21: quattro pulsanti a sinistra e tre a destra,
 // Retry TestFlight 1.0 (21): archivio senza firma di sviluppo, esportazione Apple automatica.
 // con icone solo bianche, senza titoli; il tachimetro occupa tutto lo spazio centrale.
+@MainActor
 private struct CockpitCornerControls: View {
+    @EnvironmentObject private var gps: GPSRideManager
+    @StateObject private var mapControls = GPSMapControlStore.shared
+    @StateObject private var navigation = EcoNavigationStore.shared
     @Binding var selected: EcoTab
     let theme: CockpitTheme
 
@@ -137,15 +141,38 @@ private struct CockpitCornerControls: View {
             let gap = width * 0.010
             HStack(alignment: .center, spacing: 0) {
                 if selected == .gps {
-                    // Tutti e sette i tasti sulla DESTRA in modalità GPS.
-                    // Dimensione adattiva: mai fuori dallo schermo in landscape.
+                    // In modalità mappa rimane solo Home delle vecchie schede.
+                    // Tutti gli altri pulsanti controllano esclusivamente MapKit.
                     let gpsSide = min(buttonSide, width * 0.052)
                     let gpsGap = width * 0.008
                     Spacer(minLength: 0)
                     HStack(spacing: gpsGap) {
-                        ForEach(EcoTab.allCases) { tab in
-                            iconButton(tab, side: gpsSide)
-                        }
+                        iconButton(.dashboard, side: gpsSide)
+                        gpsButton("play.fill", alternate: "stop.fill",
+                                  active: navigation.isNavigating,
+                                  enabled: navigation.isNavigating ||
+                                      (navigation.route != nil && gps.currentCoordinate() != nil),
+                                  accessibility: navigation.isNavigating
+                                      ? "Ferma navigazione GPS" : "Avvia navigazione GPS",
+                                  side: gpsSide) { mapControls.send(.toggleNavigation) }
+                        gpsButton("square.3.layers.3d", text: mapControls.is3D ? "2D" : "3D",
+                                  active: mapControls.is3D,
+                                  accessibility: mapControls.is3D
+                                      ? "Passa alla mappa 2D" : "Passa alla mappa 3D",
+                                  side: gpsSide) { mapControls.send(.toggleProjection) }
+                        gpsButton("location.north.line.fill", active: mapControls.headingUp,
+                                  accessibility: "Vista dal muso dello scooter, direzione di marcia",
+                                  side: gpsSide) { mapControls.send(.noseView) }
+                        gpsButton("point.topleft.down.curvedto.point.bottomright.up",
+                                  enabled: navigation.route != nil,
+                                  accessibility: "Mostra intero percorso",
+                                  side: gpsSide) { mapControls.send(.focusRoute) }
+                        gpsButton("scope", accessibility: "Ricentra sulla posizione GPS",
+                                  side: gpsSide) { mapControls.send(.recenter) }
+                        gpsButton("plus.magnifyingglass", accessibility: "Ingrandisci la mappa",
+                                  side: gpsSide) { mapControls.send(.zoomIn) }
+                        gpsButton("minus.magnifyingglass", accessibility: "Riduci zoom mappa",
+                                  side: gpsSide) { mapControls.send(.zoomOut) }
                     }
                 } else {
                     // Cruscotto classico invariato: quattro tasti + tre tasti.
@@ -203,6 +230,51 @@ private struct CockpitCornerControls: View {
         .accessibilityLabel(tab.label)
         .accessibilityAddTraits(tab == selected ? .isSelected : [])
     }
+    // Stessa finitura, bordo, altezza e ombreggiatura del tasto Home.
+    private func gpsButton(_ symbol: String, alternate: String? = nil,
+                           text: String? = nil, active: Bool = false,
+                           enabled: Bool = true, accessibility: String,
+                           side: CGFloat, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            ZStack {
+                RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
+                    .fill(LinearGradient(stops: [
+                        .init(color: Color(white: 0.37), location: 0),
+                        .init(color: Color(white: 0.19), location: 0.21),
+                        .init(color: Color(white: 0.08), location: 0.78),
+                        .init(color: Color(white: 0.14), location: 1)
+                    ], startPoint: .top, endPoint: .bottom))
+                RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
+                    .stroke(LinearGradient(colors: [
+                        active ? theme.accent : .white.opacity(0.80),
+                        .white.opacity(0.13),
+                        active ? theme.accent.opacity(0.80) : .white.opacity(0.38)
+                    ], startPoint: .top, endPoint: .bottom),
+                            lineWidth: active ? 1.6 : 0.9)
+                if let text {
+                    Text(text)
+                        .font(.system(size: side * 0.28, weight: .heavy, design: .rounded))
+                        .foregroundStyle(.white)
+                } else {
+                    Image(systemName: active ? (alternate ?? symbol) : symbol)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: side * 0.55, height: side * 0.55)
+                        .foregroundStyle(.white)
+                }
+            }
+            .frame(width: side, height: side)
+            .shadow(color: .black.opacity(0.90), radius: side * 0.16, y: 2)
+            .shadow(color: active ? theme.accent.opacity(0.31) : .clear, radius: 5)
+            .contentShape(RoundedRectangle(cornerRadius: side * 0.23))
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.50)
+        .accessibilityLabel(accessibility)
+        .accessibilityAddTraits(active ? [.isSelected] : [])
+    }
+
 }
 
 
