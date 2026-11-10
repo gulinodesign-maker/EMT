@@ -1,4 +1,5 @@
 import SwiftUI
+import MapKit
 import UIKit
 import Darwin
 
@@ -761,3 +762,357 @@ private struct OpenSpeedCluster: View {
     }
 }
 
+
+
+// EJ 1.21 — modalità GPS nello STESSO cockpit: tachimetro a sinistra,
+// mappa stradale Apple a destra, sette tasti sempre visibili in basso.
+// Le misure non sono simulate; la rotta MKDirections resta condivisa.
+@MainActor
+struct GPSCockpitDashboard: View {
+    @EnvironmentObject private var gps: GPSRideManager
+    @EnvironmentObject private var bluetooth: JKBluetoothManager
+    let theme: CockpitTheme
+    let now: Date
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            let dialSize = min(h * 0.965, w * 0.55)
+            let live = bluetooth.snapshot
+            ZStack {
+                CarbonBackdrop(theme: theme)
+
+                // MapKit occupa la metà destra ma rimane parte di questo cockpit.
+                GPSCockpitMap(theme: theme)
+                    .frame(width: w * 0.505, height: h * 0.725)
+                    .position(x: w * 0.748, y: h * 0.455)
+                    .zIndex(5)
+
+                GPSHorizonLine(theme: theme)
+                    .frame(width: w, height: h)
+                    .zIndex(8)
+
+                OpenSpeedCluster(speed: gps.currentSpeed(at: now),
+                                 current: live.map { -($0.current) },
+                                 power: live.map { -($0.power) },
+                                 theme: theme)
+                    .frame(width: dialSize, height: dialSize)
+                    .position(x: w * 0.335, y: h * 0.494)
+                    .zIndex(25)
+
+                // Profilo luminoso A/kW rimappato al semicockpit sinistro.
+                ContinuousLowerGlow(theme: theme)
+                    .frame(width: w * 0.69, height: h)
+                    .position(x: w * 0.335, y: h * 0.5)
+                    .allowsHitTesting(false)
+                    .zIndex(35)
+
+                GPSHeader(theme: theme, now: now,
+                          speedAvailable: gps.currentSpeed(at: now) != nil,
+                          bmsAvailable: live != nil)
+                    .frame(width: w, height: h * 0.125)
+                    .position(x: w * 0.5, y: h * 0.0625)
+                    .zIndex(40)
+            }
+            .frame(width: w, height: h)
+            .clipped()
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Cockpit GPS Ecojumbo con percorso stradale MapKit")
+    }
+}
+
+private struct GPSHorizonLine: View {
+    let theme: CockpitTheme
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            let radius = CockpitContourGeometry.cornerRadius(in: geo.size)
+            let left = CockpitContourGeometry.roundedPath(points: [
+                CGPoint(x: 0, y: h * 0.085),
+                CGPoint(x: w * 0.16, y: h * 0.085),
+                CGPoint(x: w * 0.25, y: h * 0.23),
+                CGPoint(x: w * 0.32, y: h * 0.23)
+            ], corners: [1], radius: radius)
+            let right = CockpitContourGeometry.roundedPath(points: [
+                CGPoint(x: w * 0.45, y: h * 0.23),
+                CGPoint(x: w * 0.54, y: h * 0.085),
+                CGPoint(x: w, y: h * 0.085)
+            ], corners: [1], radius: radius)
+            let line = Path { path in
+                path.addPath(left)
+                path.addPath(right)
+            }
+            let dialSize = min(h * 0.965, w * 0.55)
+            let visibleOutsideRing = Path { p in
+                p.addRect(CGRect(x: 0, y: 0, width: w, height: h))
+                p.addEllipse(in: CGRect(x: w * 0.335 - dialSize * 0.508,
+                                        y: h * 0.494 - dialSize * 0.508,
+                                        width: dialSize * 1.016,
+                                        height: dialSize * 1.016))
+            }
+            ZStack {
+                line.stroke(theme.accent.opacity(0.30), lineWidth: max(5, h * 0.011))
+                    .blur(radius: max(3, h * 0.012))
+                line.stroke(theme.accent.opacity(0.83), lineWidth: max(2.0, h * 0.004))
+                    .blur(radius: max(1, h * 0.004))
+                line.stroke(theme.accent, lineWidth: max(1.2, h * 0.0023))
+            }
+            .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+@MainActor
+private struct GPSHeader: View {
+    let theme: CockpitTheme
+    let now: Date
+    let speedAvailable: Bool
+    let bmsAvailable: Bool
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            HStack(spacing: max(7, h * 0.20)) {
+                Image("EcojumboMark")
+                    .resizable().scaledToFit()
+                    .frame(width: h * 0.73, height: h * 0.72)
+                Rectangle().fill(.white.opacity(0.55))
+                    .frame(width: 1, height: h * 0.40)
+                Text(now.formatted(date: .omitted, time: .shortened))
+                    .font(.system(size: h * 0.44, weight: .bold))
+                    .monospacedDigit()
+                Spacer(minLength: 0)
+                Image(systemName: "location.north.fill")
+                Circle().fill(speedAvailable ? theme.accent : .gray)
+                    .frame(width: max(5, h * 0.14), height: max(5, h * 0.14))
+                Rectangle().fill(.white.opacity(0.55))
+                    .frame(width: 1, height: h * 0.43)
+                BluetoothGlyph()
+                    .frame(width: h * 0.27, height: h * 0.43)
+                Circle().fill(bmsAvailable ? theme.accent : .gray)
+                    .frame(width: max(5, h * 0.14), height: max(5, h * 0.14))
+                Rectangle().fill(.white.opacity(0.55))
+                    .frame(width: 1, height: h * 0.43)
+                PhoneChargeMeter()
+            }
+            .font(.system(size: max(13, h * 0.34), weight: .medium))
+            .foregroundStyle(.white)
+            .padding(.horizontal, max(14, w * 0.031))
+            .padding(.bottom, h * 0.08)
+            .frame(width: w, height: h)
+        }
+    }
+}
+
+// Ricerca e anteprima della navigazione NON presentano NavigationStack né
+// aprono un'altra pagina: la mappa è figlia del cockpit GPS.
+@MainActor
+private struct GPSCockpitMap: View {
+    @EnvironmentObject private var gps: GPSRideManager
+    @StateObject private var navigation = EcoNavigationStore.shared
+    @AppStorage("ecojumbo.mapsDestination") private var destination = ""
+    @State private var camera: MapCameraPosition = .userLocation(followsHeading: false, fallback: .automatic)
+    let theme: CockpitTheme
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            ZStack(alignment: .top) {
+                Map(position: $camera) {
+                    UserAnnotation()
+                    if let roadRoute = navigation.route {
+                        MapPolyline(roadRoute.polyline)
+                            .stroke(theme.accent, lineWidth: 5)
+                    }
+                    if let coordinate = navigation.destinationCoordinate {
+                        Marker(navigation.destinationName, coordinate: coordinate)
+                    }
+                }
+                .mapStyle(.standard(elevation: .flat))
+                .mapControls {
+                    MapUserLocationButton()
+                    MapCompass()
+                }
+
+                LinearGradient(colors: [.black.opacity(0.73), .clear, .black.opacity(0.25)],
+                               startPoint: .top, endPoint: .bottom)
+                    .allowsHitTesting(false)
+
+                VStack(spacing: 5) {
+                    HStack(spacing: 6) {
+                        Label("GPS", systemImage: "location.north.fill")
+                            .font(.system(size: max(12, h * 0.037), weight: .bold))
+                        Spacer(minLength: 0)
+                        if navigation.route != nil {
+                            Text(navigation.distanceLabel)
+                            Text(navigation.travelTimeLabel)
+                                .foregroundStyle(.white.opacity(0.70))
+                        } else {
+                            Text("Percorsi")
+                                .foregroundStyle(.white.opacity(0.85))
+                        }
+                        Button {
+                            focusOnRoute()
+                        } label: {
+                            Image(systemName: "scope")
+                                .font(.system(size: max(15, h * 0.041)))
+                        }
+                        .accessibilityLabel("Inquadra percorso e posizione")
+                    }
+                    .font(.system(size: max(11, h * 0.030), weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 13)
+                    .frame(height: max(35, h * 0.12))
+                    .background(Color.black.opacity(0.66))
+
+                    HStack(spacing: 7) {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundStyle(.white.opacity(0.75))
+                        TextField("Indirizzo di destinazione", text: $destination)
+                            .font(.system(size: max(12, h * 0.036)))
+                            .foregroundStyle(.white)
+                            .textInputAutocapitalization(.words)
+                            .autocorrectionDisabled()
+                            .submitLabel(.search)
+                            .onSubmit(calculateRoute)
+                        Button(action: calculateRoute) {
+                            Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
+                                .foregroundStyle(theme.accent)
+                        }
+                        .disabled(navigation.isLoading ||
+                                  destination.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .accessibilityLabel("Calcola itinerario stradale")
+                        if navigation.route != nil {
+                            Button {
+                                navigation.clear()
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundStyle(.white)
+                            }
+                            .accessibilityLabel("Cancella itinerario")
+                        }
+                    }
+                    .padding(.horizontal, 12)
+                    .frame(height: max(34, h * 0.095))
+                    .background(Color.black.opacity(0.86), in: RoundedRectangle(cornerRadius: 10))
+                    .padding(.horizontal, 8)
+
+                    if navigation.isLoading {
+                        ProgressView("Calcolo il percorso…")
+                            .font(.caption)
+                            .padding(8)
+                            .background(.black.opacity(0.86), in: RoundedRectangle(cornerRadius: 8))
+                    } else if let errorMessage = navigation.errorMessage {
+                        Text(errorMessage)
+                            .font(.system(size: max(10, h * 0.027)))
+                            .foregroundStyle(.orange)
+                            .multilineTextAlignment(.leading)
+                            .padding(7)
+                            .background(.black.opacity(0.86), in: RoundedRectangle(cornerRadius: 8))
+                    }
+
+                    Spacer(minLength: 0)
+                }
+                GPSCompactReadings(theme: theme)
+                    .frame(width: w * 0.31, height: h * 0.72)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+                    .padding(.trailing, 8)
+                    .padding(.top, h * 0.18)
+                    .allowsHitTesting(false)
+            }
+            .frame(width: w, height: h)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(theme.accent.opacity(0.55), lineWidth: 1.2)
+                    .allowsHitTesting(false)
+            }
+            .onAppear {
+                gps.start()
+                focusOnRoute()
+            }
+            .onChange(of: navigation.routeRevision) { _, _ in focusOnRoute() }
+        }
+    }
+
+    private func calculateRoute() {
+        Task {
+            await navigation.plan(destination: destination, origin: gps.currentCoordinate())
+        }
+    }
+
+    private func focusOnRoute() {
+        if let route = navigation.route {
+            camera = .rect(route.polyline.boundingMapRect)
+        } else if let coordinate = gps.currentCoordinate() {
+            camera = .region(MKCoordinateRegion(center: coordinate,
+                                                 latitudinalMeters: 3500,
+                                                 longitudinalMeters: 3500))
+        } else {
+            camera = .userLocation(followsHeading: false, fallback: .automatic)
+        }
+    }
+}
+
+// Le sei misure rimangono reali: SOC, V, A, potenza, km parziali e totali.
+// Lato destro della mappa con icone arancioni come nello screenshot approvato.
+@MainActor
+private struct GPSCompactReadings: View {
+    @EnvironmentObject private var gps: GPSRideManager
+    @EnvironmentObject private var bluetooth: JKBluetoothManager
+    let theme: CockpitTheme
+
+    var body: some View {
+        GeometryReader { geo in
+            let h = geo.size.height
+            let live = bluetooth.snapshot
+            VStack(alignment: .trailing, spacing: h * 0.022) {
+                reading(live.map { "\($0.soc)%" } ?? "—%", icon: "bolt.fill", height: h)
+                reading(live.map { String(format: "%.0f V", $0.voltage) } ?? "— V", icon: "v.circle", height: h)
+                reading(live.map { String(format: "%.0f A", -$0.current) } ?? "— A", icon: "a.circle", height: h)
+                reading(live.map { String(format: "%.1f kW", -$0.power / 1000) } ?? "— kW", icon: "chart.bar.fill", height: h)
+                reading((gps.isReceiving || gps.tripKm > 0)
+                        ? String(format: "%.1f km", gps.tripKm) : "— km",
+                        icon: "point.topleft.down.curvedto.point.bottomright.up", height: h)
+                reading(gps.hasOdometer ? String(format: "%.0f km", gps.totalKm) : "— km",
+                        icon: "speedometer", height: h)
+            }
+            .padding(.vertical, h * 0.07)
+            .padding(.horizontal, 7)
+            .frame(width: geo.size.width, height: h, alignment: .trailing)
+            .background(LinearGradient(colors: [.clear, .black.opacity(0.62), .black.opacity(0.87)],
+                                       startPoint: .leading, endPoint: .trailing))
+        }
+    }
+
+    private func reading(_ value: String, icon: String, height: CGFloat) -> some View {
+        HStack(spacing: 6) {
+            Spacer(minLength: 0)
+            Text(value)
+                .font(.system(size: max(11, height * 0.065), weight: .semibold))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+                .foregroundStyle(.white)
+            Rectangle()
+                .fill(.white.opacity(0.55))
+                .frame(width: 1, height: height * 0.052)
+            Image(systemName: icon)
+                .font(.system(size: max(12, height * 0.060)))
+                .foregroundStyle(theme.accent)
+                .frame(width: height * 0.085)
+        }
+        .frame(height: hRow(height))
+    }
+
+    private func hRow(_ height: CGFloat) -> CGFloat {
+        height * 0.12
+    }
+}
