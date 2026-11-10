@@ -438,6 +438,29 @@ struct BluetoothGlyph:View {
     }
 }
 
+// L'anello arancione della Home rimane circolare, ma termina ESATTAMENTE
+// quando incontra il profilo del ponte kW: stessa geometria del ponte,
+// non un arco abbreviato arbitrariamente e non un cerchio completo.
+// Sottraiamo con even-odd l'area sottostante al ContinuousLowerLine.
+private struct HomeRingBridgeMask: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width, h = rect.height
+        let controlsHeight = max(51, min(83, h * 0.105))
+        let buttonSide = min(controlsHeight * 0.96, w * 0.059)
+        let groupEnd = max(12, w * 0.018) + 4 * buttonSide + 3 * w * 0.010
+        let footX = min(CGFloat(0.342), max(CGFloat(0.323),
+                                             groupEnd / w + 0.035))
+        var beneathBridge = ContinuousLowerLine().path(in: rect)
+        beneathBridge.addLine(to: CGPoint(x: w * (1 - footX), y: h))
+        beneathBridge.addLine(to: CGPoint(x: w * footX, y: h))
+        beneathBridge.closeSubpath()
+        var visible = Path()
+        visible.addRect(rect)
+        visible.addPath(beneathBridge)
+        return visible
+    }
+}
+
 struct CockpitDashboard:View {
     @EnvironmentObject private var gps:GPSRideManager
     @EnvironmentObject private var bluetooth:JKBluetoothManager
@@ -526,19 +549,24 @@ struct CockpitDashboard:View {
                     .position(x: w / 2, y: h * 0.507)
                     .zIndex(30)
 
-                // Contorno del tachimetro a 360°: due corone concentriche
-                // complete, dentro l'area visibile anche in landscape stretta.
-                Circle()
-                    .stroke(theme.accent.opacity(0.53), lineWidth: max(3, h * 0.009))
-                    .blur(radius: h * 0.014)
-                    .frame(width: dialSize * 0.985, height: dialSize * 0.985)
-                    .position(x: w * 0.50, y: h * 0.507)
-                    .zIndex(33)
-                Circle()
-                    .stroke(theme.accent.opacity(0.96), lineWidth: max(1.4, h * 0.002))
-                    .frame(width: dialSize * 0.985, height: dialSize * 0.985)
-                    .position(x: w * 0.50, y: h * 0.507)
-                    .zIndex(34)
+                // Il cerchio resta concentricamente IDENTICO alla build 30,
+                // ma i fianchi terminano sul ponte inferiore sopra i kW,
+                // come nell'immagine: non ripristiniamo l'arco corto della 25.
+                ZStack {
+                    Circle()
+                        .stroke(theme.accent.opacity(0.53), lineWidth: max(3, h * 0.009))
+                        .blur(radius: h * 0.014)
+                        .frame(width: dialSize * 0.985, height: dialSize * 0.985)
+                        .position(x: w * 0.50, y: h * 0.507)
+                    Circle()
+                        .stroke(theme.accent.opacity(0.96), lineWidth: max(1.4, h * 0.002))
+                        .frame(width: dialSize * 0.985, height: dialSize * 0.985)
+                        .position(x: w * 0.50, y: h * 0.507)
+                }
+                .frame(width: w, height: h)
+                .mask(HomeRingBridgeMask().fill(style: FillStyle(eoFill: true)))
+                .allowsHitTesting(false)
+                .zIndex(33)
                 ContinuousHorizonLine(theme: theme)
                     .frame(width: w, height: h)
                     .zIndex(2)
@@ -1276,7 +1304,10 @@ private struct GPSSearchTopBand: Shape {
                            y: fullH * 0.085 - mapTop)
         let right = CGPoint(x: w, y: knee.y)
         let rowHeight = max(43, min(60, h * 0.089))
-        let bottomY = max(fullH * 0.185 - mapTop,
+        // Solo il BORDO SUPERIORE segue la diagonale e il ginocchio.
+        // Quello INFERIORE è una singola linea orizzontale, senza punta:
+        // resta qualche punto sotto l'estremità sinistra della diagonale.
+        let bottomY = max(left.y + max(2, h * 0.008),
                           knee.y + rowHeight + 3)
         var p = Path()
         p.move(to: left)
@@ -1285,10 +1316,7 @@ private struct GPSSearchTopBand: Shape {
                      in: CGSize(width: fullW, height: fullH)))
         p.addLine(to: right)
         p.addLine(to: CGPoint(x: w, y: bottomY))
-        p.addLine(to: CGPoint(x: knee.x, y: bottomY))
-        // Ritorno a punta: la fascia segue il ginocchio e non forma
-        // un rettangolo sospeso davanti alla linea diagonale.
-        p.addLine(to: left)
+        p.addLine(to: CGPoint(x: left.x, y: bottomY))
         p.closeSubpath()
         return p
     }
