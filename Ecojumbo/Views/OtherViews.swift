@@ -211,6 +211,12 @@ struct EcoSettingsView: View {
                 Text("Il tachimetro usa soltanto Core Location e mostra — quando il segnale GPS non è disponibile. I chilometri vengono accumulati solo con posizioni valide e l’app attiva. Non sostituisce il tachimetro omologato del veicolo.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
+            Section("Temperatura esterna") {
+                Text("È una stima meteorologica a 2 metri dal suolo, non la misura di un termometro dell’iPhone. Richiede GPS e Internet; aggiornata al massimo ogni 15 minuti, senza inviare la posizione precisa.")
+                    .font(.footnote).foregroundStyle(.secondary)
+                Link("Fonte dati: Open-Meteo", destination: URL(string: "https://open-meteo.com")!)
+                Link("Licenza dati (CC BY 4.0)", destination: URL(string: "https://creativecommons.org/licenses/by/4.0/")!)
+            }
             Section("Sicurezza e privacy") {
                 Label("Sola lettura dei dati BMS", systemImage: "lock.shield")
                 Label("Nessuna simulazione", systemImage: "checkmark.seal")

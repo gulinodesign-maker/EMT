@@ -3,6 +3,120 @@ import MapKit
 import UIKit
 import Darwin
 
+
+// EJ 1.24 — temperatura esterna da dati meteo, NON dal telefono.
+// Open-Meteo: temperatura a 2 metri; inviamo soltanto coordinate arrotondate
+// a 0,01 gradi (~1 km), con cache di 15 minuti e fonte attribuita.
+@MainActor
+final class EcoOutsideWeather: ObservableObject {
+    static let shared = EcoOutsideWeather()
+
+    @Published private(set) var temperatureC: Double?
+    @Published private(set) var updatedAt: Date?
+
+    private var lastRequestAt: Date?
+    private var lastRequestedPosition: CLLocation?
+    private var isLoading = false
+
+    private struct WeatherReply: Decodable {
+        struct Current: Decodable {
+            let temperature_2m: Double
+        }
+        let current: Current
+    }
+
+    private init() {}
+
+    func refreshIfNeeded(at coordinate: CLLocationCoordinate2D?) {
+        guard let coordinate, CLLocationCoordinate2DIsValid(coordinate) else { return }
+        guard !isLoading else { return }
+        let date = Date()
+        let approximate = CLLocation(latitude: (coordinate.latitude * 100).rounded() / 100,
+                                     longitude: (coordinate.longitude * 100).rounded() / 100)
+        if let lastRequestAt, let lastRequestedPosition,
+           date.timeIntervalSince(lastRequestAt) < 15 * 60,
+           approximate.distance(from: lastRequestedPosition) < 5_000 { return }
+
+        isLoading = true
+        lastRequestAt = date
+        lastRequestedPosition = approximate
+        Task { await fetchTemperature(latitude: approximate.coordinate.latitude,
+                                      longitude: approximate.coordinate.longitude) }
+    }
+
+    private func fetchTemperature(latitude: Double, longitude: Double) async {
+        defer { isLoading = false }
+        var url = URLComponents(string: "https://api.open-meteo.com/v1/forecast")
+        url?.queryItems = [
+            URLQueryItem(name: "latitude", value: String(latitude)),
+            URLQueryItem(name: "longitude", value: String(longitude)),
+            URLQueryItem(name: "current", value: "temperature_2m"),
+            URLQueryItem(name: "temperature_unit", value: "celsius"),
+            URLQueryItem(name: "forecast_days", value: "1")
+        ]
+        guard let endpoint = url?.url else { return }
+        do {
+            let (data, response) = try await URLSession.shared.data(from: endpoint)
+            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else { return }
+            let result = try JSONDecoder().decode(WeatherReply.self, from: data)
+            guard result.current.temperature_2m.isFinite,
+                  (-90...65).contains(result.current.temperature_2m) else { return }
+            temperatureC = result.current.temperature_2m
+            updatedAt = Date()
+        } catch {
+            // Niente temperature ipotetiche in caso di errore o mancanza di rete.
+        }
+    }
+}
+
+@MainActor
+private struct EcoOutsideTemperature: View {
+    @EnvironmentObject private var gps: GPSRideManager
+    @StateObject private var weather = EcoOutsideWeather.shared
+    let now: Date
+
+    private var currentTemperature: Double? {
+        guard gps.currentCoordinate(at: now) != nil,
+              let updatedAt = weather.updatedAt,
+              now.timeIntervalSince(updatedAt) >= 0,
+              now.timeIntervalSince(updatedAt) < 60 * 60 else { return nil }
+        return weather.temperatureC
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            HStack(spacing: 4) {
+                Image(systemName: "thermometer.medium")
+                    .foregroundStyle(Color.white.opacity(0.82))
+                Text(currentTemperature.map { String(format: "%.0f°C", $0) } ?? "—°C")
+                    .monospacedDigit()
+                    .foregroundStyle(.white)
+            }
+            .font(.system(size: 15, weight: .semibold))
+            Link("Meteo · Open-Meteo",
+                 destination: URL(string: "https://open-meteo.com")!)
+                .font(.system(size: 8, weight: .medium))
+                .foregroundStyle(.white.opacity(0.75))
+                .lineLimit(1)
+                .minimumScaleFactor(0.65)
+        }
+        .padding(.horizontal, 5)
+        .padding(.vertical, 3)
+        .background(.black.opacity(0.58),
+                    in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(currentTemperature.map {
+            "Temperatura meteo esterna stimata: \(Int($0.rounded())) gradi Celsius. Fonte Open-Meteo."
+        } ?? "Temperatura esterna non disponibile. Serve GPS e connessione Internet.")
+        .onAppear {
+            weather.refreshIfNeeded(at: gps.currentCoordinate(at: now))
+        }
+        .onReceive(gps.$lastGPSCoordinate) { _ in
+            weather.refreshIfNeeded(at: gps.currentCoordinate())
+        }
+    }
+}
+
 // EJ 1.19 — raccordi top/down bar a raggio identico; schede sinistre speculari.
 // Geometry, rings, numerals and panels are real SwiftUI controls (no reference bitmap as UI).
 // Misure esclusivamente da Core Location / JK BLE, senza campioni sintetici.
@@ -436,6 +550,12 @@ struct CockpitDashboard:View {
                 topInfoBar(height: headerHeight, width: w)
                     .frame(width: w, height: headerHeight)
                     .zIndex(40)
+                // Temperatura sotto il logo e sotto la top bar, lontano dal tachimetro.
+                EcoOutsideTemperature(now: now)
+                    .frame(width: min(136, w * 0.108))
+                    .position(x: max(12, w * 0.016) + min(136, w * 0.108) / 2,
+                              y: h * 0.158)
+                    .zIndex(41)
             }
             .frame(width:w,height:h)
             .clipped()
@@ -978,6 +1098,11 @@ struct GPSCockpitDashboard: View {
                     .frame(width: w, height: h * 0.125)
                     .position(x: w * 0.5, y: h * 0.0625)
                     .zIndex(40)
+                EcoOutsideTemperature(now: now)
+                    .frame(width: min(136, w * 0.108))
+                    .position(x: max(12, w * 0.016) + min(136, w * 0.108) / 2,
+                              y: h * 0.158)
+                    .zIndex(41)
             }
             .frame(width: w, height: h)
             .clipped()
