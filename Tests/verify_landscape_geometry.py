@@ -69,8 +69,24 @@ for w,h in [(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert cx-d*.30 > w*.155 - 3,(w,h)
     controls_h=max(51,min(83,h*.105))
     side=min(controls_h*.96,w*.059,w*.052)
-    gps_width=8*side+7*w*.008
+    narrow_width=side*.70
+    gap=max(7,w*.008)
+    gps_width=8*narrow_width+7*gap
+    dock_start=w-max(12,w*.018)-gps_width
     assert gps_width+max(12,w*.018)<w*.50,(w,h,gps_width)
+    assert dock_start>0
+    # I tasti hanno larghezza esattamente -30% e non si intersecano.
+    for i in range(7):
+        button_right=dock_start+i*(narrow_width+gap)+narrow_width
+        next_button_left=dock_start+(i+1)*(narrow_width+gap)
+        assert next_button_left-button_right>=gap-1e-6
+    # Le sei tessere vetro terminano prima del dock inferiore.
+    glass_top=(.49-.89/2)*h+(.56-.60/2)*(.89*h)
+    glass_bottom=(.49-.89/2)*h+(.56+.60/2)*(.89*h)
+    map_header_bottom=(.49-.89/2)*h+.11*(.89*h)+max(43,min(60,.089*(.89*h)))
+    dock_top=h-max(4,h*.006)-controls_h
+    assert glass_top>=map_header_bottom+5,(w,h,glass_top,map_header_bottom)
+    assert glass_bottom+6<dock_top,(w,h,glass_bottom,dock_top)
 # Allargamento profilo GPS, nessun testo o pulsante attraversato.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     d=min(h*.965,w*.55)
@@ -86,7 +102,9 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert line_y<foot_y
     control_h=max(51,min(83,h*.105))
     control_side=min(control_h*.96,w*.059,w*.052)
-    button_start=w-max(12,w*.018)-8*control_side-7*w*.008
+    control_width=control_side*.70
+    control_gap=max(7,w*.008)
+    button_start=w-max(12,w*.018)-8*control_width-7*control_gap
     ideal_run=w*(.385-.323)*((foot_y-line_y)/(h*(.985-.790)))
     max_right_foot=button_start-max(9,w*.012)
     right_top=min(cx+d*.325,max_right_foot-ideal_run)
@@ -97,4 +115,4 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert (right_top-left_top)<d*.66
     assert foot_y<h*.945
     assert h-max(4,h*.006)-control_h>0
-print('OK — EJ 1.28: otto pulsanti e ponte GPS senza sovrapposizioni')
+print('OK — EJ 1.29: pulsanti -30%, nessuna intersezione tra tasti e tessere vetro')
