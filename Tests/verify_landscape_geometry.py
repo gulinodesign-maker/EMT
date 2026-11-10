@@ -162,4 +162,38 @@ for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     bottom=max(left_y+max(2,mh*.008),knee_y+row+3)
     assert bottom>left_y and bottom>knee_y+row,(W,H,bottom)
 assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
-print('OK — EJ 1.31: anello Home interrotto sul ponte e bordo GPS inferiore orizzontale')
+# Dissolvenza del bordo inferiore dell'indirizzo: nessuna alterazione
+# del ginocchio, solo gli ultimi 16-34pt diventano trasparenti.
+for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
+    mh=H*.89
+    left_y=H*(.23-.045)
+    knee_y=H*(.085-.045)
+    row=max(43,min(60,mh*.089))
+    bottom=max(left_y+max(2,mh*.008),knee_y+row+3)
+    fade_start=max(0,(bottom-max(16,mh*.045))/mh)
+    fade_end=min(1,bottom/mh)
+    assert 0<fade_start<fade_end<1
+    # Anche i due terminali arancioni mantengono l'anello pieno
+    # fino al tratto finale e arrivano a zero sul ponte.
+    controls_h=max(51,min(83,H*.105))
+    button_side=min(controls_h*.96,W*.059)
+    end=max(12,W*.018)+4*button_side+3*W*.010
+    foot=min(.342,max(.323,end/W+.035))
+    x0,y0=W*foot,H*.985
+    x1,y1=W*.385,H*.790
+    r=min(H*.982,W*.57)*.985/2
+    cx,cy=W*.5,H*.507
+    f=lambda v: (x0+(x1-x0)*v-cx)**2+(y0+(y1-y0)*v-cy)**2-r*r
+    assert f(0)>0>f(1)
+    low,high=0.0,1.0
+    for _ in range(30):
+        mid=(low+high)/2
+        if f(mid)>0: low=mid
+        else: high=mid
+    contact_y=y0+(y1-y0)*(low+high)/2
+    fade_start=(contact_y-max(20,H*.075))/H
+    fade_end=contact_y/H
+    assert 0<fade_start<fade_end<1
+assert '.mask(HomeRingTerminalFade())' in c
+assert '.mask(GPSSearchBottomFade())' in c
+print('OK — EJ 1.32: sfumatura terminali sul ponte e base GPS dissolta')

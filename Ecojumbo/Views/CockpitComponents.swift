@@ -461,6 +461,56 @@ private struct HomeRingBridgeMask: Shape {
     }
 }
 
+// Sfumatura limitata agli ultimi centimetri visivi dei due fianchi
+// arancioni: l'intersezione reale con il ponte kW stabilisce il punto
+// finale, senza ripristinare il vecchio arco né sfumare la parte alta.
+private struct HomeRingTerminalFade: View {
+    var body: some View {
+        GeometryReader { geometry in
+            let h = geometry.size.height
+            let contactY = Self.ringBridgeContactY(in: geometry.size)
+            let fadeStart = max(0, (contactY - max(20, h * 0.075)) / h)
+            let fadeEnd = min(1, contactY / h)
+            LinearGradient(stops: [
+                .init(color: .white, location: 0),
+                .init(color: .white, location: fadeStart),
+                .init(color: .clear, location: fadeEnd),
+                .init(color: .clear, location: 1)
+            ], startPoint: .top, endPoint: .bottom)
+        }
+        .allowsHitTesting(false)
+    }
+
+    private static func ringBridgeContactY(in size: CGSize) -> CGFloat {
+        let w = size.width, h = size.height
+        let dialSize = min(h * 0.982, w * 0.57)
+        let radius = dialSize * 0.985 * 0.5
+        let center = CGPoint(x: w * 0.5, y: h * 0.507)
+        let controlsHeight = max(51, min(83, h * 0.105))
+        let buttonSide = min(controlsHeight * 0.96, w * 0.059)
+        let groupEnd = max(12, w * 0.018) + 4 * buttonSide + 3 * w * 0.010
+        let footX = min(CGFloat(0.342), max(CGFloat(0.323), groupEnd / w + 0.035))
+        let foot = CGPoint(x: w * footX, y: h * 0.985)
+        let knee = CGPoint(x: w * 0.385, y: h * 0.790)
+        func distanceSquaredMinusRadius(_ fraction: CGFloat) -> CGFloat {
+            let x = foot.x + (knee.x - foot.x) * fraction - center.x
+            let y = foot.y + (knee.y - foot.y) * fraction - center.y
+            return x * x + y * y - radius * radius
+        }
+        // Bisezione robusta: i terminali sono simmetrici rispetto al centro.
+        guard distanceSquaredMinusRadius(0) > 0,
+              distanceSquaredMinusRadius(1) < 0 else { return h * 0.92 }
+        var lo: CGFloat = 0
+        var hi: CGFloat = 1
+        for _ in 0..<30 {
+            let middle = (lo + hi) / 2
+            if distanceSquaredMinusRadius(middle) > 0 { lo = middle }
+            else { hi = middle }
+        }
+        return foot.y + (knee.y - foot.y) * ((lo + hi) / 2)
+    }
+}
+
 struct CockpitDashboard:View {
     @EnvironmentObject private var gps:GPSRideManager
     @EnvironmentObject private var bluetooth:JKBluetoothManager
@@ -565,6 +615,7 @@ struct CockpitDashboard:View {
                 }
                 .frame(width: w, height: h)
                 .mask(HomeRingBridgeMask().fill(style: FillStyle(eoFill: true)))
+                .mask(HomeRingTerminalFade())
                 .allowsHitTesting(false)
                 .zIndex(33)
                 ContinuousHorizonLine(theme: theme)
@@ -1322,6 +1373,33 @@ private struct GPSSearchTopBand: Shape {
     }
 }
 
+// La forma dell'indirizzo ha il bordo superiore a ginocchio e la
+// base orizzontale; solo gli ultimi punti in basso si dissolvono
+// progressivamente nella mappa, senza cancellare le icone di ricerca.
+private struct GPSSearchBottomFade: View {
+    var body: some View {
+        GeometryReader { geometry in
+            let h = geometry.size.height
+            let fullH = h / 0.89
+            let mapTop = fullH * 0.045
+            let leftY = fullH * 0.23 - mapTop
+            let kneeY = fullH * 0.085 - mapTop
+            let rowHeight = max(43, min(60, h * 0.089))
+            let bottomY = max(leftY + max(2, h * 0.008),
+                              kneeY + rowHeight + 3)
+            let fadeStart = max(0, (bottomY - max(16, h * 0.045)) / h)
+            let fadeEnd = min(1, bottomY / h)
+            LinearGradient(stops: [
+                .init(color: .white, location: 0),
+                .init(color: .white, location: fadeStart),
+                .init(color: .clear, location: fadeEnd),
+                .init(color: .clear, location: 1)
+            ], startPoint: .top, endPoint: .bottom)
+        }
+        .allowsHitTesting(false)
+    }
+}
+
 // Ricerca e anteprima della navigazione NON presentano NavigationStack né
 // aprono un'altra pagina: la mappa è figlia del cockpit GPS.
 @MainActor
@@ -1390,6 +1468,7 @@ private struct GPSCockpitMap: View {
                         Color(white: 0.08).opacity(0.91)
                     ], startPoint: .top, endPoint: .bottom))
                     .frame(width: w, height: h)
+                    .mask(GPSSearchBottomFade())
                     .allowsHitTesting(false)
 
                 VStack(alignment: .leading, spacing: 7) {
