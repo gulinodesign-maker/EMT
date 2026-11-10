@@ -91,17 +91,18 @@ private struct CarbonBackdrop: View {
     }
 }
 
-// Sfondo superiore sfumato grigio antracite, presente in entrambe le
+// EJ 1.23 — sfumatura grigio antracite SOPRA la top bar, presente in entrambe le
 // modalità e indipendente dal tema colore selezionato.
 private struct CockpitTopSoftShade: View {
     var body: some View {
         GeometryReader { geo in
             LinearGradient(stops: [
-                .init(color: Color(white: 0.22).opacity(0.27), location: 0),
-                .init(color: Color(white: 0.14).opacity(0.15), location: 0.38),
+                .init(color: Color(white: 0.30).opacity(0.38), location: 0),
+                .init(color: Color(white: 0.23).opacity(0.26), location: 0.48),
+                .init(color: Color(white: 0.14).opacity(0.08), location: 0.82),
                 .init(color: .clear, location: 1)
             ], startPoint: .top, endPoint: .bottom)
-            .frame(width: geo.size.width, height: geo.size.height * 0.18,
+            .frame(width: geo.size.width, height: geo.size.height * 0.125,
                    alignment: .top)
             .frame(width: geo.size.width, height: geo.size.height,
                    alignment: .top)
@@ -164,6 +165,7 @@ private struct MetricGlowBar: View {
 // Sei schede indipendenti, come nel cockpit finale approvato.
 // Le tre letture in chilometri NON hanno barre, neppure quando il GPS è attivo.
 private struct PremiumWing: View {
+    @EnvironmentObject private var gps: GPSRideManager
     let readings: [WingReading]
     let theme: CockpitTheme
     let left: Bool
@@ -177,9 +179,24 @@ private struct PremiumWing: View {
             VStack(spacing: gap) {
                 ForEach(readings.indices, id: \.self) { index in
                     let reading = readings[index]
-                    metricTile(reading, width: w, height: tileHeight)
-                        .accessibilityElement(children: .combine)
-                        .accessibilityLabel("\(reading.title): \(reading.value)")
+                    if reading.title == "Trip parziale" {
+                        metricTile(reading, width: w, height: tileHeight)
+                            .contentShape(Rectangle())
+                            .onLongPressGesture(minimumDuration: 1.3) {
+                                gps.resetTrip()
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel("Chilometri parziali: \(reading.value)")
+                            .accessibilityHint("Tieni premuto per 1,3 secondi per azzerare il parziale.")
+                            .accessibilityAction(named: "Azzera chilometri parziali") {
+                                gps.resetTrip()
+                            }
+                    } else {
+                        metricTile(reading, width: w, height: tileHeight)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel("\(reading.title): \(reading.value)")
+                    }
                 }
             }
             .frame(width: w, height: h)
@@ -349,13 +366,14 @@ struct CockpitDashboard:View {
     private var rightRows: [WingReading] {
         // Potenza istantanea: dalla lettura corrente del JK BMS, non da una media.
         let instantKW = live.map { -($0.power) / 1000.0 }
-        let partial = (gps.isReceiving || gps.tripKm > 0) ? gps.tripKm : nil
+        // Il valore persistito è valido anche senza segnale GPS: dopo il reset mostra 0,0.
+        let partial = gps.tripKm
         let total = gps.hasOdometer ? gps.totalKm : nil
         return [
             WingReading(value: instantKW.map { String(format: "%.1f kW", $0) } ?? "— kW",
                         title: "Potenza istantanea", icon: "chart.bar.fill", showsBar: true,
                         fraction: CockpitBarMath.unit(instantKW.map { abs($0) }, maximum: averagePowerMaxKW)),
-            WingReading(value: partial.map { String(format: "%.1f km", $0) } ?? "— km",
+            WingReading(value: String(format: "%.1f km", partial),
                         title: "Trip parziale", icon: "mappin", showsBar: false,
                         fraction: nil),
             WingReading(value: total.map { String(format: "%.0f km", $0) } ?? "— km",
@@ -824,6 +842,84 @@ private struct GPSGaugeHalo: View {
     }
 }
 
+
+// EJ 1.23 — linea A/kW specifica del cockpit GPS, larga quanto i due valori.
+// Due raccordi con lo stesso raggio della top bar; terminali dritti, lontani
+// dal testo e dai pulsanti di navigazione. Mai sovrapporre il disco del tachimetro.
+private struct GPSLowerContour: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width
+        let h = rect.height
+        let d = GPSDialLayout.size(width: w, height: h)
+        let center = GPSDialLayout.centerX(width: w, height: h)
+        // Protezione della riga A/kW: la linea resta almeno 12 pt SOPRA i caratteri.
+        let textTop = h * 0.494 + d * (0.889 - 0.50 - 0.065)
+        let topY = min(h * 0.790, textTop - max(12, h * 0.014))
+        let controlH = max(51, min(83, h * 0.105))
+        let controlSide = min(controlH * 0.96, w * 0.059, w * 0.052)
+        let buttonStart = w - max(12, w * 0.018) - 7 * controlSide - 6 * w * 0.008
+        let upperRight = min(center + d * 0.405, w * 0.525 - max(9, w * 0.012))
+        let lowerRight = min(center + d * 0.455, buttonStart - max(9, w * 0.012))
+        return CockpitContourGeometry.roundedPath(points: [
+            CGPoint(x: center - d * 0.455, y: h * 0.985),
+            CGPoint(x: center - d * 0.405, y: topY),
+            CGPoint(x: upperRight, y: topY),
+            CGPoint(x: lowerRight, y: h * 0.985)
+        ], corners: [1, 2], radius: CockpitContourGeometry.cornerRadius(in: rect.size))
+    }
+}
+
+private struct GPSLowerShade: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width
+        let h = rect.height
+        let d = GPSDialLayout.size(width: w, height: h)
+        let center = GPSDialLayout.centerX(width: w, height: h)
+        let controlH = max(51, min(83, h * 0.105))
+        let controlSide = min(controlH * 0.96, w * 0.059, w * 0.052)
+        let buttonStart = w - max(12, w * 0.018) - 7 * controlSide - 6 * w * 0.008
+        let rightFoot = min(center + d * 0.455, buttonStart - max(9, w * 0.012))
+        var shape = GPSLowerContour().path(in: rect)
+        shape.addLine(to: CGPoint(x: rightFoot, y: h))
+        shape.addLine(to: CGPoint(x: center - d * 0.455, y: h))
+        shape.closeSubpath()
+        return shape
+    }
+}
+
+private struct GPSLowerGlow: View {
+    let theme: CockpitTheme
+
+    var body: some View {
+        GeometryReader { geo in
+            let h = geo.size.height
+            ZStack {
+                GPSLowerShade()
+                    .fill(LinearGradient(stops: [
+                        .init(color: .clear, location: 0.74),
+                        .init(color: Color(white: 0.31).opacity(0.34), location: 0.83),
+                        .init(color: Color(white: 0.16).opacity(0.21), location: 0.93),
+                        .init(color: .clear, location: 1)
+                    ], startPoint: .top, endPoint: .bottom))
+                GPSLowerContour()
+                    .stroke(theme.accent.opacity(0.30),
+                            style: StrokeStyle(lineWidth: max(4, h * 0.018), lineCap: .round))
+                    .blur(radius: max(3, h * 0.015))
+                GPSLowerContour()
+                    .stroke(theme.accent.opacity(0.79),
+                            style: StrokeStyle(lineWidth: max(2.3, h * 0.006), lineCap: .round))
+                    .blur(radius: max(1.2, h * 0.004))
+                GPSLowerContour()
+                    .stroke(theme.accent,
+                            style: StrokeStyle(lineWidth: max(1.4, h * 0.003), lineCap: .round))
+            }
+            .frame(width: geo.size.width, height: geo.size.height)
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
 // EJ 1.22 — modalità GPS nello STESSO cockpit: tachimetro a sinistra,
 // mappa stradale Apple a destra, sette tasti sempre visibili in basso.
 // Le misure non sono simulate; la rotta MKDirections resta condivisa.
@@ -870,10 +966,9 @@ struct GPSCockpitDashboard: View {
                     .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(27)
 
-                // Profilo luminoso A/kW rimappato al semicockpit sinistro.
-                ContinuousLowerGlow(theme: theme)
-                    .frame(width: w * 0.69, height: h)
-                    .position(x: dialCenterX, y: h * 0.5)
+                // Tratto A/kW più largo e ombreggiato, con piedi esterni ai testi.
+                GPSLowerGlow(theme: theme)
+                    .frame(width: w, height: h)
                     .allowsHitTesting(false)
                     .zIndex(35)
 
@@ -1226,21 +1321,25 @@ private struct GPSCompactReadings: View {
                 reading(live.map { String(format: "%.0f V", $0.voltage) } ?? "— V", icon: "v.circle", height: h)
                 reading(live.map { String(format: "%.0f A", -$0.current) } ?? "— A", icon: "a.circle", height: h)
                 reading(live.map { String(format: "%.1f kW", -$0.power / 1000) } ?? "— kW", icon: "chart.bar.fill", height: h)
-                reading((gps.isReceiving || gps.tripKm > 0)
-                        ? String(format: "%.1f km", gps.tripKm) : "— km",
-                        icon: "point.topleft.down.curvedto.point.bottomright.up", height: h)
+                reading(String(format: "%.1f km", gps.tripKm),
+                        icon: "point.topleft.down.curvedto.point.bottomright.up",
+                        height: h, resettable: true)
                 reading(gps.hasOdometer ? String(format: "%.0f km", gps.totalKm) : "— km",
                         icon: "speedometer", height: h)
             }
             .padding(.vertical, h * 0.07)
             .padding(.horizontal, 7)
             .frame(width: geo.size.width, height: h, alignment: .trailing)
-            .background(LinearGradient(colors: [.clear, .black.opacity(0.62), .black.opacity(0.87)],
-                                       startPoint: .leading, endPoint: .trailing))
+            .background {
+                LinearGradient(colors: [.clear, .black.opacity(0.62), .black.opacity(0.87)],
+                               startPoint: .leading, endPoint: .trailing)
+                    .allowsHitTesting(false)
+            }
         }
     }
 
-    private func reading(_ value: String, icon: String, height: CGFloat) -> some View {
+    private func reading(_ value: String, icon: String, height: CGFloat,
+                         resettable: Bool = false) -> some View {
         HStack(spacing: 6) {
             Spacer(minLength: 0)
             Text(value)
@@ -1258,6 +1357,17 @@ private struct GPSCompactReadings: View {
                 .frame(width: height * 0.085)
         }
         .frame(height: hRow(height))
+        .contentShape(Rectangle())
+        .onLongPressGesture(minimumDuration: 1.3) {
+            guard resettable else { return }
+            gps.resetTrip()
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        }
+        .allowsHitTesting(resettable)
+        .accessibilityHint(resettable ? "Tieni premuto per 1,3 secondi per azzerare il viaggio parziale." : "")
+        .accessibilityAction(named: "Azzera chilometri parziali") {
+            if resettable { gps.resetTrip() }
+        }
     }
 
     private func hRow(_ height: CGFloat) -> CGFloat {

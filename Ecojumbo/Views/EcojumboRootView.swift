@@ -87,12 +87,15 @@ struct EcojumboRootView: View {
                         .zIndex(45)
                 }
 
-                // Sette comandi reali: quattro a sinistra, tre a destra; GPS unificato.
+                // In GPS: sette comandi a destra e bordo inferiore a circa 4–6 punti.
+                // In Strumenti: la disposizione classica 4+3 resta invariata.
                 // Niente barra piena che schiaccia il tachimetro in landscape.
                 CockpitCornerControls(selected: $selected, theme: theme)
                     .frame(width: geometry.size.width,
                            height: max(51, min(83, geometry.size.height * 0.105)))
-                    .padding(.bottom, max(7, geometry.size.height * 0.075))
+                    .padding(.bottom, selected == .gps
+                              ? max(4, geometry.size.height * 0.006)
+                              : max(7, geometry.size.height * 0.075))
                     .zIndex(50)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)

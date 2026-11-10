@@ -52,8 +52,11 @@ assert '.position(x: dialCenterX, y: h * 0.494)' in c
 assert '.frame(width: w * 0.475, height: h * 0.725)' in c
 assert '.position(x: w * 0.7625, y: h * 0.455)' in c
 assert 'GPSHorizonLine(theme: theme)' in c
-assert 'ContinuousLowerGlow(theme: theme)' in c
+assert 'GPSLowerGlow(theme: theme)' in c
 assert 'EcoTab.allCases.suffix(3)' in u
+assert 'max(4, geometry.size.height * 0.006)' in u
+assert 'textTop - max(12, h * 0.014)' in c
+assert 'buttonStart - max(9, w * 0.012)' in c
 for w,h in [(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     d=min(h*.965,w*.55)
     cx=max(d*.51+w*.010,w*.168+d*.30)
@@ -68,4 +71,23 @@ for w,h in [(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     side=min(controls_h*.96,w*.059,w*.052)
     gps_width=7*side+6*w*.008
     assert gps_width+max(12,w*.018)<w*.50,(w,h,gps_width)
-print('OK — EJ 1.22: tachimetro GPS adattivo, dock a destra, sfumature e controlli mappa')
+# Allargamento profilo GPS, nessun testo o pulsante attraversato.
+for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
+    d=min(h*.965,w*.55)
+    cx=max(d*.51+w*.010,w*.168+d*.30)
+    text_left=cx-d*.33
+    text_right=cx+d*.33
+    left_top=cx-d*.405
+    right_top=min(cx+d*.405,w*.525-max(9,w*.012))
+    assert left_top<text_left
+    assert right_top>text_right,(w,h,right_top,text_right)
+    text_top=h*.494+d*(.889-.5-.065)
+    line_y=min(h*.790,text_top-max(12,h*.014))
+    assert text_top-line_y>=12-1e-8
+    control_h=max(51,min(83,h*.105))
+    control_side=min(control_h*.96,w*.059,w*.052)
+    button_start=w-max(12,w*.018)-7*control_side-6*w*.008
+    foot_right=min(cx+d*.455,button_start-max(9,w*.012))
+    assert foot_right+max(9,w*.012)<=button_start+1e-8
+    assert h-max(4,h*.006)-control_h>0
+print('OK — EJ 1.23: tachimetro GPS, curva A/kW allargata e dock a 4–6 punti dal bordo')
