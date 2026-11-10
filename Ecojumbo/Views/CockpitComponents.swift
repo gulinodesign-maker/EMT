@@ -48,8 +48,8 @@ final class EcoOutsideWeather: ObservableObject {
         defer { isLoading = false }
         var url = URLComponents(string: "https://api.open-meteo.com/v1/forecast")
         url?.queryItems = [
-            URLQueryItem(name: "latitude", value: String(format: "%.2f", latitude)),
-            URLQueryItem(name: "longitude", value: String(format: "%.2f", longitude)),
+            URLQueryItem(name: "latitude", value: String(latitude)),
+            URLQueryItem(name: "longitude", value: String(longitude)),
             URLQueryItem(name: "current", value: "temperature_2m"),
             URLQueryItem(name: "temperature_unit", value: "celsius"),
             URLQueryItem(name: "forecast_days", value: "1")
