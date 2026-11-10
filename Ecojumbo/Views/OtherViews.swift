@@ -226,6 +226,7 @@ struct EcoSettingsView: View {
             }
             Section("Versione") {
                 LabeledContent("Ecojumbo", value: EcojumboBuildStamp.display)
+                LabeledContent("Numero build", value: EcojumboBuildStamp.buildNumber)
                 Text("App iPhone dedicata esclusivamente allo scooter Ecojumbo e al suo BMS.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
@@ -244,9 +245,12 @@ struct EcoSettingsView: View {
 // Il numero mostrato in Impostazioni deriva dai dati effettivi della build iOS.
 // Esempio: versione App Store 1.0 e build 3 -> "1.03".
 private enum EcojumboBuildStamp {
+    static var buildNumber: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—"
+    }
     static var display: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
-        let buildString = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "0"
+        let buildString = buildNumber
         guard let build = Int(buildString), build >= 0 else {
             return "\(version) (\(buildString))"
         }
