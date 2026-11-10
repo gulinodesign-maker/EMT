@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (25): GPS, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (26): GPS 3D, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 25;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 26;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -87,6 +87,14 @@ assert 'GPSLowerGlow(theme: theme)' in c
 assert 'GPSLowerShade()' in c
 assert 'GPSLowerContour()' in c
 assert 'textTop - max(12, h * 0.014)' in c
+assert 'let topHalfWidth = d * 0.325' in c
+assert 'let footY = h * 0.937' in c
+assert 'MapCamera(centerCoordinate: point' in c
+assert '.mapStyle(.standard(elevation: .realistic))' in c
+assert 'heading: 0, pitch: 55' in c
+assert 'GPS e ricerca indirizzo nella STESSA barra' in c
+assert 'clipShape(RoundedRectangle(cornerRadius: 16' not in c
+assert 'min(48, max(12, height * 0.063))' in c
 assert 'buttonStart - max(9, w * 0.012)' in c
 assert 'CockpitContourGeometry.roundedPath(points:' in u
 assert 'CockpitContourGeometry.roundedPath(points:' in c
@@ -136,17 +144,19 @@ assert 'location: 0.80' in c and 'location: 0.65' in c
 assert '.position(x: dialCenterX, y: h * 0.494)' in c
 assert 'CGRect(x: dialCenterX - dialSize * 0.508' in c
 # Il bordo della mappa non deve duplicare la linea arancione superiore.
-assert '.stroke(Color.white.opacity(0.16), lineWidth: 0.8)' in c
+assert '.stroke(Color.white.opacity(0.16), lineWidth: 0.8)' not in c
+assert '.mask(LinearGradient(stops:' in c
 assert '.stroke(theme.accent.opacity(0.55), lineWidth: 1.2)' not in c
 # Mappa sfumata, recenter GPS, zoom effettivo da regione visibile.
-assert 'visibleRegion = context.region' in c
+assert 'visibleCamera = context.camera' in c
 assert 'recenterOnUser()' in c
 assert 'zoom(inward: true)' in c and 'zoom(inward: false)' in c
-assert 'camera = .region(MKCoordinateRegion(' in c
+assert 'camera = .camera(MapCamera(' in c
 assert 'mapAction("scope", accessibility: "Ricentra sulla posizione GPS")' in c
-assert 'mapAction("plus.magnifyingglass", accessibility: "Ingrandisci mappa")' in c
-assert 'mapAction("minus.magnifyingglass", accessibility: "Riduci zoom mappa")' in c
-assert 'width: w * 0.475' in c
+assert 'mapAction("plus.magnifyingglass", accessibility: "Ingrandisci mappa 3D")' in c
+assert 'mapAction("minus.magnifyingglass", accessibility: "Riduci zoom mappa 3D")' in c
+assert 'width: w * 0.64' in c
+assert 'height: h * 0.89' in c
 # Trip persistente: riavvio app non cancella il parziale; azzeramento solo con long press.
 assert 'UserDefaults.standard.double(forKey: "ecojumbo.gps.tripKm")' in g
 assert 'UserDefaults.standard.set(tripKm, forKey: "ecojumbo.gps.tripKm")' in g
@@ -187,7 +197,7 @@ assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2
 assert 'Text(incomingPower.map { String(format: "%.2f kW"' in c
 assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in c
 assert 'private let ledOrange = Color(red: 1.00, green: 0.44, blue: 0.03)' in c
-assert 'let run = standardHorizontalRun * ((h * 0.985 - topY) / standardVerticalRun)' in c
+assert 'let idealRun = standardHorizontalRun * ((footY - topY) / standardVerticalRun)' in c
 assert 'GPSLowerLineGeometry.points(in: rect)' in c
 assert 'LabeledContent("Numero build", value: EcojumboBuildStamp.buildNumber)' in o
-print('OK — 25: temperatura, potenze JK, LED arancione, geometria GPS e build')
+print('OK — 26: mappa 3D a tutta area, barra GPS unica, ponte compatto, letture +20%')

@@ -969,29 +969,28 @@ private enum GPSLowerLineGeometry {
         let h = rect.height
         let d = GPSDialLayout.size(width: w, height: h)
         let center = GPSDialLayout.centerX(width: w, height: h)
+        // Ponte raccolto sotto il quadrante: fianchi più corti e stessa
+        // pendenza di riferimento della Home, raggio circolare invariato.
         let textTop = h * 0.494 + d * (0.889 - 0.50 - 0.065)
         let topY = min(h * 0.790, textTop - max(12, h * 0.014))
+        let footY = h * 0.937
+        let topHalfWidth = d * 0.325
+        let leftTopX = center - topHalfWidth
+        let rightTopX = center + topHalfWidth
         let controlsHeight = max(51, min(83, h * 0.105))
-        let buttonSide = min(controlsHeight * 0.96, w * 0.059)
-        let groupEnd = max(12, w * 0.018) + 4 * buttonSide + 3 * w * 0.010
-        let standardFootX = min(CGFloat(0.342), max(CGFloat(0.323), groupEnd / w + 0.035))
-        let standardHorizontalRun = w * (0.385 - standardFootX)
-        let standardVerticalRun = h * (0.985 - 0.790)
-        let run = standardHorizontalRun * ((h * 0.985 - topY) / standardVerticalRun)
-        let leftTopX = center - d * 0.405
         let controlSide = min(controlsHeight * 0.96, w * 0.059, w * 0.052)
         let buttonStart = w - max(12, w * 0.018) - 7 * controlSide - 6 * w * 0.008
-        let rightTopX = min(center + d * 0.405, w * 0.525 - max(9, w * 0.012))
+        let standardFootX: CGFloat = 0.323
+        let standardHorizontalRun = w * (0.385 - standardFootX)
+        let standardVerticalRun = h * (0.985 - 0.790)
+        let idealRun = standardHorizontalRun * ((footY - topY) / standardVerticalRun)
         let maxRightFoot = buttonStart - max(9, w * 0.012)
-        // Mantiene la pendenza anche sugli schermi stretti: non sposta
-        // l'angolo superiore sul testo e non invade il dock GPS.
-        let rightRun = min(run, max(0, maxRightFoot - rightTopX))
-        let rightFootY = topY + (run > 0 ? (h * 0.985 - topY) * rightRun / run : 0)
+        let run = min(idealRun, max(0, maxRightFoot - rightTopX))
         return [
-            CGPoint(x: leftTopX - run, y: h * 0.985),
+            CGPoint(x: leftTopX - run, y: footY),
             CGPoint(x: leftTopX, y: topY),
             CGPoint(x: rightTopX, y: topY),
-            CGPoint(x: rightTopX + rightRun, y: rightFootY)
+            CGPoint(x: rightTopX + run, y: footY)
         ]
     }
 }
@@ -1026,13 +1025,16 @@ private struct GPSLowerGlow: View {
         GeometryReader { geo in
             let h = geo.size.height
             ZStack {
+                // Luce grigio-antracite subito sotto il ponte: sfuma
+                // verso il basso senza creare un pannello separato.
                 GPSLowerShade()
                     .fill(LinearGradient(stops: [
-                        .init(color: .clear, location: 0.74),
-                        .init(color: Color(white: 0.31).opacity(0.34), location: 0.83),
-                        .init(color: Color(white: 0.16).opacity(0.21), location: 0.93),
+                        .init(color: Color(white: 0.42).opacity(0.36), location: 0),
+                        .init(color: Color(white: 0.29).opacity(0.22), location: 0.42),
+                        .init(color: Color(white: 0.17).opacity(0.07), location: 0.78),
                         .init(color: .clear, location: 1)
-                    ], startPoint: .top, endPoint: .bottom))
+                    ], startPoint: UnitPoint(x: 0.5, y: 0.78),
+                       endPoint: UnitPoint(x: 0.5, y: 0.985)))
                 GPSLowerContour()
                     .stroke(theme.accent.opacity(0.30),
                             style: StrokeStyle(lineWidth: max(4, h * 0.018), lineCap: .round))
@@ -1075,10 +1077,11 @@ struct GPSCockpitDashboard: View {
                     .frame(width: w, height: h)
                     .zIndex(1)
 
-                // MapKit occupa la metà destra ma rimane parte di questo cockpit.
+                // Mappa 3D a tutta area, senza riquadro: parte sotto il
+                // cruscotto e arriva fino al margine destro, con bordi sfumati.
                 GPSCockpitMap(theme: theme)
-                    .frame(width: w * 0.475, height: h * 0.725)
-                    .position(x: w * 0.7625, y: h * 0.455)
+                    .frame(width: w * 0.64, height: h * 0.89)
+                    .position(x: w * 0.68, y: h * 0.49)
                     .zIndex(5)
 
                 GPSHorizonLine(theme: theme)
@@ -1098,11 +1101,12 @@ struct GPSCockpitDashboard: View {
                     .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(27)
 
-                // Tratto A/kW più largo e ombreggiato, con piedi esterni ai testi.
+                // Ponte più corto, raccordato al bordo inferiore del tachimetro;
+                // la sfumatura scende dietro le letture kW, senza coprirne il testo.
                 GPSLowerGlow(theme: theme)
                     .frame(width: w, height: h)
                     .allowsHitTesting(false)
-                    .zIndex(35)
+                    .zIndex(28)
 
                 GPSHeader(theme: theme, now: now,
                           speedAvailable: gps.currentSpeed(at: now) != nil,
@@ -1220,7 +1224,10 @@ private struct GPSCockpitMap: View {
     @StateObject private var navigation = EcoNavigationStore.shared
     @AppStorage("ecojumbo.mapsDestination") private var destination = ""
     @State private var camera: MapCameraPosition = .userLocation(followsHeading: false, fallback: .automatic)
-    @State private var visibleRegion: MKCoordinateRegion?
+    @State private var visibleCamera: MapCamera?
+    @State private var hasCenteredOnGPS = false
+    @State private var followsUser = true
+    @State private var followDistance: CLLocationDistance = 2600
     let theme: CockpitTheme
 
     var body: some View {
@@ -1238,68 +1245,64 @@ private struct GPSCockpitMap: View {
                         Marker(navigation.destinationName, coordinate: coordinate)
                     }
                 }
-                .mapStyle(.standard(elevation: .flat))
-                .mapControls {
-                    MapCompass()
-                }
+                // Terreno ed edifici 3D dove Apple Maps li rende disponibili.
+                .mapStyle(.standard(elevation: .realistic))
+                .mapControls { MapCompass() }
                 .onMapCameraChange(frequency: .onEnd) { context in
-                    visibleRegion = context.region
+                    visibleCamera = context.camera
+                    // Se l'utente trascina la mappa, non riportarla subito
+                    // sulla posizione dello scooter.
+                    if camera.positionedByUser { followsUser = false }
                 }
-
-                // Sfumatura su bordo sinistro, superiore e inferiore:
-                // il dettaglio stradale resta nitido al centro della mappa.
+                // Soltanto il contenuto mappa sfuma nel carbonio a sinistra:
+                // la barra di ricerca e i comandi restano nitidi e cliccabili.
+                .mask(LinearGradient(stops: [
+                    .init(color: .clear, location: 0),
+                    .init(color: .white.opacity(0.60), location: 0.15),
+                    .init(color: .white, location: 0.34),
+                    .init(color: .white, location: 1)
+                ], startPoint: .leading, endPoint: .trailing))
                 LinearGradient(stops: [
-                    .init(color: .black.opacity(0.83), location: 0),
-                    .init(color: .black.opacity(0.32), location: 0.16),
-                    .init(color: .clear, location: 0.37),
+                    .init(color: .black.opacity(0.80), location: 0),
+                    .init(color: .black.opacity(0.26), location: 0.20),
+                    .init(color: .clear, location: 0.39),
                     .init(color: .clear, location: 1)
                 ], startPoint: .leading, endPoint: .trailing)
                     .allowsHitTesting(false)
                 LinearGradient(stops: [
-                    .init(color: .black.opacity(0.55), location: 0),
-                    .init(color: .clear, location: 0.24),
-                    .init(color: .clear, location: 0.72),
-                    .init(color: .black.opacity(0.36), location: 1)
+                    .init(color: .black.opacity(0.82), location: 0),
+                    .init(color: .clear, location: 0.22),
+                    .init(color: .clear, location: 0.76),
+                    .init(color: .black.opacity(0.85), location: 1)
                 ], startPoint: .top, endPoint: .bottom)
                     .allowsHitTesting(false)
 
-                VStack(spacing: 5) {
-                    HStack(spacing: 6) {
+                VStack(alignment: .leading, spacing: 7) {
+                    // GPS e ricerca indirizzo nella STESSA barra, non su due fasce.
+                    HStack(spacing: max(6, w * 0.008)) {
                         Label("GPS", systemImage: "location.north.fill")
-                            .font(.system(size: max(12, h * 0.037), weight: .bold))
-                        Spacer(minLength: 0)
-                        if navigation.route != nil {
-                            Text(navigation.distanceLabel)
-                            Text(navigation.travelTimeLabel)
-                                .foregroundStyle(.white.opacity(0.70))
-                        } else {
-                            Text("Percorsi")
-                                .foregroundStyle(.white.opacity(0.85))
-                        }
-                        Button {
-                            focusOnRoute()
-                        } label: {
-                            Image(systemName: "scope")
-                                .font(.system(size: max(15, h * 0.041)))
-                        }
-                        .accessibilityLabel("Inquadra percorso e posizione")
-                    }
-                    .font(.system(size: max(11, h * 0.030), weight: .semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 13)
-                    .frame(height: max(35, h * 0.12))
-                    .background(Color.black.opacity(0.66))
-
-                    HStack(spacing: 7) {
+                            .font(.system(size: min(19, max(12, h * 0.028)), weight: .bold))
+                            .fixedSize()
+                        Rectangle()
+                            .fill(.white.opacity(0.40))
+                            .frame(width: 1, height: min(25, h * 0.038))
                         Image(systemName: "magnifyingglass")
-                            .foregroundStyle(.white.opacity(0.75))
+                            .foregroundStyle(.white.opacity(0.70))
                         TextField("Indirizzo di destinazione", text: $destination)
-                            .font(.system(size: max(12, h * 0.036)))
+                            .font(.system(size: min(19, max(12, h * 0.030))))
                             .foregroundStyle(.white)
+                            .tint(theme.accent)
                             .textInputAutocapitalization(.words)
                             .autocorrectionDisabled()
                             .submitLabel(.search)
                             .onSubmit(calculateRoute)
+                            .accessibilityLabel("Cerca destinazione GPS")
+                        if navigation.route != nil {
+                            Text(navigation.distanceLabel)
+                                .font(.caption)
+                                .lineLimit(1)
+                                .foregroundStyle(.white.opacity(0.77))
+                        }
                         Button(action: calculateRoute) {
                             Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
                                 .foregroundStyle(theme.accent)
@@ -1316,68 +1319,98 @@ private struct GPSCockpitMap: View {
                             }
                             .accessibilityLabel("Cancella itinerario")
                         }
+                        Button(action: focusOnRoute) {
+                            Image(systemName: "scope")
+                                .foregroundStyle(.white)
+                        }
+                        .accessibilityLabel("Inquadra percorso e posizione")
                     }
-                    .padding(.horizontal, 12)
-                    .frame(height: max(34, h * 0.095))
-                    .background(Color.black.opacity(0.86), in: RoundedRectangle(cornerRadius: 10))
-                    .padding(.horizontal, 8)
+                    .font(.system(size: min(22, max(14, h * 0.034)), weight: .semibold))
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, max(10, w * 0.017))
+                    .frame(height: max(43, min(60, h * 0.089)))
+                    .background(LinearGradient(
+                        colors: [.black.opacity(0.87), Color(white: 0.08).opacity(0.90)],
+                        startPoint: .top, endPoint: .bottom),
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(.white.opacity(0.18), lineWidth: 0.7)
+                    }
+                    // La mappa parte dietro al quadrante; la ricerca rimane
+                    // a destra del bordo del tachimetro, sempre cliccabile.
+                    .padding(.leading, w * 0.255)
+                    .padding(.trailing, max(10, w * 0.022))
 
                     if navigation.isLoading {
                         ProgressView("Calcolo il percorso…")
                             .font(.caption)
                             .padding(8)
-                            .background(.black.opacity(0.86), in: RoundedRectangle(cornerRadius: 8))
+                            .background(.black.opacity(0.78),
+                                        in: RoundedRectangle(cornerRadius: 8))
+                            .padding(.leading, w * 0.255)
                     } else if let errorMessage = navigation.errorMessage {
                         Text(errorMessage)
-                            .font(.system(size: max(10, h * 0.027)))
+                            .font(.footnote)
                             .foregroundStyle(.orange)
-                            .multilineTextAlignment(.leading)
-                            .padding(7)
-                            .background(.black.opacity(0.86), in: RoundedRectangle(cornerRadius: 8))
+                            .lineLimit(2)
+                            .padding(8)
+                            .background(.black.opacity(0.78),
+                                        in: RoundedRectangle(cornerRadius: 8))
+                            .padding(.leading, w * 0.255)
                     }
-
                     Spacer(minLength: 0)
                 }
-                // Soltanto la riga dei km parziali intercetta il long press;
-                // gli altri valori e la sfumatura lasciano usare la mappa.
-                GPSCompactReadings(theme: theme)
-                    .frame(width: w * 0.31, height: h * 0.72)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
-                    .padding(.trailing, 8)
-                    .padding(.top, h * 0.18)
+                .padding(.top, h * 0.11)
+                .frame(width: w, height: h, alignment: .topLeading)
 
-                // Comandi mappa sempre visibili: ricentra GPS e zoom + / −.
+                // Sei letture leggermente più grandi, ma raccolte nel bordo destro;
+                // solo il trip parziale intercetta il gesto di pressione prolungata.
+                GPSCompactReadings(theme: theme)
+                    .frame(width: w * 0.265, height: h * 0.71)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
+                    .padding(.trailing, max(6, w * 0.012))
+                    .padding(.top, h * 0.20)
+
+                // Comandi della mappa sul bordo sinistro della zona 3D.
                 VStack {
                     Spacer(minLength: 0)
                     VStack(spacing: 7) {
                         mapAction("scope", accessibility: "Ricentra sulla posizione GPS") {
                             recenterOnUser()
                         }
-                        mapAction("plus.magnifyingglass", accessibility: "Ingrandisci mappa") {
+                        mapAction("plus.magnifyingglass", accessibility: "Ingrandisci mappa 3D") {
                             zoom(inward: true)
                         }
-                        mapAction("minus.magnifyingglass", accessibility: "Riduci zoom mappa") {
+                        mapAction("minus.magnifyingglass", accessibility: "Riduci zoom mappa 3D") {
                             zoom(inward: false)
                         }
                     }
                     .padding(6)
-                    .background(Color.black.opacity(0.70),
+                    .background(Color.black.opacity(0.67),
                                 in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .padding(.leading, 9)
-                    .padding(.bottom, 9)
+                    .padding(.leading, max(12, w * 0.255))
+                    .padding(.bottom, max(10, h * 0.13))
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             .frame(width: w, height: h)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.white.opacity(0.16), lineWidth: 0.8)
-                    .allowsHitTesting(false)
-            }
+            // Nessuna clip arrotondata e nessun bordo rettangolare sulla mappa.
             .onAppear {
                 gps.start()
+                hasCenteredOnGPS = gps.currentCoordinate() != nil
                 focusOnRoute()
+            }
+            .onReceive(gps.$lastGPSCoordinate) { coordinate in
+                guard let coordinate, gps.currentCoordinate() != nil else { return }
+                if !hasCenteredOnGPS {
+                    hasCenteredOnGPS = true
+                    if navigation.route == nil { recenterOnUser() }
+                } else if followsUser {
+                    camera = .camera(MapCamera(centerCoordinate: coordinate,
+                                               distance: followDistance,
+                                               heading: 0, pitch: 55))
+                }
             }
             .onChange(of: navigation.routeRevision) { _, _ in focusOnRoute() }
         }
@@ -1402,25 +1435,29 @@ private struct GPSCockpitMap: View {
             focusOnRoute()
             return
         }
-        camera = .region(MKCoordinateRegion(center: point,
-                                             latitudinalMeters: 1200,
-                                             longitudinalMeters: 1200))
+        followsUser = true
+        followDistance = 1100
+        camera = .camera(MapCamera(centerCoordinate: point,
+                                   distance: followDistance, heading: 0, pitch: 55))
     }
 
     private func zoom(inward: Bool) {
-        let point = gps.currentCoordinate() ?? navigation.destinationCoordinate
-        guard let region = visibleRegion ?? point.map({
-            MKCoordinateRegion(center: $0, latitudinalMeters: 3500,
-                               longitudinalMeters: 3500)
-        }) else { return }
-        let factor: CLLocationDegrees = inward ? 0.62 : 1.62
-        camera = .region(MKCoordinateRegion(
-            center: region.center,
-            span: MKCoordinateSpan(
-                latitudeDelta: min(60, max(0.0005, region.span.latitudeDelta * factor)),
-                longitudeDelta: min(60, max(0.0005, region.span.longitudeDelta * factor))
-            )
-        ))
+        let factor: CLLocationDistance = inward ? 0.64 : 1.56
+        if let current = visibleCamera {
+            let distance = min(90_000, max(150, current.distance * factor))
+            if followsUser { followDistance = distance }
+            camera = .camera(MapCamera(centerCoordinate: current.centerCoordinate,
+                                       distance: distance,
+                                       heading: current.heading, pitch: 55))
+        } else if let point = gps.currentCoordinate() {
+            let distance: CLLocationDistance = inward ? 650 : 2400
+            if followsUser { followDistance = distance }
+            camera = .camera(MapCamera(centerCoordinate: point,
+                                       distance: distance,
+                                       heading: 0, pitch: 55))
+        } else {
+            focusOnRoute()
+        }
     }
 
     private func calculateRoute() {
@@ -1431,12 +1468,24 @@ private struct GPSCockpitMap: View {
 
     private func focusOnRoute() {
         if let route = navigation.route {
-            camera = .rect(route.polyline.boundingMapRect)
-        } else if let coordinate = gps.currentCoordinate() {
-            camera = .region(MKCoordinateRegion(center: coordinate,
-                                                 latitudinalMeters: 3500,
-                                                 longitudinalMeters: 3500))
+            followsUser = false
+            let region = MKCoordinateRegion(route.polyline.boundingMapRect)
+            let sw = CLLocation(latitude: region.center.latitude - region.span.latitudeDelta / 2,
+                                longitude: region.center.longitude - region.span.longitudeDelta / 2)
+            let ne = CLLocation(latitude: region.center.latitude + region.span.latitudeDelta / 2,
+                                longitude: region.center.longitude + region.span.longitudeDelta / 2)
+            let diagonal = sw.distance(from: ne)
+            camera = .camera(MapCamera(centerCoordinate: region.center,
+                                       distance: min(90_000, max(1600, diagonal * 1.8)),
+                                       heading: 0, pitch: 55))
+        } else if let point = gps.currentCoordinate() {
+            followsUser = true
+            followDistance = 2600
+            camera = .camera(MapCamera(centerCoordinate: point,
+                                       distance: followDistance, heading: 0, pitch: 55))
         } else {
+            followsUser = true
+            // Non inventare coordinate in assenza di un fix GPS reale.
             camera = .userLocation(followsHeading: false, fallback: .automatic)
         }
     }
@@ -1469,7 +1518,7 @@ private struct GPSCompactReadings: View {
             .padding(.horizontal, 7)
             .frame(width: geo.size.width, height: h, alignment: .trailing)
             .background {
-                LinearGradient(colors: [.clear, .black.opacity(0.62), .black.opacity(0.87)],
+                LinearGradient(colors: [.clear, .black.opacity(0.35), .black.opacity(0.75)],
                                startPoint: .leading, endPoint: .trailing)
                     .allowsHitTesting(false)
             }
@@ -1481,7 +1530,7 @@ private struct GPSCompactReadings: View {
         HStack(spacing: 6) {
             Spacer(minLength: 0)
             Text(value)
-                .font(.system(size: max(11, height * 0.065), weight: .semibold))
+                .font(.system(size: min(48, max(12, height * 0.063)), weight: .semibold))
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.65)
@@ -1490,9 +1539,9 @@ private struct GPSCompactReadings: View {
                 .fill(.white.opacity(0.55))
                 .frame(width: 1, height: height * 0.052)
             Image(systemName: icon)
-                .font(.system(size: max(12, height * 0.060)))
+                .font(.system(size: min(44, max(13, height * 0.060))))
                 .foregroundStyle(theme.accent)
-                .frame(width: height * 0.085)
+                .frame(width: height * 0.080)
         }
         .frame(height: hRow(height))
         .contentShape(Rectangle())
