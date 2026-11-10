@@ -82,9 +82,8 @@ struct EcojumboRootView: View {
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .padding(.bottom, selected == .dashboard ? 0 : 56)
 
-                // UN SOLO TRACCIATO fra pulsanti a sinistra, visore A/kW e
-                // pulsanti a destra. Nessuna sovrapposizione fra curve distinte:
-                // la continuità è geometrica, non simulata con bagliori separati.
+                // Profilo luminoso SOLO sopra il gruppo A/kW, con due discese laterali.
+                // Nessuna linea orizzontale prosegue sotto i tasti funzione.
                 if selected == .dashboard {
                     ContinuousLowerGlow(theme: theme)
                         .frame(width: geometry.size.width, height: geometry.size.height)
@@ -193,9 +192,9 @@ private struct CockpitCornerControls: View {
 }
 
 
-/// EJ 1.15 — linea inferiore abbassata come nel riferimento approvato.
-/// Due sole curve cubiche speculari con tangenti orizzontali a entrambe le estremita:
-/// il profilo si raccorda ai tratti rettilinei senza gradini, cuspidi o micro-segmenti.
+/// EJ 1.16 — profilo ad arco aperto: due discese e una cima orizzontale.
+/// Il tracciato si ferma alla base senza estendersi sotto gli otto pulsanti.
+/// Ogni curva e una Bezier cubica che entra tangenzialmente nella cima.
 struct ContinuousLowerLine: Shape {
     func path(in rect: CGRect) -> Path {
         let w = rect.width
@@ -203,15 +202,18 @@ struct ContinuousLowerLine: Shape {
         func pt(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
             CGPoint(x: w * x, y: h * y)
         }
+        // Piedi adattivi al margine interno del quarto pulsante su ogni iPhone.
+        let controlsHeight = max(51, min(83, h * 0.105))
+        let buttonSide = min(controlsHeight * 0.96, w * 0.059)
+        let groupEnd = max(12, w * 0.018) + 4 * buttonSide + 3 * w * 0.010
+        let footX = min(CGFloat(0.343), max(CGFloat(0.266), groupEnd / w + 0.014))
         var p = Path()
-        p.move(to: pt(0.012, 0.942))
-        p.addLine(to: pt(0.234, 0.942))
+        p.move(to: pt(footX, 0.987))
         p.addCurve(to: pt(0.365, 0.805),
-                   control1: pt(0.294, 0.942), control2: pt(0.305, 0.805))
+                   control1: pt(footX + 0.012, 0.957), control2: pt(0.342, 0.805))
         p.addLine(to: pt(0.635, 0.805))
-        p.addCurve(to: pt(0.766, 0.942),
-                   control1: pt(0.695, 0.805), control2: pt(0.706, 0.942))
-        p.addLine(to: pt(0.988, 0.942))
+        p.addCurve(to: pt(1 - footX, 0.987),
+                   control1: pt(0.658, 0.805), control2: pt(1 - footX - 0.012, 0.957))
         return p
     }
 }
