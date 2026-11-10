@@ -1,5 +1,6 @@
 import SwiftUI
 import MapKit
+import Combine
 import UIKit
 import Darwin
 
@@ -979,7 +980,7 @@ private enum GPSLowerLineGeometry {
         let rightTopX = center + topHalfWidth
         let controlsHeight = max(51, min(83, h * 0.105))
         let controlSide = min(controlsHeight * 0.96, w * 0.059, w * 0.052)
-        let buttonStart = w - max(12, w * 0.018) - 7 * controlSide - 6 * w * 0.008
+        let buttonStart = w - max(12, w * 0.018) - 8 * controlSide - 7 * w * 0.008
         let standardFootX: CGFloat = 0.323
         let standardHorizontalRun = w * (0.385 - standardFootX)
         let standardVerticalRun = h * (0.985 - 0.790)
@@ -1216,6 +1217,23 @@ private struct GPSHeader: View {
     }
 }
 
+// Il dock GPS inferiore controlla la mappa senza duplicare i tasti sopra
+// la cartografia; Home rimane gestita dalla RootView.
+enum GPSMapCommand {
+    case toggleNavigation, toggleProjection, noseView, focusRoute
+    case recenter, zoomIn, zoomOut
+}
+
+@MainActor
+final class GPSMapControlStore: ObservableObject {
+    static let shared = GPSMapControlStore()
+    @Published var is3D = true
+    @Published var headingUp = false
+    let commands = PassthroughSubject<GPSMapCommand, Never>()
+    private init() {}
+    func send(_ command: GPSMapCommand) { commands.send(command) }
+}
+
 // Ricerca e anteprima della navigazione NON presentano NavigationStack né
 // aprono un'altra pagina: la mappa è figlia del cockpit GPS.
 @MainActor
@@ -1228,8 +1246,7 @@ private struct GPSCockpitMap: View {
     @State private var hasCenteredOnGPS = false
     @State private var followsUser = true
     @State private var followDistance: CLLocationDistance = 2600
-    @State private var is3D = true
-    @State private var headingUp = false
+    @StateObject private var mapControls = GPSMapControlStore.shared
     @State private var lastKnownHeading: CLLocationDirection?
     let theme: CockpitTheme
 
@@ -1249,7 +1266,7 @@ private struct GPSCockpitMap: View {
                     }
                 }
                 // Terreno ed edifici 3D dove Apple Maps li rende disponibili.
-                .mapStyle(.standard(elevation: is3D ? .realistic : .flat))
+                .mapStyle(.standard(elevation: mapControls.is3D ? .realistic : .flat))
                 .mapControls { MapCompass() }
                 .onMapCameraChange(frequency: .onEnd) { context in
                     visibleCamera = context.camera
@@ -1313,29 +1330,6 @@ private struct GPSCockpitMap: View {
                         .disabled(navigation.isLoading ||
                                   destination.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         .accessibilityLabel("Calcola itinerario stradale")
-                        // Il percorso calcolato non parte da solo: Avvia attiva
-                        // il tracciamento GPS e le indicazioni MapKit in-app.
-                        Button {
-                            if navigation.isNavigating {
-                                navigation.stopNavigation()
-                            } else {
-                                startNavigation()
-                            }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: navigation.isNavigating ? "stop.fill" : "play.fill")
-                                if w > 780 {
-                                    Text(navigation.isNavigating ? "Stop" : "Avvia")
-                                        .font(.system(size: 13, weight: .bold))
-                                }
-                            }
-                            .foregroundStyle(navigation.isNavigating ? Color.red : theme.accent)
-                        }
-                        .disabled(!navigation.isNavigating &&
-                                  (navigation.route == nil || isWaitingForGPS))
-                        .accessibilityLabel(navigation.isNavigating
-                            ? "Ferma navigazione GPS" : "Avvia navigazione GPS")
-                        .accessibilityHint("Attiva indicazioni e segue il percorso con il GPS")
                         if navigation.route != nil {
                             Button {
                                 navigation.clear()
@@ -1345,11 +1339,6 @@ private struct GPSCockpitMap: View {
                             }
                             .accessibilityLabel("Cancella itinerario")
                         }
-                        Button(action: focusOnRoute) {
-                            Image(systemName: "scope")
-                                .foregroundStyle(.white)
-                        }
-                        .accessibilityLabel("Inquadra percorso e posizione")
                     }
                     .font(.system(size: min(22, max(14, h * 0.034)), weight: .semibold))
                     .buttonStyle(.plain)
@@ -1429,45 +1418,6 @@ private struct GPSCockpitMap: View {
                     .padding(.trailing, max(6, w * 0.012))
                     .padding(.top, h * 0.20)
 
-                // Comandi della mappa sul bordo sinistro della zona 3D.
-                VStack {
-                    Spacer(minLength: 0)
-                    VStack(spacing: 7) {
-                        mapAction("scope", accessibility: "Ricentra sulla posizione GPS") {
-                            recenterOnUser()
-                        }
-                        // L'etichetta indica la modalità che il tasto attiverà.
-                        Button {
-                            toggleProjection()
-                        } label: {
-                            Text(is3D ? "2D" : "3D")
-                                .font(.system(size: 13, weight: .heavy, design: .rounded))
-                                .foregroundStyle(is3D ? .white : theme.accent)
-                                .frame(width: 33, height: 31)
-                                .background(Color(white: 0.20).opacity(0.80),
-                                            in: RoundedRectangle(cornerRadius: 7))
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(is3D ? "Passa alla mappa 2D" : "Passa alla mappa 3D")
-                        mapAction("location.north.line.fill",
-                                  accessibility: "Vista dal muso dello scooter, direzione di marcia",
-                                  selected: headingUp) {
-                            activateNoseView()
-                        }
-                        mapAction("plus.magnifyingglass", accessibility: "Ingrandisci mappa 3D") {
-                            zoom(inward: true)
-                        }
-                        mapAction("minus.magnifyingglass", accessibility: "Riduci zoom mappa 3D") {
-                            zoom(inward: false)
-                        }
-                    }
-                    .padding(6)
-                    .background(Color.black.opacity(0.67),
-                                in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .padding(.leading, max(12, w * 0.255))
-                    .padding(.bottom, max(10, h * 0.13))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
             }
             .frame(width: w, height: h)
             // Nessuna clip arrotondata e nessun bordo rettangolare sulla mappa.
@@ -1475,7 +1425,7 @@ private struct GPSCockpitMap: View {
                 gps.start()
                 hasCenteredOnGPS = gps.currentCoordinate() != nil
                 if navigation.isNavigating {
-                    headingUp = true
+                    mapControls.headingUp = true
                     activateNoseView()
                 } else {
                     focusOnRoute()
@@ -1493,25 +1443,20 @@ private struct GPSCockpitMap: View {
                 }
             }
             .onChange(of: navigation.routeRevision) { _, _ in focusOnRoute() }
+            .onReceive(mapControls.commands) { command in
+                switch command {
+                case .toggleNavigation:
+                    if navigation.isNavigating { navigation.stopNavigation() }
+                    else { startNavigation() }
+                case .toggleProjection: toggleProjection()
+                case .noseView: activateNoseView()
+                case .focusRoute: focusOnRoute()
+                case .recenter: recenterOnUser()
+                case .zoomIn: zoom(inward: true)
+                case .zoomOut: zoom(inward: false)
+                }
+            }
         }
-    }
-
-    private var isWaitingForGPS: Bool { gps.currentCoordinate() == nil }
-
-    private func mapAction(_ symbol: String, accessibility: String,
-                           selected: Bool = false,
-                           action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(width: 33, height: 31)
-                .background(selected ? theme.accent.opacity(0.65) : Color(white: 0.20).opacity(0.80),
-                            in: RoundedRectangle(cornerRadius: 7))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(accessibility)
-        .accessibilityAddTraits(selected ? [.isSelected] : [])
     }
 
     private func startNavigation() {
@@ -1521,7 +1466,7 @@ private struct GPSCockpitMap: View {
 
     private func activateNoseView() {
         guard let point = gps.currentCoordinate() else { return }
-        headingUp = true
+        mapControls.headingUp = true
         followsUser = true
         followDistance = min(followDistance, 950)
         if let course = gps.currentCourse() { lastKnownHeading = course }
@@ -1530,13 +1475,13 @@ private struct GPSCockpitMap: View {
 
     // La mappa 3D usa inclinazione 55°, la 2D è realmente vista dall'alto.
     private func toggleProjection() {
-        is3D.toggle()
+        mapControls.is3D.toggle()
         if followsUser, let point = gps.currentCoordinate() {
             followCamera(at: point)
         } else if let current = visibleCamera {
             camera = .camera(MapCamera(centerCoordinate: current.centerCoordinate,
                                        distance: current.distance,
-                                       heading: current.heading, pitch: is3D ? 55 : 0))
+                                       heading: current.heading, pitch: mapControls.is3D ? 55 : 0))
         }
     }
 
@@ -1544,10 +1489,10 @@ private struct GPSCockpitMap: View {
         guard CLLocationCoordinate2DIsValid(coordinate) else { return }
         let course = gps.currentCourse()
         if let course { lastKnownHeading = course }
-        let heading = headingUp ? (course ?? lastKnownHeading ?? 0) : 0
+        let heading = mapControls.headingUp ? (course ?? lastKnownHeading ?? 0) : 0
         // Visuale dal muso: sposta lievemente il centro della telecamera
         // in avanti nella direzione di marcia, mantenendo il veicolo più in basso.
-        let lookAhead = headingUp && (course != nil || lastKnownHeading != nil)
+        let lookAhead = mapControls.headingUp && (course != nil || lastKnownHeading != nil)
             ? min(230, max(45, followDistance * 0.14)) : 0
         let bearing = heading * .pi / 180
         let longitudeScale = max(0.2, abs(cos(coordinate.latitude * .pi / 180)))
@@ -1556,7 +1501,7 @@ private struct GPSCockpitMap: View {
             longitude: coordinate.longitude + lookAhead * sin(bearing) / (111_320 * longitudeScale))
         camera = .camera(MapCamera(centerCoordinate: center,
                                    distance: followDistance,
-                                   heading: heading, pitch: is3D ? 55 : 0))
+                                   heading: heading, pitch: mapControls.is3D ? 55 : 0))
     }
 
     private func recenterOnUser() {
@@ -1565,7 +1510,7 @@ private struct GPSCockpitMap: View {
             return
         }
         followsUser = true
-        headingUp = false
+        mapControls.headingUp = false
         followDistance = 1100
         followCamera(at: point)
     }
@@ -1580,7 +1525,7 @@ private struct GPSCockpitMap: View {
             } else {
                 camera = .camera(MapCamera(centerCoordinate: current.centerCoordinate,
                                            distance: distance,
-                                           heading: current.heading, pitch: is3D ? 55 : 0))
+                                           heading: current.heading, pitch: mapControls.is3D ? 55 : 0))
             }
         } else if let point = gps.currentCoordinate() {
             let distance: CLLocationDistance = inward ? 650 : 2400
@@ -1608,7 +1553,7 @@ private struct GPSCockpitMap: View {
             let diagonal = sw.distance(from: ne)
             camera = .camera(MapCamera(centerCoordinate: region.center,
                                        distance: min(90_000, max(1600, diagonal * 1.8)),
-                                       heading: 0, pitch: is3D ? 55 : 0))
+                                       heading: 0, pitch: mapControls.is3D ? 55 : 0))
         } else if let point = gps.currentCoordinate() {
             followsUser = true
             followDistance = 2600
