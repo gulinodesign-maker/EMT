@@ -1,0 +1,120 @@
+name: Pubblica Ecojumbo su TestFlight
+
+# Avvio SOLO manuale: mai su push o pull request.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ecojumbo-testflight
+  cancel-in-progress: false
+
+jobs:
+  testflight:
+    name: Firma e carica Ecojumbo
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - name: Scarica progetto Ecojumbo
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Verifica configurazione Apple
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in ASC_KEY_ID ASC_ISSUER_ID ASC_PRIVATE_KEY APPLE_TEAM_ID; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error title=Credenziali mancanti::Configura il secret $name in Settings > Secrets and variables > Actions"
+              exit 1
+            fi
+          done
+          echo "Credenziali presenti (contenuto non mostrato)."
+
+      - name: Controlla versione e Xcode
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          xcodebuild -list -project Ecojumbo.xcodeproj
+          grep -q 'PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;' Ecojumbo.xcodeproj/project.pbxproj
+          grep -q 'MARKETING_VERSION = 1.0;' Ecojumbo.xcodeproj/project.pbxproj
+
+      - name: Prepara autenticazione App Store Connect
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          key_path="$RUNNER_TEMP/AuthKey_${ASC_KEY_ID}.p8"
+          printf '%s\n' "$ASC_PRIVATE_KEY" > "$key_path"
+          echo "ASC_KEY_PATH=$key_path" >> "$GITHUB_ENV"
+
+      - name: Archivia e firma per iPhone
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild archive \
+            -project Ecojumbo.xcodeproj \
+            -scheme Ecojumbo \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/Ecojumbo.xcarchive" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Automatic
+
+      - name: Invia a TestFlight
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/EcojumboExportOptions.plist" <<PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>uploadSymbols</key><true/>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          PLIST
+          plutil -lint "$RUNNER_TEMP/EcojumboExportOptions.plist"
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/Ecojumbo.xcarchive" \
+            -exportPath "$RUNNER_TEMP/EcojumboExport" \
+            -exportOptionsPlist "$RUNNER_TEMP/EcojumboExportOptions.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+      - name: Elimina chiave temporanea
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$RUNNER_TEMP"/AuthKey_*.p8
