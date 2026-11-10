@@ -1,0 +1,71 @@
+name: Compila Ecojumbo (iOS)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    name: Test sorgenti + build simulatore
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - name: Scarica i sorgenti del repository
+        uses: actions/checkout@v4
+
+      - name: Mostra versione Xcode disponibile
+        run: |
+          xcodebuild -version
+          xcodebuild -list -project Ecojumbo.xcodeproj
+
+      - name: Controlli strutturali Python
+        run: |
+          set -euo pipefail
+          for f in Tests/verify_*.py; do python3 "$f"; done
+          plutil -lint Ecojumbo.xcodeproj/project.pbxproj
+          plutil -lint Ecojumbo/Info.plist
+
+      - name: Test protocollo JK Bluetooth (sola lettura)
+        run: |
+          set -euo pipefail
+          swiftc Ecojumbo/Models/JKProtocol.swift Tests/JKProtocolTests.swift -o "$RUNNER_TEMP/jk_tests"
+          "$RUNNER_TEMP/jk_tests"
+
+      - name: Test barre dinamiche
+        run: |
+          set -euo pipefail
+          swiftc Ecojumbo/Models/CockpitBarMath.swift Tests/CockpitBarMathTests.swift -o "$RUNNER_TEMP/bar_tests"
+          "$RUNNER_TEMP/bar_tests"
+
+      - name: Compila app per simulatore iOS (senza firma Apple)
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project Ecojumbo.xcodeproj \
+            -scheme Ecojumbo \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/EcojumboDerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
+      - name: Archivia log diagnostici in caso di errore
+        if: failure()
+        run: |
+          mkdir -p "$RUNNER_TEMP/ecojumbo-diagnostic"
+          xcodebuild -version > "$RUNNER_TEMP/ecojumbo-diagnostic/xcode-version.txt" 2>&1 || true
+          xcodebuild -list -project Ecojumbo.xcodeproj > "$RUNNER_TEMP/ecojumbo-diagnostic/schemes.txt" 2>&1 || true
+
+      - name: Allega diagnostica di Xcode
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecojumbo-diagnostica-xcode
+          path: ${{ runner.temp }}/ecojumbo-diagnostic/
+          if-no-files-found: ignore

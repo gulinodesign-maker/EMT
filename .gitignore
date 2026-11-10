@@ -1,0 +1,31 @@
+# Xcode IDE and user local settings
+.DS_Store
+*.swp
+*.xcuserstate
+*.xccheckout
+*.xcscmblueprint
+xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcuserdatad/
+# Xcode build outputs, local archives, temporary caches
+build/
+DerivedData/
+*.xcarchive
+*.ipa
+*.dSYM
+*.dSYM.zip
+.swiftpm/
+.build/
+# Swift Playgrounds / SPM-generated metadata
+Package.resolved
+# Python checks
+__pycache__/
+*.py[cod]
+.venv/
+# Personal signing files
+*.p12
+*.mobileprovision
+*.cer
+*.p8
+.env
+.env.*
