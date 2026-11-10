@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (23): GPS, trip persistente, idle e sfumature."""
+"""Regressioni Ecojumbo 1.0 (24): GPS, trip e temperatura meteo esterna."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 23;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 24;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -161,4 +161,23 @@ assert 'gps.resetTrip()' in c
 assert 'UIApplication.shared.isIdleTimerDisabled = true' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
 assert 'UIApplication.shared.isIdleTimerDisabled = (phase == .active)' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
 assert 'UIApplication.shared.isIdleTimerDisabled = false' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
-print('OK — 23: dock in basso, linea A/kW larga, sfumature, schermo attivo, trip persistente e reset')
+# Valore meteo reale da coordinate GPS approssimate; niente termometro iPhone.
+assert 'final class EcoOutsideWeather: ObservableObject' in c
+assert 'private struct EcoOutsideTemperature: View' in c
+assert c.count('EcoOutsideTemperature(now: now)') == 2
+assert 'api.open-meteo.com/v1/forecast' in c
+assert 'URLQueryItem(name: "current", value: "temperature_2m")' in c
+assert 'URLQueryItem(name: "temperature_unit", value: "celsius")' in c
+assert 'URLSession.shared.data(from: endpoint)' in c
+assert 'gps.currentCoordinate(at: now)' in c
+assert 'gps.$lastGPSCoordinate' in c
+assert '(coordinate.latitude * 100).rounded() / 100' in c
+assert '(coordinate.longitude * 100).rounded() / 100' in c
+assert '15 * 60' in c
+assert '60 * 60' in c
+assert 'String(format: "%.0f°C", $0)' in c
+assert '"—°C"' in c
+assert 'Link("Meteo · Open-Meteo"' in c
+assert 'Licenza dati (CC BY 4.0)' in o
+assert 'coordinate geografiche approssimate' in info['NSLocationWhenInUseUsageDescription']
+print('OK — 24: temperatura GPS approssimata, fonte Open-Meteo, UI cockpit e cache')

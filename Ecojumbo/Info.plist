@@ -10,7 +10,7 @@
 <key>CFBundleVersion</key><string>$(CURRENT_PROJECT_VERSION)</string>
 <key>ITSAppUsesNonExemptEncryption</key><false/>
 <key>LSRequiresIPhoneOS</key><true/>
-<key>NSLocationWhenInUseUsageDescription</key><string>Ecojumbo usa la posizione dell’iPhone per mostrare la velocità GPS, registrare i viaggi e calcolare itinerari stradali con MapKit dentro l’app.</string>
+<key>NSLocationWhenInUseUsageDescription</key><string>Ecojumbo usa la posizione per velocità GPS, viaggi, itinerari con MapKit e temperatura meteo esterna: invia coordinate geografiche approssimate a Open-Meteo per recuperare il dato meteorologico.</string>
 <key>NSBluetoothAlwaysUsageDescription</key><string>Ecojumbo usa il Bluetooth per leggere i dati del BMS della batteria dello scooter.</string>
 <key>UIApplicationSupportsIndirectInputEvents</key><true/>
 <key>UILaunchScreen</key><dict/>
