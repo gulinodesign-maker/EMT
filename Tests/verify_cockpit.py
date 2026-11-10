@@ -177,7 +177,9 @@ assert '15 * 60' in c
 assert '60 * 60' in c
 assert 'String(format: "%.0f°C", $0)' in c
 assert '"—°C"' in c
-assert 'Link("Meteo · Open-Meteo"' in c
+assert 'Image(systemName: "thermometer.medium")' in c
+assert 'Link("Meteo · Open-Meteo"' not in c
+assert 'Temperatura meteo esterna stimata' not in c
 assert 'Licenza dati (CC BY 4.0)' in o
 assert 'coordinate geografiche approssimate' in info['NSLocationWhenInUseUsageDescription']
 assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 2
