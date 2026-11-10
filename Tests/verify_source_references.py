@@ -8,10 +8,14 @@ project=(root/'Ecojumbo.xcodeproj/project.pbxproj').read_text()
 for source in code:
     assert source in project, f'{source} not registered in Xcode project'
     assert re.search(re.escape(source)+r' in Sources',project), f'{source} not in build phase'
-for symbol in ('CockpitDashboard','TripsPanel','RoutesPanel','CellsView','BluetoothView','AppleMapsPanel','EcoSettingsView','ThemePickerView'):
+for symbol in ('CockpitDashboard','GPSCockpitDashboard','TripsPanel','CellsView','BluetoothView','EcoSettingsView','ThemePickerView'):
     assert re.search(r'\bstruct\s+'+symbol+r'\s*:',joined), f'Missing SwiftUI component: {symbol}'
     assert re.search(r'\b'+symbol+r'\s*\(',code['EcojumboRootView.swift']), f'Not referenced: {symbol}'
 assert 'MKDirections(request: request).calculate()' in code['CockpitTabs.swift']
+assert 'GPSCockpitMap(theme: theme)' in code['CockpitComponents.swift']
+assert 'navigation.plan(destination: destination, origin: gps.currentCoordinate())' in code['CockpitComponents.swift']
+assert 'AppleMapsPanel()' not in code['EcojumboRootView.swift']
+assert 'RoutesPanel()' not in code['EcojumboRootView.swift']
 assert 'www.google.com' not in joined
 icon=(root/'Ecojumbo/Assets.xcassets/AppIcon.appiconset/AppIcon.png').read_bytes()
 assert icon.startswith(b'\x89PNG\r\n\x1a\n')
