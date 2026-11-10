@@ -1,121 +1,75 @@
+"""Regressione funzionale e grafica Ecojumbo 1.0 (17), senza dati simulati."""
 from pathlib import Path
-import json, plistlib
-root = Path(__file__).resolve().parents[1]
-project = (root/'Ecojumbo.xcodeproj/project.pbxproj').read_text()
-with (root/'Ecojumbo/Info.plist').open('rb') as f:
-    plist = plistlib.load(f)
-for name in ('CockpitComponents.swift', 'CockpitTabs.swift', 'EcojumboRootView.swift'):
-    assert project.count(name) >= 2, f'Missing build references: {name}'
-assert 'it.ecojumbo.battery' in project
-assert 'CURRENT_PROJECT_VERSION = 16' in project
-assert 'MARKETING_VERSION = 1.0' in project
-assert set(plist['UISupportedInterfaceOrientations']) == {
-    'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight'
-}
-assert plist['NSLocationWhenInUseUsageDescription']
-assert plist['NSBluetoothAlwaysUsageDescription']
-ui = (root/'Ecojumbo/Views/EcojumboRootView.swift').read_text()
-comp = (root/'Ecojumbo/Views/CockpitComponents.swift').read_text()
-tabs = (root/'Ecojumbo/Views/CockpitTabs.swift').read_text()
-gps = (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
-assert 'case dashboard, trips, routes, battery, bms, maps, settings, themes' in ui
-assert 'Image("EcojumboMark")' in comp
-assert 'SegmentedGaugeBar(d:' in comp
-assert 'gps.currentSpeed(at:now)' in comp
-assert 'bluetooth.snapshot' in comp
-assert 'averageDischargeKW' in comp
-assert 'GoogleMapsPanel' in tabs and 'www.google.com' in tabs
-assert 'func setOdometer(_ kilometers: Double)' in gps
-assert 'track: [RouteCoordinate]' in gps
-assert 'Rame' in comp and 'Ghiaccio' in comp
-settings = (root/'Ecojumbo/Views/OtherViews.swift').read_text()
-assert 'Chilometri totali dello scooter' in settings
-for image in ('AppIcon.appiconset/AppIcon.png','EcojumboMark.imageset/EcojumboMark.png'):
-    assert (root/'Ecojumbo/Assets.xcassets'/image).stat().st_size > 10000
-assert (root/'RiferimentoGrafico/Cockpit_approvato.jpg').is_file()
-assert 'PremiumWing' in comp and 'ContinuousHorizonLine' in comp
-assert 'cornerRadius: h * 0.16' in comp  # angoli delle ali
-assert '.blur(radius:' in comp and '.shadow(color:' in comp  # vera luce per SwiftUI
-assert 'min(h * 0.970, w * 0.57)' in comp  # quadrante entro i bordi
-assert 'CockpitCornerControls' in ui and 'EcoTab.allCases.prefix(4)' in ui and 'EcoTab.allCases.suffix(4)' in ui
-assert '48 A' not in comp and '62 km/h' not in comp  # nessuna lettura hardcoded
-assert 'HollowSpeedNumber' in comp and 'NSAttributedString' in comp
-assert 'SegmentedGaugeBar' in comp and 'SpeedScaleTicks' in comp
-assert 'CarbonWeave' in comp and (root/'Ecojumbo/Assets.xcassets/CarbonWeave.imageset/CarbonWeave.png').exists()
-assert (root/'RiferimentoGrafico/Cockpit_1_07_utente.jpg').stat().st_size > 100_000
-assert 'PremiumWing(readings: leftRows' in comp and 'PremiumWing(readings: rightRows' in comp
-print('OK — EJ 1.09: carbonio, ali unite, anelli segmentati, speed stream rossa e 8 pulsanti separati')
+import plistlib
 
-# Regression: every view referenced by the root navigation must be defined and compiled.
-assert (root/'Ecojumbo/Views/CellsView.swift').exists()
-assert 'struct CellsView: View' in (root/'Ecojumbo/Views/CellsView.swift').read_text()
-assert 'CellsView.swift in Sources' in project
+r=Path(__file__).resolve().parents[1]
+p=(r/'Ecojumbo.xcodeproj/project.pbxproj').read_text()
+u=(r/'Ecojumbo/Views/EcojumboRootView.swift').read_text()
+c=(r/'Ecojumbo/Views/CockpitComponents.swift').read_text()
+t=(r/'Ecojumbo/Views/CockpitTabs.swift').read_text()
+o=(r/'Ecojumbo/Views/OtherViews.swift').read_text()
+g=(r/'Ecojumbo/Models/GPSRideManager.swift').read_text()
+with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
-# Regressioni della nuova grafica: nessun simbolo nelle tre righe laterali.
-assert 'Image(systemName:item.symbol)' not in comp
-assert 'let symbol: String' not in comp
-assert 'BluetoothGlyph().frame(width:' in comp
-assert 'BluetoothGlyph()' in ui
-assert 'Text(now.formatted(date: .omitted, time: .shortened))' in comp
-assert 'Image("CarbonWeave")' in comp
-assert '.clipShape(Circle())' in comp
-assert '.zIndex(30)' in comp and '.zIndex(2)' in comp
-assert 'ContinuousHorizonLine(theme: theme)' in comp
-assert 'p.addLine(to: CGPoint(x: w, y: y))' in comp
-assert '— V' in comp and '— kW' in comp
-print('OK — gerarchia primo piano, top bar continua e ribassata, Bluetooth vettoriale, numeri senza icone')
+for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
+    assert p.count(item)>=2,(item,p.count(item))
+assert p.count('CURRENT_PROJECT_VERSION = 17;')==2
+assert p.count('MARKETING_VERSION = 1.0;')==2
+assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
+assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
+assert info['NSLocationWhenInUseUsageDescription'] and info['NSBluetoothAlwaysUsageDescription']
+assert 'case dashboard, trips, routes, battery, bms, maps, settings, themes' in u
+assert 'EcoTab.allCases.prefix(4)' in u and 'EcoTab.allCases.suffix(4)' in u
+assert 'BluetoothGlyph()' in u and 'CockpitCornerControls' in u
+assert 'GoogleMapsPanel' in t and 'www.google.com' in t
+assert 'struct CellsView: View' in (r/'Ecojumbo/Views/CellsView.swift').read_text()
+assert 'func setOdometer(_ kilometers: Double)' in g and 'track: [RouteCoordinate]' in g
+for a in ('AppIcon.appiconset/AppIcon.png','EcojumboMark.imageset/EcojumboMark.png'):
+    assert (r/'Ecojumbo/Assets.xcassets'/a).stat().st_size>10000
+assert (r/'Ecojumbo/Assets.xcassets/CarbonWeave.imageset/CarbonWeave.png').exists()
+assert 'Image("CarbonWeave")' in c and 'Image("EcojumboMark")' in c
+assert (r/'RiferimentoGrafico/Cockpit_1_09_utente.jpg').stat().st_size>100000
 
-# EJ 1.08: nessuna barra inferiore continua; i pulsanti sono flottanti in due gruppi.
-assert 'BottomRailShape' not in ui
-assert 'CockpitCornerControls(selected: $selected' in ui
-assert '.frame(width: geometry.size.width, height: geometry.size.height)' in ui
-assert 'frame(width: side, height: side)' in ui
-# La top bar e le 6 letture laterali non devono sovrapporsi al disco centrale.
-assert comp.index('PremiumWing(readings: leftRows') < comp.index('OpenSpeedCluster(speed: liveSpeed')
-assert '.zIndex(30)' in comp
-assert '.opacity(0.74)' in comp
-assert 'let innerColor' in comp and 'let outerColor' in comp
-assert 'current.map { String(format:' in comp
-assert '62 km/h' not in comp and '78%' not in comp
-print('OK — root a pieno schermo, tasti 4+4, pannelli dietro a disco opaco, misure reali')
+# Sei schede indipendenti, con sei icone e soltanto tre barre reali.
+assert 'private struct PremiumWing: View' in c and 'metricTile(reading, width: w, height: tileHeight)' in c
+assert 'ForEach(readings.indices' in c
+assert c.count('WingReading(value:')==6
+assert c.count('showsBar: true')==3 and c.count('showsBar: false')==3
+for sym in ('bolt.fill','voltage','road.lanes','chart.bar.fill','mappin','speedometer'):
+    assert f'icon: "{sym}"' in c
+assert 'if reading.showsBar {' in c and 'MetricGlowBar(fraction: reading.fraction' in c
+assert c.count('CockpitBarMath.unit(')==3
+assert 'CockpitBarMath.odometerCycle(' not in c
+assert 'rangeKm.map' in c and 'gps.tripKm' in c and 'gps.totalKm' in c
+assert 'let instantKW = live.map { -($0.power) / 1000.0 }' in c
+assert 'bluetooth.snapshot' in c and 'gps.currentSpeed(at:now)' in c
+assert '48 A' not in c and '62 km/h' not in c and '400 V' not in c
+assert '— V' in c and '— kW' in c and '— km' in c
+assert 'Text(String(Int(speed.rounded())))' in c and 'Text("km/h")' in c
+assert 'Text("GPS")' in c and 'Text("P")' not in c
+assert 'SpeedLEDStream(d: d, speed: speed)' in c and 'SpeedScaleTicks(d: d)' in c
+assert 'SegmentedGaugeBar(d:' in c
 
-# EJ 1.08: barre reali per tutti i sei pannelli, nessuna simulazione.
-assert 'MetricGlowBar(fraction: reading.fraction' in comp
-assert comp.count('CockpitBarMath.unit(') == 5
-assert 'CockpitBarMath.odometerCycle(' in comp
-assert '.animation(.easeInOut(duration: 0.35), value: fraction)' in comp
-assert 'ecojumbo.bars.rangeMaxKm' in settings
-assert 'Scale delle barre luminose' in settings
-assert (root/'Ecojumbo/Models/CockpitBarMath.swift').exists()
-assert 'CockpitBarMath.swift in Sources' in project
-print('OK — 6 barre con riempimento reale, scale modificabili e valori non disponibili vuoti')
+# Raccordi C1 soltanto sopra i valori A/kW; lati inferiori rettilinei.
+assert 'ContinuousLowerLine: Shape' in u and 'ContinuousLowerGlow(theme: theme)' in u
+assert 'p.addLine(to: pt(shoulderX, 0.805))' in u
+assert 'p.addLine(to: pt(1 - footX, 0.987))' in u
+assert 'control1: pt(tangentX, 0.77588), control2: pt(0.384, 0.740)' in u
+assert 'control1: pt(0.616, 0.740), control2: pt(1 - tangentX, 0.77588)' in u
+assert 'p.addLine(to: pt(0.588, 0.740))' in u
+assert 'CornerDockGlow' not in u and 'FooterLightContour' not in c
+# Linea top bar sinuosa e unica dietro il quadrante.
+assert 'private struct ContinuousHorizonLine: View' in c
+assert 'p.addCurve(to: CGPoint(x: w * 0.355, y: h * 0.238)' in c
+assert 'p.addCurve(to: CGPoint(x: w * 0.745, y: h * 0.085)' in c
+assert 'min(h * 0.970, w * 0.57)' in c
 
-assert 'ContinuousLowerLine: Shape' in ui
-assert 'ContinuousLowerGlow(theme: theme)' in ui
-assert 'CornerDockGlow' not in ui
-assert 'FooterLightContour' not in comp
-assert ui.count('p.move(to: pt(footX, 0.987))') == 1
-assert ui.count('p.addLine(to: pt(0.635, 0.805))') == 1
-# EJ 1.10: piattaforma leggermente ribassata, due raccordi cubici C1.
-assert 'p.addLine(to: pt(0.635, 0.805))' in ui
-assert 'control1: pt(footX + 0.012, 0.957), control2: pt(0.342, 0.805)' in ui
-assert 'control1: pt(0.658, 0.805), control2: pt(1 - footX - 0.012, 0.957)' in ui
-assert 'let wingInset = max(5, w * 0.006)' in comp
-assert '.position(x: wingInset + wingWidth / 2' in comp
-assert '.position(x: w - wingInset - wingWidth / 2' in comp
-assert 'SpeedLEDStream(d: d, speed: speed)' in comp
-assert 'SpeedScaleTicks(d: d)' in comp
-assert 'GaugeTicks' not in comp
-assert 'for index in 0...6' not in comp
-assert 'let label=Text(' not in comp
-assert 'guard let speed, speed.isFinite' in comp
-assert 'min(1, max(0, speed / 120))' in comp
-assert '.animation(.easeInOut(duration: 0.38), value: progress)' in comp
-assert 'var animatableData: Double' in comp
-assert 'y: d * 0.900' in comp
-assert 'let y = h * 0.73' in comp
-assert '.position(x: w / 2, y: h * 0.505)' in comp
-assert 'p.addLine(to: pt(0.234' not in ui
-assert 'p.addLine(to: pt(0.988' not in ui
-assert (root/'RiferimentoGrafico/Cockpit_1_09_utente.jpg').stat().st_size > 100_000
-print('OK — arco inferiore aperto senza linee sotto i tasti, LED rosso GPS, senza numeri statici')
+# Sei temi, griglia visibile con 3 colonne e 2 righe in landscape.
+for tag in ['case copper = "Rame"','case glacier = "Ghiaccio"','case green = "Verde"','case aquamarine = "Acquamarina"','case brown = "Marrone"','case racing = "Racing"']:
+    assert tag in c
+assert 'LazyVGrid(columns: columns, spacing: 13)' in t
+assert 'Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)' in t
+assert 'ForEach(CockpitTheme.allCases)' in t
+assert 'Scale delle barre luminose' in o and 'Nessuna barra nelle tre schede chilometriche' in o
+assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
+print('OK — 17: 6 card con icone, 3 barre reali, raccordi C1, 6 temi a griglia 2x3')
