@@ -1101,12 +1101,12 @@ struct GPSCockpitDashboard: View {
                     .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(27)
 
-                // Ponte più piccolo e incastrato DIETRO il tachimetro;
-                // la sfumatura grigia rimane sotto i valori kW.
+                // Ponte più corto, raccordato al bordo inferiore del tachimetro;
+                // la sfumatura scende dietro le letture kW, senza coprirne il testo.
                 GPSLowerGlow(theme: theme)
                     .frame(width: w, height: h)
                     .allowsHitTesting(false)
-                    .zIndex(22)
+                    .zIndex(28)
 
                 GPSHeader(theme: theme, now: now,
                           speedAvailable: gps.currentSpeed(at: now) != nil,
