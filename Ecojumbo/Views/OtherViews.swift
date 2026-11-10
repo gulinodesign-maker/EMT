@@ -149,10 +149,7 @@ struct EcoSettingsView: View {
     @AppStorage("ecojumbo.capacity") private var capacity = 206
     @AppStorage("ecojumbo.chargeAlert") private var chargeAlert = 80
     @AppStorage("ecojumbo.frameFormat") private var rawFormat = JKFrameFormat.automatic.rawValue
-    @AppStorage("ecojumbo.bars.rangeMaxKm") private var rangeMaxKm = 200.0
     @AppStorage("ecojumbo.bars.averagePowerMaxKW") private var averagePowerMaxKW = 5.0
-    @AppStorage("ecojumbo.bars.tripMaxKm") private var tripMaxKm = 100.0
-    @AppStorage("ecojumbo.bars.odometerCycleKm") private var odometerCycleKm = 1000.0
 
     var body: some View {
         Form {
@@ -203,16 +200,12 @@ struct EcoSettingsView: View {
                 if let odometerStatus { Text(odometerStatus).font(.caption).foregroundStyle(.secondary) }
             }
             Section("Scale delle barre luminose") {
-                Text("Le barre sotto i sei valori seguono le misure reali. Le scale servono solo a rappresentare il riempimento: non sono limiti del BMS né del veicolo.")
+                Text("Tre barre reali per carica batteria, tensione e potenza istantanea. Nessuna barra nelle tre schede chilometriche. Le scale sono solo grafiche, non limiti di sicurezza.")
                     .font(.footnote).foregroundStyle(.secondary)
                 LabeledContent("SOC", value: "0–100%")
                 LabeledContent("Tensione 20S", value: "50–73 V")
-                Stepper("Autonomia: 0–\(Int(rangeMaxKm)) km", value: $rangeMaxKm, in: 50...800, step: 25)
-                Stepper("Potenza media: 0–\(Int(averagePowerMaxKW)) kW", value: $averagePowerMaxKW, in: 1...20, step: 1)
-                Stepper("Trip: 0–\(Int(tripMaxKm)) km", value: $tripMaxKm, in: 10...1000, step: 10)
-                Stepper("Ciclo km totali: \(Int(odometerCycleKm)) km", value: $odometerCycleKm, in: 100...10000, step: 100)
-                Text("La barra dei km totali indica l'avanzamento nel ciclo scelto (ad esempio, a 1.285 km segna 285/1.000). Non si tratta di una percentuale di vita del veicolo.")
-                    .font(.footnote).foregroundStyle(.secondary)
+                Stepper("Potenza istantanea: 0–\(Int(averagePowerMaxKW)) kW",
+                        value: $averagePowerMaxKW, in: 1...20, step: 1)
             }
             Section("GPS e viaggi") {
                 Text("Il tachimetro usa soltanto Core Location e mostra — quando il segnale GPS non è disponibile. I chilometri vengono accumulati solo con posizioni valide e l’app attiva. Non sostituisce il tachimetro omologato del veicolo.")
