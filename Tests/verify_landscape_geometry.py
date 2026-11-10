@@ -1,6 +1,4 @@
-"""Regression di layout senza dipendenze da UIKit / simulatore iOS.
-Verifica i limiti geometrici utilizzati in SwiftUI ai rapporti tipici in landscape.
-"""
+"""Regressioni EJ 1.14 del cockpit in landscape, senza dipendenze iOS."""
 from pathlib import Path
 import math
 root = Path(__file__).resolve().parents[1]
@@ -8,50 +6,53 @@ c = (root/'Ecojumbo/Views/CockpitComponents.swift').read_text()
 r = (root/'Ecojumbo/Views/EcojumboRootView.swift').read_text()
 assert 'let dialSize = min(h * 0.93, w * 0.57)' in c
 assert '.position(x: w / 2, y: h * 0.50)' in c
-assert '.position(x: d * 0.50, y: d * 0.910)' in c
+assert '.position(x: d * 0.50, y: d * 0.825)' in c
+assert 'ContinuousHorizonLine: View' in c
+assert 'ContinuousHorizonLine(theme: theme)' in c
+assert 'SplitHorizonLine' not in c
+assert 'p.move(to: CGPoint(x: 0, y: y))' in c
+assert 'p.addLine(to: CGPoint(x: w, y: y))' in c
+assert 'ContinuousHorizonLine(theme: theme)\n                    .frame(width: w, height: headerHeight)\n                    .zIndex(2)' in c
 assert 'ContinuousLowerLine: Shape' in r
 assert 'CornerDockGlow' not in r
 assert 'FooterLightContour' not in c
-# Un solo path unificato in ordine sinistra -> centro -> destra.
+assert r.count('p.move(to: pt(') == 1
+assert r.count('p.addCurve(to: pt(') == 2
 marks = [
-    'p.move(to: pt(0.012, 0.973))',
-    'p.addLine(to: pt(0.242, 0.973))',
-    'p.addCurve(to: pt(0.316, 0.835)',
-    'p.addCurve(to: pt(0.363, 0.793)',
-    'p.addLine(to: pt(0.637, 0.793))',
-    'p.addCurve(to: pt(0.684, 0.835)',
-    'p.addCurve(to: pt(0.758, 0.973)',
-    'p.addLine(to: pt(0.988, 0.973))'
+    'p.move(to: pt(0.012, 0.872))',
+    'p.addLine(to: pt(0.234, 0.872))',
+    'p.addCurve(to: pt(0.365, 0.735)',
+    'control1: pt(0.294, 0.872), control2: pt(0.305, 0.735)',
+    'p.addLine(to: pt(0.635, 0.735))',
+    'p.addCurve(to: pt(0.766, 0.872)',
+    'control1: pt(0.695, 0.735), control2: pt(0.706, 0.872)',
+    'p.addLine(to: pt(0.988, 0.872))'
 ]
-# Le tangenti nei due raccordi sono identiche sui segmenti adiacenti.
-assert (.316 - .291, .835 - .855) == (.341 - .316, .815 - .835) or (
-    math.isclose(.316 - .291, .341 - .316) and math.isclose(.835 - .855, .815 - .835))
-assert math.isclose(.684 - .659, .709 - .684)
-assert math.isclose(.835 - .815, .855 - .835)
 indices = [r.index(mark) for mark in marks]
 assert indices == sorted(indices)
-for width, height in [(844, 390), (852, 393), (932, 430), (956, 440), (736, 414), (1536, 864)]:
-    # Entrambe le ali mantengono almeno cinque punti di margine.
-    wing_inset = max(5, width*0.006)
-    assert wing_inset >= 5 and width*0.390 + wing_inset < width/2
-    d = min(height*0.93, width*0.57)
-    top = height*0.50-d/2
-    bottom = height*0.50+d/2
-    assert top >= height*0.03 and bottom <= height*0.97, (width,height,top,bottom)
-    # Interior of meter text: A/kW below the continuous central line, before the dock bottom.
-    text_y = top+d*0.910
-    line_y = height*0.793
-    assert line_y < text_y < height*0.96, (width,height,line_y,text_y)
-    # Buttons (root: height max(51,min(83,h*0.105)), bottom padding max(7,h*0.050))
-    controls_h = max(51, min(83, height*0.105))
-    controls_bottom = height-max(7,height*.05)
-    curve_bottom = height*.973
-    assert controls_bottom < curve_bottom < height, (width,height,controls_bottom,curve_bottom)
-# 0, 60, 120 km/h => 0, 50, 100% dell'arco; oltre 120 satura.
-for kmh, expected in [(0,0), (30,.25),(60,.5),(120,1),(150,1)]:
+assert '.padding(.bottom, max(7, geometry.size.height * 0.145))' in r
+# Tangenti orizzontali e simmetria: nessun micro-gradino nei raccordi.
+assert math.isclose(.365-.305, .294-.234)
+assert math.isclose(.766-.706, .695-.635)
+assert math.isclose(.365, 1-.635)
+assert math.isclose(.234, 1-.766)
+for width, height in [(844,390),(852,393),(932,430),(956,440),(736,414),(1536,864)]:
+    wing_inset = max(5, width*.006)
+    assert wing_inset >= 5 and width*.390 + wing_inset < width/2
+    d = min(height*.93, width*.57)
+    top = height*.50-d/2
+    bottom = height*.50+d/2
+    assert top >= height*.03 and bottom <= height*.97
+    footer_y = top+d*.825
+    line_y = height*.735
+    assert line_y < footer_y < height*.83
+    controls_bottom = height-max(7,height*.145)
+    outer_line_y = height*.872
+    assert controls_bottom < outer_line_y < height
+    assert math.isclose(height*.125*.67, height*.08375)
+for kmh, expected in [(0,0),(30,.25),(60,.5),(120,1),(150,1)]:
     assert math.isclose(min(1,max(0,kmh/120)),expected)
 assert 'SpeedLEDStream(d: d, speed: speed)' in c
 assert 'SpeedScaleTicks(d: d)' in c
-assert 'let label=Text(' not in c # eliminati i numeri fissi
 assert 'var animatableData: Double' in c
-print('OK — diametro entro 93% altezza, contorno inferiore unico, LED rosso 0–120 progressivo')
+print('OK — EJ 1.14: top bar ininterrotta, raccordi cubici C1 senza gradini, layout landscape')

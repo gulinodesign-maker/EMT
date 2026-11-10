@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 import Darwin
 
-// EJ 1.10 — raccordi inferiori fluidi e margini visibili dei pannelli laterali.
+// EJ 1.14 — top bar continua, raccordi inferiori senza gradini.
 // Geometry, rings, numerals and panels are real SwiftUI controls (no reference bitmap as UI).
 // Misure esclusivamente da Core Location / JK BLE, senza campioni sintetici.
 enum CockpitTheme: String, CaseIterable, Identifiable {
@@ -155,40 +155,29 @@ private struct PremiumWing: View {
     }
 }
 
-// La top bar orizzontale si interrompe prima degli anelli del tachimetro.
-// Le estremità si affievoliscono nei pressi della strumentazione, senza chiuderne la corona.
-private struct SplitHorizonLine: View {
+// EJ 1.14: linea della top bar veramente continua sull'intera larghezza.
+/// E' dietro il quadrante opaco, che la nasconde naturalmente nella zona centrale.
+/// Nessuna interruzione geometrica, nessuna dissolvenza ai bordi del tachimetro.
+private struct ContinuousHorizonLine: View {
     let theme: CockpitTheme
     var body: some View {
         GeometryReader { geometry in
             let w = geometry.size.width
             let h = geometry.size.height
-            let y = h * 0.74
-            ZStack {
-                ForEach([true, false], id: \.self) { left in
-                    let path = Path { p in
-                        if left {
-                            p.move(to: CGPoint(x: 0, y: y))
-                            p.addLine(to: CGPoint(x: w * 0.320, y: y))
-                        } else {
-                            p.move(to: CGPoint(x: w * 0.680, y: y))
-                            p.addLine(to: CGPoint(x: w, y: y))
-                        }
-                    }
-                    let glow = LinearGradient(stops: left ? [
-                        .init(color: theme.accent, location: 0),
-                        .init(color: theme.accent, location: 0.70),
-                        .init(color: theme.accent.opacity(0.02), location: 1)
-                    ] : [
-                        .init(color: theme.accent.opacity(0.02), location: 0),
-                        .init(color: theme.accent, location: 0.30),
-                        .init(color: theme.accent, location: 1)
-                    ], startPoint: .leading, endPoint: .trailing)
-                    path.stroke(glow, lineWidth: h * 0.21).blur(radius: h * 0.16)
-                    path.stroke(glow, lineWidth: h * 0.07).blur(radius: h * 0.045)
-                    path.stroke(glow, style: StrokeStyle(lineWidth: 1.8, lineCap: .round))
-                }
+            let y = h * 0.67
+            let line = Path { p in
+                p.move(to: CGPoint(x: 0, y: y))
+                p.addLine(to: CGPoint(x: w, y: y))
             }
+            ZStack {
+                line.stroke(theme.accent.opacity(0.28), lineWidth: max(4, h * 0.22))
+                    .blur(radius: max(2, h * 0.13))
+                line.stroke(theme.accent.opacity(0.78), lineWidth: max(2.5, h * 0.085))
+                    .blur(radius: max(1, h * 0.035))
+                line.stroke(theme.accent,
+                            style: StrokeStyle(lineWidth: max(1.4, h * 0.034), lineCap: .butt))
+            }
+            .frame(width: w, height: h)
         }
         .allowsHitTesting(false)
     }
@@ -312,9 +301,9 @@ struct CockpitDashboard:View {
                     .frame(width: dialSize * 0.992, height: dialSize * 0.992)
                     .position(x: w * 0.50, y: h * 0.50)
                     .zIndex(34)
-                SplitHorizonLine(theme: theme)
+                ContinuousHorizonLine(theme: theme)
                     .frame(width: w, height: headerHeight)
-                    .zIndex(35)
+                    .zIndex(2)
                 topInfoBar(height: headerHeight, width: w)
                     .frame(width: w, height: headerHeight)
                     .zIndex(40)
@@ -656,7 +645,7 @@ private struct OpenSpeedCluster: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.45)
                 .frame(width: d * 0.66, height: d * 0.13)
-                .position(x: d * 0.50, y: d * 0.910)
+                .position(x: d * 0.50, y: d * 0.825)
             }
             .frame(width: d, height: d)
         }

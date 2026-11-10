@@ -97,7 +97,7 @@ struct EcojumboRootView: View {
                 CockpitCornerControls(selected: $selected, theme: theme)
                     .frame(width: geometry.size.width,
                            height: max(51, min(83, geometry.size.height * 0.105)))
-                    .padding(.bottom, max(7, geometry.size.height * 0.050))
+                    .padding(.bottom, max(7, geometry.size.height * 0.145))
                     .zIndex(50)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
@@ -193,9 +193,9 @@ private struct CockpitCornerControls: View {
 }
 
 
-/// EJ 1.10: un unico tracciato inferiore, con raccordi cubici a tangente
-/// continua (C1) e piattaforma centrale abbassata di circa 3 punti in landscape.
-/// Nessun raccordo spezzato fra tratto inclinato e tratto orizzontale.
+/// EJ 1.14 — linea inferiore unica come nel riferimento approvato.
+/// Due sole curve cubiche speculari con tangenti orizzontali a entrambe le estremita:
+/// il profilo si raccorda ai tratti rettilinei senza gradini, cuspidi o micro-segmenti.
 struct ContinuousLowerLine: Shape {
     func path(in rect: CGRect) -> Path {
         let w = rect.width
@@ -204,18 +204,14 @@ struct ContinuousLowerLine: Shape {
             CGPoint(x: w * x, y: h * y)
         }
         var p = Path()
-        p.move(to: pt(0.012, 0.973))
-        p.addLine(to: pt(0.242, 0.973))
-        p.addCurve(to: pt(0.316, 0.835),
-                   control1: pt(0.268, 0.973), control2: pt(0.291, 0.855))
-        p.addCurve(to: pt(0.363, 0.793),
-                   control1: pt(0.341, 0.815), control2: pt(0.344, 0.793))
-        p.addLine(to: pt(0.637, 0.793))
-        p.addCurve(to: pt(0.684, 0.835),
-                   control1: pt(0.656, 0.793), control2: pt(0.659, 0.815))
-        p.addCurve(to: pt(0.758, 0.973),
-                   control1: pt(0.709, 0.855), control2: pt(0.732, 0.973))
-        p.addLine(to: pt(0.988, 0.973))
+        p.move(to: pt(0.012, 0.872))
+        p.addLine(to: pt(0.234, 0.872))
+        p.addCurve(to: pt(0.365, 0.735),
+                   control1: pt(0.294, 0.872), control2: pt(0.305, 0.735))
+        p.addLine(to: pt(0.635, 0.735))
+        p.addCurve(to: pt(0.766, 0.872),
+                   control1: pt(0.695, 0.735), control2: pt(0.706, 0.872))
+        p.addLine(to: pt(0.988, 0.872))
         return p
     }
 }
@@ -238,7 +234,7 @@ struct ContinuousLowerGlow: View {
                     .stroke(LinearGradient(stops: [
                         .init(color: theme.accent, location: 0),
                         .init(color: theme.accent.opacity(0.94), location: 0.25),
-                        .init(color: .white.opacity(0.96), location: 0.50),
+                        .init(color: theme.accent.opacity(0.97), location: 0.50),
                         .init(color: theme.accent.opacity(0.94), location: 0.75),
                         .init(color: theme.accent, location: 1)
                     ], startPoint: .leading, endPoint: .trailing),
