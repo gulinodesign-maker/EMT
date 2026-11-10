@@ -155,7 +155,8 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     static let barDark = Color(red: 0.55, green: 0.02, blue: 0.13)
     static let barMid = Color(red: 0.91, green: 0.06, blue: 0.23)
     static let barBright = Color(red: 0.99, green: 0.20, blue: 0.32)
-    static let regenAccent = Color(red: 0.20, green: 0.83, blue: 0.65)
+    static let regenAccent = Color(red: 0.17, green: 0.73, blue: 1.00)
+    static let dischargeAccent = Color(red: 0.98, green: 0.17, blue: 0.18)
     var previewPalette: [Color] {
         // Fondo carbonio, luce, ombra, acciaio e tutte e tre le tinte della barra più la rigenerazione.
         [Color(red: 0.015, green: 0.016, blue: 0.019),
@@ -525,8 +526,8 @@ struct CockpitDashboard:View {
 
                 // Disco carbonio opaco in PRIMO PIANO: i dati laterali restano dietro.
                 OpenSpeedCluster(speed: liveSpeed,
-                                 current: live.map { -($0.current) },
-                                 power: live.map { -($0.power) },
+                                 incomingPower: live.map { Swift.max(0, $0.power) },
+                                 outgoingPower: live.map { Swift.max(0, -$0.power) },
                                  theme: theme)
                     .frame(width: dialSize, height: dialSize)
                     .position(x: w / 2, y: h * 0.507)
@@ -680,13 +681,13 @@ private struct SpeedScaleTicks: View {
     }
 }
 
-/// Stream LED ROSSO progressivo: accesa solo quando esiste una misura GPS valida.
+/// Stream LED ARANCIONE progressivo: accesa solo quando esiste una misura GPS valida.
 /// L'arco è posto all'interno delle tacche bianche, sotto le due corone segmentate.
 /// Il punto luminoso segue la punta effettiva dell'arco; a 0 km/h resta spento.
 private struct SpeedLEDStream: View {
     let d: CGFloat
     let speed: Double?
-    private let ledRed = Color(red: 1, green: 0.11, blue: 0.09)
+    private let ledOrange = Color(red: 1.00, green: 0.44, blue: 0.03)
 
     private var progress: Double? {
         guard let speed, speed.isFinite, speed >= 0 else { return nil }
@@ -697,18 +698,18 @@ private struct SpeedLEDStream: View {
         ZStack {
             // Anima inerte: si vede la forma della pista ma NON un valore simulato.
             GaugeArc(start: 146, end: 394)
-                .stroke(Color(red: 0.29, green: 0.085, blue: 0.07).opacity(0.28),
+                .stroke(Color(red: 0.28, green: 0.11, blue: 0.02).opacity(0.28),
                         style: StrokeStyle(lineWidth: d * 0.009, lineCap: .round))
                 .frame(width: d * 0.722, height: d * 0.722)
             if let progress, progress > 0 {
                 GaugeArc(start: 146, end: 394, fraction: progress)
-                    .stroke(ledRed.opacity(0.80),
+                    .stroke(ledOrange.opacity(0.80),
                             style: StrokeStyle(lineWidth: d * 0.034, lineCap: .round))
                     .blur(radius: d * 0.027)
                     .frame(width: d * 0.722, height: d * 0.722)
                 GaugeArc(start: 146, end: 394, fraction: progress)
-                    .stroke(ledRed, style: StrokeStyle(lineWidth: d * 0.015, lineCap: .round))
-                    .shadow(color: ledRed.opacity(0.94), radius: d * 0.010)
+                    .stroke(ledOrange, style: StrokeStyle(lineWidth: d * 0.015, lineCap: .round))
+                    .shadow(color: ledOrange.opacity(0.94), radius: d * 0.010)
                     .frame(width: d * 0.722, height: d * 0.722)
                 GaugeArc(start: 146, end: 394, fraction: progress)
                     .stroke(Color.white.opacity(0.65),
@@ -721,8 +722,8 @@ private struct SpeedLEDStream: View {
                 Circle()
                     .fill(.white)
                     .frame(width: d * 0.020, height: d * 0.020)
-                    .shadow(color: ledRed, radius: d * 0.027)
-                    .shadow(color: ledRed.opacity(0.95), radius: d * 0.014)
+                    .shadow(color: ledOrange, radius: d * 0.027)
+                    .shadow(color: ledOrange.opacity(0.95), radius: d * 0.014)
                     .position(endPoint)
             }
         }
@@ -808,8 +809,8 @@ private struct HollowSpeedNumber:UIViewRepresentable {
 // Il numero di velocità è disegnato a contorno; la lettura proviene solo dal GPS.
 private struct OpenSpeedCluster: View {
     let speed: Double?
-    let current: Double?
-    let power: Double?
+    let incomingPower: Double?
+    let outgoingPower: Double?
     let theme: CockpitTheme
 
     private func magnitude(_ input: Double, limit: Double) -> Double {
@@ -819,11 +820,10 @@ private struct OpenSpeedCluster: View {
     var body: some View {
         GeometryReader { geo in
             let d = min(geo.size.width, geo.size.height)
-            let isRegen = (power ?? 0) < 0
-            let outerColor = isRegen ? Color(red: 0.20, green: 0.83, blue: 0.65) : theme.accent
-            let innerColor = isRegen ? Color(red: 0.54, green: 0.88, blue: 0.77) : theme.steel
-            let powerFill = power.map { magnitude($0, limit: 13_000) }
-            let currentFill = current.map { magnitude($0, limit: 206) }
+            // Corrente positiva: ingresso; corrente negativa: uscita.
+            // Entrambi gli strumenti mostrano solo dati reali del JK BMS.
+            let outputFill = outgoingPower.map { magnitude($0, limit: 13_000) }
+            let inputFill = incomingPower.map { magnitude($0, limit: 13_000) }
             ZStack {
                 // Il carbonio chiude completamente il quadrante sopra le ali sottostanti.
                 Circle()
@@ -843,19 +843,20 @@ private struct OpenSpeedCluster: View {
 
                 // Le due scale hanno un'anima grigia per tutta la corsa; solo dati REALI
                 // attivano segmenti luminosi e colorati (mai valori inventati).
-                SegmentedGaugeBar(d: d, fraction: powerFill,
+                SegmentedGaugeBar(d: d, fraction: outputFill,
                                   start: 149, end: 391, count: 64, radiusFactor: 0.469,
-                                  activeColor: outerColor, idleColor: theme.accent.opacity(0.25))
-                    .shadow(color: outerColor.opacity(powerFill == nil ? 0.04 : 0.72),
+                                  activeColor: CockpitTheme.dischargeAccent,
+                                  idleColor: CockpitTheme.dischargeAccent.opacity(0.22))
+                    .shadow(color: CockpitTheme.dischargeAccent.opacity(outputFill == nil ? 0.04 : 0.72),
                             radius: d * 0.014)
-                SegmentedGaugeBar(d: d, fraction: currentFill,
+                SegmentedGaugeBar(d: d, fraction: inputFill,
                                   start: 149, end: 391, count: 64, radiusFactor: 0.427,
-                                  activeColor: innerColor, idleColor: .white.opacity(0.36))
-                    .shadow(color: innerColor.opacity(currentFill == nil ? 0.02 : 0.28),
+                                  activeColor: CockpitTheme.regenAccent,
+                                  idleColor: CockpitTheme.regenAccent.opacity(0.20))
+                    .shadow(color: CockpitTheme.regenAccent.opacity(inputFill == nil ? 0.02 : 0.48),
                             radius: d * 0.011)
 
-                // Niente numeri fissi della scala 0–120: la striscia LED rossa
-                // si estende solo in presenza di velocità GPS valida.
+                // La striscia LED arancione della velocità richiede GPS valido.
                 SpeedLEDStream(d: d, speed: speed)
                 SpeedScaleTicks(d: d)
 
@@ -898,18 +899,20 @@ private struct OpenSpeedCluster: View {
                 .frame(width: d * 0.52, height: d * 0.46)
                 .position(x: d * 0.50, y: d * 0.485)
 
-                // Il profilo unico sopra A/kW è aperto alle estremita, senza
-                // alcuna linea orizzontale sotto i pulsanti di navigazione.
-
+                // Due potenze separate, invece di corrente A e potenza con segno:
+                // azzurro = ingresso batteria, rosso = uscita batteria.
+                // L'ingresso non identifica da solo l'origine rigenerativa.
                 HStack(spacing: 0) {
-                    Text(current.map { String(format: "%.0f A", $0) } ?? "— A")
-                        .foregroundStyle(.white)
+                    Text(incomingPower.map { String(format: "%.2f kW", $0 / 1000) } ?? "— kW")
+                        .foregroundStyle(CockpitTheme.regenAccent)
                         .frame(maxWidth: .infinity)
+                        .accessibilityLabel("Potenza in ingresso alla batteria")
                     Rectangle().fill(.white.opacity(0.70))
                         .frame(width: 1, height: d * 0.086)
-                    Text(power.map { String(format: "%.1f kW", $0 / 1000) } ?? "— kW")
-                        .foregroundStyle(isRegen ? Color(red: 0.20, green: 0.83, blue: 0.65) : theme.accent)
+                    Text(outgoingPower.map { String(format: "%.2f kW", $0 / 1000) } ?? "— kW")
+                        .foregroundStyle(CockpitTheme.dischargeAccent)
                         .frame(maxWidth: .infinity)
+                        .accessibilityLabel("Potenza erogata dalla batteria")
                 }
                 .font(.system(size: d * 0.066, weight: .semibold))
                 .monospacedDigit()
@@ -966,43 +969,59 @@ private struct GPSGaugeHalo: View {
 // EJ 1.23 — linea A/kW specifica del cockpit GPS, larga quanto i due valori.
 // Due raccordi con lo stesso raggio della top bar; terminali dritti, lontani
 // dal testo e dai pulsanti di navigazione. Mai sovrapporre il disco del tachimetro.
-private struct GPSLowerContour: Shape {
-    func path(in rect: CGRect) -> Path {
+// Stessa inclinazione fisica dei fianchi della Home standard
+// (ContinuousLowerLine), adattata alla posizione del quadrante GPS.
+private enum GPSLowerLineGeometry {
+    static func points(in rect: CGRect) -> [CGPoint] {
         let w = rect.width
         let h = rect.height
         let d = GPSDialLayout.size(width: w, height: h)
         let center = GPSDialLayout.centerX(width: w, height: h)
-        // Protezione della riga A/kW: la linea resta almeno 12 pt SOPRA i caratteri.
         let textTop = h * 0.494 + d * (0.889 - 0.50 - 0.065)
         let topY = min(h * 0.790, textTop - max(12, h * 0.014))
-        let controlH = max(51, min(83, h * 0.105))
-        let controlSide = min(controlH * 0.96, w * 0.059, w * 0.052)
+        let controlsHeight = max(51, min(83, h * 0.105))
+        let buttonSide = min(controlsHeight * 0.96, w * 0.059)
+        let groupEnd = max(12, w * 0.018) + 4 * buttonSide + 3 * w * 0.010
+        let standardFootX = min(CGFloat(0.342), max(CGFloat(0.323), groupEnd / w + 0.035))
+        let standardHorizontalRun = w * (0.385 - standardFootX)
+        let standardVerticalRun = h * (0.985 - 0.790)
+        let run = standardHorizontalRun * ((h * 0.985 - topY) / standardVerticalRun)
+        let leftTopX = center - d * 0.405
+        let controlSide = min(controlsHeight * 0.96, w * 0.059, w * 0.052)
         let buttonStart = w - max(12, w * 0.018) - 7 * controlSide - 6 * w * 0.008
-        let upperRight = min(center + d * 0.405, w * 0.525 - max(9, w * 0.012))
-        let lowerRight = min(center + d * 0.455, buttonStart - max(9, w * 0.012))
-        return CockpitContourGeometry.roundedPath(points: [
-            CGPoint(x: center - d * 0.455, y: h * 0.985),
-            CGPoint(x: center - d * 0.405, y: topY),
-            CGPoint(x: upperRight, y: topY),
-            CGPoint(x: lowerRight, y: h * 0.985)
-        ], corners: [1, 2], radius: CockpitContourGeometry.cornerRadius(in: rect.size))
+        let rightTopX = min(center + d * 0.405, w * 0.525 - max(9, w * 0.012))
+        let maxRightFoot = buttonStart - max(9, w * 0.012)
+        // Allontana il lato destro dai pulsanti preservando la pendenza.
+        let rightShift = max(0, rightTopX + run - maxRightFoot)
+        let adjustedRightTop = rightTopX - rightShift
+        return [
+            CGPoint(x: leftTopX - run, y: h * 0.985),
+            CGPoint(x: leftTopX, y: topY),
+            CGPoint(x: adjustedRightTop, y: topY),
+            CGPoint(x: adjustedRightTop + run, y: h * 0.985)
+        ]
+    }
+}
+
+private struct GPSLowerContour: Shape {
+    func path(in rect: CGRect) -> Path {
+        CockpitContourGeometry.roundedPath(
+            points: GPSLowerLineGeometry.points(in: rect),
+            corners: [1, 2],
+            radius: CockpitContourGeometry.cornerRadius(in: rect.size)
+        )
     }
 }
 
 private struct GPSLowerShade: Shape {
     func path(in rect: CGRect) -> Path {
-        let w = rect.width
-        let h = rect.height
-        let d = GPSDialLayout.size(width: w, height: h)
-        let center = GPSDialLayout.centerX(width: w, height: h)
-        let controlH = max(51, min(83, h * 0.105))
-        let controlSide = min(controlH * 0.96, w * 0.059, w * 0.052)
-        let buttonStart = w - max(12, w * 0.018) - 7 * controlSide - 6 * w * 0.008
-        let rightFoot = min(center + d * 0.455, buttonStart - max(9, w * 0.012))
+        let points = GPSLowerLineGeometry.points(in: rect)
         var shape = GPSLowerContour().path(in: rect)
-        shape.addLine(to: CGPoint(x: rightFoot, y: h))
-        shape.addLine(to: CGPoint(x: center - d * 0.455, y: h))
-        shape.closeSubpath()
+        if let leftFoot = points.first, let rightFoot = points.last {
+            shape.addLine(to: CGPoint(x: rightFoot.x, y: rect.height))
+            shape.addLine(to: CGPoint(x: leftFoot.x, y: rect.height))
+            shape.closeSubpath()
+        }
         return shape
     }
 }
@@ -1074,8 +1093,8 @@ struct GPSCockpitDashboard: View {
                     .zIndex(8)
 
                 OpenSpeedCluster(speed: gps.currentSpeed(at: now),
-                                 current: live.map { -($0.current) },
-                                 power: live.map { -($0.power) },
+                                 incomingPower: live.map { Swift.max(0, $0.power) },
+                                 outgoingPower: live.map { Swift.max(0, -$0.power) },
                                  theme: theme)
                     .frame(width: dialSize, height: dialSize)
                     .position(x: dialCenterX, y: h * 0.494)
