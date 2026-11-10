@@ -49,8 +49,8 @@ assert 'private struct GPSGaugeHalo: View' in c
 assert 'LowerPanelShade()' in u
 assert c.count('CockpitTopSoftShade()') == 2
 assert '.position(x: dialCenterX, y: h * 0.494)' in c
-assert '.frame(width: w * 0.475, height: h * 0.725)' in c
-assert '.position(x: w * 0.7625, y: h * 0.455)' in c
+assert '.frame(width: w * 0.64, height: h * 0.89)' in c
+assert '.position(x: w * 0.68, y: h * 0.49)' in c
 assert 'GPSHorizonLine(theme: theme)' in c
 assert 'GPSLowerGlow(theme: theme)' in c
 assert 'EcoTab.allCases.suffix(3)' in u
@@ -64,7 +64,7 @@ for w,h in [(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert cx-d/2>0,(w,h)
     assert cx+d/2 < w*.65,(w,h)
     assert cy-d/2>0 and cy+d/2<h
-    assert w*.7625+w*.475/2<=w*1.001
+    assert w*.68+w*.64/2<=w*1.001
     # Il bordo superiore del quadrante resta fuori dalla zona riservata all'orario.
     assert cx-d*.30 > w*.155 - 3,(w,h)
     controls_h=max(51,min(83,h*.105))
@@ -77,17 +77,23 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     cx=max(d*.51+w*.010,w*.168+d*.30)
     text_left=cx-d*.33
     text_right=cx+d*.33
-    left_top=cx-d*.405
-    right_top=min(cx+d*.405,w*.525-max(9,w*.012))
-    assert left_top<text_left
-    assert right_top>text_right,(w,h,right_top,text_right)
+    left_top=cx-d*.325
+    right_top=cx+d*.325
+    assert left_top>0
+    assert right_top<w*.60
     text_top=h*.494+d*(.889-.5-.065)
     line_y=min(h*.790,text_top-max(12,h*.014))
+    foot_y=h*.937
     assert text_top-line_y>=12-1e-8
+    assert line_y<foot_y
     control_h=max(51,min(83,h*.105))
     control_side=min(control_h*.96,w*.059,w*.052)
     button_start=w-max(12,w*.018)-7*control_side-6*w*.008
-    foot_right=min(cx+d*.455,button_start-max(9,w*.012))
-    assert foot_right+max(9,w*.012)<=button_start+1e-8
+    ideal_run=w*(.385-.323)*((foot_y-line_y)/(h*(.985-.790)))
+    run=min(ideal_run,max(0,button_start-max(9,w*.012)-right_top))
+    assert left_top-run>=0,(w,h)
+    assert right_top+run+max(9,w*.012)<=button_start+1e-8,(w,h)
+    assert (right_top-left_top)<d*.66
+    assert foot_y<h*.945
     assert h-max(4,h*.006)-control_h>0
-print('OK — EJ 1.23: tachimetro GPS, curva A/kW allargata e dock a 4–6 punti dal bordo')
+print('OK — EJ 1.26: mappa 3D piena, ponte compatto e dock non sovrapposto')
