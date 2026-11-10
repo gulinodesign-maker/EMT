@@ -131,6 +131,35 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     d=min(h*.982,w*.57)
     ring_radius=d*.985/2
     assert h*.507+ring_radius+h*.002<h,(w,h,"cerchio home tagliato")
+    # Il cerchio lungo interseca il fianco del ponte: la maschera
+    # lo termina proprio sulla sagoma reale e non a un angolo fisso.
+    controls_h=max(51,min(83,h*.105))
+    button_side=min(controls_h*.96,w*.059)
+    end=max(12,w*.018)+4*button_side+3*w*.010
+    foot=min(.342,max(.323,end/w+.035))
+    x0,y0=w*foot,h*.985
+    x1,y1=w*.385,h*.790
+    radius=ring_radius
+    cx,cy=w*.5,h*.507
+    f=lambda v: (x0+(x1-x0)*v-cx)**2+(y0+(y1-y0)*v-cy)**2-radius**2
+    assert f(0)>0 and f(1)<0,(w,h,"anello non interseca il ponte")
+    lo,hi=0.0,1.0
+    for _ in range(35):
+        mid=(lo+hi)/2
+        if f(mid)>0: lo=mid
+        else: hi=mid
+    assert abs(f((lo+hi)/2))<1e-3
 assert '.mask(ContinuousLowerTerminalFade())' in u
 assert 'GPSSearchTopBand()' in c
-print('OK — EJ 1.30: GPS 7 pulsanti, tessere abbassate, ginocchio unito, anello Home completo')
+assert '.mask(HomeRingBridgeMask().fill(style: FillStyle(eoFill: true)))' in c
+# Il bordo inferiore GPS resta orizzontale e sotto l'estremità
+# inferiore della diagonale superiore, anche sugli schermi stretti.
+for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
+    mh=H*.89
+    left_y=H*(.23-.045)
+    knee_y=H*(.085-.045)
+    row=max(43,min(60,mh*.089))
+    bottom=max(left_y+max(2,mh*.008),knee_y+row+3)
+    assert bottom>left_y and bottom>knee_y+row,(W,H,bottom)
+assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
+print('OK — EJ 1.31: anello Home interrotto sul ponte e bordo GPS inferiore orizzontale')
