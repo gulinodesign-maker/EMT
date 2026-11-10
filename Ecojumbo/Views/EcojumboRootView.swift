@@ -120,6 +120,7 @@ struct EcojumboRootView: View {
 }
 
 // EJ 1.21: quattro pulsanti a sinistra e tre a destra,
+// Retry TestFlight 1.0 (21): nessuna modifica grafica, firma Apple Distribution.
 // con icone solo bianche, senza titoli; il tachimetro occupa tutto lo spazio centrale.
 private struct CockpitCornerControls: View {
     @Binding var selected: EcoTab
