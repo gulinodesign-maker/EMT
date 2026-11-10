@@ -13,4 +13,6 @@ with (root/'Ecojumbo/Info.plist').open('rb') as f:
     plist=plistlib.load(f)
 assert plist['CFBundleShortVersionString'] == '$(MARKETING_VERSION)'
 assert plist['CFBundleVersion'] == '$(CURRENT_PROJECT_VERSION)'
+# Dichiarazione Apple per crittografia assente o esente (vale da nuove build).
+assert plist['ITSAppUsesNonExemptEncryption'] is False
 print('OK — Marketing version 1.0, build 9, dynamic settings label 1.09, bundle ID unchanged')
