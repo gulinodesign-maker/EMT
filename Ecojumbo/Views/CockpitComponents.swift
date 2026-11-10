@@ -84,29 +84,21 @@ private struct EcoOutsideTemperature: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 1) {
-            HStack(spacing: 4) {
-                Image(systemName: "thermometer.medium")
-                    .foregroundStyle(Color.white.opacity(0.82))
-                Text(currentTemperature.map { String(format: "%.0f°C", $0) } ?? "—°C")
-                    .monospacedDigit()
-                    .foregroundStyle(.white)
-            }
-            .font(.system(size: 15, weight: .semibold))
-            Link("Meteo · Open-Meteo",
-                 destination: URL(string: "https://open-meteo.com")!)
-                .font(.system(size: 8, weight: .medium))
-                .foregroundStyle(.white.opacity(0.75))
-                .lineLimit(1)
-                .minimumScaleFactor(0.65)
+        HStack(spacing: 4) {
+            Image(systemName: "thermometer.medium")
+                .foregroundStyle(Color.white.opacity(0.82))
+            Text(currentTemperature.map { String(format: "%.0f°C", $0) } ?? "—°C")
+                .monospacedDigit()
+                .foregroundStyle(.white)
         }
+        .font(.system(size: 15, weight: .semibold))
         .padding(.horizontal, 5)
         .padding(.vertical, 3)
         .background(.black.opacity(0.58),
                     in: RoundedRectangle(cornerRadius: 7, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(currentTemperature.map {
-            "Temperatura meteo esterna stimata: \(Int($0.rounded())) gradi Celsius. Fonte Open-Meteo."
+            "Temperatura esterna: \(Int($0.rounded())) gradi Celsius."
         } ?? "Temperatura esterna non disponibile. Serve GPS e connessione Internet.")
         .onAppear {
             weather.refreshIfNeeded(at: gps.currentCoordinate(at: now))
