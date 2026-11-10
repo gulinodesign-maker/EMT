@@ -14,7 +14,9 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     @Published private(set) var speedKmh: Double?
     // Ultima posizione reale accurata, usata come partenza da MapKit.
     @Published private(set) var lastGPSCoordinate: CLLocationCoordinate2D?
+    @Published private(set) var courseDegrees: CLLocationDirection?
     private var lastGoodCoordinateAt: Date?
+    private var lastCourseAt: Date?
     @Published private(set) var tripKm: Double
     @Published private(set) var totalKm: Double
     @Published private(set) var hasOdometer: Bool
@@ -72,6 +74,8 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         speedKmh = nil
         lastGPSCoordinate = nil
         lastGoodCoordinateAt = nil
+        courseDegrees = nil
+        lastCourseAt = nil
         previousLocation = nil
         lastMotionAt = nil
         isReceiving = false
@@ -122,6 +126,12 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             guard abs(fix.timestamp.timeIntervalSinceNow) < 10,
                   fix.horizontalAccuracy >= 0, fix.horizontalAccuracy <= 35,
                   CLLocationCoordinate2DIsValid(fix.coordinate) else { continue }
+            // La rotta GPS esiste solo quando lo scooter si muove.
+            // Core Location usa -1 per un corso non determinato.
+            if fix.speed >= 1.3, fix.course >= 0, fix.course < 360 {
+                courseDegrees = fix.course
+                lastCourseAt = fix.timestamp
+            }
             lastGPSCoordinate = fix.coordinate
             lastGoodCoordinateAt = fix.timestamp
             // Ignoriamo velocità negative o non misurate per le statistiche.
@@ -190,6 +200,13 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         guard let lastGoodCoordinateAt,
               date.timeIntervalSince(lastGoodCoordinateAt) < 20 else { return nil }
         return lastGPSCoordinate
+    }
+
+    /// Direzione di marcia ricavata dal GPS durante il movimento, mai simulata.
+    func currentCourse(at date: Date = Date()) -> CLLocationDirection? {
+        guard let lastCourseAt, date.timeIntervalSince(lastCourseAt) >= 0,
+              date.timeIntervalSince(lastCourseAt) < 12 else { return nil }
+        return courseDegrees
     }
 
     /// I dati GPS non devono restare visibili come correnti se la localizzazione si interrompe.

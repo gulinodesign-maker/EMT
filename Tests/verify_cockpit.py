@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (26): GPS 3D, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (27): navigazione GPS 3D, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 26;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 27;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -200,4 +200,4 @@ assert 'private let ledOrange = Color(red: 1.00, green: 0.44, blue: 0.03)' in c
 assert 'let idealRun = standardHorizontalRun * ((footY - topY) / standardVerticalRun)' in c
 assert 'GPSLowerLineGeometry.points(in: rect)' in c
 assert 'LabeledContent("Numero build", value: EcojumboBuildStamp.buildNumber)' in o
-print('OK — 26: mappa 3D a tutta area, barra GPS unica, ponte compatto, letture +20%')
+print('OK — 27: navigazione GPS guidata, mappa 2D/3D, visuale muso scooter')
