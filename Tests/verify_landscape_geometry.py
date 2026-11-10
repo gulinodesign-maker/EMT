@@ -69,7 +69,7 @@ for w,h in [(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert cx-d*.30 > w*.155 - 3,(w,h)
     controls_h=max(51,min(83,h*.105))
     side=min(controls_h*.96,w*.059,w*.052)
-    gps_width=7*side+6*w*.008
+    gps_width=8*side+7*w*.008
     assert gps_width+max(12,w*.018)<w*.50,(w,h,gps_width)
 # Allargamento profilo GPS, nessun testo o pulsante attraversato.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
@@ -88,7 +88,7 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert line_y<foot_y
     control_h=max(51,min(83,h*.105))
     control_side=min(control_h*.96,w*.059,w*.052)
-    button_start=w-max(12,w*.018)-7*control_side-6*w*.008
+    button_start=w-max(12,w*.018)-8*control_side-7*w*.008
     ideal_run=w*(.385-.323)*((foot_y-line_y)/(h*(.985-.790)))
     run=min(ideal_run,max(0,button_start-max(9,w*.012)-right_top))
     assert left_top-run>=0,(w,h)
@@ -96,4 +96,4 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert (right_top-left_top)<d*.66
     assert foot_y<h*.945
     assert h-max(4,h*.006)-control_h>0
-print('OK — EJ 1.26: mappa 3D piena, ponte compatto e dock non sovrapposto')
+print('OK — EJ 1.28: otto pulsanti e ponte GPS senza sovrapposizioni')
