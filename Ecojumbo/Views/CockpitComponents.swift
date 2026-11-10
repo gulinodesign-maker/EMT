@@ -1226,6 +1226,8 @@ private struct GPSCockpitMap: View {
     @State private var camera: MapCameraPosition = .userLocation(followsHeading: false, fallback: .automatic)
     @State private var visibleCamera: MapCamera?
     @State private var hasCenteredOnGPS = false
+    @State private var followsUser = true
+    @State private var followDistance: CLLocationDistance = 2600
     let theme: CockpitTheme
 
     var body: some View {
@@ -1248,6 +1250,9 @@ private struct GPSCockpitMap: View {
                 .mapControls { MapCompass() }
                 .onMapCameraChange(frequency: .onEnd) { context in
                     visibleCamera = context.camera
+                    // Se l'utente trascina la mappa, non riportarla subito
+                    // sulla posizione dello scooter.
+                    if camera.positionedByUser { followsUser = false }
                 }
                 // Soltanto il contenuto mappa sfuma nel carbonio a sinistra:
                 // la barra di ricerca e i comandi restano nitidi e cliccabili.
@@ -1397,9 +1402,15 @@ private struct GPSCockpitMap: View {
                 focusOnRoute()
             }
             .onReceive(gps.$lastGPSCoordinate) { coordinate in
-                guard coordinate != nil, !hasCenteredOnGPS else { return }
-                hasCenteredOnGPS = true
-                if navigation.route == nil { recenterOnUser() }
+                guard let coordinate, gps.currentCoordinate() != nil else { return }
+                if !hasCenteredOnGPS {
+                    hasCenteredOnGPS = true
+                    if navigation.route == nil { recenterOnUser() }
+                } else if followsUser {
+                    camera = .camera(MapCamera(centerCoordinate: coordinate,
+                                               distance: followDistance,
+                                               heading: 0, pitch: 55))
+                }
             }
             .onChange(of: navigation.routeRevision) { _, _ in focusOnRoute() }
         }
@@ -1424,19 +1435,25 @@ private struct GPSCockpitMap: View {
             focusOnRoute()
             return
         }
+        followsUser = true
+        followDistance = 1100
         camera = .camera(MapCamera(centerCoordinate: point,
-                                   distance: 1100, heading: 0, pitch: 55))
+                                   distance: followDistance, heading: 0, pitch: 55))
     }
 
     private func zoom(inward: Bool) {
         let factor: CLLocationDistance = inward ? 0.64 : 1.56
         if let current = visibleCamera {
+            let distance = min(90_000, max(150, current.distance * factor))
+            if followsUser { followDistance = distance }
             camera = .camera(MapCamera(centerCoordinate: current.centerCoordinate,
-                                       distance: min(90_000, max(150, current.distance * factor)),
+                                       distance: distance,
                                        heading: current.heading, pitch: 55))
         } else if let point = gps.currentCoordinate() {
+            let distance: CLLocationDistance = inward ? 650 : 2400
+            if followsUser { followDistance = distance }
             camera = .camera(MapCamera(centerCoordinate: point,
-                                       distance: inward ? 650 : 2400,
+                                       distance: distance,
                                        heading: 0, pitch: 55))
         } else {
             focusOnRoute()
@@ -1451,6 +1468,7 @@ private struct GPSCockpitMap: View {
 
     private func focusOnRoute() {
         if let route = navigation.route {
+            followsUser = false
             let region = MKCoordinateRegion(route.polyline.boundingMapRect)
             let sw = CLLocation(latitude: region.center.latitude - region.span.latitudeDelta / 2,
                                 longitude: region.center.longitude - region.span.longitudeDelta / 2)
@@ -1461,9 +1479,12 @@ private struct GPSCockpitMap: View {
                                        distance: min(90_000, max(1600, diagonal * 1.8)),
                                        heading: 0, pitch: 55))
         } else if let point = gps.currentCoordinate() {
+            followsUser = true
+            followDistance = 2600
             camera = .camera(MapCamera(centerCoordinate: point,
-                                       distance: 2600, heading: 0, pitch: 55))
+                                       distance: followDistance, heading: 0, pitch: 55))
         } else {
+            followsUser = true
             // Non inventare coordinate in assenza di un fix GPS reale.
             camera = .userLocation(followsHeading: false, fallback: .automatic)
         }
