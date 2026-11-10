@@ -89,9 +89,9 @@ assert 'GPSLowerContour()' in c
 assert 'textTop - max(12, h * 0.014)' in c
 assert 'let topHalfWidth = d * 0.325' in c
 assert 'let footY = h * 0.937' in c
-assert 'MapCamera(centerCoordinate: point' in c
-assert '.mapStyle(.standard(elevation: .realistic))' in c
-assert 'heading: 0, pitch: 55' in c
+assert 'MapCamera(centerCoordinate: center' in c
+assert '.mapStyle(.standard(elevation: is3D ? .realistic : .flat))' in c
+assert 'heading: heading, pitch: is3D ? 55 : 0' in c
 assert 'GPS e ricerca indirizzo nella STESSA barra' in c
 assert 'clipShape(RoundedRectangle(cornerRadius: 16' not in c
 assert 'min(48, max(12, height * 0.063))' in c
@@ -200,4 +200,26 @@ assert 'private let ledOrange = Color(red: 1.00, green: 0.44, blue: 0.03)' in c
 assert 'let idealRun = standardHorizontalRun * ((footY - topY) / standardVerticalRun)' in c
 assert 'GPSLowerLineGeometry.points(in: rect)' in c
 assert 'LabeledContent("Numero build", value: EcojumboBuildStamp.buildNumber)' in o
+# Build 27: i tre comandi devono avere un'azione reale.
+assert 'func startNavigation(at origin: CLLocationCoordinate2D?) -> Bool' in t
+assert 'func stopNavigation()' in t
+assert 'func updateProgress(at coordinate: CLLocationCoordinate2D)' in t
+assert 'route.steps' in t and 'step.instructions' in t
+assert 'guidanceDistanceLabel' in t and 'hasArrived' in t
+assert 'navigation.startNavigation(at: gps.currentCoordinate())' in c
+assert 'navigation.stopNavigation()' in c
+assert 'navigation.updateProgress(at: coordinate)' in c
+assert 'navigation.guidanceInstruction' in c
+assert 'navigation.isNavigating' in c
+assert 'Avvia navigazione GPS' in c and 'Ferma navigazione GPS' in c
+assert '@State private var is3D = true' in c
+assert 'private func toggleProjection()' in c
+assert 'Passa alla mappa 2D' in c and 'Passa alla mappa 3D' in c
+assert 'private func activateNoseView()' in c
+assert 'private func followCamera(at coordinate: CLLocationCoordinate2D)' in c
+assert 'Vista dal muso dello scooter, direzione di marcia' in c
+assert 'let lookAhead = headingUp' in c
+assert 'private(set) var courseDegrees: CLLocationDirection?' in g
+assert 'fix.speed >= 1.3, fix.course >= 0, fix.course < 360' in g
+assert 'func currentCourse(at date: Date = Date()) -> CLLocationDirection?' in g
 print('OK — 27: navigazione GPS guidata, mappa 2D/3D, visuale muso scooter')
