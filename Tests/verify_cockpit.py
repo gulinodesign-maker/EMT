@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (29): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (30): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,13 +13,13 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 29;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 30;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
 assert info['NSLocationWhenInUseUsageDescription'] and info['NSBluetoothAlwaysUsageDescription']
 assert 'case dashboard, trips, gps, battery, bms, settings, themes' in u
-assert 'EcoTab.allCases.prefix(4)' in u and 'EcoTab.allCases.suffix(3)' in u
+assert 'EcoTab.allCases.dropFirst().prefix(3)' in u and 'EcoTab.allCases.suffix(3)' in u
 assert 'BluetoothGlyph()' in u and 'CockpitCornerControls' in u
 # GPS è una modalità del cockpit, non una NavigationStack separata.
 assert 'GPSCockpitDashboard(theme: theme, now: tick)' in u
@@ -44,7 +44,7 @@ assert 'MKDirections(request: request).calculate()' in t
 assert 'request.transportType = .automobile' in t
 assert 'www.google.com' not in t and 'GoogleMapsPanel' not in t
 assert 'struct RoutesPanel' not in t and 'struct AppleMapsPanel' not in t
-assert 'EcoTab.allCases.prefix(4)' in u
+assert 'EcoTab.allCases.dropFirst().prefix(3)' in u
 assert '(tab == .gps && selected == .gps) ? .dashboard : tab' in u
 assert 'lastGPSCoordinate = fix.coordinate' in g
 assert 'func currentCoordinate(at date: Date = Date())' in g
@@ -80,6 +80,9 @@ assert 'SegmentedGaugeBar(d:' in c
 
 # Le linee usano lo stesso raggio effettivo; angoli inferiori retti.
 assert 'ContinuousLowerLine: Shape' in u and 'ContinuousLowerGlow(theme: theme)' in u
+assert 'private struct ContinuousLowerTerminalFade: View' in u
+assert '.mask(ContinuousLowerTerminalFade())' in u
+assert 'ForEach(EcoTab.allCases.dropFirst().prefix(3))' in u
 assert 'private struct GPSLowerContour: Shape' in c
 assert 'private struct GPSLowerShade: Shape' in c
 assert 'private struct GPSLowerGlow: View' in c
@@ -96,6 +99,13 @@ assert 'MapCamera(centerCoordinate: center' in c
 assert '.mapStyle(.standard(elevation: mapControls.is3D ? .realistic : .flat))' in c
 assert 'heading: heading, pitch: mapControls.is3D ? 55 : 0' in c
 assert 'GPS e ricerca indirizzo nella STESSA barra' in c
+assert 'private struct GPSSearchTopBand: Shape' in c
+assert 'GPSSearchTopBand()' in c
+assert 'fullW * 0.45 - mapLeft' in c
+assert 'fullW * 0.54 - mapLeft' in c
+assert 'fullH * 0.085 - mapTop' in c
+assert 'p.addArc(tangent1End: knee, tangent2End: right,' in c
+assert '.background(Color.clear)' in c
 assert 'clipShape(RoundedRectangle(cornerRadius: 16' not in c
 assert 'min(37, max(12, height * 0.38))' in c
 assert 'buttonStart - max(9, w * 0.012)' in c
@@ -105,6 +115,9 @@ assert 'corners: [1, 4]' in c and 'corners: [1, 2]' in u
 assert 'p.addLine(to: pt(' not in u
 assert 'CornerDockGlow' not in u and 'FooterLightContour' not in c
 assert 'private struct ContinuousHorizonLine: View' in c
+assert c.count('Circle()\n                    .stroke(theme.accent.opacity(') == 2
+assert c.count('.frame(width: dialSize * 0.985, height: dialSize * 0.985)') == 2
+assert 'GaugeArc(start: 208, end: 332)' not in c
 assert 'min(h * 0.982, w * 0.57)' in c
 assert 'ringRadius = min(h * 0.982, w * 0.57) * 0.506' in c
 assert 'FillStyle(eoFill: true)' in c
@@ -134,7 +147,8 @@ assert 'gpsButton("play.fill"' in u
 assert 'mapControls.send(.toggleNavigation)' in u
 assert 'mapControls.send(.toggleProjection)' in u
 assert 'mapControls.send(.noseView)' in u
-assert 'mapControls.send(.focusRoute)' in u
+assert 'mapControls.send(.focusRoute)' not in u
+assert 'accessibility: "Mostra intero percorso"' not in u
 assert 'mapControls.send(.recenter)' in u
 assert 'mapControls.send(.zoomIn)' in u
 assert 'mapControls.send(.zoomOut)' in u
@@ -183,7 +197,7 @@ assert 'let glassWidth = w * 0.265 * 0.70' in c
 assert 'let glassHeight = h * 0.60' in c
 assert 'let tileHeight = max(1, (h - 5 * gap) / 6)' in c
 assert '.position(x: w - max(6, w * 0.012) - glassWidth / 2,' in c
-assert 'y: h * (0.17 + 0.60 / 2)' in c
+assert 'y: h * (0.21 + 0.60 / 2)' in c
 assert '.padding(.top, h * 0.045)' in c
 assert '.padding(.leading, w * 0.285)' in c
 assert 'height: tileHeight, resettable: true)' in c
@@ -248,4 +262,4 @@ assert '.background(.ultraThinMaterial,' in c
 assert '.black.opacity(0.35), .black.opacity(0.75)' not in c
 assert '8 * controlSide - 7 * w * 0.008' in c
 assert 'struct GPSCompactReadings: View' in c
-print('OK — 29: cards GPS -30%, barra unita alla top bar, ponte sfumato')
+print('OK — 30: GPS no route button, glass lower, knee-aligned search, Home full ring and faded bridge')

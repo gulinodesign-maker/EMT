@@ -87,8 +87,8 @@ struct EcojumboRootView: View {
                         .zIndex(45)
                 }
 
-                // In GPS: sette comandi a destra e bordo inferiore a circa 4–6 punti.
-                // In Strumenti: la disposizione classica 4+3 resta invariata.
+                // In GPS: Home e sei comandi mappa a destra, senza icone ridondanti.
+                // In Home: tre comandi a sinistra e tre a destra, senza tasto tachimetro.
                 // Niente barra piena che schiaccia il tachimetro in landscape.
                 CockpitCornerControls(selected: $selected, theme: theme)
                     .frame(width: geometry.size.width,
@@ -122,7 +122,7 @@ struct EcojumboRootView: View {
     }
 }
 
-// EJ 1.21: quattro pulsanti a sinistra e tre a destra,
+// EJ 1.30: Home mostra tre pulsanti a sinistra e tre a destra; GPS Home + sei comandi,
 // Retry TestFlight 1.0 (21): archivio senza firma di sviluppo, esportazione Apple automatica.
 // con icone solo bianche, senza titoli; il tachimetro occupa tutto lo spazio centrale.
 @MainActor
@@ -163,10 +163,6 @@ private struct CockpitCornerControls: View {
                         gpsButton("location.north.line.fill", active: mapControls.headingUp,
                                   accessibility: "Vista dal muso dello scooter, direzione di marcia",
                                   side: gpsSide) { mapControls.send(.noseView) }
-                        gpsButton("point.topleft.down.curvedto.point.bottomright.up",
-                                  enabled: navigation.route != nil,
-                                  accessibility: "Mostra intero percorso",
-                                  side: gpsSide) { mapControls.send(.focusRoute) }
                         gpsButton("scope", accessibility: "Ricentra sulla posizione GPS",
                                   side: gpsSide) { mapControls.send(.recenter) }
                         gpsButton("plus.magnifyingglass", accessibility: "Ingrandisci la mappa",
@@ -175,9 +171,9 @@ private struct CockpitCornerControls: View {
                                   side: gpsSide) { mapControls.send(.zoomOut) }
                     }
                 } else {
-                    // Cruscotto classico invariato: quattro tasti + tre tasti.
+                    // Cruscotto Home: tre tasti di sezione a sinistra e tre a destra.
                     HStack(spacing: gap) {
-                        ForEach(EcoTab.allCases.prefix(4)) { tab in
+                        ForEach(EcoTab.allCases.dropFirst().prefix(3)) { tab in
                             iconButton(tab, side: buttonSide)
                         }
                     }
@@ -317,6 +313,30 @@ private struct LowerPanelShade: Shape {
     }
 }
 
+// Maschera equivalente al ponte GPS: solo i due terminali della
+// linea arancione scompaiono gradualmente, non l'intero contorno.
+private struct ContinuousLowerTerminalFade: View {
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            let controlsHeight = max(51, min(83, h * 0.105))
+            let buttonSide = min(controlsHeight * 0.96, w * 0.059)
+            // Si conserva esattamente la geometria della build 29.
+            let groupEnd = max(12, w * 0.018) + 4 * buttonSide + 3 * w * 0.010
+            let footX = min(CGFloat(0.342), max(CGFloat(0.323),
+                                              groupEnd / w + 0.035))
+            LinearGradient(stops: [
+                .init(color: .clear, location: 0),
+                .init(color: .white, location: 0.17),
+                .init(color: .white, location: 0.83),
+                .init(color: .clear, location: 1)
+            ], startPoint: UnitPoint(x: footX, y: 0.5),
+               endPoint: UnitPoint(x: 1 - footX, y: 0.5))
+        }
+    }
+}
+
 struct ContinuousLowerGlow: View {
     let theme: CockpitTheme
     var body: some View {
@@ -330,23 +350,26 @@ struct ContinuousLowerGlow: View {
                         .init(color: Color(white: 0.16).opacity(0.17), location: 0.93),
                         .init(color: .clear, location: 1.0)
                     ], startPoint: .top, endPoint: .bottom))
-                ContinuousLowerLine()
-                    .stroke(theme.accent.opacity(0.33),
-                            style: StrokeStyle(lineWidth: max(4, h * 0.018), lineCap: .round))
-                    .blur(radius: max(3, h * 0.017))
-                ContinuousLowerLine()
-                    .stroke(theme.accent.opacity(0.76),
-                            style: StrokeStyle(lineWidth: max(2.5, h * 0.007), lineCap: .round))
-                    .blur(radius: max(1.5, h * 0.005))
-                ContinuousLowerLine()
-                    .stroke(LinearGradient(stops: [
-                        .init(color: theme.accent, location: 0),
-                        .init(color: theme.accent.opacity(0.94), location: 0.25),
-                        .init(color: theme.accent.opacity(0.97), location: 0.50),
-                        .init(color: theme.accent.opacity(0.94), location: 0.75),
-                        .init(color: theme.accent, location: 1)
-                    ], startPoint: .leading, endPoint: .trailing),
-                            style: StrokeStyle(lineWidth: max(1.2, h * 0.004), lineCap: .round))
+                ZStack {
+                    ContinuousLowerLine()
+                        .stroke(theme.accent.opacity(0.33),
+                                style: StrokeStyle(lineWidth: max(4, h * 0.018), lineCap: .round))
+                        .blur(radius: max(3, h * 0.017))
+                    ContinuousLowerLine()
+                        .stroke(theme.accent.opacity(0.76),
+                                style: StrokeStyle(lineWidth: max(2.5, h * 0.007), lineCap: .round))
+                        .blur(radius: max(1.5, h * 0.005))
+                    ContinuousLowerLine()
+                        .stroke(LinearGradient(stops: [
+                            .init(color: theme.accent, location: 0),
+                            .init(color: theme.accent.opacity(0.94), location: 0.25),
+                            .init(color: theme.accent.opacity(0.97), location: 0.50),
+                            .init(color: theme.accent.opacity(0.94), location: 0.75),
+                            .init(color: theme.accent, location: 1)
+                        ], startPoint: .leading, endPoint: .trailing),
+                                style: StrokeStyle(lineWidth: max(1.2, h * 0.004), lineCap: .round))
+                }
+                .mask(ContinuousLowerTerminalFade())
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
