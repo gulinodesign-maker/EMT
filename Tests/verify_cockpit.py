@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (28): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (29): dock GPS stretto e tessere senza sovrapposizioni, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 28;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 29;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -126,7 +126,11 @@ assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 assert 'if selected == .gps {' in u
 assert 'selected == .gps' in u and 'max(4, geometry.size.height * 0.006)' in u
 assert 'ForEach(EcoTab.allCases) { tab in' not in u
-assert 'iconButton(.dashboard, side: gpsSide)' in u
+assert 'iconButton(.dashboard, side: gpsSide, visualWidth: gpsWidth)' in u
+assert 'let gpsWidth = gpsSide * 0.70' in u
+assert 'let tileWidth = side * 0.70' in u
+assert 'let gpsGap = max(7, width * 0.008)' in u
+assert '.frame(width: tileWidth, height: side)' in u
 assert 'gpsButton("play.fill"' in u
 assert 'mapControls.send(.toggleNavigation)' in u
 assert 'mapControls.send(.toggleProjection)' in u
@@ -136,7 +140,7 @@ assert 'mapControls.send(.recenter)' in u
 assert 'mapControls.send(.zoomIn)' in u
 assert 'mapControls.send(.zoomOut)' in u
 assert 'let gpsSide = min(buttonSide, width * 0.052)' in u
-assert 'let gpsGap = width * 0.008' in u
+assert 'let gpsGap = max(7, width * 0.008)' in u
 # Sfumature neutre su entrambe le modalità.
 assert 'private struct CockpitTopSoftShade: View' in c
 assert 'geo.size.height * 0.125' in c
@@ -236,6 +240,10 @@ assert 'func currentCourse(at date: Date = Date()) -> CLLocationDirection?' in g
 assert c.count('glassReading(') == 7
 assert '.background(.ultraThinMaterial,' in c
 assert '.black.opacity(0.35), .black.opacity(0.75)' not in c
-assert '8 * controlSide - 7 * w * 0.008' in c
+assert '8 * controlWidth - 7 * controlGap' in c
+assert 'let controlWidth = controlSide * 0.70' in c
+assert '.frame(width: w * 0.265, height: h * 0.60)' in c
+assert '.position(x: w * (1 - 0.265 / 2 - 0.012), y: h * 0.56)' in c
+assert '.padding(.top, h * 0.20)' not in c
 assert 'struct GPSCompactReadings: View' in c
-print('OK — 28: controlli GPS inferiori, otto pulsanti, sei tessere vetro')
+print('OK — 29: pulsanti GPS 30% più stretti, Home inclusa, senza interferenze con i riquadri')
