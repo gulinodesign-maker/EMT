@@ -144,10 +144,13 @@ private struct CockpitCornerControls: View {
                     // In modalità mappa rimane solo Home delle vecchie schede.
                     // Tutti gli altri pulsanti controllano esclusivamente MapKit.
                     let gpsSide = min(buttonSide, width * 0.052)
-                    let gpsGap = width * 0.008
+                    // Build 29: stessa altezza della 28, larghezza esatta al 70%.
+                    // Il gap lascia ogni tasto indipendente e senza sovrapposizioni.
+                    let gpsWidth = gpsSide * 0.70
+                    let gpsGap = max(7, width * 0.008)
                     Spacer(minLength: 0)
                     HStack(spacing: gpsGap) {
-                        iconButton(.dashboard, side: gpsSide)
+                        iconButton(.dashboard, side: gpsSide, visualWidth: gpsWidth)
                         gpsButton("play.fill", alternate: "stop.fill",
                                   active: navigation.isNavigating,
                                   enabled: navigation.isNavigating ||
@@ -194,17 +197,19 @@ private struct CockpitCornerControls: View {
         }
     }
 
-    private func iconButton(_ tab: EcoTab, side: CGFloat) -> some View {
-        Button { selected = (tab == .gps && selected == .gps) ? .dashboard : tab } label: {
+    private func iconButton(_ tab: EcoTab, side: CGFloat,
+                            visualWidth: CGFloat? = nil) -> some View {
+        let tileWidth = visualWidth ?? side
+        return Button { selected = (tab == .gps && selected == .gps) ? .dashboard : tab } label: {
             ZStack {
-                RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
+                RoundedRectangle(cornerRadius: tileWidth * 0.23, style: .continuous)
                     .fill(LinearGradient(stops: [
                         .init(color: Color(white: 0.37), location: 0),
                         .init(color: Color(white: 0.19), location: 0.21),
                         .init(color: Color(white: 0.08), location: 0.78),
                         .init(color: Color(white: 0.14), location: 1)
                     ], startPoint: .top, endPoint: .bottom))
-                RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
+                RoundedRectangle(cornerRadius: tileWidth * 0.23, style: .continuous)
                     .stroke(LinearGradient(colors: [
                         selected == tab ? theme.accent : .white.opacity(0.80),
                         .white.opacity(0.13),
@@ -221,10 +226,10 @@ private struct CockpitCornerControls: View {
                         .foregroundStyle(.white)
                 }
             }
-            .frame(width: side, height: side)
+            .frame(width: tileWidth, height: side)
             .shadow(color: .black.opacity(0.90), radius: side * 0.16, y: 2)
             .shadow(color: selected == tab ? theme.accent.opacity(0.31) : .clear, radius: 5)
-            .contentShape(RoundedRectangle(cornerRadius: side * 0.23))
+            .contentShape(RoundedRectangle(cornerRadius: tileWidth * 0.23))
         }
         .buttonStyle(.plain)
         .accessibilityLabel(tab.label)
@@ -235,16 +240,17 @@ private struct CockpitCornerControls: View {
                            text: String? = nil, active: Bool = false,
                            enabled: Bool = true, accessibility: String,
                            side: CGFloat, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        let tileWidth = side * 0.70
+        return Button(action: action) {
             ZStack {
-                RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
+                RoundedRectangle(cornerRadius: tileWidth * 0.23, style: .continuous)
                     .fill(LinearGradient(stops: [
                         .init(color: Color(white: 0.37), location: 0),
                         .init(color: Color(white: 0.19), location: 0.21),
                         .init(color: Color(white: 0.08), location: 0.78),
                         .init(color: Color(white: 0.14), location: 1)
                     ], startPoint: .top, endPoint: .bottom))
-                RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
+                RoundedRectangle(cornerRadius: tileWidth * 0.23, style: .continuous)
                     .stroke(LinearGradient(colors: [
                         active ? theme.accent : .white.opacity(0.80),
                         .white.opacity(0.13),
@@ -259,14 +265,14 @@ private struct CockpitCornerControls: View {
                     Image(systemName: active ? (alternate ?? symbol) : symbol)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: side * 0.55, height: side * 0.55)
+                        .frame(width: min(side * 0.55, tileWidth * 0.78), height: side * 0.55)
                         .foregroundStyle(.white)
                 }
             }
-            .frame(width: side, height: side)
+            .frame(width: tileWidth, height: side)
             .shadow(color: .black.opacity(0.90), radius: side * 0.16, y: 2)
             .shadow(color: active ? theme.accent.opacity(0.31) : .clear, radius: 5)
-            .contentShape(RoundedRectangle(cornerRadius: side * 0.23))
+            .contentShape(RoundedRectangle(cornerRadius: tileWidth * 0.23))
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
