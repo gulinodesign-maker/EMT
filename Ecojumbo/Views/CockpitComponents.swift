@@ -979,7 +979,9 @@ private enum GPSLowerLineGeometry {
         let leftTopX = center - topHalfWidth
         let controlsHeight = max(51, min(83, h * 0.105))
         let controlSide = min(controlsHeight * 0.96, w * 0.059, w * 0.052)
-        let buttonStart = w - max(12, w * 0.018) - 8 * controlSide - 7 * w * 0.008
+        let controlWidth = controlSide * 0.70
+        let controlGap = max(7, w * 0.008)
+        let buttonStart = w - max(12, w * 0.018) - 8 * controlWidth - 7 * controlGap
         let standardFootX: CGFloat = 0.323
         let standardHorizontalRun = w * (0.385 - standardFootX)
         let standardVerticalRun = h * (0.985 - 0.790)
@@ -1412,13 +1414,11 @@ private struct GPSCockpitMap: View {
                 .padding(.top, h * 0.11)
                 .frame(width: w, height: h, alignment: .topLeading)
 
-                // Sei letture leggermente più grandi, ma raccolte nel bordo destro;
-                // solo il trip parziale intercetta il gesto di pressione prolungata.
+                // Riquadri vetro ancorati SOPRA il dock: la loro base termina
+                // all'81% dell'altezza del pannello, senza coprire i tasti.
                 GPSCompactReadings(theme: theme)
-                    .frame(width: w * 0.265, height: h * 0.71)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
-                    .padding(.trailing, max(6, w * 0.012))
-                    .padding(.top, h * 0.20)
+                    .frame(width: w * 0.265, height: h * 0.60)
+                    .position(x: w * (1 - 0.265 / 2 - 0.012), y: h * 0.56)
 
             }
             .frame(width: w, height: h)
