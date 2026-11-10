@@ -97,4 +97,26 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert (right_top-left_top)<d*.66
     assert foot_y<h*.945
     assert h-max(4,h*.006)-control_h>0
-print('OK — EJ 1.28: otto pulsanti e ponte GPS senza sovrapposizioni')
+# Sei tessere di vetro altezza esatta, 30% meno larghe e con
+# distanza dal dock anche sugli iPhone più bassi.
+for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
+    map_w=w*.64
+    map_h=h*.89
+    card_w=map_w*.265*.70
+    card_h=map_h*.60
+    gap=max(5,card_h*.018)
+    tile=(card_h-5*gap)/6
+    assert tile>0
+    assert math.isclose(card_w/(map_w*.265),.70)
+    x_right=map_w-max(6,map_w*.012)
+    assert x_right-card_w>map_w*.60
+    top_y=h*(.49-.89/2)+map_h*.17
+    bottom_y=top_y+card_h
+    dock_top=h-max(4,h*.006)-max(51,min(83,h*.105))
+    assert bottom_y<dock_top,(w,h,bottom_y,dock_top)
+    # Bordo barra indirizzo coincidente con la linea superiore (0.085 h).
+    bar_y=h*(.49-.89/2)+map_h*.045
+    assert abs(bar_y-h*.085)<h*.001,(w,h,bar_y)
+assert 'let glassWidth = w * 0.265 * 0.70' in c
+assert '.mask(GPSLowerTerminalFade())' in c
+print('OK — EJ 1.29: 6 glass cards ridotte, top GPS unificata, ponte sfumato')
