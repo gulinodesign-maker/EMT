@@ -60,85 +60,299 @@ struct TripsPanel: View {
     }
 }
 
+// EJ 1.20: piano stradale condiviso fra Navigazione e Percorsi.
+// MKDirections restituisce la geometria delle strade, non semplici segmenti GPS.
+@MainActor
+final class EcoNavigationStore: ObservableObject {
+    static let shared = EcoNavigationStore()
+
+    @Published private(set) var route: MKRoute?
+    @Published private(set) var destinationCoordinate: CLLocationCoordinate2D?
+    @Published private(set) var destinationName: String = ""
+    @Published private(set) var isLoading = false
+    @Published private(set) var errorMessage: String?
+    @Published private(set) var routeRevision = 0
+
+    private init() {}
+
+    func plan(destination rawQuery: String, origin: CLLocationCoordinate2D?) async {
+        let query = rawQuery.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else {
+            errorMessage = "Inserisci un indirizzo o il nome di una destinazione."
+            return
+        }
+        guard let origin, CLLocationCoordinate2DIsValid(origin) else {
+            errorMessage = "Attendi una posizione GPS valida e autorizza la localizzazione."
+            return
+        }
+        guard !isLoading else { return }
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        do {
+            let searchRequest = MKLocalSearch.Request()
+            searchRequest.naturalLanguageQuery = query
+            let search = MKLocalSearch(request: searchRequest)
+            let searchResponse = try await search.start()
+            guard let destination = searchResponse.mapItems.first else {
+                errorMessage = "Destinazione non trovata. Prova a specificare anche la città."
+                return
+            }
+            let request = MKDirections.Request()
+            request.source = MKMapItem(placemark: MKPlacemark(coordinate: origin))
+            request.destination = destination
+            request.transportType = .automobile
+            request.requestsAlternateRoutes = false
+            let response = try await MKDirections(request: request).calculate()
+            guard let roadRoute = response.routes.first else {
+                errorMessage = "Non è disponibile un percorso stradale per questa destinazione."
+                return
+            }
+            route = roadRoute
+            destinationName = destination.name ?? query
+            destinationCoordinate = destination.placemark.coordinate
+            routeRevision += 1
+        } catch {
+            errorMessage = "Impossibile calcolare il percorso: \(error.localizedDescription)"
+        }
+    }
+
+    func clear() {
+        route = nil
+        destinationName = ""
+        destinationCoordinate = nil
+        errorMessage = nil
+        routeRevision += 1
+    }
+
+    var distanceLabel: String {
+        guard let route else { return "— km" }
+        return String(format: "%.1f km", route.distance / 1000)
+    }
+
+    var travelTimeLabel: String {
+        guard let route else { return "— min" }
+        let minutes = max(1, Int((route.expectedTravelTime / 60).rounded()))
+        return minutes < 60 ? "\(minutes) min" : "\(minutes / 60) h \(minutes % 60) min"
+    }
+}
+
+// Il pannello Percorsi mostra PRIMA il percorso stradale calcolato.
+// La traccia GPS passata resta disponibile solo su richiesta e viene
+// dichiarata esplicitamente come misura grezza, non ricostruzione delle strade.
+@MainActor
 struct RoutesPanel: View {
     @EnvironmentObject private var gps: GPSRideManager
+    @StateObject private var navigation = EcoNavigationStore.shared
     @State private var position: MapCameraPosition = .automatic
+    @State private var showRawGPSTrack = false
+
+    private var hasRawTrack: Bool { gps.track.count >= 2 }
 
     var body: some View {
-        VStack(spacing: 0) {
-            if gps.track.count >= 2 {
+        VStack(spacing: 8) {
+            HStack(spacing: 12) {
+                if navigation.route != nil {
+                    Label("Itinerario stradale", systemImage: "car.fill")
+                        .foregroundStyle(.orange)
+                    Text(navigation.distanceLabel)
+                    Text(navigation.travelTimeLabel)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Label("Nessun itinerario stradale attivo", systemImage: "map")
+                }
+                Spacer(minLength: 0)
+                if hasRawTrack {
+                    Toggle("Traccia GPS", isOn: $showRawGPSTrack)
+                        .toggleStyle(.switch)
+                        .fixedSize()
+                }
+                Button {
+                    fitRoute()
+                } label: {
+                    Image(systemName: "scope")
+                }
+                .accessibilityLabel("Inquadra il percorso")
+            }
+            .font(.subheadline)
+            .padding(.horizontal, 18)
+            .padding(.top, 6)
+
+            if navigation.route != nil || (showRawGPSTrack && hasRawTrack) {
                 Map(position: $position) {
-                    MapPolyline(coordinates: gps.track.map { CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
-                        .stroke(Color.ecoGreen, lineWidth: 5)
+                    UserAnnotation()
+                    if let planned = navigation.route {
+                        MapPolyline(planned.polyline)
+                            .stroke(.orange, lineWidth: 6)
+                    }
+                    if let destination = navigation.destinationCoordinate {
+                        Marker("Destinazione", coordinate: destination)
+                    }
+                    if showRawGPSTrack && hasRawTrack {
+                        MapPolyline(coordinates: gps.track.map {
+                            CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude)
+                        })
+                        .stroke(.green.opacity(0.85), lineWidth: 3)
+                    }
                 }
                 .mapStyle(.standard(elevation: .flat))
+                .mapControls {
+                    MapUserLocationButton()
+                    MapCompass()
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                HStack {
-                    Label(String(format: "%.2f km", gps.tripKm), systemImage: "point.topleft.down.curvedto.point.bottomright.up")
-                    Spacer()
-                    Text("Solo traccia GPS registrata nell'app").font(.caption).foregroundStyle(.secondary)
-                }.padding(12)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .padding(.horizontal, 12)
             } else {
-                ContentUnavailableView("Nessun percorso ancora registrato", systemImage: "map",
-                    description: Text("Autorizza la posizione e percorri un tragitto con Ecojumbo aperta. Non vengono inventate posizioni GPS."))
+                ContentUnavailableView(
+                    "Calcola prima una destinazione",
+                    systemImage: "point.topleft.down.curvedto.point.bottomright.up",
+                    description: Text("Apri Navigazione (icona freccia in basso) e inserisci un indirizzo. Il percorso comparirà qui seguendo le strade reali.")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+
+            Text(showRawGPSTrack
+                 ? "Verde: punti GPS registrati, non agganciati automaticamente alle strade. Arancione: percorso stradale calcolato con MapKit."
+                 : "Il percorso arancione segue la rete stradale calcolata da Apple MapKit. Lo storico GPS grezzo è facoltativo.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 16)
+                .padding(.bottom, 5)
         }
         .background(Color.ecoBackground)
         .navigationTitle("Percorsi")
-        .toolbar {
-            if gps.track.count > 1 {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Mostra percorso", systemImage: "scope") { position = .automatic }
-                }
-            }
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear(perform: fitRoute)
+        .onChange(of: navigation.routeRevision) { _, _ in fitRoute() }
+    }
+
+    private func fitRoute() {
+        if let roadRoute = navigation.route {
+            position = .rect(roadRoute.polyline.boundingMapRect)
+        } else if let location = gps.currentCoordinate() {
+            position = .region(MKCoordinateRegion(center: location,
+                                                   latitudinalMeters: 3500,
+                                                   longitudinalMeters: 3500))
+        } else {
+            position = .automatic
         }
     }
 }
 
-struct GoogleMapsPanel: View {
-    @Environment(\.openURL) private var openURL
-    @AppStorage("ecojumbo.mapsDestination") private var destination = ""
+// Nessuna app esterna: ricerca indirizzo, calcolo MKDirections e cartografia
+// Apple rimangono interamente dentro Ecojumbo, con i pulsanti dell'app visibili.
+@MainActor
+struct AppleMapsPanel: View {
+    @EnvironmentObject private var gps: GPSRideManager
+    @StateObject private var navigation = EcoNavigationStore.shared
+    @AppStorage("ecojumbo.mapsDestination") private var destinationText = ""
+    @State private var camera: MapCameraPosition = .automatic
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 15) {
-                EcoCard {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Label("Google Maps", systemImage: "location.north.fill").font(.title2.bold())
-                        Text("Apri la navigazione in Google Maps. Il percorso attivo resta nell'app Google Maps, non sopra il tachimetro Ecojumbo.")
-                            .font(.subheadline).foregroundStyle(.secondary)
-                        TextField("Destinazione (facoltativa)", text: $destination)
-                            .textInputAutocapitalization(.words)
-                            .autocorrectionDisabled()
-                            .textFieldStyle(.roundedBorder)
-                        HStack {
-                            Button { launchMap() } label: {
-                                Label(destination.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "Apri Google Maps" : "Ottieni indicazioni", systemImage: "arrow.up.right")
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(Color.ecoGreen)
-                        }
-                    }
+        VStack(spacing: 8) {
+            HStack(spacing: 10) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(.secondary)
+                TextField("Indirizzo o destinazione", text: $destinationText)
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled()
+                    .submitLabel(.search)
+                    .onSubmit(calculate)
+                    .accessibilityLabel("Indirizzo di destinazione")
+                Button(action: calculate) {
+                    Label("Percorso", systemImage: "arrow.triangle.turn.up.right.diamond.fill")
                 }
-                Text("Nessuna API a pagamento: il pulsante utilizza i link universali ufficiali di Google Maps. Per seguire la navigazione, Google Maps passa in primo piano; iOS può sospendere le misure raccolte da Ecojumbo.")
-                    .font(.footnote).foregroundStyle(.secondary)
-            }.padding(16)
+                .buttonStyle(.borderedProminent)
+                .tint(Color.ecoGreen)
+                .disabled(navigation.isLoading ||
+                          destinationText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            .font(.subheadline)
+            .padding(.horizontal, 15)
+            .padding(.vertical, 8)
+            .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
+
+            if navigation.isLoading {
+                ProgressView("Calcolo il percorso stradale…")
+                    .font(.footnote)
+            } else if let error = navigation.errorMessage {
+                Text(error)
+                    .font(.footnote)
+                    .foregroundStyle(.orange)
+                    .padding(.horizontal, 18)
+            }
+
+            Map(position: $camera) {
+                UserAnnotation()
+                if let route = navigation.route {
+                    MapPolyline(route.polyline)
+                        .stroke(.orange, lineWidth: 6)
+                }
+                if let destination = navigation.destinationCoordinate {
+                    Marker(navigation.destinationName, coordinate: destination)
+                }
+            }
+            .mapStyle(.standard(elevation: .flat))
+            .mapControls {
+                MapUserLocationButton()
+                MapCompass()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 12)
+
+            HStack(spacing: 16) {
+                if navigation.route != nil {
+                    Label(navigation.distanceLabel, systemImage: "point.topleft.down.curvedto.point.bottomright.up")
+                    Label(navigation.travelTimeLabel, systemImage: "clock")
+                    Spacer()
+                    Button("Ricalcola") { calculate() }
+                        .buttonStyle(.bordered)
+                    Button("Chiudi", role: .destructive) {
+                        navigation.clear()
+                    }
+                    .buttonStyle(.bordered)
+                } else {
+                    Image(systemName: "location.fill")
+                    Text("Attendi il GPS e cerca una destinazione. La mappa rimane in Ecojumbo.")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
+            }
+            .font(.subheadline)
+            .padding(.horizontal, 20)
+            .padding(.bottom, 6)
         }
         .background(Color.ecoBackground)
         .navigationTitle("Navigazione")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            gps.start()
+            focusOnRoute()
+        }
+        .onChange(of: navigation.routeRevision) { _, _ in focusOnRoute() }
     }
 
-    private func launchMap() {
-        let trimmed = destination.trimmingCharacters(in: .whitespacesAndNewlines)
-        var components = URLComponents()
-        components.scheme = "https"
-        components.host = "www.google.com"
-        components.path = trimmed.isEmpty ? "/maps/@" : "/maps/dir/"
-        components.queryItems = trimmed.isEmpty
-            ? [URLQueryItem(name: "api", value: "1"), URLQueryItem(name: "map_action", value: "map")]
-            : [URLQueryItem(name: "api", value: "1"), URLQueryItem(name: "destination", value: trimmed),
-               URLQueryItem(name: "travelmode", value: "driving")]
-        if let url = components.url { openURL(url) }
+    private func calculate() {
+        Task {
+            await navigation.plan(destination: destinationText, origin: gps.currentCoordinate())
+        }
+    }
+
+    private func focusOnRoute() {
+        if let roadRoute = navigation.route {
+            camera = .rect(roadRoute.polyline.boundingMapRect)
+        } else if let location = gps.currentCoordinate() {
+            camera = .region(MKCoordinateRegion(center: location,
+                                                 latitudinalMeters: 3500,
+                                                 longitudinalMeters: 3500))
+        } else {
+            camera = .automatic
+        }
     }
 }
 
