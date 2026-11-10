@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 18;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 19;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -50,24 +50,25 @@ assert 'Text("GPS")' in c and 'Text("P")' not in c
 assert 'SpeedLEDStream(d: d, speed: speed)' in c and 'SpeedScaleTicks(d: d)' in c
 assert 'SegmentedGaugeBar(d:' in c
 
-# Raccordi C1 soltanto sopra i valori A/kW; lati inferiori rettilinei.
+# Le linee usano lo stesso raggio effettivo; angoli inferiori retti.
 assert 'ContinuousLowerLine: Shape' in u and 'ContinuousLowerGlow(theme: theme)' in u
-assert 'p.addLine(to: pt(shoulderX, 0.850))' in u
-assert 'p.addLine(to: pt(1 - footX, 0.987))' in u
-assert 'control1: pt(tangentX, 0.82808), control2: pt(0.384, 0.785)' in u
-assert 'control1: pt(0.616, 0.785), control2: pt(1 - tangentX, 0.82808)' in u
-assert 'p.addLine(to: pt(0.588, 0.785))' in u
+assert 'CockpitContourGeometry.roundedPath(points:' in u
+assert 'CockpitContourGeometry.roundedPath(points:' in c
+assert 'corners: [1, 4]' in c and 'corners: [1, 2]' in u
+assert 'p.addLine(to: pt(' not in u
 assert 'CornerDockGlow' not in u and 'FooterLightContour' not in c
-# Linea top bar sinuosa e unica dietro il quadrante.
 assert 'private struct ContinuousHorizonLine: View' in c
-assert 'p.addCurve(to: CGPoint(x: w * 0.355, y: h * 0.238)' in c
-assert 'p.addCurve(to: CGPoint(x: w * 0.745, y: h * 0.085)' in c
 assert 'min(h * 0.982, w * 0.57)' in c
 assert 'ringRadius = min(h * 0.982, w * 0.57) * 0.506' in c
 assert 'FillStyle(eoFill: true)' in c
 assert 'wingHeight = h * 0.455' in c
 assert '.position(x: wingInset + wingWidth / 2, y: h * 0.490)' in c
 assert '.position(x: d * 0.50, y: d * 0.889)' in c
+assert 'if left { icon }' in c and 'if !left { icon }' in c
+assert 'if left { Spacer(minLength: 0) }' in c
+assert 'var previewPalette: [Color]' in c
+assert 'Self.barDark, Self.barMid, Self.barBright, Self.regenAccent]' in c
+assert 'ForEach(theme.previewPalette.indices' in t
 
 # Sei temi, griglia visibile con 3 colonne e 2 righe in landscape.
 for tag in ['case copper = "Rame"','case glacier = "Ghiaccio"','case green = "Verde"','case aquamarine = "Acquamarina"','case brown = "Marrone"','case racing = "Racing"']:
@@ -77,4 +78,4 @@ assert 'Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)' in t
 assert 'ForEach(CockpitTheme.allCases)' in t
 assert 'Scale delle barre luminose' in o and 'Nessuna barra nelle tre schede chilometriche' in o
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
-print('OK — 17: 6 card con icone, 3 barre reali, raccordi C1, 6 temi a griglia 2x3')
+print('OK — 19: 6 card con icone, 3 barre reali, raccordi C1, 6 temi a griglia 2x3')

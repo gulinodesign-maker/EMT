@@ -144,34 +144,63 @@ struct GoogleMapsPanel: View {
 
 struct ThemePickerView: View {
     @AppStorage("ecojumbo.theme") private var selection = CockpitTheme.copper.rawValue
+    // Sempre tre a tre: sei temi disposti in due righe da tre.
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("Seleziona uno dei sei kit colori: le curve, gli anelli e le icone luminose cambiano insieme. Le misurazioni restano reali e leggibili.")
+                Text("Ogni anteprima mostra i colori reali del tema: fondo, luce, ombra, acciaio, tre colori della barra e rigenerazione.")
                     .font(.subheadline).foregroundStyle(.secondary)
                 LazyVGrid(columns: columns, spacing: 13) {
                     ForEach(CockpitTheme.allCases) { theme in
                         Button { selection = theme.rawValue } label: {
-                            VStack(spacing: 7) {
+                            VStack(spacing: 8) {
                                 ZStack {
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .fill(Color.black.opacity(0.72))
+                                    RoundedRectangle(cornerRadius: 13)
+                                        .fill(theme.previewPalette[0])
+                                    Circle()
+                                        .stroke(theme.secondary, lineWidth: 3)
+                                        .frame(width: 51, height: 51)
+                                    Circle()
+                                        .trim(from: 0.10, to: 0.84)
+                                        .stroke(theme.accent,
+                                                style: StrokeStyle(lineWidth: 5, lineCap: .round))
+                                        .rotationEffect(.degrees(85))
+                                        .frame(width: 43, height: 43)
+                                        .shadow(color: theme.accent.opacity(0.7), radius: 7)
+                                    Text("—")
+                                        .font(.system(size: 17, weight: .bold))
+                                        .foregroundStyle(theme.steel)
                                     Capsule()
-                                        .stroke(theme.accent, lineWidth: 3)
-                                        .shadow(color: theme.accent.opacity(0.62), radius: 8)
-                                        .frame(width: 96, height: 37)
-                                    Circle().fill(theme.accent)
-                                        .frame(width: 16, height: 16)
+                                        .fill(LinearGradient(colors: [CockpitTheme.barDark,
+                                                                      CockpitTheme.barMid,
+                                                                      CockpitTheme.barBright],
+                                                             startPoint: .leading, endPoint: .trailing))
+                                        .frame(width: 61, height: 4)
+                                        .offset(x: 56, y: 19)
                                     if selection == theme.rawValue {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundStyle(theme.accent)
-                                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                                            .padding(5)
+                                            .frame(maxWidth: .infinity, maxHeight: .infinity,
+                                                   alignment: .topTrailing)
+                                            .padding(6)
                                     }
                                 }
-                                .frame(height: 61)
+                                .frame(height: 72)
+                                // Tutte le otto tonalita principali realmente presenti nel cockpit.
+                                HStack(spacing: 4) {
+                                    ForEach(theme.previewPalette.indices, id: \.self) { i in
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(theme.previewPalette[i])
+                                            .frame(maxWidth: .infinity)
+                                            .frame(height: 12)
+                                            .overlay {
+                                                RoundedRectangle(cornerRadius: 3)
+                                                    .stroke(.white.opacity(0.28), lineWidth: 0.5)
+                                            }
+                                    }
+                                }
                                 Text(theme.rawValue)
                                     .font(.system(size: 15, weight: .semibold))
                                     .lineLimit(1)
@@ -189,7 +218,7 @@ struct ThemePickerView: View {
                             }
                         }
                         .buttonStyle(.plain)
-                        .accessibilityLabel("Tema \(theme.rawValue)")
+                        .accessibilityLabel("Tema \(theme.rawValue), otto colori in anteprima")
                         .accessibilityAddTraits(selection == theme.rawValue ? .isSelected : [])
                     }
                 }

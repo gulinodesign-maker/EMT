@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 import Darwin
 
-// EJ 1.18 — schede ribassate, top bar non interseca il quadrante, tachimetro ampliato.
+// EJ 1.19 — raccordi top/down bar a raggio identico; schede sinistre speculari.
 // Geometry, rings, numerals and panels are real SwiftUI controls (no reference bitmap as UI).
 // Misure esclusivamente da Core Location / JK BLE, senza campioni sintetici.
 enum CockpitTheme: String, CaseIterable, Identifiable {
@@ -37,6 +37,38 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     }
     var steel: Color { Color(red: 0.85, green: 0.87, blue: 0.89) }
     var shadowAccent: Color { accent.opacity(0.68) }
+    static let barDark = Color(red: 0.55, green: 0.02, blue: 0.13)
+    static let barMid = Color(red: 0.91, green: 0.06, blue: 0.23)
+    static let barBright = Color(red: 0.99, green: 0.20, blue: 0.32)
+    static let regenAccent = Color(red: 0.20, green: 0.83, blue: 0.65)
+    var previewPalette: [Color] {
+        // Fondo carbonio, luce, ombra, acciaio e tutte e tre le tinte della barra più la rigenerazione.
+        [Color(red: 0.015, green: 0.016, blue: 0.019),
+         accent, secondary, steel, Self.barDark, Self.barMid, Self.barBright, Self.regenAccent]
+    }
+}
+
+// Le due barre arancioni usano l'identico raggio in punti, non solo una curva simile.
+// Path.addArc(...) imposta archi circolari tangenti ai segmenti, senza gradini.
+enum CockpitContourGeometry {
+    static func cornerRadius(in size: CGSize) -> CGFloat {
+        min(size.height * 0.075, size.width * 0.032)
+    }
+
+    static func roundedPath(points: [CGPoint], corners: Set<Int>, radius: CGFloat) -> Path {
+        var path = Path()
+        guard points.count >= 2 else { return path }
+        path.move(to: points[0])
+        for i in 1..<(points.count - 1) {
+            if corners.contains(i) {
+                path.addArc(tangent1End: points[i], tangent2End: points[i + 1], radius: radius)
+            } else {
+                path.addLine(to: points[i])
+            }
+        }
+        path.addLine(to: points[points.count - 1])
+        return path
+    }
 }
 
 // Carbonio reale come texture ripetuta, indipendente dalle metriche e dalle preferenze.
@@ -92,9 +124,9 @@ private struct MetricGlowBar: View {
                                               Swift.max(1.0, w * CGFloat(progress) - h * 0.18))
                     Capsule()
                         .fill(LinearGradient(stops: [
-                            .init(color: Color(red: 0.55, green: 0.02, blue: 0.13), location: 0),
-                            .init(color: Color(red: 0.91, green: 0.06, blue: 0.23), location: 0.70),
-                            .init(color: Color(red: 0.99, green: 0.20, blue: 0.32), location: 1)
+                            .init(color: CockpitTheme.barDark, location: 0),
+                            .init(color: CockpitTheme.barMid, location: 0.70),
+                            .init(color: CockpitTheme.barBright, location: 1)
                         ], startPoint: .leading, endPoint: .trailing))
                         .frame(width: fillWidth, height: h * 0.84)
                         .padding(.leading, h * 0.10)
@@ -135,8 +167,26 @@ private struct PremiumWing: View {
     }
 
     private func metricTile(_ reading: WingReading, width: CGFloat, height: CGFloat) -> some View {
-        let leadingInset = width * (left ? 0.060 : 0.355)
+        let inset = width * 0.355
         let iconSide = min(height * 0.38, width * 0.095)
+        let icon = ZStack {
+            Circle()
+                .stroke(theme.accent, lineWidth: max(1.5, height * 0.020))
+                .shadow(color: theme.accent.opacity(0.35), radius: 3)
+            if reading.icon == "voltage" {
+                Text("V")
+                    .font(.system(size: iconSide * 0.54, weight: .bold))
+                    .foregroundStyle(.white)
+            } else {
+                Image(systemName: reading.icon)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: iconSide * 0.54, height: iconSide * 0.54)
+                    .foregroundStyle(theme.accent)
+            }
+        }
+        .frame(width: iconSide, height: iconSide)
+
         return ZStack {
             RoundedRectangle(cornerRadius: height * 0.28, style: .continuous)
                 .fill(LinearGradient(colors: [Color(white: 0.105), Color(white: 0.045)],
@@ -148,26 +198,11 @@ private struct PremiumWing: View {
                                                startPoint: .top, endPoint: .bottom), lineWidth: 1.0)
                 }
                 .shadow(color: .black.opacity(0.75), radius: height * 0.08, y: 3)
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: left ? .trailing : .leading, spacing: 0) {
                 HStack(spacing: max(7, width * 0.024)) {
-                    ZStack {
-                        Circle()
-                            .stroke(theme.accent, lineWidth: max(1.5, height * 0.020))
-                            .shadow(color: theme.accent.opacity(0.35), radius: 3)
-                        if reading.icon == "voltage" {
-                            Text("V")
-                                .font(.system(size: iconSide * 0.54, weight: .bold))
-                                .foregroundStyle(.white)
-                        } else {
-                            Image(systemName: reading.icon)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: iconSide * 0.54, height: iconSide * 0.54)
-                                .foregroundStyle(theme.accent)
-                        }
-                    }
-                    .frame(width: iconSide, height: iconSide)
-
+                    if left { Spacer(minLength: 0) }
+                    // Sinistra: VALORE + ICONA, destra: ICONA + VALORE.
+                    if !left { icon }
                     Text(reading.value)
                         .font(.system(size: min(height * 0.31, width * 0.075), weight: .bold))
                         .monospacedDigit()
@@ -175,16 +210,18 @@ private struct PremiumWing: View {
                         .minimumScaleFactor(0.48)
                         .foregroundStyle(.white)
                         .shadow(color: .black.opacity(0.85), radius: 2, y: 2)
-                    Spacer(minLength: 0)
+                    if left { icon }
+                    if !left { Spacer(minLength: 0) }
                 }
+                .frame(maxWidth: .infinity)
                 .frame(height: reading.showsBar ? height * 0.72 : height * 0.97)
                 if reading.showsBar {
                     MetricGlowBar(fraction: reading.fraction, theme: theme)
-                        .frame(width: width * (left ? 0.54 : 0.54), height: max(5, height * 0.085))
+                        .frame(width: width * 0.54, height: max(5, height * 0.085))
                 }
             }
-            .padding(.leading, leadingInset)
-            .padding(.trailing, width * 0.035)
+            .padding(.leading, left ? width * 0.035 : inset)
+            .padding(.trailing, left ? inset : width * 0.035)
         }
         .frame(width: width, height: height)
     }
@@ -198,18 +235,16 @@ private struct ContinuousHorizonLine: View {
         GeometryReader { geometry in
             let w = geometry.size.width
             let h = geometry.size.height
-            let line = Path { p in
-                p.move(to: CGPoint(x: 0, y: h * 0.085))
-                p.addLine(to: CGPoint(x: w * 0.255, y: h * 0.085))
-                p.addCurve(to: CGPoint(x: w * 0.355, y: h * 0.238),
-                           control1: CGPoint(x: w * 0.308, y: h * 0.085),
-                           control2: CGPoint(x: w * 0.333, y: h * 0.238))
-                p.addLine(to: CGPoint(x: w * 0.645, y: h * 0.238))
-                p.addCurve(to: CGPoint(x: w * 0.745, y: h * 0.085),
-                           control1: CGPoint(x: w * 0.667, y: h * 0.238),
-                           control2: CGPoint(x: w * 0.692, y: h * 0.085))
-                p.addLine(to: CGPoint(x: w, y: h * 0.085))
-            }
+            // Due raccordi della top bar con lo stesso raggio circolare della downbar.
+            // Il centro rimane dietro al quadrante grazie alla maschera esistente.
+            let line = CockpitContourGeometry.roundedPath(points: [
+                CGPoint(x: 0, y: h * 0.085),
+                CGPoint(x: w * 0.255, y: h * 0.085),
+                CGPoint(x: w * 0.355, y: h * 0.238),
+                CGPoint(x: w * 0.645, y: h * 0.238),
+                CGPoint(x: w * 0.745, y: h * 0.085),
+                CGPoint(x: w, y: h * 0.085)
+            ], corners: [1, 4], radius: CockpitContourGeometry.cornerRadius(in: geometry.size))
             // Il contorno della top bar scompare dietro il tachimetro.
             // Maschera a foro centrale con bordo oltre il LED esterno: nessuna
             // diagonale arancione attraversa gli anelli visibili del quadrante.
