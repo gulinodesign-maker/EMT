@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (31): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (32): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 31;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 32;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -101,6 +101,11 @@ assert 'heading: heading, pitch: mapControls.is3D ? 55 : 0' in c
 assert 'GPS e ricerca indirizzo nella STESSA barra' in c
 assert 'private struct GPSSearchTopBand: Shape' in c
 assert 'GPSSearchTopBand()' in c
+assert 'private struct GPSSearchBottomFade: View' in c
+assert '.mask(GPSSearchBottomFade())' in c
+assert 'let fadeStart = max(0, (bottomY - max(16, h * 0.045)) / h)' in c
+assert 'let fadeEnd = min(1, bottomY / h)' in c
+assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
 assert 'fullW * 0.45 - mapLeft' in c
 assert 'fullW * 0.54 - mapLeft' in c
 assert 'fullH * 0.085 - mapTop' in c
@@ -124,6 +129,11 @@ assert 'private struct HomeRingBridgeMask: Shape' in c
 assert 'var beneathBridge = ContinuousLowerLine().path(in: rect)' in c
 assert 'visible.addPath(beneathBridge)' in c
 assert '.mask(HomeRingBridgeMask().fill(style: FillStyle(eoFill: true)))' in c
+assert 'private struct HomeRingTerminalFade: View' in c
+assert '.mask(HomeRingTerminalFade())' in c
+assert 'let contactY = Self.ringBridgeContactY(in: geometry.size)' in c
+assert 'let fadeStart = max(0, (contactY - max(20, h * 0.075)) / h)' in c
+assert 'distanceSquaredMinusRadius(middle) > 0' in c
 assert 'GaugeArc(start: 208, end: 332)' not in c
 assert 'min(h * 0.982, w * 0.57)' in c
 assert 'ringRadius = min(h * 0.982, w * 0.57) * 0.506' in c
@@ -269,4 +279,4 @@ assert '.background(.ultraThinMaterial,' in c
 assert '.black.opacity(0.35), .black.opacity(0.75)' not in c
 assert '8 * controlSide - 7 * w * 0.008' in c
 assert 'struct GPSCompactReadings: View' in c
-print('OK — 31: anello Home aperto precisamente sul ponte, barra GPS con bordo inferiore retto')
+print('OK — 32: terminali anello Home sfumati e bordo inferiore GPS dissolto')
