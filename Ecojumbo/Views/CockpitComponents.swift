@@ -250,10 +250,7 @@ struct CockpitDashboard:View {
     @EnvironmentObject private var bluetooth:JKBluetoothManager
     let theme:CockpitTheme
     let now:Date
-    @AppStorage("ecojumbo.bars.rangeMaxKm") private var rangeMaxKm = 200.0
     @AppStorage("ecojumbo.bars.averagePowerMaxKW") private var averagePowerMaxKW = 5.0
-    @AppStorage("ecojumbo.bars.tripMaxKm") private var tripMaxKm = 100.0
-    @AppStorage("ecojumbo.bars.odometerCycleKm") private var odometerCycleKm = 1000.0
     private var live:JKSnapshot? {
         guard bluetooth.isConnected, let snap=bluetooth.snapshot,
               abs(now.timeIntervalSince(snap.date)) < 10 else {return nil}
@@ -271,30 +268,31 @@ struct CockpitDashboard:View {
     private var leftRows: [WingReading] {
         [
             WingReading(value: live.map { "\($0.soc)%" } ?? "—%",
-                        title: "Carica residua",
+                        title: "Carica residua", icon: "bolt.fill", showsBar: true,
                         fraction: CockpitBarMath.unit(live.map { Double($0.soc) }, maximum: 100)),
             WingReading(value: live.map { String(format: "%.1f V", $0.voltage) } ?? "— V",
-                        title: "Tensione batteria",
+                        title: "Tensione batteria", icon: "voltage", showsBar: true,
                         fraction: CockpitBarMath.unit(live?.voltage, minimum: 50, maximum: 73)),
             WingReading(value: rangeKm.map { String(format: "%.0f km", $0) } ?? "— km",
-                        title: "Autonomia stimata",
-                        fraction: CockpitBarMath.unit(rangeKm, maximum: rangeMaxKm))
+                        title: "Autonomia stimata", icon: "road.lanes", showsBar: false,
+                        fraction: nil)
         ]
     }
     private var rightRows: [WingReading] {
-        let average = bluetooth.session.averageDischargeKW
+        // Potenza istantanea: dalla lettura corrente del JK BMS, non da una media.
+        let instantKW = live.map { -($0.power) / 1000.0 }
         let partial = (gps.isReceiving || gps.tripKm > 0) ? gps.tripKm : nil
         let total = gps.hasOdometer ? gps.totalKm : nil
         return [
-            WingReading(value: average.map { String(format: "%.1f kW", $0) } ?? "— kW",
-                        title: "Potenza media del viaggio",
-                        fraction: CockpitBarMath.unit(average, maximum: averagePowerMaxKW)),
+            WingReading(value: instantKW.map { String(format: "%.1f kW", $0) } ?? "— kW",
+                        title: "Potenza istantanea", icon: "chart.bar.fill", showsBar: true,
+                        fraction: CockpitBarMath.unit(instantKW.map { abs($0) }, maximum: averagePowerMaxKW)),
             WingReading(value: partial.map { String(format: "%.1f km", $0) } ?? "— km",
-                        title: "Trip parziale",
-                        fraction: CockpitBarMath.unit(partial, maximum: tripMaxKm)),
+                        title: "Trip parziale", icon: "mappin", showsBar: false,
+                        fraction: nil),
             WingReading(value: total.map { String(format: "%.0f km", $0) } ?? "— km",
-                        title: "Chilometraggio scooter",
-                        fraction: CockpitBarMath.odometerCycle(total, cycle: odometerCycleKm))
+                        title: "Chilometraggio scooter", icon: "speedometer", showsBar: false,
+                        fraction: nil)
         ]
     }
 
@@ -302,7 +300,7 @@ struct CockpitDashboard:View {
         GeometryReader { geo in
             let w=geo.size.width,h=geo.size.height
             let headerHeight = h * 0.125
-            let wingHeight = h * 0.560
+            let wingHeight = h * 0.520
             let wingWidth = w * 0.390
             // Margine reale su entrambi i lati: le ali non toccano il display.
             let wingInset = max(5, w * 0.006)
@@ -314,11 +312,11 @@ struct CockpitDashboard:View {
 
                 PremiumWing(readings: leftRows, theme: theme, left: true)
                     .frame(width: wingWidth, height: wingHeight)
-                    .position(x: wingInset + wingWidth / 2, y: h * 0.475)
+                    .position(x: wingInset + wingWidth / 2, y: h * 0.428)
                     .zIndex(1)
                 PremiumWing(readings: rightRows, theme: theme, left: false)
                     .frame(width: wingWidth, height: wingHeight)
-                    .position(x: w - wingInset - wingWidth / 2, y: h * 0.475)
+                    .position(x: w - wingInset - wingWidth / 2, y: h * 0.428)
                     .zIndex(1)
 
                 // Disco carbonio opaco in PRIMO PIANO: i dati laterali restano dietro.
@@ -343,7 +341,7 @@ struct CockpitDashboard:View {
                     .position(x: w * 0.50, y: h * 0.505)
                     .zIndex(34)
                 ContinuousHorizonLine(theme: theme)
-                    .frame(width: w, height: headerHeight)
+                    .frame(width: w, height: h)
                     .zIndex(2)
                 topInfoBar(height: headerHeight, width: w)
                     .frame(width: w, height: headerHeight)
@@ -651,21 +649,44 @@ private struct OpenSpeedCluster: View {
                 SpeedLEDStream(d: d, speed: speed)
                 SpeedScaleTicks(d: d)
 
-                if let speed {
-                    HollowSpeedNumber(text: String(Int(speed.rounded())), size: d * 0.390,
-                                      accent: UIColor(theme.accent))
-                        .frame(width: d * 0.54, height: d * 0.325)
-                        .shadow(color: theme.accent.opacity(0.85), radius: d * 0.026)
-                        .shadow(color: theme.accent.opacity(0.68), radius: d * 0.009)
-                        .position(x: d * 0.50, y: d * 0.505)
-                        .accessibilityLabel("Velocità GPS: \(Int(speed.rounded())) chilometri orari")
-                } else {
-                    Text("—")
-                        .font(.system(size: d * 0.24, weight: .ultraLight))
-                        .foregroundStyle(.white.opacity(0.83))
-                        .position(x: d * 0.50, y: d * 0.50)
-                        .accessibilityLabel("GPS non disponibile")
+                VStack(spacing: d * 0.004) {
+                    if let speed {
+                        Text(String(Int(speed.rounded())))
+                            .font(.system(size: d * 0.245, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(.white)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.55)
+                            .frame(height: d * 0.245)
+                            .accessibilityLabel("Velocità GPS: \(Int(speed.rounded())) chilometri orari")
+                    } else {
+                        Text("—")
+                            .font(.system(size: d * 0.19, weight: .light))
+                            .foregroundStyle(.white.opacity(0.90))
+                            .frame(height: d * 0.245)
+                            .accessibilityLabel("GPS non disponibile")
+                    }
+                    Text("km/h")
+                        .font(.system(size: d * 0.070, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.81))
+                    Rectangle().fill(.white)
+                        .frame(width: d * 0.215, height: max(1.2, d * 0.006))
+                        .padding(.top, d * 0.017)
+                    Text("GPS")
+                        .font(.system(size: d * 0.062, weight: .heavy, design: .rounded))
+                        .foregroundStyle(.white)
+                        .frame(width: d * 0.165, height: d * 0.087)
+                        .background(Color.black.opacity(0.88), in:
+                            RoundedRectangle(cornerRadius: d * 0.030, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: d * 0.030, style: .continuous)
+                                .stroke(theme.accent, lineWidth: max(1, d * 0.003))
+                        }
+                        .shadow(color: theme.accent.opacity(0.34), radius: d * 0.012)
+                        .padding(.top, d * 0.025)
                 }
+                .frame(width: d * 0.52, height: d * 0.46)
+                .position(x: d * 0.50, y: d * 0.485)
 
                 // Il profilo unico sopra A/kW è aperto alle estremita, senza
                 // alcuna linea orizzontale sotto i pulsanti di navigazione.
@@ -680,12 +701,12 @@ private struct OpenSpeedCluster: View {
                         .foregroundStyle(isRegen ? Color(red: 0.20, green: 0.83, blue: 0.65) : theme.accent)
                         .frame(maxWidth: .infinity)
                 }
-                .font(.system(size: d * 0.075, weight: .semibold))
+                .font(.system(size: d * 0.066, weight: .semibold))
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.45)
                 .frame(width: d * 0.66, height: d * 0.13)
-                .position(x: d * 0.50, y: d * 0.900)
+                .position(x: d * 0.50, y: d * 0.831)
             }
             .frame(width: d, height: d)
         }
