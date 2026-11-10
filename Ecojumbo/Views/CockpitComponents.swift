@@ -91,6 +91,26 @@ private struct CarbonBackdrop: View {
     }
 }
 
+// Sfondo superiore sfumato grigio antracite, presente in entrambe le
+// modalità e indipendente dal tema colore selezionato.
+private struct CockpitTopSoftShade: View {
+    var body: some View {
+        GeometryReader { geo in
+            LinearGradient(stops: [
+                .init(color: Color(white: 0.22).opacity(0.27), location: 0),
+                .init(color: Color(white: 0.14).opacity(0.15), location: 0.38),
+                .init(color: .clear, location: 1)
+            ], startPoint: .top, endPoint: .bottom)
+            .frame(width: geo.size.width, height: geo.size.height * 0.18,
+                   alignment: .top)
+            .frame(width: geo.size.width, height: geo.size.height,
+                   alignment: .top)
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
 // Un'unica ala per lato; bordo morbido e due sottili fenditure luminose.
 // L'ala è disegnata sotto il disco opaco della strumentazione, come nel riferimento.
 // Barre reali sotto ciascuna lettura: se il valore manca non c'è alcun riempimento.
@@ -357,6 +377,10 @@ struct CockpitDashboard:View {
             let dialSize = min(h * 0.982, w * 0.57)
             ZStack(alignment: .topLeading) {
                 CarbonBackdrop(theme: theme)
+                CockpitTopSoftShade()
+                    .frame(width: w, height: h)
+                    .zIndex(0)
+
 
                 PremiumWing(readings: leftRows, theme: theme, left: true)
                     .frame(width: wingWidth, height: wingHeight)
@@ -764,7 +788,43 @@ private struct OpenSpeedCluster: View {
 
 
 
-// EJ 1.21 — modalità GPS nello STESSO cockpit: tachimetro a sinistra,
+// Calcola la posizione più a sinistra possibile senza tagliare il
+// quadrante e conservando una zona di rispetto per orario/Dynamic Island.
+private enum GPSDialLayout {
+    static func size(width: CGFloat, height: CGFloat) -> CGFloat {
+        min(height * 0.965, width * 0.55)
+    }
+    static func centerX(width: CGFloat, height: CGFloat) -> CGFloat {
+        let d = size(width: width, height: height)
+        return max(d * 0.51 + width * 0.010, width * 0.168 + d * 0.30)
+    }
+}
+
+// Anello esterno luminoso del tachimetro GPS. Il segmento inferiore
+// scompare progressivamente prima dei raccordi A/kW: nessun incrocio.
+private struct GPSGaugeHalo: View {
+    let theme: CockpitTheme
+    var body: some View {
+        GeometryReader { geo in
+            let d = min(geo.size.width, geo.size.height)
+            Circle()
+                .stroke(theme.accent,
+                        style: StrokeStyle(lineWidth: max(1.8, d * 0.0038)))
+                .frame(width: d * 0.992, height: d * 0.992)
+                .shadow(color: theme.accent.opacity(0.78), radius: d * 0.012)
+                .frame(width: d, height: d)
+                .mask(LinearGradient(stops: [
+                    .init(color: .white, location: 0.0),
+                    .init(color: .white, location: 0.65),
+                    .init(color: .white.opacity(0.65), location: 0.72),
+                    .init(color: .clear, location: 0.80)
+                ], startPoint: .top, endPoint: .bottom))
+        }
+        .allowsHitTesting(false)
+    }
+}
+
+// EJ 1.22 — modalità GPS nello STESSO cockpit: tachimetro a sinistra,
 // mappa stradale Apple a destra, sette tasti sempre visibili in basso.
 // Le misure non sono simulate; la rotta MKDirections resta condivisa.
 @MainActor
@@ -778,15 +838,19 @@ struct GPSCockpitDashboard: View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
-            let dialSize = min(h * 0.965, w * 0.55)
+            let dialSize = GPSDialLayout.size(width: w, height: h)
+            let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
             let live = bluetooth.snapshot
             ZStack {
                 CarbonBackdrop(theme: theme)
+                CockpitTopSoftShade()
+                    .frame(width: w, height: h)
+                    .zIndex(1)
 
                 // MapKit occupa la metà destra ma rimane parte di questo cockpit.
                 GPSCockpitMap(theme: theme)
-                    .frame(width: w * 0.505, height: h * 0.725)
-                    .position(x: w * 0.748, y: h * 0.455)
+                    .frame(width: w * 0.475, height: h * 0.725)
+                    .position(x: w * 0.7625, y: h * 0.455)
                     .zIndex(5)
 
                 GPSHorizonLine(theme: theme)
@@ -798,13 +862,18 @@ struct GPSCockpitDashboard: View {
                                  power: live.map { -($0.power) },
                                  theme: theme)
                     .frame(width: dialSize, height: dialSize)
-                    .position(x: w * 0.335, y: h * 0.494)
+                    .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(25)
+
+                GPSGaugeHalo(theme: theme)
+                    .frame(width: dialSize, height: dialSize)
+                    .position(x: dialCenterX, y: h * 0.494)
+                    .zIndex(27)
 
                 // Profilo luminoso A/kW rimappato al semicockpit sinistro.
                 ContinuousLowerGlow(theme: theme)
                     .frame(width: w * 0.69, height: h)
-                    .position(x: w * 0.335, y: h * 0.5)
+                    .position(x: dialCenterX, y: h * 0.5)
                     .allowsHitTesting(false)
                     .zIndex(35)
 
@@ -846,10 +915,11 @@ private struct GPSHorizonLine: View {
                 path.addPath(left)
                 path.addPath(right)
             }
-            let dialSize = min(h * 0.965, w * 0.55)
+            let dialSize = GPSDialLayout.size(width: w, height: h)
+            let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
             let visibleOutsideRing = Path { p in
                 p.addRect(CGRect(x: 0, y: 0, width: w, height: h))
-                p.addEllipse(in: CGRect(x: w * 0.335 - dialSize * 0.508,
+                p.addEllipse(in: CGRect(x: dialCenterX - dialSize * 0.508,
                                         y: h * 0.494 - dialSize * 0.508,
                                         width: dialSize * 1.016,
                                         height: dialSize * 1.016))
@@ -918,6 +988,7 @@ private struct GPSCockpitMap: View {
     @StateObject private var navigation = EcoNavigationStore.shared
     @AppStorage("ecojumbo.mapsDestination") private var destination = ""
     @State private var camera: MapCameraPosition = .userLocation(followsHeading: false, fallback: .automatic)
+    @State private var visibleRegion: MKCoordinateRegion?
     let theme: CockpitTheme
 
     var body: some View {
@@ -937,12 +1008,27 @@ private struct GPSCockpitMap: View {
                 }
                 .mapStyle(.standard(elevation: .flat))
                 .mapControls {
-                    MapUserLocationButton()
                     MapCompass()
                 }
+                .onMapCameraChange(frequency: .onEnd) { context in
+                    visibleRegion = context.region
+                }
 
-                LinearGradient(colors: [.black.opacity(0.73), .clear, .black.opacity(0.25)],
-                               startPoint: .top, endPoint: .bottom)
+                // Sfumatura su bordo sinistro, superiore e inferiore:
+                // il dettaglio stradale resta nitido al centro della mappa.
+                LinearGradient(stops: [
+                    .init(color: .black.opacity(0.83), location: 0),
+                    .init(color: .black.opacity(0.32), location: 0.16),
+                    .init(color: .clear, location: 0.37),
+                    .init(color: .clear, location: 1)
+                ], startPoint: .leading, endPoint: .trailing)
+                    .allowsHitTesting(false)
+                LinearGradient(stops: [
+                    .init(color: .black.opacity(0.55), location: 0),
+                    .init(color: .clear, location: 0.24),
+                    .init(color: .clear, location: 0.72),
+                    .init(color: .black.opacity(0.36), location: 1)
+                ], startPoint: .top, endPoint: .bottom)
                     .allowsHitTesting(false)
 
                 VStack(spacing: 5) {
@@ -1026,12 +1112,34 @@ private struct GPSCockpitMap: View {
                     .padding(.trailing, 8)
                     .padding(.top, h * 0.18)
                     .allowsHitTesting(false)
+
+                // Comandi mappa sempre visibili: ricentra GPS e zoom + / −.
+                VStack {
+                    Spacer(minLength: 0)
+                    VStack(spacing: 7) {
+                        mapAction("scope", accessibility: "Ricentra sulla posizione GPS") {
+                            recenterOnUser()
+                        }
+                        mapAction("plus.magnifyingglass", accessibility: "Ingrandisci mappa") {
+                            zoom(inward: true)
+                        }
+                        mapAction("minus.magnifyingglass", accessibility: "Riduci zoom mappa") {
+                            zoom(inward: false)
+                        }
+                    }
+                    .padding(6)
+                    .background(Color.black.opacity(0.70),
+                                in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .padding(.leading, 9)
+                    .padding(.bottom, 9)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
             .frame(width: w, height: h)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(theme.accent.opacity(0.55), lineWidth: 1.2)
+                    .stroke(Color.white.opacity(0.16), lineWidth: 0.8)
                     .allowsHitTesting(false)
             }
             .onAppear {
@@ -1040,6 +1148,46 @@ private struct GPSCockpitMap: View {
             }
             .onChange(of: navigation.routeRevision) { _, _ in focusOnRoute() }
         }
+    }
+
+    private func mapAction(_ symbol: String, accessibility: String,
+                           action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: 33, height: 31)
+                .background(Color(white: 0.20).opacity(0.80),
+                            in: RoundedRectangle(cornerRadius: 7))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(accessibility)
+    }
+
+    private func recenterOnUser() {
+        guard let point = gps.currentCoordinate() else {
+            focusOnRoute()
+            return
+        }
+        camera = .region(MKCoordinateRegion(center: point,
+                                             latitudinalMeters: 1200,
+                                             longitudinalMeters: 1200))
+    }
+
+    private func zoom(inward: Bool) {
+        let point = gps.currentCoordinate() ?? navigation.destinationCoordinate
+        guard let region = visibleRegion ?? point.map({
+            MKCoordinateRegion(center: $0, latitudinalMeters: 3500,
+                               longitudinalMeters: 3500)
+        }) else { return }
+        let factor: CLLocationDegrees = inward ? 0.62 : 1.62
+        camera = .region(MKCoordinateRegion(
+            center: region.center,
+            span: MKCoordinateSpan(
+                latitudeDelta: min(60, max(0.0005, region.span.latitudeDelta * factor)),
+                longitudeDelta: min(60, max(0.0005, region.span.longitudeDelta * factor))
+            )
+        ))
     }
 
     private func calculateRoute() {

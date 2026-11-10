@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (21): grafica, MapKit, GPS senza dati simulati."""
+"""Regressioni Ecojumbo 1.0 (22): grafica GPS, MapKit e telemetria reale."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 21;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 22;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -106,4 +106,34 @@ assert 'Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)' in t
 assert 'ForEach(CockpitTheme.allCases)' in t
 assert 'Scale delle barre luminose' in o and 'Nessuna barra nelle tre schede chilometriche' in o
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
-print('OK — 21: cockpit GPS integrato, MapKit stradale, sette pulsanti e sei temi')
+# Nuovo dock GPS 7 a destra; classico 4+3 invariato.
+assert 'if selected == .gps {' in u
+assert 'ForEach(EcoTab.allCases) { tab in' in u
+assert 'let gpsSide = min(buttonSide, width * 0.052)' in u
+assert 'let gpsGap = width * 0.008' in u
+# Sfumature neutre su entrambe le modalità.
+assert 'private struct CockpitTopSoftShade: View' in c
+assert c.count('CockpitTopSoftShade()') == 2
+assert 'private struct LowerPanelShade: Shape' in u
+assert 'LowerPanelShade()' in u
+# Tachimetro GPS più a sinistra e anello brillante senza attraversare A/kW.
+assert 'private enum GPSDialLayout' in c
+assert 'GPSDialLayout.centerX(width: w, height: h)' in c
+assert 'GPSGaugeHalo(theme: theme)' in c
+assert 'private struct GPSGaugeHalo: View' in c
+assert 'location: 0.80' in c and 'location: 0.65' in c
+assert '.position(x: dialCenterX, y: h * 0.494)' in c
+assert 'CGRect(x: dialCenterX - dialSize * 0.508' in c
+# Il bordo della mappa non deve duplicare la linea arancione superiore.
+assert '.stroke(Color.white.opacity(0.16), lineWidth: 0.8)' in c
+assert '.stroke(theme.accent.opacity(0.55), lineWidth: 1.2)' not in c
+# Mappa sfumata, recenter GPS, zoom effettivo da regione visibile.
+assert 'visibleRegion = context.region' in c
+assert 'recenterOnUser()' in c
+assert 'zoom(inward: true)' in c and 'zoom(inward: false)' in c
+assert 'camera = .region(MKCoordinateRegion(' in c
+assert 'mapAction("scope", accessibility: "Ricentra sulla posizione GPS")' in c
+assert 'mapAction("plus.magnifyingglass", accessibility: "Ingrandisci mappa")' in c
+assert 'mapAction("minus.magnifyingglass", accessibility: "Riduci zoom mappa")' in c
+assert 'width: w * 0.475' in c
+print('OK — 22: dock GPS a destra, sfumature grigie, anello, recenter e zoom MapKit')

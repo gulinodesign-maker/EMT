@@ -133,15 +133,29 @@ private struct CockpitCornerControls: View {
             let buttonSide = min(height * 0.96, width * 0.059)
             let gap = width * 0.010
             HStack(alignment: .center, spacing: 0) {
-                HStack(spacing: gap) {
-                    ForEach(EcoTab.allCases.prefix(4)) { tab in
-                        iconButton(tab, side: buttonSide)
+                if selected == .gps {
+                    // Tutti e sette i tasti sulla DESTRA in modalità GPS.
+                    // Dimensione adattiva: mai fuori dallo schermo in landscape.
+                    let gpsSide = min(buttonSide, width * 0.052)
+                    let gpsGap = width * 0.008
+                    Spacer(minLength: 0)
+                    HStack(spacing: gpsGap) {
+                        ForEach(EcoTab.allCases) { tab in
+                            iconButton(tab, side: gpsSide)
+                        }
                     }
-                }
-                Spacer(minLength: 0)
-                HStack(spacing: gap) {
-                    ForEach(EcoTab.allCases.suffix(3)) { tab in
-                        iconButton(tab, side: buttonSide)
+                } else {
+                    // Cruscotto classico invariato: quattro tasti + tre tasti.
+                    HStack(spacing: gap) {
+                        ForEach(EcoTab.allCases.prefix(4)) { tab in
+                            iconButton(tab, side: buttonSide)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                    HStack(spacing: gap) {
+                        ForEach(EcoTab.allCases.suffix(3)) { tab in
+                            iconButton(tab, side: buttonSide)
+                        }
                     }
                 }
             }
@@ -210,12 +224,37 @@ struct ContinuousLowerLine: Shape {
     }
 }
 
+// Ombreggiatura neutra e discreta sotto il profilo A/kW.
+// La maschera segue il profilo originale: nessuna banda sotto i pulsanti.
+private struct LowerPanelShade: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width
+        let h = rect.height
+        let controlsHeight = max(51, min(83, h * 0.105))
+        let buttonSide = min(controlsHeight * 0.96, w * 0.059)
+        let groupEnd = max(12, w * 0.018) + 4 * buttonSide + 3 * w * 0.010
+        let footX = min(CGFloat(0.342), max(CGFloat(0.323), groupEnd / w + 0.035))
+        var p = ContinuousLowerLine().path(in: rect)
+        p.addLine(to: CGPoint(x: w * (1 - footX), y: h))
+        p.addLine(to: CGPoint(x: w * footX, y: h))
+        p.closeSubpath()
+        return p
+    }
+}
+
 struct ContinuousLowerGlow: View {
     let theme: CockpitTheme
     var body: some View {
         GeometryReader { geo in
             let h = geo.size.height
             ZStack {
+                LowerPanelShade()
+                    .fill(LinearGradient(stops: [
+                        .init(color: .clear, location: 0.72),
+                        .init(color: Color(white: 0.29).opacity(0.24), location: 0.81),
+                        .init(color: Color(white: 0.16).opacity(0.17), location: 0.93),
+                        .init(color: .clear, location: 1.0)
+                    ], startPoint: .top, endPoint: .bottom))
                 ContinuousLowerLine()
                     .stroke(theme.accent.opacity(0.33),
                             style: StrokeStyle(lineWidth: max(4, h * 0.018), lineCap: .round))

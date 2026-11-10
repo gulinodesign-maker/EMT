@@ -43,17 +43,29 @@ for w,h in [(844,390),(852,393),(932,430),(956,440),(736,414),(1536,707),(1536,8
     assert dx/dy < old_dx/old_dy, (w,h,dx/dy,old_dx/old_dy)
     assert math.isclose(min(h*.075,w*.032),min(h*.075,w*.032))
 # Cockpit GPS: quadrante sinistro entro bordo, mappa a destra, sette pulsanti.
-assert 'let dialSize = min(h * 0.965, w * 0.55)' in c
-assert '.position(x: w * 0.335, y: h * 0.494)' in c
-assert '.frame(width: w * 0.505, height: h * 0.725)' in c
-assert '.position(x: w * 0.748, y: h * 0.455)' in c
+assert 'let dialSize = GPSDialLayout.size(width: w, height: h)' in c
+assert 'return max(d * 0.51 + width * 0.010, width * 0.168 + d * 0.30)' in c
+assert 'private struct GPSGaugeHalo: View' in c
+assert 'LowerPanelShade()' in u
+assert c.count('CockpitTopSoftShade()') == 2
+assert '.position(x: dialCenterX, y: h * 0.494)' in c
+assert '.frame(width: w * 0.475, height: h * 0.725)' in c
+assert '.position(x: w * 0.7625, y: h * 0.455)' in c
 assert 'GPSHorizonLine(theme: theme)' in c
 assert 'ContinuousLowerGlow(theme: theme)' in c
 assert 'EcoTab.allCases.suffix(3)' in u
 for w,h in [(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     d=min(h*.965,w*.55)
-    cx=w*.335;cy=h*.494
-    assert cx-d/2>0 and cx+d/2<w*.60,(w,h)
+    cx=max(d*.51+w*.010,w*.168+d*.30)
+    cy=h*.494
+    assert cx-d/2>0,(w,h)
+    assert cx+d/2 < w*.65,(w,h)
     assert cy-d/2>0 and cy+d/2<h
-    assert w*.748+w*.505/2<=w*1.001
-print('OK — EJ 1.21: cockpit classico invariato, modalità GPS con mappa e quadrante affiancati')
+    assert w*.7625+w*.475/2<=w*1.001
+    # Il bordo superiore del quadrante resta fuori dalla zona riservata all'orario.
+    assert cx-d*.30 > w*.155 - 3,(w,h)
+    controls_h=max(51,min(83,h*.105))
+    side=min(controls_h*.96,w*.059,w*.052)
+    gps_width=7*side+6*w*.008
+    assert gps_width+max(12,w*.018)<w*.50,(w,h,gps_width)
+print('OK — EJ 1.22: tachimetro GPS adattivo, dock a destra, sfumature e controlli mappa')
