@@ -192,32 +192,24 @@ private struct CockpitCornerControls: View {
 }
 
 
-/// EJ 1.18 — piattaforma A/kW abbassata, curve alte morbide e lati inferiori rettilinei.
-/// Lati inferiori rettilinei, estremita nette; nessuna linea sotto i tasti.
-/// Tangente cubica C1 ai lati retti e al tratto orizzontale centrale.
+/// EJ 1.19: stesso raggio di curvatura della top bar, lati inferiori meno inclinati.
+/// I due terminali sono segmenti RETTI e non proseguono sotto i pulsanti.
 struct ContinuousLowerLine: Shape {
     func path(in rect: CGRect) -> Path {
         let w = rect.width
         let h = rect.height
-        func pt(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
-            CGPoint(x: w * x, y: h * y)
-        }
         let controlsHeight = max(51, min(83, h * 0.105))
         let buttonSide = min(controlsHeight * 0.96, w * 0.059)
         let groupEnd = max(12, w * 0.018) + 4 * buttonSide + 3 * w * 0.010
-        let footX = min(CGFloat(0.320), max(CGFloat(0.272), groupEnd / w + 0.013))
-        let shoulderX: CGFloat = 0.353
-        let tangentX = shoulderX + (shoulderX - footX) * 0.16
-        var p = Path()
-        p.move(to: pt(footX, 0.987))
-        p.addLine(to: pt(shoulderX, 0.850))
-        p.addCurve(to: pt(0.412, 0.785),
-                   control1: pt(tangentX, 0.82808), control2: pt(0.384, 0.785))
-        p.addLine(to: pt(0.588, 0.785))
-        p.addCurve(to: pt(1 - shoulderX, 0.850),
-                   control1: pt(0.616, 0.785), control2: pt(1 - tangentX, 0.82808))
-        p.addLine(to: pt(1 - footX, 0.987))
-        return p
+        let footX = min(CGFloat(0.342), max(CGFloat(0.323), groupEnd / w + 0.035))
+        let leftFoot = CGPoint(x: w * footX, y: h * 0.985)
+        let rightFoot = CGPoint(x: w * (1 - footX), y: h * 0.985)
+        return CockpitContourGeometry.roundedPath(points: [
+            leftFoot,
+            CGPoint(x: w * 0.385, y: h * 0.790),
+            CGPoint(x: w * 0.615, y: h * 0.790),
+            rightFoot
+        ], corners: [1, 2], radius: CockpitContourGeometry.cornerRadius(in: rect.size))
     }
 }
 
