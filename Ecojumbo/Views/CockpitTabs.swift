@@ -144,32 +144,57 @@ struct GoogleMapsPanel: View {
 
 struct ThemePickerView: View {
     @AppStorage("ecojumbo.theme") private var selection = CockpitTheme.copper.rawValue
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("La palette cambia il contorno della velocità, gli anelli e le cornici luminose. I dati secondari restano bianchi per leggibilità.")
+                Text("Seleziona uno dei sei kit colori: le curve, gli anelli e le icone luminose cambiano insieme. Le misurazioni restano reali e leggibili.")
                     .font(.subheadline).foregroundStyle(.secondary)
-                ForEach(CockpitTheme.allCases) { theme in
-                    Button { selection = theme.rawValue } label: {
-                        HStack(spacing: 15) {
-                            HStack(spacing: 0) {
-                                Rectangle().fill(theme.steel)
-                                Rectangle().fill(theme.secondary)
-                                Rectangle().fill(theme.accent)
+                LazyVGrid(columns: columns, spacing: 13) {
+                    ForEach(CockpitTheme.allCases) { theme in
+                        Button { selection = theme.rawValue } label: {
+                            VStack(spacing: 7) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .fill(Color.black.opacity(0.72))
+                                    Capsule()
+                                        .stroke(theme.accent, lineWidth: 3)
+                                        .shadow(color: theme.accent.opacity(0.62), radius: 8)
+                                        .frame(width: 96, height: 37)
+                                    Circle().fill(theme.accent)
+                                        .frame(width: 16, height: 16)
+                                    if selection == theme.rawValue {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundStyle(theme.accent)
+                                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                                            .padding(5)
+                                    }
+                                }
+                                .frame(height: 61)
+                                Text(theme.rawValue)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.70)
+                                    .foregroundStyle(.white)
                             }
-                            .frame(width: 104, height: 46)
-                            .clipShape(RoundedRectangle(cornerRadius: 9))
-                            Text(theme.rawValue).font(.headline).foregroundStyle(.white)
-                            Spacer()
-                            if selection == theme.rawValue {
-                                Image(systemName: "checkmark.circle.fill").foregroundStyle(theme.accent)
+                            .frame(maxWidth: .infinity)
+                            .padding(10)
+                            .background(Color.ecoCard, in:
+                                RoundedRectangle(cornerRadius: 15, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 15, style: .continuous)
+                                    .stroke(selection == theme.rawValue ? theme.accent : .white.opacity(0.16),
+                                            lineWidth: selection == theme.rawValue ? 2 : 1)
                             }
                         }
-                        .padding(12)
-                        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 14))
-                    }.buttonStyle(.plain)
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Tema \(theme.rawValue)")
+                        .accessibilityAddTraits(selection == theme.rawValue ? .isSelected : [])
+                    }
                 }
-            }.padding(16)
+            }
+            .padding(15)
         }
         .background(Color.ecoBackground)
         .navigationTitle("Kit colori")
