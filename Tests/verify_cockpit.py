@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (27): navigazione GPS 3D, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (28): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 27;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 28;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -90,11 +90,11 @@ assert 'textTop - max(12, h * 0.014)' in c
 assert 'let topHalfWidth = d * 0.325' in c
 assert 'let footY = h * 0.937' in c
 assert 'MapCamera(centerCoordinate: center' in c
-assert '.mapStyle(.standard(elevation: is3D ? .realistic : .flat))' in c
-assert 'heading: heading, pitch: is3D ? 55 : 0' in c
+assert '.mapStyle(.standard(elevation: mapControls.is3D ? .realistic : .flat))' in c
+assert 'heading: heading, pitch: mapControls.is3D ? 55 : 0' in c
 assert 'GPS e ricerca indirizzo nella STESSA barra' in c
 assert 'clipShape(RoundedRectangle(cornerRadius: 16' not in c
-assert 'min(48, max(12, height * 0.063))' in c
+assert 'min(37, max(12, height * 0.38))' in c
 assert 'buttonStart - max(9, w * 0.012)' in c
 assert 'CockpitContourGeometry.roundedPath(points:' in u
 assert 'CockpitContourGeometry.roundedPath(points:' in c
@@ -125,7 +125,16 @@ assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 # Nuovo dock GPS 7 a destra; classico 4+3 invariato.
 assert 'if selected == .gps {' in u
 assert 'selected == .gps' in u and 'max(4, geometry.size.height * 0.006)' in u
-assert 'ForEach(EcoTab.allCases) { tab in' in u
+assert 'ForEach(EcoTab.allCases) { tab in' not in u
+assert 'iconButton(.dashboard, side: gpsSide)' in u
+assert 'gpsButton("play.fill"' in u
+assert 'mapControls.send(.toggleNavigation)' in u
+assert 'mapControls.send(.toggleProjection)' in u
+assert 'mapControls.send(.noseView)' in u
+assert 'mapControls.send(.focusRoute)' in u
+assert 'mapControls.send(.recenter)' in u
+assert 'mapControls.send(.zoomIn)' in u
+assert 'mapControls.send(.zoomOut)' in u
 assert 'let gpsSide = min(buttonSide, width * 0.052)' in u
 assert 'let gpsGap = width * 0.008' in u
 # Sfumature neutre su entrambe le modalità.
@@ -152,9 +161,11 @@ assert 'visibleCamera = context.camera' in c
 assert 'recenterOnUser()' in c
 assert 'zoom(inward: true)' in c and 'zoom(inward: false)' in c
 assert 'camera = .camera(MapCamera(' in c
-assert 'mapAction("scope", accessibility: "Ricentra sulla posizione GPS")' in c
-assert 'mapAction("plus.magnifyingglass", accessibility: "Ingrandisci mappa 3D")' in c
-assert 'mapAction("minus.magnifyingglass", accessibility: "Riduci zoom mappa 3D")' in c
+assert 'mapAction("scope"' not in c
+assert 'mapAction("plus.magnifyingglass"' not in c
+assert 'mapAction("minus.magnifyingglass"' not in c
+assert '.onReceive(mapControls.commands)' in c
+assert 'GPSMapControlStore.shared' in c
 assert 'width: w * 0.64' in c
 assert 'height: h * 0.89' in c
 # Trip persistente: riavvio app non cancella il parziale; azzeramento solo con long press.
@@ -164,8 +175,8 @@ assert 'func resetTrip()' in g
 assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.tripKm")' in g
 assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in g
 assert 'onLongPressGesture(minimumDuration: 1.3)' in c
-assert 'reading(String(format: "%.1f km", gps.tripKm)' in c
-assert 'height: h, resettable: true)' in c
+assert 'glassReading(String(format: "%.1f km", gps.tripKm)' in c
+assert 'height: tileHeight, resettable: true)' in c
 assert 'if reading.title == "Trip parziale"' in c
 assert 'gps.resetTrip()' in c
 assert 'UIApplication.shared.isIdleTimerDisabled = true' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
@@ -211,15 +222,20 @@ assert 'navigation.stopNavigation()' in c
 assert 'navigation.updateProgress(at: coordinate)' in c
 assert 'navigation.guidanceInstruction' in c
 assert 'navigation.isNavigating' in c
-assert 'Avvia navigazione GPS' in c and 'Ferma navigazione GPS' in c
-assert '@State private var is3D = true' in c
+assert 'Avvia navigazione GPS' in u and 'Ferma navigazione GPS' in u
+assert '@Published var is3D = true' in c
 assert 'private func toggleProjection()' in c
-assert 'Passa alla mappa 2D' in c and 'Passa alla mappa 3D' in c
+assert 'Passa alla mappa 2D' in u and 'Passa alla mappa 3D' in u
 assert 'private func activateNoseView()' in c
 assert 'private func followCamera(at coordinate: CLLocationCoordinate2D)' in c
-assert 'Vista dal muso dello scooter, direzione di marcia' in c
-assert 'let lookAhead = headingUp' in c
+assert 'Vista dal muso dello scooter, direzione di marcia' in u
+assert 'let lookAhead = mapControls.headingUp' in c
 assert 'private(set) var courseDegrees: CLLocationDirection?' in g
 assert 'fix.speed >= 1.3, fix.course >= 0, fix.course < 360' in g
 assert 'func currentCourse(at date: Date = Date()) -> CLLocationDirection?' in g
-print('OK — 27: navigazione GPS guidata, mappa 2D/3D, visuale muso scooter')
+assert c.count('glassReading(') == 7
+assert '.background(.ultraThinMaterial,' in c
+assert '.black.opacity(0.35), .black.opacity(0.75)' not in c
+assert '8 * controlSide - 7 * w * 0.008' in c
+assert 'struct GPSCompactReadings: View' in c
+print('OK — 28: controlli GPS inferiori, otto pulsanti, sei tessere vetro')
