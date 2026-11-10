@@ -991,14 +991,15 @@ private enum GPSLowerLineGeometry {
         let buttonStart = w - max(12, w * 0.018) - 7 * controlSide - 6 * w * 0.008
         let rightTopX = min(center + d * 0.405, w * 0.525 - max(9, w * 0.012))
         let maxRightFoot = buttonStart - max(9, w * 0.012)
-        // Allontana il lato destro dai pulsanti preservando la pendenza.
-        let rightShift = max(0, rightTopX + run - maxRightFoot)
-        let adjustedRightTop = rightTopX - rightShift
+        // Mantiene la pendenza anche sugli schermi stretti: non sposta
+        // l'angolo superiore sul testo e non invade il dock GPS.
+        let rightRun = min(run, max(0, maxRightFoot - rightTopX))
+        let rightFootY = topY + (run > 0 ? (h * 0.985 - topY) * rightRun / run : 0)
         return [
             CGPoint(x: leftTopX - run, y: h * 0.985),
             CGPoint(x: leftTopX, y: topY),
-            CGPoint(x: adjustedRightTop, y: topY),
-            CGPoint(x: adjustedRightTop + run, y: h * 0.985)
+            CGPoint(x: rightTopX, y: topY),
+            CGPoint(x: rightTopX + rightRun, y: rightFootY)
         ]
     }
 }
