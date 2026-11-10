@@ -192,9 +192,9 @@ private struct CockpitCornerControls: View {
 }
 
 
-/// EJ 1.16 — profilo ad arco aperto: due discese e una cima orizzontale.
-/// Il tracciato si ferma alla base senza estendersi sotto gli otto pulsanti.
-/// Ogni curva e una Bezier cubica che entra tangenzialmente nella cima.
+/// EJ 1.17 — smussatura AMPIA solo negli angoli SUPERIORI di A / kW.
+/// Lati inferiori rettilinei, estremita nette; nessuna linea sotto i tasti.
+/// Tangente cubica C1 ai lati retti e al tratto orizzontale centrale.
 struct ContinuousLowerLine: Shape {
     func path(in rect: CGRect) -> Path {
         let w = rect.width
@@ -202,18 +202,21 @@ struct ContinuousLowerLine: Shape {
         func pt(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
             CGPoint(x: w * x, y: h * y)
         }
-        // Piedi adattivi al margine interno del quarto pulsante su ogni iPhone.
         let controlsHeight = max(51, min(83, h * 0.105))
         let buttonSide = min(controlsHeight * 0.96, w * 0.059)
         let groupEnd = max(12, w * 0.018) + 4 * buttonSide + 3 * w * 0.010
-        let footX = min(CGFloat(0.343), max(CGFloat(0.266), groupEnd / w + 0.014))
+        let footX = min(CGFloat(0.320), max(CGFloat(0.272), groupEnd / w + 0.013))
+        let shoulderX: CGFloat = 0.353
+        let tangentX = shoulderX + (shoulderX - footX) * 0.16
         var p = Path()
         p.move(to: pt(footX, 0.987))
-        p.addCurve(to: pt(0.365, 0.805),
-                   control1: pt(footX + 0.012, 0.957), control2: pt(0.342, 0.805))
-        p.addLine(to: pt(0.635, 0.805))
-        p.addCurve(to: pt(1 - footX, 0.987),
-                   control1: pt(0.658, 0.805), control2: pt(1 - footX - 0.012, 0.957))
+        p.addLine(to: pt(shoulderX, 0.805))
+        p.addCurve(to: pt(0.412, 0.740),
+                   control1: pt(tangentX, 0.77588), control2: pt(0.384, 0.740))
+        p.addLine(to: pt(0.588, 0.740))
+        p.addCurve(to: pt(1 - shoulderX, 0.805),
+                   control1: pt(0.616, 0.740), control2: pt(1 - tangentX, 0.77588))
+        p.addLine(to: pt(1 - footX, 0.987))
         return p
     }
 }
