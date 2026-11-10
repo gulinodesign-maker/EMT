@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Darwin
 
 // EJ 1.09 — cockpit premium nativo ispirato al riferimento fornito dall'utente.
 // Geometry, rings, numerals and panels are real SwiftUI controls (no reference bitmap as UI).
@@ -394,7 +395,7 @@ private struct GaugeArc: Shape {
         var path=Path()
         for i in 0...120 {
             let a=(start+(end-start)*Double(i)/120*f)*Double.pi/180
-            let pt=CGPoint(x:rect.midX+rad*cos(a),y:rect.midY+rad*sin(a))
+            let pt=CGPoint(x: rect.midX + rad * CGFloat(Darwin.cos(a)), y: rect.midY + rad * CGFloat(Darwin.sin(a)))
             if i==0 {path.move(to:pt)} else {path.addLine(to:pt)}
         }
         return path
@@ -405,26 +406,37 @@ private struct GaugeArc: Shape {
 // Il LED rosso sottostante indica la quota della scala già percorsa.
 private struct SpeedScaleTicks: View {
     let d: CGFloat
+
     var body: some View {
         Canvas { context, _ in
-            let radius = d * 0.393
-            for index in 0...48 {
-                let angle = (146.0 + Double(index) * 248.0 / 48) * Double.pi / 180
-                let major = index.isMultiple(of: 8)
-                let medium = index.isMultiple(of: 4)
-                let inner = radius - (major ? d * 0.030 : medium ? d * 0.021 : d * 0.013)
-                var tick = Path()
-                tick.move(to: CGPoint(x: d/2 + cos(angle) * inner,
-                                      y: d/2 + sin(angle) * inner))
-                tick.addLine(to: CGPoint(x: d/2 + cos(angle) * radius,
-                                        y: d/2 + sin(angle) * radius))
-                context.stroke(tick, with: .color(.white.opacity(major ? 1 : 0.77)),
-                               style: StrokeStyle(lineWidth: major ? d * 0.005 : d * 0.0022,
-                                                  lineCap: .round))
-            }
+            drawTicks(into: &context)
         }
         .frame(width: d, height: d)
         .accessibilityHidden(true)
+    }
+
+    private func drawTicks(into context: inout GraphicsContext) {
+        let outerRadius: CGFloat = d * 0.393
+        for index in 0...48 {
+            let radians: Double = (146.0 + Double(index) * (248.0 / 48.0)) * .pi / 180.0
+            let isMajor = index.isMultiple(of: 8)
+            let isMedium = index.isMultiple(of: 4)
+            let length: CGFloat = isMajor ? d * 0.030 : (isMedium ? d * 0.021 : d * 0.013)
+            let innerRadius: CGFloat = outerRadius - length
+            let cosAngle: CGFloat = CGFloat(Darwin.cos(radians))
+            let sinAngle: CGFloat = CGFloat(Darwin.sin(radians))
+            let from = CGPoint(x: d / 2 + cosAngle * innerRadius,
+                               y: d / 2 + sinAngle * innerRadius)
+            let to = CGPoint(x: d / 2 + cosAngle * outerRadius,
+                             y: d / 2 + sinAngle * outerRadius)
+            var tick = Path()
+            tick.move(to: from)
+            tick.addLine(to: to)
+            let color = Color.white.opacity(isMajor ? 1.0 : 0.77)
+            let thickness: CGFloat = isMajor ? d * 0.005 : d * 0.0022
+            context.stroke(tick, with: .color(color),
+                           style: StrokeStyle(lineWidth: thickness, lineCap: .round))
+        }
     }
 }
 
@@ -464,8 +476,8 @@ private struct SpeedLEDStream: View {
                     .frame(width: d * 0.722, height: d * 0.722)
                 let angle = (146 + 248 * progress) * Double.pi / 180
                 let radius = d * 0.361
-                let endPoint = CGPoint(x: d/2 + radius * cos(angle),
-                                       y: d/2 + radius * sin(angle))
+                let endPoint = CGPoint(x: d/2 + radius * CGFloat(Darwin.cos(angle)),
+                                       y: d/2 + radius * CGFloat(Darwin.sin(angle)))
                 Circle()
                     .fill(.white)
                     .frame(width: d * 0.020, height: d * 0.020)
@@ -481,37 +493,49 @@ private struct SpeedLEDStream: View {
     }
 }
 
-private struct SegmentedGaugeBar:View {
-    let d:CGFloat
-    let fraction:Double?
-    let start:Double
-    let end:Double
-    let count:Int
-    let radiusFactor:CGFloat
-    let activeColor:Color
-    let idleColor:Color
+private struct SegmentedGaugeBar: View {
+    let d: CGFloat
+    let fraction: Double?
+    let start: Double
+    let end: Double
+    let count: Int
+    let radiusFactor: CGFloat
+    let activeColor: Color
+    let idleColor: Color
 
-    var body:some View {
-        Canvas { ctx, _ in
-            for index in 0..<count {
-                let t=Double(index)/Double(count)
-                let a1=(start+(end-start)*t+0.40)*Double.pi/180
-                let a2=(start+(end-start)*Double(index+1)/Double(count)-0.40)*Double.pi/180
-                let radius=d*radiusFactor
-                var path=Path()
-                for step in 0...5 {
-                    let a=a1+(a2-a1)*Double(step)/5
-                    let pt=CGPoint(x:d/2+radius*cos(a),y:d/2+radius*sin(a))
-                    if step==0 {path.move(to:pt)} else {path.addLine(to:pt)}
-                }
-                let active=fraction.map{t<$0} ?? false
-                ctx.stroke(path,with:.color(active ? activeColor : idleColor),
-                           style:StrokeStyle(lineWidth:d*0.017,lineCap:.butt))
-            }
+    var body: some View {
+        Canvas { context, _ in
+            drawSegments(into: &context)
         }
-        .frame(width:d,height:d)
-        .animation(.easeOut(duration:0.40),value:fraction)
+        .frame(width: d, height: d)
+        .animation(.easeOut(duration: 0.40), value: fraction)
         .accessibilityHidden(true)
+    }
+
+    private func drawSegments(into context: inout GraphicsContext) {
+        guard count > 0 else { return }
+        let radius: CGFloat = d * radiusFactor
+        let stepAngle: Double = (end - start) / Double(count)
+        let thickness: CGFloat = d * 0.017
+        for index in 0..<count {
+            let firstAngle: Double = (start + Double(index) * stepAngle + 0.40) * .pi / 180
+            let lastAngle: Double = (start + Double(index + 1) * stepAngle - 0.40) * .pi / 180
+            var segment = Path()
+            for pointIndex in 0...5 {
+                let angle = firstAngle + (lastAngle - firstAngle) * Double(pointIndex) / 5.0
+                let cosAngle = CGFloat(Darwin.cos(angle))
+                let sinAngle = CGFloat(Darwin.sin(angle))
+                let point = CGPoint(x: d / 2 + radius * cosAngle,
+                                    y: d / 2 + radius * sinAngle)
+                if pointIndex == 0 { segment.move(to: point) }
+                else { segment.addLine(to: point) }
+            }
+            let progress: Double = Double(index) / Double(count)
+            let active = fraction.map { progress < $0 } ?? false
+            let color = active ? activeColor : idleColor
+            context.stroke(segment, with: .color(color),
+                           style: StrokeStyle(lineWidth: thickness, lineCap: .butt))
+        }
     }
 }
 
