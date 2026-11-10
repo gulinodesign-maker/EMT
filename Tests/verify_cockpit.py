@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (22): grafica GPS, MapKit e telemetria reale."""
+"""Regressioni Ecojumbo 1.0 (23): GPS, trip persistente, idle e sfumature."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 22;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 23;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -80,6 +80,14 @@ assert 'SegmentedGaugeBar(d:' in c
 
 # Le linee usano lo stesso raggio effettivo; angoli inferiori retti.
 assert 'ContinuousLowerLine: Shape' in u and 'ContinuousLowerGlow(theme: theme)' in u
+assert 'private struct GPSLowerContour: Shape' in c
+assert 'private struct GPSLowerShade: Shape' in c
+assert 'private struct GPSLowerGlow: View' in c
+assert 'GPSLowerGlow(theme: theme)' in c
+assert 'GPSLowerShade()' in c
+assert 'GPSLowerContour()' in c
+assert 'textTop - max(12, h * 0.014)' in c
+assert 'buttonStart - max(9, w * 0.012)' in c
 assert 'CockpitContourGeometry.roundedPath(points:' in u
 assert 'CockpitContourGeometry.roundedPath(points:' in c
 assert 'corners: [1, 4]' in c and 'corners: [1, 2]' in u
@@ -108,11 +116,14 @@ assert 'Scale delle barre luminose' in o and 'Nessuna barra nelle tre schede chi
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 # Nuovo dock GPS 7 a destra; classico 4+3 invariato.
 assert 'if selected == .gps {' in u
+assert 'selected == .gps' in u and 'max(4, geometry.size.height * 0.006)' in u
 assert 'ForEach(EcoTab.allCases) { tab in' in u
 assert 'let gpsSide = min(buttonSide, width * 0.052)' in u
 assert 'let gpsGap = width * 0.008' in u
 # Sfumature neutre su entrambe le modalità.
 assert 'private struct CockpitTopSoftShade: View' in c
+assert 'geo.size.height * 0.125' in c
+assert '.init(color: Color(white: 0.30).opacity(0.38), location: 0)' in c
 assert c.count('CockpitTopSoftShade()') == 2
 assert 'private struct LowerPanelShade: Shape' in u
 assert 'LowerPanelShade()' in u
@@ -136,4 +147,18 @@ assert 'mapAction("scope", accessibility: "Ricentra sulla posizione GPS")' in c
 assert 'mapAction("plus.magnifyingglass", accessibility: "Ingrandisci mappa")' in c
 assert 'mapAction("minus.magnifyingglass", accessibility: "Riduci zoom mappa")' in c
 assert 'width: w * 0.475' in c
-print('OK — 22: dock GPS a destra, sfumature grigie, anello, recenter e zoom MapKit')
+# Trip persistente: riavvio app non cancella il parziale; azzeramento solo con long press.
+assert 'UserDefaults.standard.double(forKey: "ecojumbo.gps.tripKm")' in g
+assert 'UserDefaults.standard.set(tripKm, forKey: "ecojumbo.gps.tripKm")' in g
+assert 'func resetTrip()' in g
+assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.tripKm")' in g
+assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in g
+assert 'onLongPressGesture(minimumDuration: 1.3)' in c
+assert 'reading(String(format: "%.1f km", gps.tripKm)' in c
+assert 'height: h, resettable: true)' in c
+assert 'if reading.title == "Trip parziale"' in c
+assert 'gps.resetTrip()' in c
+assert 'UIApplication.shared.isIdleTimerDisabled = true' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
+assert 'UIApplication.shared.isIdleTimerDisabled = (phase == .active)' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
+assert 'UIApplication.shared.isIdleTimerDisabled = false' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
+print('OK — 23: dock in basso, linea A/kW larga, sfumature, schermo attivo, trip persistente e reset')
