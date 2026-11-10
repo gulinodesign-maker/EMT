@@ -526,16 +526,17 @@ struct CockpitDashboard:View {
                     .position(x: w / 2, y: h * 0.507)
                     .zIndex(30)
 
-                // Raccordo luminoso superiore concentrico al tachimetro, in primo piano.
-                GaugeArc(start: 208, end: 332)
-                    .stroke(theme.accent.opacity(0.48), lineWidth: max(3, h * 0.009))
+                // Contorno del tachimetro a 360°: due corone concentriche
+                // complete, dentro l'area visibile anche in landscape stretta.
+                Circle()
+                    .stroke(theme.accent.opacity(0.53), lineWidth: max(3, h * 0.009))
                     .blur(radius: h * 0.014)
-                    .frame(width: dialSize * 0.992, height: dialSize * 0.992)
+                    .frame(width: dialSize * 0.985, height: dialSize * 0.985)
                     .position(x: w * 0.50, y: h * 0.507)
                     .zIndex(33)
-                GaugeArc(start: 208, end: 332)
-                    .stroke(theme.accent.opacity(0.90), lineWidth: 1.4)
-                    .frame(width: dialSize * 0.992, height: dialSize * 0.992)
+                Circle()
+                    .stroke(theme.accent.opacity(0.96), lineWidth: max(1.4, h * 0.002))
+                    .frame(width: dialSize * 0.985, height: dialSize * 0.985)
                     .position(x: w * 0.50, y: h * 0.507)
                     .zIndex(34)
                 ContinuousHorizonLine(theme: theme)
@@ -1260,6 +1261,39 @@ final class GPSMapControlStore: ObservableObject {
     func send(_ command: GPSMapCommand) { commands.send(command) }
 }
 
+// Fascia nera della ricerca GPS: la sommità coincide con il tratto
+// inclinato e con il ginocchio della linea arancione della top bar.
+// Le coordinate sono la proiezione esatta del GPSHorizonLine nel MapKit
+// esteso (larghezza 0,64 e altezza 0,89 del cockpit, centro 0,68/0,49).
+private struct GPSSearchTopBand: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width, h = rect.height
+        let fullW = w / 0.64, fullH = h / 0.89
+        let mapLeft = fullW * 0.36, mapTop = fullH * 0.045
+        let left = CGPoint(x: fullW * 0.45 - mapLeft,
+                           y: fullH * 0.23 - mapTop)
+        let knee = CGPoint(x: fullW * 0.54 - mapLeft,
+                           y: fullH * 0.085 - mapTop)
+        let right = CGPoint(x: w, y: knee.y)
+        let rowHeight = max(43, min(60, h * 0.089))
+        let bottomY = max(fullH * 0.185 - mapTop,
+                          knee.y + rowHeight + 3)
+        var p = Path()
+        p.move(to: left)
+        p.addArc(tangent1End: knee, tangent2End: right,
+                 radius: CockpitContourGeometry.cornerRadius(
+                     in: CGSize(width: fullW, height: fullH)))
+        p.addLine(to: right)
+        p.addLine(to: CGPoint(x: w, y: bottomY))
+        p.addLine(to: CGPoint(x: knee.x, y: bottomY))
+        // Ritorno a punta: la fascia segue il ginocchio e non forma
+        // un rettangolo sospeso davanti alla linea diagonale.
+        p.addLine(to: left)
+        p.closeSubpath()
+        return p
+    }
+}
+
 // Ricerca e anteprima della navigazione NON presentano NavigationStack né
 // aprono un'altra pagina: la mappa è figlia del cockpit GPS.
 @MainActor
@@ -1322,6 +1356,13 @@ private struct GPSCockpitMap: View {
                     .init(color: .black.opacity(0.85), location: 1)
                 ], startPoint: .top, endPoint: .bottom)
                     .allowsHitTesting(false)
+                GPSSearchTopBand()
+                    .fill(LinearGradient(colors: [
+                        Color.black.opacity(0.88),
+                        Color(white: 0.08).opacity(0.91)
+                    ], startPoint: .top, endPoint: .bottom))
+                    .frame(width: w, height: h)
+                    .allowsHitTesting(false)
 
                 VStack(alignment: .leading, spacing: 7) {
                     // GPS e ricerca indirizzo nella STESSA barra, non su due fasce.
@@ -1370,17 +1411,9 @@ private struct GPSCockpitMap: View {
                     .buttonStyle(.plain)
                     .padding(.horizontal, max(10, w * 0.017))
                     .frame(height: max(43, min(60, h * 0.089)))
-                    .background(LinearGradient(
-                        colors: [.black.opacity(0.87), Color(white: 0.08).opacity(0.90)],
-                        startPoint: .top, endPoint: .bottom),
-                        in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    // La top bar arancione a y = 0.085 del cockpit
-                    // definisce il profilo superiore; nessun doppio bordo.
-                    .overlay(alignment: .bottom) {
-                        Capsule().fill(.white.opacity(0.10))
-                            .frame(height: 0.7)
-                            .padding(.horizontal, 12)
-                    }
+                    // La fascia sagomata sottostante fornisce il fondo:
+                    // nessun riquadro nero arrotondato che stacchi il ginocchio.
+                    .background(Color.clear)
                     // La mappa parte dietro al quadrante; la ricerca rimane
                     // a destra del bordo del tachimetro, sempre cliccabile.
                     .padding(.leading, w * 0.285)
@@ -1447,7 +1480,7 @@ private struct GPSCockpitMap: View {
                 GPSCompactReadings(theme: theme)
                     .frame(width: glassWidth, height: glassHeight)
                     .position(x: w - max(6, w * 0.012) - glassWidth / 2,
-                              y: h * (0.17 + 0.60 / 2))
+                              y: h * (0.21 + 0.60 / 2))
 
             }
             .frame(width: w, height: h)

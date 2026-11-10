@@ -54,6 +54,7 @@ assert '.position(x: w * 0.68, y: h * 0.49)' in c
 assert 'GPSHorizonLine(theme: theme)' in c
 assert 'GPSLowerGlow(theme: theme)' in c
 assert 'EcoTab.allCases.suffix(3)' in u
+assert 'EcoTab.allCases.dropFirst().prefix(3)' in u
 assert 'max(4, geometry.size.height * 0.006)' in u
 assert 'textTop - max(12, h * 0.014)' in c
 assert 'buttonStart - max(9, w * 0.012)' in c
@@ -69,7 +70,7 @@ for w,h in [(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert cx-d*.30 > w*.155 - 3,(w,h)
     controls_h=max(51,min(83,h*.105))
     side=min(controls_h*.96,w*.059,w*.052)
-    gps_width=8*side+7*w*.008
+    gps_width=7*side+6*w*.008
     assert gps_width+max(12,w*.018)<w*.50,(w,h,gps_width)
 # Allargamento profilo GPS, nessun testo o pulsante attraversato.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
@@ -110,7 +111,7 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert math.isclose(card_w/(map_w*.265),.70)
     x_right=map_w-max(6,map_w*.012)
     assert x_right-card_w>map_w*.60
-    top_y=h*(.49-.89/2)+map_h*.17
+    top_y=h*(.49-.89/2)+map_h*.21
     bottom_y=top_y+card_h
     dock_top=h-max(4,h*.006)-max(51,min(83,h*.105))
     assert bottom_y<dock_top,(w,h,bottom_y,dock_top)
@@ -119,4 +120,17 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert abs(bar_y-h*.085)<h*.001,(w,h,bar_y)
 assert 'let glassWidth = w * 0.265 * 0.70' in c
 assert '.mask(GPSLowerTerminalFade())' in c
-print('OK — EJ 1.29: 6 glass cards ridotte, top GPS unificata, ponte sfumato')
+# Il campo di ricerca aderisce anche al ginocchio della linea GPS.
+for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
+    map_w=w*.64
+    map_h=h*.89
+    knee_global=(w*.54,h*.085)
+    knee_local=(w*.54-w*.36,h*.085-h*.045)
+    assert math.isclose(knee_local[0]+w*.36,knee_global[0])
+    assert math.isclose(knee_local[1]+h*.045,knee_global[1])
+    d=min(h*.982,w*.57)
+    ring_radius=d*.985/2
+    assert h*.507+ring_radius+h*.002<h,(w,h,"cerchio home tagliato")
+assert '.mask(ContinuousLowerTerminalFade())' in u
+assert 'GPSSearchTopBand()' in c
+print('OK — EJ 1.30: GPS 7 pulsanti, tessere abbassate, ginocchio unito, anello Home completo')
