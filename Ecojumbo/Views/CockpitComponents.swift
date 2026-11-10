@@ -1021,6 +1021,27 @@ private struct GPSLowerShade: Shape {
     }
 }
 
+// Maschera orizzontale ancorata ai terminali reali del ponte:
+// il tratto centrale resta pieno, le due estremità si dissolvono.
+private struct GPSLowerTerminalFade: View {
+    var body: some View {
+        GeometryReader { geo in
+            let points = GPSLowerLineGeometry.points(
+                in: CGRect(origin: .zero, size: geo.size))
+            let leftX = points.first?.x ?? 0
+            let rightX = points.last?.x ?? geo.size.width
+            let width = max(1, geo.size.width)
+            LinearGradient(stops: [
+                .init(color: .clear, location: 0),
+                .init(color: .white, location: 0.17),
+                .init(color: .white, location: 0.83),
+                .init(color: .clear, location: 1)
+            ], startPoint: UnitPoint(x: leftX / width, y: 0.5),
+               endPoint: UnitPoint(x: rightX / width, y: 0.5))
+        }
+    }
+}
+
 private struct GPSLowerGlow: View {
     let theme: CockpitTheme
 
@@ -1038,17 +1059,20 @@ private struct GPSLowerGlow: View {
                         .init(color: .clear, location: 1)
                     ], startPoint: UnitPoint(x: 0.5, y: 0.78),
                        endPoint: UnitPoint(x: 0.5, y: 0.985)))
-                GPSLowerContour()
-                    .stroke(theme.accent.opacity(0.30),
-                            style: StrokeStyle(lineWidth: max(4, h * 0.018), lineCap: .round))
-                    .blur(radius: max(3, h * 0.015))
-                GPSLowerContour()
-                    .stroke(theme.accent.opacity(0.79),
-                            style: StrokeStyle(lineWidth: max(2.3, h * 0.006), lineCap: .round))
-                    .blur(radius: max(1.2, h * 0.004))
-                GPSLowerContour()
-                    .stroke(theme.accent,
-                            style: StrokeStyle(lineWidth: max(1.4, h * 0.003), lineCap: .round))
+                ZStack {
+                    GPSLowerContour()
+                        .stroke(theme.accent.opacity(0.30),
+                                style: StrokeStyle(lineWidth: max(4, h * 0.018), lineCap: .round))
+                        .blur(radius: max(3, h * 0.015))
+                    GPSLowerContour()
+                        .stroke(theme.accent.opacity(0.79),
+                                style: StrokeStyle(lineWidth: max(2.3, h * 0.006), lineCap: .round))
+                        .blur(radius: max(1.2, h * 0.004))
+                    GPSLowerContour()
+                        .stroke(theme.accent,
+                                style: StrokeStyle(lineWidth: max(1.4, h * 0.003), lineCap: .round))
+                }
+                .mask(GPSLowerTerminalFade())
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
@@ -1350,13 +1374,16 @@ private struct GPSCockpitMap: View {
                         colors: [.black.opacity(0.87), Color(white: 0.08).opacity(0.90)],
                         startPoint: .top, endPoint: .bottom),
                         in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 12, style: .continuous)
-                            .stroke(.white.opacity(0.18), lineWidth: 0.7)
+                    // La top bar arancione a y = 0.085 del cockpit
+                    // definisce il profilo superiore; nessun doppio bordo.
+                    .overlay(alignment: .bottom) {
+                        Capsule().fill(.white.opacity(0.10))
+                            .frame(height: 0.7)
+                            .padding(.horizontal, 12)
                     }
                     // La mappa parte dietro al quadrante; la ricerca rimane
                     // a destra del bordo del tachimetro, sempre cliccabile.
-                    .padding(.leading, w * 0.255)
+                    .padding(.leading, w * 0.285)
                     .padding(.trailing, max(10, w * 0.022))
 
                     if navigation.isNavigating {
@@ -1409,16 +1436,18 @@ private struct GPSCockpitMap: View {
                     }
                     Spacer(minLength: 0)
                 }
-                .padding(.top, h * 0.11)
+                // Il bordo superiore si allinea alla top bar della Home GPS.
+                .padding(.top, h * 0.045)
                 .frame(width: w, height: h, alignment: .topLeading)
 
                 // Sei letture leggermente più grandi, ma raccolte nel bordo destro;
                 // solo il trip parziale intercetta il gesto di pressione prolungata.
+                let glassWidth = w * 0.265 * 0.70
+                let glassHeight = h * 0.60
                 GPSCompactReadings(theme: theme)
-                    .frame(width: w * 0.265, height: h * 0.71)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
-                    .padding(.trailing, max(6, w * 0.012))
-                    .padding(.top, h * 0.20)
+                    .frame(width: glassWidth, height: glassHeight)
+                    .position(x: w - max(6, w * 0.012) - glassWidth / 2,
+                              y: h * (0.17 + 0.60 / 2))
 
             }
             .frame(width: w, height: h)
@@ -1580,7 +1609,9 @@ private struct GPSCompactReadings: View {
         GeometryReader { geo in
             let h = geo.size.height
             let gap = max(5, h * 0.018)
-            let tileHeight = max(28, (h - 5 * gap) / 6)
+            // La somma delle sei altezze e dei cinque intervalli resta
+            // sempre identica allo spazio disponibile: niente sovrapposizioni.
+            let tileHeight = max(1, (h - 5 * gap) / 6)
             let live = bluetooth.snapshot
             VStack(spacing: gap) {
                 glassReading(live.map { "\($0.soc)%" } ?? "—%",
@@ -1621,7 +1652,7 @@ private struct GPSCompactReadings: View {
                 .foregroundStyle(theme.accent)
                 .frame(width: height * 0.40)
         }
-        .padding(.horizontal, max(8, height * 0.10))
+        .padding(.horizontal, max(4, height * 0.07))
         .frame(height: height)
         .background(.ultraThinMaterial,
                     in: RoundedRectangle(cornerRadius: corner, style: .continuous))
