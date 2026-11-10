@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (24): GPS, trip e temperatura meteo esterna."""
+"""Regressioni Ecojumbo 1.0 (25): GPS, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 24;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 25;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -180,4 +180,12 @@ assert '"—°C"' in c
 assert 'Link("Meteo · Open-Meteo"' in c
 assert 'Licenza dati (CC BY 4.0)' in o
 assert 'coordinate geografiche approssimate' in info['NSLocationWhenInUseUsageDescription']
-print('OK — 24: temperatura GPS approssimata, fonte Open-Meteo, UI cockpit e cache')
+assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 2
+assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2
+assert 'Text(incomingPower.map { String(format: "%.2f kW"' in c
+assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in c
+assert 'private let ledOrange = Color(red: 1.00, green: 0.44, blue: 0.03)' in c
+assert 'let run = standardHorizontalRun * ((h * 0.985 - topY) / standardVerticalRun)' in c
+assert 'GPSLowerLineGeometry.points(in: rect)' in c
+assert 'LabeledContent("Numero build", value: EcojumboBuildStamp.buildNumber)' in o
+print('OK — 25: temperatura, potenze JK, LED arancione, geometria GPS e build')
