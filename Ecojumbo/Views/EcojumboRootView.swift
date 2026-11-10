@@ -41,7 +41,7 @@ enum EcoTab: Int, CaseIterable, Identifiable {
         case .routes: "Percorsi"
         case .battery: "Batteria"
         case .bms: "BMS"
-        case .maps: "Navigazione Google Maps"
+        case .maps: "Navigazione MapKit"
         case .settings: "Impostazioni"
         case .themes: "Kit colori"
         }
@@ -72,7 +72,7 @@ struct EcojumboRootView: View {
                     case .bms:
                         NavigationStack { BluetoothView() }
                     case .maps:
-                        NavigationStack { GoogleMapsPanel() }
+                        NavigationStack { AppleMapsPanel() }
                     case .settings:
                         NavigationStack { EcoSettingsView() }
                     case .themes:

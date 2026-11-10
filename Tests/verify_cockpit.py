@@ -1,4 +1,4 @@
-"""Regressione funzionale e grafica Ecojumbo 1.0 (17), senza dati simulati."""
+"""Regressioni Ecojumbo 1.0 (20): grafica, MapKit, GPS senza dati simulati."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 19;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 20;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -21,7 +21,24 @@ assert info['NSLocationWhenInUseUsageDescription'] and info['NSBluetoothAlwaysUs
 assert 'case dashboard, trips, routes, battery, bms, maps, settings, themes' in u
 assert 'EcoTab.allCases.prefix(4)' in u and 'EcoTab.allCases.suffix(4)' in u
 assert 'BluetoothGlyph()' in u and 'CockpitCornerControls' in u
-assert 'GoogleMapsPanel' in t and 'www.google.com' in t
+assert 'AppleMapsPanel' in t and 'AppleMapsPanel()' in u
+assert 'GoogleMapsPanel' not in t and 'www.google.com' not in t
+assert 'MKLocalSearch(request: searchRequest)' in t
+assert 'MKDirections(request: request).calculate()' in t
+assert 'request.transportType = .automobile' in t
+assert 'MapPolyline(route.polyline)' in t
+assert 'MapPolyline(planned.polyline)' in t
+assert 'UserAnnotation()' in t
+assert 'Marker(navigation.destinationName, coordinate: destination)' in t
+assert 'navigation.plan(destination: destinationText, origin: gps.currentCoordinate())' in t
+assert 'EcoNavigationStore.shared' in t
+assert 'routeRevision' in t
+assert 'gps.track.map' in t
+assert 'Traccia GPS' in t and 'non agganciati automaticamente alle strade' in t
+assert 'lastGPSCoordinate = fix.coordinate' in g
+assert 'func currentCoordinate(at date: Date = Date())' in g
+assert 'GPS in pausa' in g
+
 assert 'struct CellsView: View' in (r/'Ecojumbo/Views/CellsView.swift').read_text()
 assert 'func setOdometer(_ kilometers: Double)' in g and 'track: [RouteCoordinate]' in g
 for a in ('AppIcon.appiconset/AppIcon.png','EcojumboMark.imageset/EcojumboMark.png'):
@@ -78,4 +95,4 @@ assert 'Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)' in t
 assert 'ForEach(CockpitTheme.allCases)' in t
 assert 'Scale delle barre luminose' in o and 'Nessuna barra nelle tre schede chilometriche' in o
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
-print('OK — 19: 6 card con icone, 3 barre reali, raccordi C1, 6 temi a griglia 2x3')
+print('OK — 20: grafica cockpit, MapKit stradale interno, GPS reale e sei temi')
