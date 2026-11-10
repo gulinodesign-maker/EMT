@@ -72,6 +72,11 @@ final class EcoNavigationStore: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var routeRevision = 0
+    @Published private(set) var isNavigating = false
+    @Published private(set) var hasArrived = false
+    @Published private(set) var guidanceInstruction = ""
+    @Published private(set) var guidanceDistanceMeters: CLLocationDistance?
+    private var nextStepIndex = 0
 
     private init() {}
 
@@ -109,6 +114,7 @@ final class EcoNavigationStore: ObservableObject {
                 errorMessage = "Non è disponibile un percorso stradale per questa destinazione."
                 return
             }
+            stopNavigation()
             route = roadRoute
             destinationName = destination.name ?? query
             destinationCoordinate = destination.placemark.coordinate
@@ -119,11 +125,98 @@ final class EcoNavigationStore: ObservableObject {
     }
 
     func clear() {
+        stopNavigation()
         route = nil
         destinationName = ""
         destinationCoordinate = nil
         errorMessage = nil
         routeRevision += 1
+    }
+
+    // La pianificazione non equivale all'avvio: si entra in navigazione
+    // soltanto premendo esplicitamente il pulsante Avvia e con GPS valido.
+    @discardableResult
+    func startNavigation(at origin: CLLocationCoordinate2D?) -> Bool {
+        guard let route else {
+            errorMessage = "Calcola prima un percorso stradale."
+            return false
+        }
+        guard let origin, CLLocationCoordinate2DIsValid(origin) else {
+            errorMessage = "Attendi una posizione GPS valida prima di avviare la navigazione."
+            return false
+        }
+        errorMessage = nil
+        hasArrived = false
+        isNavigating = true
+        nextStepIndex = route.steps.firstIndex {
+            !$0.instructions.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        } ?? 0
+        updateProgress(at: origin)
+        return true
+    }
+
+    func stopNavigation() {
+        isNavigating = false
+        hasArrived = false
+        nextStepIndex = 0
+        guidanceInstruction = ""
+        guidanceDistanceMeters = nil
+    }
+
+    // Avanzamento indicativo delle manovre secondo il percorso MapKit.
+    // Non simula una posizione né sostituisce la guida e la segnaletica.
+    func updateProgress(at coordinate: CLLocationCoordinate2D) {
+        guard isNavigating, let route,
+              CLLocationCoordinate2DIsValid(coordinate) else { return }
+        let here = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+        if let destinationCoordinate {
+            let finish = CLLocation(latitude: destinationCoordinate.latitude,
+                                    longitude: destinationCoordinate.longitude)
+            if here.distance(from: finish) < 35 {
+                isNavigating = false
+                hasArrived = true
+                guidanceInstruction = "Destinazione raggiunta"
+                guidanceDistanceMeters = 0
+                return
+            }
+        }
+        let steps = route.steps
+        guard !steps.isEmpty else {
+            guidanceInstruction = "Segui il percorso evidenziato"
+            guidanceDistanceMeters = nil
+            return
+        }
+        // L'ultimo punto della polilinea di ciascuna tappa rappresenta
+        // la manovra seguente. Passa alla prossima solo quando è vicina.
+        while nextStepIndex < steps.count - 1 {
+            let segment = steps[nextStepIndex].polyline
+            if segment.pointCount == 0 {
+                nextStepIndex += 1
+                continue
+            }
+            let lastPoint = segment.points()[segment.pointCount - 1].coordinate
+            let target = CLLocation(latitude: lastPoint.latitude,
+                                    longitude: lastPoint.longitude)
+            if here.distance(from: target) > 25 { break }
+            nextStepIndex += 1
+        }
+        let step = steps[min(nextStepIndex, steps.count - 1)]
+        let instruction = step.instructions.trimmingCharacters(in: .whitespacesAndNewlines)
+        guidanceInstruction = instruction.isEmpty ? "Segui il percorso evidenziato" : instruction
+        if step.polyline.pointCount > 0 {
+            let point = step.polyline.points()[step.polyline.pointCount - 1].coordinate
+            guidanceDistanceMeters = here.distance(from: CLLocation(
+                latitude: point.latitude, longitude: point.longitude))
+        } else {
+            guidanceDistanceMeters = nil
+        }
+    }
+
+    var guidanceDistanceLabel: String {
+        guard let distance = guidanceDistanceMeters, distance.isFinite else { return "—" }
+        return distance >= 1000
+            ? String(format: "%.1f km", distance / 1000)
+            : "\(Int((distance / 10).rounded() * 10)) m"
     }
 
     var distanceLabel: String {
