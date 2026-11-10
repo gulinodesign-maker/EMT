@@ -267,7 +267,7 @@ struct CockpitDashboard:View {
             let wingInset = max(5, w * 0.006)
             // Un cerchio di diametro <= 93% della dimensione verticale:
             // evita i tagli in landscape anche con le corone e il loro alone.
-            let dialSize = min(h * 0.93, w * 0.57)
+            let dialSize = min(h * 0.952, w * 0.57)
             ZStack(alignment: .topLeading) {
                 CarbonBackdrop(theme: theme)
 
@@ -645,7 +645,7 @@ private struct OpenSpeedCluster: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.45)
                 .frame(width: d * 0.66, height: d * 0.13)
-                .position(x: d * 0.50, y: d * 0.825)
+                .position(x: d * 0.50, y: d * 0.900)
             }
             .frame(width: d, height: d)
         }

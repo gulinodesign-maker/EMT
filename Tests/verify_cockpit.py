@@ -7,7 +7,7 @@ with (root/'Ecojumbo/Info.plist').open('rb') as f:
 for name in ('CockpitComponents.swift', 'CockpitTabs.swift', 'EcojumboRootView.swift'):
     assert project.count(name) >= 2, f'Missing build references: {name}'
 assert 'it.ecojumbo.battery' in project
-assert 'CURRENT_PROJECT_VERSION = 14' in project
+assert 'CURRENT_PROJECT_VERSION = 15' in project
 assert 'MARKETING_VERSION = 1.0' in project
 assert set(plist['UISupportedInterfaceOrientations']) == {
     'UIInterfaceOrientationLandscapeLeft', 'UIInterfaceOrientationLandscapeRight'
@@ -36,7 +36,7 @@ assert (root/'RiferimentoGrafico/Cockpit_approvato.jpg').is_file()
 assert 'PremiumWing' in comp and 'ContinuousHorizonLine' in comp
 assert 'cornerRadius: h * 0.16' in comp  # angoli delle ali
 assert '.blur(radius:' in comp and '.shadow(color:' in comp  # vera luce per SwiftUI
-assert 'min(h * 0.93, w * 0.57)' in comp  # quadrante entro i bordi
+assert 'min(h * 0.952, w * 0.57)' in comp  # quadrante entro i bordi
 assert 'CockpitCornerControls' in ui and 'EcoTab.allCases.prefix(4)' in ui and 'EcoTab.allCases.suffix(4)' in ui
 assert '48 A' not in comp and '62 km/h' not in comp  # nessuna lettura hardcoded
 assert 'HollowSpeedNumber' in comp and 'NSAttributedString' in comp
@@ -94,12 +94,12 @@ assert 'ContinuousLowerLine: Shape' in ui
 assert 'ContinuousLowerGlow(theme: theme)' in ui
 assert 'CornerDockGlow' not in ui
 assert 'FooterLightContour' not in comp
-assert ui.count('p.move(to: pt(0.012, 0.872))') == 1
-assert ui.count('p.addLine(to: pt(0.988, 0.872))') == 1
+assert ui.count('p.move(to: pt(0.012, 0.942))') == 1
+assert ui.count('p.addLine(to: pt(0.988, 0.942))') == 1
 # EJ 1.10: piattaforma leggermente ribassata, due raccordi cubici C1.
-assert 'p.addLine(to: pt(0.635, 0.735))' in ui
-assert 'control1: pt(0.294, 0.872), control2: pt(0.305, 0.735)' in ui
-assert 'control1: pt(0.695, 0.735), control2: pt(0.706, 0.872)' in ui
+assert 'p.addLine(to: pt(0.635, 0.805))' in ui
+assert 'control1: pt(0.294, 0.942), control2: pt(0.305, 0.805)' in ui
+assert 'control1: pt(0.695, 0.805), control2: pt(0.706, 0.942)' in ui
 assert 'let wingInset = max(5, w * 0.006)' in comp
 assert '.position(x: wingInset + wingWidth / 2' in comp
 assert '.position(x: w - wingInset - wingWidth / 2' in comp
@@ -112,6 +112,6 @@ assert 'guard let speed, speed.isFinite' in comp
 assert 'min(1, max(0, speed / 120))' in comp
 assert '.animation(.easeInOut(duration: 0.38), value: progress)' in comp
 assert 'var animatableData: Double' in comp
-assert 'y: d * 0.825' in comp
+assert 'y: d * 0.900' in comp
 assert (root/'RiferimentoGrafico/Cockpit_1_09_utente.jpg').stat().st_size > 100_000
 print('OK — linea inferiore UNICA a tutto schermo, LED rosso GPS, senza numeri statici')

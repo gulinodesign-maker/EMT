@@ -97,7 +97,7 @@ struct EcojumboRootView: View {
                 CockpitCornerControls(selected: $selected, theme: theme)
                     .frame(width: geometry.size.width,
                            height: max(51, min(83, geometry.size.height * 0.105)))
-                    .padding(.bottom, max(7, geometry.size.height * 0.145))
+                    .padding(.bottom, max(7, geometry.size.height * 0.075))
                     .zIndex(50)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
@@ -193,7 +193,7 @@ private struct CockpitCornerControls: View {
 }
 
 
-/// EJ 1.14 — linea inferiore unica come nel riferimento approvato.
+/// EJ 1.15 — linea inferiore abbassata come nel riferimento approvato.
 /// Due sole curve cubiche speculari con tangenti orizzontali a entrambe le estremita:
 /// il profilo si raccorda ai tratti rettilinei senza gradini, cuspidi o micro-segmenti.
 struct ContinuousLowerLine: Shape {
@@ -204,14 +204,14 @@ struct ContinuousLowerLine: Shape {
             CGPoint(x: w * x, y: h * y)
         }
         var p = Path()
-        p.move(to: pt(0.012, 0.872))
-        p.addLine(to: pt(0.234, 0.872))
-        p.addCurve(to: pt(0.365, 0.735),
-                   control1: pt(0.294, 0.872), control2: pt(0.305, 0.735))
-        p.addLine(to: pt(0.635, 0.735))
-        p.addCurve(to: pt(0.766, 0.872),
-                   control1: pt(0.695, 0.735), control2: pt(0.706, 0.872))
-        p.addLine(to: pt(0.988, 0.872))
+        p.move(to: pt(0.012, 0.942))
+        p.addLine(to: pt(0.234, 0.942))
+        p.addCurve(to: pt(0.365, 0.805),
+                   control1: pt(0.294, 0.942), control2: pt(0.305, 0.805))
+        p.addLine(to: pt(0.635, 0.805))
+        p.addCurve(to: pt(0.766, 0.942),
+                   control1: pt(0.695, 0.805), control2: pt(0.706, 0.942))
+        p.addLine(to: pt(0.988, 0.942))
         return p
     }
 }
