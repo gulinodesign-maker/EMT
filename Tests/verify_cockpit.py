@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (28): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (29): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 28;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 29;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -84,6 +84,9 @@ assert 'private struct GPSLowerContour: Shape' in c
 assert 'private struct GPSLowerShade: Shape' in c
 assert 'private struct GPSLowerGlow: View' in c
 assert 'GPSLowerGlow(theme: theme)' in c
+assert 'private struct GPSLowerTerminalFade: View' in c
+assert '.mask(GPSLowerTerminalFade())' in c
+assert 'location: 0.17' in c and 'location: 0.83' in c
 assert 'GPSLowerShade()' in c
 assert 'GPSLowerContour()' in c
 assert 'textTop - max(12, h * 0.014)' in c
@@ -176,6 +179,13 @@ assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.tripKm")' in g
 assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in g
 assert 'onLongPressGesture(minimumDuration: 1.3)' in c
 assert 'glassReading(String(format: "%.1f km", gps.tripKm)' in c
+assert 'let glassWidth = w * 0.265 * 0.70' in c
+assert 'let glassHeight = h * 0.60' in c
+assert 'let tileHeight = max(1, (h - 5 * gap) / 6)' in c
+assert '.position(x: w - max(6, w * 0.012) - glassWidth / 2,' in c
+assert 'y: h * (0.17 + 0.60 / 2)' in c
+assert '.padding(.top, h * 0.045)' in c
+assert '.padding(.leading, w * 0.285)' in c
 assert 'height: tileHeight, resettable: true)' in c
 assert 'if reading.title == "Trip parziale"' in c
 assert 'gps.resetTrip()' in c
@@ -238,4 +248,4 @@ assert '.background(.ultraThinMaterial,' in c
 assert '.black.opacity(0.35), .black.opacity(0.75)' not in c
 assert '8 * controlSide - 7 * w * 0.008' in c
 assert 'struct GPSCompactReadings: View' in c
-print('OK — 28: controlli GPS inferiori, otto pulsanti, sei tessere vetro')
+print('OK — 29: cards GPS -30%, barra unita alla top bar, ponte sfumato')
