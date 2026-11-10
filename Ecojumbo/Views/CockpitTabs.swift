@@ -76,6 +76,8 @@ final class EcoNavigationStore: ObservableObject {
     @Published private(set) var hasArrived = false
     @Published private(set) var guidanceInstruction = ""
     @Published private(set) var guidanceDistanceMeters: CLLocationDistance?
+    @Published private(set) var isWaitingForGPS = false
+    private var pendingDestination: MKMapItem?
     private var nextStepIndex = 0
 
     private init() {}
@@ -86,24 +88,57 @@ final class EcoNavigationStore: ObservableObject {
             errorMessage = "Inserisci un indirizzo o il nome di una destinazione."
             return
         }
-        guard let origin, CLLocationCoordinate2DIsValid(origin) else {
-            errorMessage = "Attendi una posizione GPS valida e autorizza la localizzazione."
-            return
-        }
         guard !isLoading else { return }
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
 
         do {
+            // Cerca la destinazione ANCHE se il GPS non ha ancora una partenza.
+            // Nessuna coordinata viene simulata per costruire la rotta.
             let searchRequest = MKLocalSearch.Request()
             searchRequest.naturalLanguageQuery = query
-            let search = MKLocalSearch(request: searchRequest)
-            let searchResponse = try await search.start()
+            if let origin, CLLocationCoordinate2DIsValid(origin) {
+                searchRequest.region = MKCoordinateRegion(
+                    center: origin, latitudinalMeters: 80_000, longitudinalMeters: 80_000)
+            }
+            let searchResponse = try await MKLocalSearch(request: searchRequest).start()
             guard let destination = searchResponse.mapItems.first else {
-                errorMessage = "Destinazione non trovata. Prova a specificare anche la città."
+                errorMessage = "Destinazione non trovata. Specifica indirizzo e città."
                 return
             }
+            stopNavigation()
+            route = nil
+            destinationName = destination.name ?? query
+            destinationCoordinate = destination.placemark.coordinate
+            routeRevision += 1
+
+            guard let origin, CLLocationCoordinate2DIsValid(origin) else {
+                pendingDestination = destination
+                isWaitingForGPS = true
+                errorMessage = "Destinazione trovata. In attesa di un GPS preciso per il percorso."
+                return
+            }
+            await calculateRoadRoute(from: origin, to: destination)
+        } catch {
+            errorMessage = "Ricerca indirizzo non riuscita: \(error.localizedDescription)"
+        }
+    }
+
+    /// Appena Core Location restituisce una posizione reale, completa
+    /// automaticamente il percorso richiesto mentre il GPS era assente.
+    func resumePendingRoute(origin: CLLocationCoordinate2D?) async {
+        guard !isLoading, isWaitingForGPS, let pendingDestination,
+              let origin, CLLocationCoordinate2DIsValid(origin) else { return }
+        isLoading = true
+        isWaitingForGPS = false
+        defer { isLoading = false }
+        await calculateRoadRoute(from: origin, to: pendingDestination)
+    }
+
+    private func calculateRoadRoute(from origin: CLLocationCoordinate2D,
+                                    to destination: MKMapItem) async {
+        do {
             let request = MKDirections.Request()
             request.source = MKMapItem(placemark: MKPlacemark(coordinate: origin))
             request.destination = destination
@@ -111,22 +146,24 @@ final class EcoNavigationStore: ObservableObject {
             request.requestsAlternateRoutes = false
             let response = try await MKDirections(request: request).calculate()
             guard let roadRoute = response.routes.first else {
-                errorMessage = "Non è disponibile un percorso stradale per questa destinazione."
+                errorMessage = "MapKit non trova una strada percorribile per la destinazione."
                 return
             }
-            stopNavigation()
             route = roadRoute
-            destinationName = destination.name ?? query
-            destinationCoordinate = destination.placemark.coordinate
+            pendingDestination = nil
+            isWaitingForGPS = false
+            errorMessage = nil
             routeRevision += 1
         } catch {
-            errorMessage = "Impossibile calcolare il percorso: \(error.localizedDescription)"
+            errorMessage = "Percorso non disponibile: \(error.localizedDescription)"
         }
     }
 
     func clear() {
         stopNavigation()
         route = nil
+        pendingDestination = nil
+        isWaitingForGPS = false
         destinationName = ""
         destinationCoordinate = nil
         errorMessage = nil

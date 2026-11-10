@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (32): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (33): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 32;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 33;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -49,6 +49,29 @@ assert '(tab == .gps && selected == .gps) ? .dashboard : tab' in u
 assert 'lastGPSCoordinate = fix.coordinate' in g
 assert 'func currentCoordinate(at date: Date = Date())' in g
 assert 'GPS in pausa' in g
+# Build 33: distinguere ricezione posizione da velocità/trip BMS.
+assert 'manager.distanceFilter = kCLDistanceFilterNone' in g
+assert 'manager.pausesLocationUpdatesAutomatically = false' in g
+assert 'func retryLocation()' in g
+assert 'func isPermissionDenied' not in g
+assert 'var isPermissionDenied: Bool' in g
+assert 'fix.horizontalAccuracy <= 300' in g
+assert 'Posizione troppo imprecisa: attiva Posizione precisa' in g
+assert 'state = fix.horizontalAccuracy > 35' in g
+assert 'date.timeIntervalSince(lastGoodCoordinateAt) < 45' in g
+# Geocodifica subito; percorso solo con posizione reale.
+assert 'func resumePendingRoute(origin: CLLocationCoordinate2D?) async' in t
+assert 'func calculateRoadRoute(from origin: CLLocationCoordinate2D,' in t
+assert 'pendingDestination = destination' in t
+assert 'isWaitingForGPS = true' in t
+assert 'searchResponse.mapItems.first' in t
+assert t.index('searchResponse.mapItems.first') < t.index('guard let origin, CLLocationCoordinate2DIsValid(origin) else')
+assert 'await navigation.resumePendingRoute(origin: gps.currentCoordinate())' in c
+assert 'navigation.isWaitingForGPS' in c
+assert 'Image(systemName: "location.slash")' in c
+assert 'gps.retryLocation()' in c
+assert 'UIApplication.openSettingsURLString' in c
+assert 'else if let destinationPoint = navigation.destinationCoordinate' in c
 
 assert 'struct CellsView: View' in (r/'Ecojumbo/Views/CellsView.swift').read_text()
 assert 'func setOdometer(_ kilometers: Double)' in g and 'track: [RouteCoordinate]' in g
@@ -123,6 +146,11 @@ assert 'corners: [1, 4]' in c and 'corners: [1, 2]' in u
 assert 'p.addLine(to: pt(' not in u
 assert 'CornerDockGlow' not in u and 'FooterLightContour' not in c
 assert 'private struct ContinuousHorizonLine: View' in c
+# Top bar sfumata alle intersezioni con il cerchio in Home e GPS.
+assert c.count('.mask(RadialGradient(stops: [') == 2
+assert 'startRadius: ringRadius, endRadius: ringRadius + max(18, h * 0.070)' in c
+assert 'startRadius: dialSize * 0.508,' in c
+assert 'endRadius: dialSize * 0.508 + max(18, h * 0.070)' in c
 assert c.count('Circle()\n                        .stroke(theme.accent.opacity(') == 2
 assert c.count('.frame(width: dialSize * 0.985, height: dialSize * 0.985)') == 2
 assert 'private struct HomeRingBridgeMask: Shape' in c
@@ -279,4 +307,4 @@ assert '.background(.ultraThinMaterial,' in c
 assert '.black.opacity(0.35), .black.opacity(0.75)' not in c
 assert '8 * controlSide - 7 * w * 0.008' in c
 assert 'struct GPSCompactReadings: View' in c
-print('OK — 32: terminali anello Home sfumati e bordo inferiore GPS dissolto')
+print('OK — 33: posizione GPS retry e rotta differita, top bar sfumata in Home e GPS')

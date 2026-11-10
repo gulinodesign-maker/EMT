@@ -412,6 +412,13 @@ private struct ContinuousHorizonLine: View {
             }
             .frame(width: w, height: h)
             .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
+            // Dissolvi i due fianchi della top bar poco prima dell'anello
+            // arancione: evita l'interruzione luminosa netta segnata in rosso.
+            .mask(RadialGradient(stops: [
+                .init(color: .clear, location: 0),
+                .init(color: .white, location: 1)
+            ], center: UnitPoint(x: 0.50, y: 0.507),
+               startRadius: ringRadius, endRadius: ringRadius + max(18, h * 0.070)))
         }
         .allowsHitTesting(false)
     }
@@ -1275,6 +1282,13 @@ private struct GPSHorizonLine: View {
                 line.stroke(theme.accent, lineWidth: max(1.2, h * 0.0023))
             }
             .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
+            // Stessa sfumatura radiale per i terminali delle diagonali GPS.
+            .mask(RadialGradient(stops: [
+                .init(color: .clear, location: 0),
+                .init(color: .white, location: 1)
+            ], center: UnitPoint(x: dialCenterX / w, y: 0.494),
+               startRadius: dialSize * 0.508,
+               endRadius: dialSize * 0.508 + max(18, h * 0.070)))
         }
         .allowsHitTesting(false)
     }
@@ -1526,6 +1540,36 @@ private struct GPSCockpitMap: View {
                     .padding(.leading, w * 0.285)
                     .padding(.trailing, max(10, w * 0.022))
 
+                    // In assenza di posizione non nascondere la causa dietro
+                    // al trattino del tachimetro: permessi, precisione e retry.
+                    if gps.currentCoordinate() == nil {
+                        HStack(spacing: 7) {
+                            Image(systemName: "location.slash")
+                                .foregroundStyle(.orange)
+                            Text(gps.state)
+                                .font(.system(size: max(11, h * 0.023), weight: .medium))
+                                .lineLimit(2)
+                                .foregroundStyle(.white)
+                            Spacer(minLength: 3)
+                            Button(gps.isPermissionDenied ? "Impostazioni" : "Riprova") {
+                                if gps.isPermissionDenied,
+                                   let url = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(url)
+                                } else {
+                                    gps.retryLocation()
+                                }
+                            }
+                            .font(.system(size: max(11, h * 0.024), weight: .bold))
+                            .foregroundStyle(theme.accent)
+                        }
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 7)
+                        .background(Color.black.opacity(0.83),
+                                    in: RoundedRectangle(cornerRadius: 9))
+                        .padding(.leading, w * 0.285)
+                        .padding(.trailing, max(10, w * 0.022))
+                    }
+
                     if navigation.isNavigating {
                         HStack(spacing: 7) {
                             Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
@@ -1601,9 +1645,19 @@ private struct GPSCockpitMap: View {
                 } else {
                     focusOnRoute()
                 }
+                if navigation.isWaitingForGPS {
+                    Task {
+                        await navigation.resumePendingRoute(origin: gps.currentCoordinate())
+                    }
+                }
             }
             .onReceive(gps.$lastGPSCoordinate) { coordinate in
                 guard let coordinate, gps.currentCoordinate() != nil else { return }
+                if navigation.isWaitingForGPS {
+                    Task {
+                        await navigation.resumePendingRoute(origin: gps.currentCoordinate())
+                    }
+                }
                 navigation.updateProgress(at: coordinate)
                 if let course = gps.currentCourse() { lastKnownHeading = course }
                 if !hasCenteredOnGPS {
@@ -1729,6 +1783,13 @@ private struct GPSCockpitMap: View {
             followsUser = true
             followDistance = 2600
             followCamera(at: point)
+        } else if let destinationPoint = navigation.destinationCoordinate {
+            // Se manca il GPS, mostra la destinazione realmente trovata:
+            // non una vista continentale indistinta né una partenza inventata.
+            followsUser = false
+            camera = .camera(MapCamera(centerCoordinate: destinationPoint,
+                                       distance: 4500, heading: 0,
+                                       pitch: mapControls.is3D ? 55 : 0))
         } else {
             followsUser = true
             // Non inventare coordinate in assenza di un fix GPS reale.

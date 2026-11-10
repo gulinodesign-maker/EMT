@@ -196,4 +196,16 @@ for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert 0<fade_start<fade_end<1
 assert '.mask(HomeRingTerminalFade())' in c
 assert '.mask(GPSSearchBottomFade())' in c
-print('OK — EJ 1.32: sfumatura terminali sul ponte e base GPS dissolta')
+# Raccordo luminoso alto: la top bar si spegne alla corona e
+# torna completamente visibile prima del tratto orizzontale.
+for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
+    d=min(H*.982,W*.57)
+    r=d*.506
+    fade_len=max(18,H*.070)
+    assert fade_len>0 and (r+fade_len)<W*.50,(W,H,r,fade_len)
+    dg=min(H*.982,W*.50)
+    rg=dg*.508
+    assert max(18,H*.070)<dg*.25
+assert c.count('.mask(RadialGradient(stops: [') == 2
+assert 'func retryLocation()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
+print('OK — EJ 1.33: sfumature superiori su entrambe le schermate, GPS retry')

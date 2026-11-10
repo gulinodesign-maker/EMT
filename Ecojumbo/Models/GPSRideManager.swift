@@ -47,24 +47,43 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         manager.delegate = self
         manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         manager.activityType = .automotiveNavigation
-        manager.distanceFilter = 2
-        manager.pausesLocationUpdatesAutomatically = true
+        // La localizzazione non deve sospendersi mentre lo scooter è fermo:
+        // MapKit deve poter acquisire una partenza anche prima di muoversi.
+        manager.distanceFilter = kCLDistanceFilterNone
+        manager.pausesLocationUpdatesAutomatically = false
+    }
+
+    var isPermissionDenied: Bool {
+        manager.authorizationStatus == .denied || manager.authorizationStatus == .restricted
     }
 
     func start() {
         guard !started else { return }
         started = true
+        retryLocation()
+    }
+
+    /// Riprova anche dopo un timeout o una sospensione di Core Location.
+    /// Se i permessi sono negati, non inventiamo una posizione sostitutiva.
+    func retryLocation() {
+        started = true
+        guard CLLocationManager.locationServicesEnabled() else {
+            state = "Servizi di localizzazione disattivati sul dispositivo"
+            isReceiving = false
+            return
+        }
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
             manager.startUpdatingLocation()
-            state = "Ricerca segnale GPS…"
+            state = "Ricerca posizione del dispositivo…"
         case .notDetermined:
-            state = "Autorizza posizione durante l'uso"
+            state = "Autorizza l'accesso alla posizione"
             manager.requestWhenInUseAuthorization()
         case .denied, .restricted:
-            state = "Permesso posizione negato"
+            state = "Posizione negata: abilitala nelle Impostazioni"
+            isReceiving = false
         @unknown default:
-            state = "GPS non disponibile"
+            state = "Posizione non disponibile sul dispositivo"
         }
     }
 
@@ -121,11 +140,19 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard started else { return }
         for fix in locations.sorted(by: { $0.timestamp < $1.timestamp }) {
-            // La posizione per MapKit funziona anche da fermi (speed = -1 su alcuni GPS).
-            // La velocità e il contachilometri restano soggetti ai filtri più severi.
-            guard abs(fix.timestamp.timeIntervalSinceNow) < 10,
-                  fix.horizontalAccuracy >= 0, fix.horizontalAccuracy <= 35,
-                  CLLocationCoordinate2DIsValid(fix.coordinate) else { continue }
+            // La posizione per MapKit funziona anche da fermi e non richiede
+            // una misura di velocità valida. Precisione massima 300 m per
+            // evitare partenze chilometriche errate nella navigazione.
+            // Il tachimetro e il trip continuano a richiedere <= 35 m.
+            guard abs(fix.timestamp.timeIntervalSinceNow) < 25,
+                  fix.horizontalAccuracy >= 0, fix.horizontalAccuracy <= 300,
+                  CLLocationCoordinate2DIsValid(fix.coordinate) else {
+                if fix.horizontalAccuracy > 300 {
+                    state = "Posizione troppo imprecisa: attiva Posizione precisa"
+                    isReceiving = false
+                }
+                continue
+            }
             // La rotta GPS esiste solo quando lo scooter si muove.
             // Core Location usa -1 per un corso non determinato.
             if fix.speed >= 1.3, fix.course >= 0, fix.course < 360 {
@@ -134,6 +161,10 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             }
             lastGPSCoordinate = fix.coordinate
             lastGoodCoordinateAt = fix.timestamp
+            state = fix.horizontalAccuracy > 35
+                ? "Posizione approssimata (±\(Int(fix.horizontalAccuracy)) m)"
+                : "GPS attivo"
+            isReceiving = true
             // Ignoriamo velocità negative o non misurate per le statistiche.
             guard abs(fix.timestamp.timeIntervalSinceNow) < 10,
                   fix.horizontalAccuracy >= 0, fix.horizontalAccuracy <= 35,
@@ -190,6 +221,11 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        if let locationError = error as? CLError,
+           locationError.code == .locationUnknown {
+            state = "Ricerca posizione in corso: attendi o premi Riprova"
+            return
+        }
         speedKmh = nil
         isReceiving = false
         state = "GPS: " + error.localizedDescription
@@ -198,7 +234,8 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     /// Nessuna posizione inventata o vecchia per la partenza dell'itinerario.
     func currentCoordinate(at date: Date = Date()) -> CLLocationCoordinate2D? {
         guard let lastGoodCoordinateAt,
-              date.timeIntervalSince(lastGoodCoordinateAt) < 20 else { return nil }
+              date.timeIntervalSince(lastGoodCoordinateAt) >= 0,
+              date.timeIntervalSince(lastGoodCoordinateAt) < 45 else { return nil }
         return lastGPSCoordinate
     }
 
