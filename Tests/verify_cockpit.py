@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (20): grafica, MapKit, GPS senza dati simulati."""
+"""Regressioni Ecojumbo 1.0 (21): grafica, MapKit, GPS senza dati simulati."""
 from pathlib import Path
 import plistlib
 
@@ -13,28 +13,39 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 20;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 21;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
 assert info['NSLocationWhenInUseUsageDescription'] and info['NSBluetoothAlwaysUsageDescription']
-assert 'case dashboard, trips, routes, battery, bms, maps, settings, themes' in u
-assert 'EcoTab.allCases.prefix(4)' in u and 'EcoTab.allCases.suffix(4)' in u
+assert 'case dashboard, trips, gps, battery, bms, settings, themes' in u
+assert 'EcoTab.allCases.prefix(4)' in u and 'EcoTab.allCases.suffix(3)' in u
 assert 'BluetoothGlyph()' in u and 'CockpitCornerControls' in u
-assert 'AppleMapsPanel' in t and 'AppleMapsPanel()' in u
-assert 'GoogleMapsPanel' not in t and 'www.google.com' not in t
+# GPS è una modalità del cockpit, non una NavigationStack separata.
+assert 'GPSCockpitDashboard(theme: theme, now: tick)' in u
+assert 'NavigationStack { AppleMapsPanel() }' not in u
+assert 'NavigationStack { RoutesPanel() }' not in u
+assert 'case .gps: "GPS"' in u
+assert 'case .maps' not in u and 'case .routes' not in u
+assert 'GPSCockpitDashboard: View' in c
+assert 'private struct GPSCockpitMap: View' in c
+assert 'private struct GPSCompactReadings: View' in c
+assert 'OpenSpeedCluster(speed: gps.currentSpeed(at: now)' in c
+assert 'GPSCockpitMap(theme: theme)' in c
+assert 'GPSCompactReadings(theme: theme)' in c
+assert 'Map(position: $camera)' in c and 'UserAnnotation()' in c
+assert 'MapPolyline(roadRoute.polyline)' in c
+assert 'Marker(navigation.destinationName, coordinate: coordinate)' in c
+assert 'navigation.plan(destination: destination, origin: gps.currentCoordinate())' in c
+assert 'EcoNavigationStore.shared' in c
+assert 'routeRevision' in c
 assert 'MKLocalSearch(request: searchRequest)' in t
 assert 'MKDirections(request: request).calculate()' in t
 assert 'request.transportType = .automobile' in t
-assert 'MapPolyline(route.polyline)' in t
-assert 'MapPolyline(planned.polyline)' in t
-assert 'UserAnnotation()' in t
-assert 'Marker(navigation.destinationName, coordinate: destination)' in t
-assert 'navigation.plan(destination: destinationText, origin: gps.currentCoordinate())' in t
-assert 'EcoNavigationStore.shared' in t
-assert 'routeRevision' in t
-assert 'gps.track.map' in t
-assert 'Traccia GPS' in t and 'non agganciati automaticamente alle strade' in t
+assert 'www.google.com' not in t and 'GoogleMapsPanel' not in t
+assert 'struct RoutesPanel' not in t and 'struct AppleMapsPanel' not in t
+assert 'EcoTab.allCases.prefix(4)' in u
+assert '(tab == .gps && selected == .gps) ? .dashboard : tab' in u
 assert 'lastGPSCoordinate = fix.coordinate' in g
 assert 'func currentCoordinate(at date: Date = Date())' in g
 assert 'GPS in pausa' in g
@@ -95,4 +106,4 @@ assert 'Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)' in t
 assert 'ForEach(CockpitTheme.allCases)' in t
 assert 'Scale delle barre luminose' in o and 'Nessuna barra nelle tre schede chilometriche' in o
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
-print('OK — 20: grafica cockpit, MapKit stradale interno, GPS reale e sei temi')
+print('OK — 21: cockpit GPS integrato, MapKit stradale, sette pulsanti e sei temi')
