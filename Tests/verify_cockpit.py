@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 17;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 18;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -52,17 +52,22 @@ assert 'SegmentedGaugeBar(d:' in c
 
 # Raccordi C1 soltanto sopra i valori A/kW; lati inferiori rettilinei.
 assert 'ContinuousLowerLine: Shape' in u and 'ContinuousLowerGlow(theme: theme)' in u
-assert 'p.addLine(to: pt(shoulderX, 0.805))' in u
+assert 'p.addLine(to: pt(shoulderX, 0.850))' in u
 assert 'p.addLine(to: pt(1 - footX, 0.987))' in u
-assert 'control1: pt(tangentX, 0.77588), control2: pt(0.384, 0.740)' in u
-assert 'control1: pt(0.616, 0.740), control2: pt(1 - tangentX, 0.77588)' in u
-assert 'p.addLine(to: pt(0.588, 0.740))' in u
+assert 'control1: pt(tangentX, 0.82808), control2: pt(0.384, 0.785)' in u
+assert 'control1: pt(0.616, 0.785), control2: pt(1 - tangentX, 0.82808)' in u
+assert 'p.addLine(to: pt(0.588, 0.785))' in u
 assert 'CornerDockGlow' not in u and 'FooterLightContour' not in c
 # Linea top bar sinuosa e unica dietro il quadrante.
 assert 'private struct ContinuousHorizonLine: View' in c
 assert 'p.addCurve(to: CGPoint(x: w * 0.355, y: h * 0.238)' in c
 assert 'p.addCurve(to: CGPoint(x: w * 0.745, y: h * 0.085)' in c
-assert 'min(h * 0.970, w * 0.57)' in c
+assert 'min(h * 0.982, w * 0.57)' in c
+assert 'ringRadius = min(h * 0.982, w * 0.57) * 0.506' in c
+assert 'FillStyle(eoFill: true)' in c
+assert 'wingHeight = h * 0.455' in c
+assert '.position(x: wingInset + wingWidth / 2, y: h * 0.490)' in c
+assert '.position(x: d * 0.50, y: d * 0.889)' in c
 
 # Sei temi, griglia visibile con 3 colonne e 2 righe in landscape.
 for tag in ['case copper = "Rame"','case glacier = "Ghiaccio"','case green = "Verde"','case aquamarine = "Acquamarina"','case brown = "Marrone"','case racing = "Racing"']:

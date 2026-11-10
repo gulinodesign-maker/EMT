@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 import Darwin
 
-// EJ 1.17 — cockpit definitivo: 6 schede, curve C1, palette sei colori.
+// EJ 1.18 — schede ribassate, top bar non interseca il quadrante, tachimetro ampliato.
 // Geometry, rings, numerals and panels are real SwiftUI controls (no reference bitmap as UI).
 // Misure esclusivamente da Core Location / JK BLE, senza campioni sintetici.
 enum CockpitTheme: String, CaseIterable, Identifiable {
@@ -210,6 +210,17 @@ private struct ContinuousHorizonLine: View {
                            control2: CGPoint(x: w * 0.692, y: h * 0.085))
                 p.addLine(to: CGPoint(x: w, y: h * 0.085))
             }
+            // Il contorno della top bar scompare dietro il tachimetro.
+            // Maschera a foro centrale con bordo oltre il LED esterno: nessuna
+            // diagonale arancione attraversa gli anelli visibili del quadrante.
+            let ringCenter = CGPoint(x: w * 0.50, y: h * 0.507)
+            let ringRadius = min(h * 0.982, w * 0.57) * 0.506
+            let visibleOutsideRing = Path { p in
+                p.addRect(CGRect(x: 0, y: 0, width: w, height: h))
+                p.addEllipse(in: CGRect(x: ringCenter.x - ringRadius,
+                                        y: ringCenter.y - ringRadius,
+                                        width: ringRadius * 2, height: ringRadius * 2))
+            }
             ZStack {
                 line.stroke(theme.accent.opacity(0.31), lineWidth: max(5, h * 0.010))
                     .blur(radius: max(4, h * 0.012))
@@ -219,6 +230,7 @@ private struct ContinuousHorizonLine: View {
                             style: StrokeStyle(lineWidth: max(1.4, h * 0.002), lineCap: .round))
             }
             .frame(width: w, height: h)
+            .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
         }
         .allowsHitTesting(false)
     }
@@ -300,23 +312,23 @@ struct CockpitDashboard:View {
         GeometryReader { geo in
             let w=geo.size.width,h=geo.size.height
             let headerHeight = h * 0.125
-            let wingHeight = h * 0.520
+            let wingHeight = h * 0.455
             let wingWidth = w * 0.390
             // Margine reale su entrambi i lati: le ali non toccano il display.
             let wingInset = max(5, w * 0.006)
-            // Diametro al 97% dell’altezza, con centro ribassato al 50,5%.
-            // La corona esterna resta interamente entro i bordi del display.
-            let dialSize = min(h * 0.970, w * 0.57)
+            // Diametro al 98,2% dell’altezza; centro al 50,7% in landscape.
+            // Intero quadrante all’interno del display su tutti gli iPhone supportati.
+            let dialSize = min(h * 0.982, w * 0.57)
             ZStack(alignment: .topLeading) {
                 CarbonBackdrop(theme: theme)
 
                 PremiumWing(readings: leftRows, theme: theme, left: true)
                     .frame(width: wingWidth, height: wingHeight)
-                    .position(x: wingInset + wingWidth / 2, y: h * 0.428)
+                    .position(x: wingInset + wingWidth / 2, y: h * 0.490)
                     .zIndex(1)
                 PremiumWing(readings: rightRows, theme: theme, left: false)
                     .frame(width: wingWidth, height: wingHeight)
-                    .position(x: w - wingInset - wingWidth / 2, y: h * 0.428)
+                    .position(x: w - wingInset - wingWidth / 2, y: h * 0.490)
                     .zIndex(1)
 
                 // Disco carbonio opaco in PRIMO PIANO: i dati laterali restano dietro.
@@ -325,7 +337,7 @@ struct CockpitDashboard:View {
                                  power: live.map { -($0.power) },
                                  theme: theme)
                     .frame(width: dialSize, height: dialSize)
-                    .position(x: w / 2, y: h * 0.505)
+                    .position(x: w / 2, y: h * 0.507)
                     .zIndex(30)
 
                 // Raccordo luminoso superiore concentrico al tachimetro, in primo piano.
@@ -333,12 +345,12 @@ struct CockpitDashboard:View {
                     .stroke(theme.accent.opacity(0.48), lineWidth: max(3, h * 0.009))
                     .blur(radius: h * 0.014)
                     .frame(width: dialSize * 0.992, height: dialSize * 0.992)
-                    .position(x: w * 0.50, y: h * 0.505)
+                    .position(x: w * 0.50, y: h * 0.507)
                     .zIndex(33)
                 GaugeArc(start: 208, end: 332)
                     .stroke(theme.accent.opacity(0.90), lineWidth: 1.4)
                     .frame(width: dialSize * 0.992, height: dialSize * 0.992)
-                    .position(x: w * 0.50, y: h * 0.505)
+                    .position(x: w * 0.50, y: h * 0.507)
                     .zIndex(34)
                 ContinuousHorizonLine(theme: theme)
                     .frame(width: w, height: h)
@@ -706,7 +718,7 @@ private struct OpenSpeedCluster: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.45)
                 .frame(width: d * 0.66, height: d * 0.13)
-                .position(x: d * 0.50, y: d * 0.831)
+                .position(x: d * 0.50, y: d * 0.889)
             }
             .frame(width: d, height: d)
         }

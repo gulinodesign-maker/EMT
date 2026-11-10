@@ -192,7 +192,7 @@ private struct CockpitCornerControls: View {
 }
 
 
-/// EJ 1.17 — smussatura AMPIA solo negli angoli SUPERIORI di A / kW.
+/// EJ 1.18 — piattaforma A/kW abbassata, curve alte morbide e lati inferiori rettilinei.
 /// Lati inferiori rettilinei, estremita nette; nessuna linea sotto i tasti.
 /// Tangente cubica C1 ai lati retti e al tratto orizzontale centrale.
 struct ContinuousLowerLine: Shape {
@@ -210,12 +210,12 @@ struct ContinuousLowerLine: Shape {
         let tangentX = shoulderX + (shoulderX - footX) * 0.16
         var p = Path()
         p.move(to: pt(footX, 0.987))
-        p.addLine(to: pt(shoulderX, 0.805))
-        p.addCurve(to: pt(0.412, 0.740),
-                   control1: pt(tangentX, 0.77588), control2: pt(0.384, 0.740))
-        p.addLine(to: pt(0.588, 0.740))
-        p.addCurve(to: pt(1 - shoulderX, 0.805),
-                   control1: pt(0.616, 0.740), control2: pt(1 - tangentX, 0.77588))
+        p.addLine(to: pt(shoulderX, 0.850))
+        p.addCurve(to: pt(0.412, 0.785),
+                   control1: pt(tangentX, 0.82808), control2: pt(0.384, 0.785))
+        p.addLine(to: pt(0.588, 0.785))
+        p.addCurve(to: pt(1 - shoulderX, 0.850),
+                   control1: pt(0.616, 0.785), control2: pt(1 - tangentX, 0.82808))
         p.addLine(to: pt(1 - footX, 0.987))
         return p
     }
