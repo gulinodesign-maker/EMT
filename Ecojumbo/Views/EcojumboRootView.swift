@@ -193,11 +193,9 @@ private struct CockpitCornerControls: View {
 }
 
 
-/// La linea inferiore è un'unica Path continua da bordo a bordo,
-/// con curva dolce ai due lati della piattaforma centrale A/kW.
-/// Tutte le coordinate sono normalizzate sullo spazio landscape utile.
-/// L'uso di un'unica Shape elimina i salti fra contorno del tachimetro
-/// e bordo dei pulsanti presenti nelle versioni precedenti.
+/// EJ 1.10: un unico tracciato inferiore, con raccordi cubici a tangente
+/// continua (C1) e piattaforma centrale abbassata di circa 3 punti in landscape.
+/// Nessun raccordo spezzato fra tratto inclinato e tratto orizzontale.
 struct ContinuousLowerLine: Shape {
     func path(in rect: CGRect) -> Path {
         let w = rect.width
@@ -208,15 +206,15 @@ struct ContinuousLowerLine: Shape {
         var p = Path()
         p.move(to: pt(0.012, 0.973))
         p.addLine(to: pt(0.242, 0.973))
-        p.addQuadCurve(to: pt(0.273, 0.946), control: pt(0.261, 0.973))
-        p.addCurve(to: pt(0.339, 0.797),
-                   control1: pt(0.298, 0.901), control2: pt(0.313, 0.805))
-        p.addQuadCurve(to: pt(0.363, 0.785), control: pt(0.346, 0.785))
-        p.addLine(to: pt(0.637, 0.785))
-        p.addQuadCurve(to: pt(0.661, 0.797), control: pt(0.654, 0.785))
-        p.addCurve(to: pt(0.727, 0.946),
-                   control1: pt(0.687, 0.805), control2: pt(0.702, 0.901))
-        p.addQuadCurve(to: pt(0.758, 0.973), control: pt(0.739, 0.973))
+        p.addCurve(to: pt(0.316, 0.835),
+                   control1: pt(0.268, 0.973), control2: pt(0.291, 0.855))
+        p.addCurve(to: pt(0.363, 0.793),
+                   control1: pt(0.341, 0.815), control2: pt(0.344, 0.793))
+        p.addLine(to: pt(0.637, 0.793))
+        p.addCurve(to: pt(0.684, 0.835),
+                   control1: pt(0.656, 0.793), control2: pt(0.659, 0.815))
+        p.addCurve(to: pt(0.758, 0.973),
+                   control1: pt(0.709, 0.855), control2: pt(0.732, 0.973))
         p.addLine(to: pt(0.988, 0.973))
         return p
     }

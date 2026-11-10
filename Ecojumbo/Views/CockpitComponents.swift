@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 import Darwin
 
-// EJ 1.09 — cockpit premium nativo ispirato al riferimento fornito dall'utente.
+// EJ 1.10 — raccordi inferiori fluidi e margini visibili dei pannelli laterali.
 // Geometry, rings, numerals and panels are real SwiftUI controls (no reference bitmap as UI).
 // Misure esclusivamente da Core Location / JK BLE, senza campioni sintetici.
 enum CockpitTheme: String, CaseIterable, Identifiable {
@@ -274,6 +274,8 @@ struct CockpitDashboard:View {
             let headerHeight = h * 0.125
             let wingHeight = h * 0.560
             let wingWidth = w * 0.390
+            // Margine reale su entrambi i lati: le ali non toccano il display.
+            let wingInset = max(5, w * 0.006)
             // Un cerchio di diametro <= 93% della dimensione verticale:
             // evita i tagli in landscape anche con le corone e il loro alone.
             let dialSize = min(h * 0.93, w * 0.57)
@@ -282,11 +284,11 @@ struct CockpitDashboard:View {
 
                 PremiumWing(readings: leftRows, theme: theme, left: true)
                     .frame(width: wingWidth, height: wingHeight)
-                    .position(x: wingWidth / 2, y: h * 0.475)
+                    .position(x: wingInset + wingWidth / 2, y: h * 0.475)
                     .zIndex(1)
                 PremiumWing(readings: rightRows, theme: theme, left: false)
                     .frame(width: wingWidth, height: wingHeight)
-                    .position(x: w - wingWidth / 2, y: h * 0.475)
+                    .position(x: w - wingInset - wingWidth / 2, y: h * 0.475)
                     .zIndex(1)
 
                 // Disco carbonio opaco in PRIMO PIANO: i dati laterali restano dietro.
