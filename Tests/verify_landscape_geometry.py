@@ -39,15 +39,15 @@ assert math.isclose(.234, 1-.766)
 for width, height in [(844,390),(852,393),(932,430),(956,440),(736,414),(1536,707),(1536,864)]:
     wing_inset = max(5, width*.006)
     assert wing_inset >= 5 and width*.390 + wing_inset < width/2
-    d = min(height*.93, width*.57)
+    d = min(height*.952, width*.57)
     top = height*.50-d/2
     bottom = height*.50+d/2
     assert top >= height*.02 and bottom <= height*.98
-    footer_y = top+d*.825
-    line_y = height*.735
+    footer_y = top+d*.900
+    line_y = height*.805
     assert line_y < footer_y < height*.91
-    controls_bottom = height-max(7,height*.145)
-    outer_line_y = height*.872
+    controls_bottom = height-max(7,height*.075)
+    outer_line_y = height*.942
     assert controls_bottom + 3 < outer_line_y < height
     assert height-max(7,height*.075)-max(51,min(83,height*.105)) > height*(.475+.560/2)+8
     assert (footer_y-d*.065) > line_y+3
