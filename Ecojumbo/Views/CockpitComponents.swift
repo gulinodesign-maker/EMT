@@ -1201,12 +1201,13 @@ private struct GPSCockpitMap: View {
 
                     Spacer(minLength: 0)
                 }
+                // Soltanto la riga dei km parziali intercetta il long press;
+                // gli altri valori e la sfumatura lasciano usare la mappa.
                 GPSCompactReadings(theme: theme)
                     .frame(width: w * 0.31, height: h * 0.72)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .trailing)
                     .padding(.trailing, 8)
                     .padding(.top, h * 0.18)
-                    .allowsHitTesting(false)
 
                 // Comandi mappa sempre visibili: ricentra GPS e zoom + / −.
                 VStack {
