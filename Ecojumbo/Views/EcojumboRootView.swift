@@ -20,16 +20,15 @@ struct EcoCard<Content: View>: View {
 }
 
 enum EcoTab: Int, CaseIterable, Identifiable {
-    case dashboard, trips, routes, battery, bms, maps, settings, themes
+    case dashboard, trips, gps, battery, bms, settings, themes
     var id: Int { rawValue }
     var symbol: String {
         switch self {
         case .dashboard: "gauge.with.dots.needle.67percent"
         case .trips: "chart.bar.fill"
-        case .routes: "point.topleft.down.curvedto.point.bottomright.up"
+        case .gps: "point.topleft.down.curvedto.point.bottomright.up"
         case .battery: "battery.100percent"
         case .bms: "bluetooth"
-        case .maps: "location.north.line.fill"
         case .settings: "gearshape"
         case .themes: "paintpalette"
         }
@@ -38,10 +37,9 @@ enum EcoTab: Int, CaseIterable, Identifiable {
         switch self {
         case .dashboard: "Cruscotto"
         case .trips: "Viaggi"
-        case .routes: "Percorsi"
+        case .gps: "GPS"
         case .battery: "Batteria"
         case .bms: "BMS"
-        case .maps: "Navigazione MapKit"
         case .settings: "Impostazioni"
         case .themes: "Kit colori"
         }
@@ -65,14 +63,12 @@ struct EcojumboRootView: View {
                         CockpitDashboard(theme: theme, now: tick)
                     case .trips:
                         NavigationStack { TripsPanel() }
-                    case .routes:
-                        NavigationStack { RoutesPanel() }
+                    case .gps:
+                        GPSCockpitDashboard(theme: theme, now: tick)
                     case .battery:
                         NavigationStack { CellsView() }
                     case .bms:
                         NavigationStack { BluetoothView() }
-                    case .maps:
-                        NavigationStack { AppleMapsPanel() }
                     case .settings:
                         NavigationStack { EcoSettingsView() }
                     case .themes:
@@ -80,7 +76,7 @@ struct EcojumboRootView: View {
                     }
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
-                .padding(.bottom, selected == .dashboard ? 0 : 56)
+                .padding(.bottom, (selected == .dashboard || selected == .gps) ? 0 : 56)
 
                 // Profilo luminoso SOLO sopra il gruppo A/kW, con due discese laterali.
                 // Nessuna linea orizzontale prosegue sotto i tasti funzione.
@@ -91,8 +87,8 @@ struct EcojumboRootView: View {
                         .zIndex(45)
                 }
 
-                // Otto comandi reali, indipendenti e divisi ai due angoli inferiori;
-                // niente barra piena che schiaccia il tachimetro in landscape.
+                // Sette comandi reali: quattro a sinistra, tre a destra; GPS unificato.
+                // Niente barra piena che schiaccia il tachimetro in landscape.
                 CockpitCornerControls(selected: $selected, theme: theme)
                     .frame(width: geometry.size.width,
                            height: max(51, min(83, geometry.size.height * 0.105)))
@@ -123,7 +119,7 @@ struct EcojumboRootView: View {
     }
 }
 
-// EJ 1.08: due gruppi da quattro pulsanti metallici nell'angolo inferiore,
+// EJ 1.21: quattro pulsanti a sinistra e tre a destra,
 // con icone solo bianche, senza titoli; il tachimetro occupa tutto lo spazio centrale.
 private struct CockpitCornerControls: View {
     @Binding var selected: EcoTab
@@ -143,7 +139,7 @@ private struct CockpitCornerControls: View {
                 }
                 Spacer(minLength: 0)
                 HStack(spacing: gap) {
-                    ForEach(EcoTab.allCases.suffix(4)) { tab in
+                    ForEach(EcoTab.allCases.suffix(3)) { tab in
                         iconButton(tab, side: buttonSide)
                     }
                 }
@@ -154,7 +150,7 @@ private struct CockpitCornerControls: View {
     }
 
     private func iconButton(_ tab: EcoTab, side: CGFloat) -> some View {
-        Button { selected = tab } label: {
+        Button { selected = (tab == .gps && selected == .gps) ? .dashboard : tab } label: {
             ZStack {
                 RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
                     .fill(LinearGradient(stops: [
