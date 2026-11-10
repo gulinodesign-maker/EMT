@@ -1332,7 +1332,10 @@ private struct GPSCockpitMap: View {
                         RoundedRectangle(cornerRadius: 12, style: .continuous)
                             .stroke(.white.opacity(0.18), lineWidth: 0.7)
                     }
-                    .padding(.horizontal, max(10, w * 0.022))
+                    // La mappa parte dietro al quadrante; la ricerca rimane
+                    // a destra del bordo del tachimetro, sempre cliccabile.
+                    .padding(.leading, w * 0.255)
+                    .padding(.trailing, max(10, w * 0.022))
 
                     if navigation.isLoading {
                         ProgressView("Calcolo il percorso…")
@@ -1340,7 +1343,7 @@ private struct GPSCockpitMap: View {
                             .padding(8)
                             .background(.black.opacity(0.78),
                                         in: RoundedRectangle(cornerRadius: 8))
-                            .padding(.leading, max(10, w * 0.022))
+                            .padding(.leading, w * 0.255)
                     } else if let errorMessage = navigation.errorMessage {
                         Text(errorMessage)
                             .font(.footnote)
@@ -1349,7 +1352,7 @@ private struct GPSCockpitMap: View {
                             .padding(8)
                             .background(.black.opacity(0.78),
                                         in: RoundedRectangle(cornerRadius: 8))
-                            .padding(.leading, max(10, w * 0.022))
+                            .padding(.leading, w * 0.255)
                     }
                     Spacer(minLength: 0)
                 }
@@ -1381,7 +1384,7 @@ private struct GPSCockpitMap: View {
                     .padding(6)
                     .background(Color.black.opacity(0.67),
                                 in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .padding(.leading, max(12, w * 0.09))
+                    .padding(.leading, max(12, w * 0.255))
                     .padding(.bottom, max(10, h * 0.13))
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
