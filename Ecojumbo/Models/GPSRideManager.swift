@@ -12,6 +12,9 @@ struct RouteCoordinate: Codable, Equatable {
 @MainActor
 final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocationManagerDelegate {
     @Published private(set) var speedKmh: Double?
+    // Ultima posizione reale accurata, usata come partenza da MapKit.
+    @Published private(set) var lastGPSCoordinate: CLLocationCoordinate2D?
+    private var lastGoodCoordinateAt: Date?
     @Published private(set) var tripKm: Double
     @Published private(set) var totalKm: Double
     @Published private(set) var hasOdometer: Bool
@@ -67,6 +70,8 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         started = false
         manager.stopUpdatingLocation()
         speedKmh = nil
+        lastGPSCoordinate = nil
+        lastGoodCoordinateAt = nil
         previousLocation = nil
         lastMotionAt = nil
         isReceiving = false
@@ -112,7 +117,14 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard started else { return }
         for fix in locations.sorted(by: { $0.timestamp < $1.timestamp }) {
-            // Ignoriamo punti vecchi, imprecisi o con velocità non misurata.
+            // La posizione per MapKit funziona anche da fermi (speed = -1 su alcuni GPS).
+            // La velocità e il contachilometri restano soggetti ai filtri più severi.
+            guard abs(fix.timestamp.timeIntervalSinceNow) < 10,
+                  fix.horizontalAccuracy >= 0, fix.horizontalAccuracy <= 35,
+                  CLLocationCoordinate2DIsValid(fix.coordinate) else { continue }
+            lastGPSCoordinate = fix.coordinate
+            lastGoodCoordinateAt = fix.timestamp
+            // Ignoriamo velocità negative o non misurate per le statistiche.
             guard abs(fix.timestamp.timeIntervalSinceNow) < 10,
                   fix.horizontalAccuracy >= 0, fix.horizontalAccuracy <= 35,
                   fix.speed >= 0, fix.speedAccuracy >= 0, fix.speedAccuracy <= 5,
@@ -171,6 +183,13 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         speedKmh = nil
         isReceiving = false
         state = "GPS: " + error.localizedDescription
+    }
+
+    /// Nessuna posizione inventata o vecchia per la partenza dell'itinerario.
+    func currentCoordinate(at date: Date = Date()) -> CLLocationCoordinate2D? {
+        guard let lastGoodCoordinateAt,
+              date.timeIntervalSince(lastGoodCoordinateAt) < 20 else { return nil }
+        return lastGPSCoordinate
     }
 
     /// I dati GPS non devono restare visibili come correnti se la localizzazione si interrompe.
