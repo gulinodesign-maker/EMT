@@ -1,8 +1,15 @@
 name: Pubblica Ecojumbo su TestFlight
 
-# Avvio SOLO manuale: mai su push o pull request.
+# Avvio manuale disponibile; pubblicazione automatica solo per modifiche dell'app su main.
+# Le modifiche al solo workflow o alla documentazione NON inviano nuove build.
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Ecojumbo/**'
+      - 'Ecojumbo.xcodeproj/**'
 
 permissions:
   contents: read
@@ -48,6 +55,16 @@ jobs:
           grep -q 'PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;' Ecojumbo.xcodeproj/project.pbxproj
           grep -q 'MARKETING_VERSION = 1.0;' Ecojumbo.xcodeproj/project.pbxproj
 
+      - name: Assegna numero progressivo a ogni build
+        shell: bash
+        run: |
+          set -euo pipefail
+          # La build 9 e' gia' su App Store Connect.
+          # Il contatore di questo workflow cresce per ogni nuovo avvio.
+          BUILD_NUMBER=$((9 + GITHUB_RUN_NUMBER))
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "Numero build TestFlight: $BUILD_NUMBER"
+
       - name: Prepara autenticazione App Store Connect
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
@@ -79,7 +96,8 @@ jobs:
             -authenticationKeyID "$ASC_KEY_ID" \
             -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            CODE_SIGN_STYLE=Automatic
+            CODE_SIGN_STYLE=Automatic \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
 
       - name: Invia a TestFlight
         env:
