@@ -96,7 +96,13 @@ assert 'CornerDockGlow' not in ui
 assert 'FooterLightContour' not in comp
 assert ui.count('p.move(to: pt(0.012, 0.973))') == 1
 assert ui.count('p.addLine(to: pt(0.988, 0.973))') == 1
-assert 'p.addLine(to: pt(0.637, 0.785))' in ui
+# EJ 1.10: piattaforma leggermente ribassata, due raccordi cubici C1.
+assert 'p.addLine(to: pt(0.637, 0.793))' in ui
+assert 'control1: pt(0.341, 0.815), control2: pt(0.344, 0.793)' in ui
+assert 'control1: pt(0.656, 0.793), control2: pt(0.659, 0.815)' in ui
+assert 'let wingInset = max(5, w * 0.006)' in comp
+assert '.position(x: wingInset + wingWidth / 2' in comp
+assert '.position(x: w - wingInset - wingWidth / 2' in comp
 assert 'SpeedLEDStream(d: d, speed: speed)' in comp
 assert 'SpeedScaleTicks(d: d)' in comp
 assert 'GaugeTicks' not in comp
