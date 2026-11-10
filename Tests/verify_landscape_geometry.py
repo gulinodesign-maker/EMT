@@ -1,4 +1,4 @@
-"""Geometria Ecojumbo 1.0 (19) — angoli uguali e valori speculari."""
+"""Geometria Ecojumbo 1.0 (21) — angoli uguali e valori speculari."""
 from pathlib import Path
 import math
 root=Path(__file__).resolve().parents[1]
@@ -42,4 +42,18 @@ for w,h in [(844,390),(852,393),(932,430),(956,440),(736,414),(1536,707),(1536,8
     old_dy=(.987-.850)*h
     assert dx/dy < old_dx/old_dy, (w,h,dx/dy,old_dx/old_dy)
     assert math.isclose(min(h*.075,w*.032),min(h*.075,w*.032))
-print('OK — EJ 1.19: raggio unico di top/down bar, lati meno inclinati, testi speculari, 8 colori in preview')
+# Cockpit GPS: quadrante sinistro entro bordo, mappa a destra, sette pulsanti.
+assert 'let dialSize = min(h * 0.965, w * 0.55)' in c
+assert '.position(x: w * 0.335, y: h * 0.494)' in c
+assert '.frame(width: w * 0.505, height: h * 0.725)' in c
+assert '.position(x: w * 0.748, y: h * 0.455)' in c
+assert 'GPSHorizonLine(theme: theme)' in c
+assert 'ContinuousLowerGlow(theme: theme)' in c
+assert 'EcoTab.allCases.suffix(3)' in u
+for w,h in [(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
+    d=min(h*.965,w*.55)
+    cx=w*.335;cy=h*.494
+    assert cx-d/2>0 and cx+d/2<w*.60,(w,h)
+    assert cy-d/2>0 and cy+d/2<h
+    assert w*.748+w*.505/2<=w*1.001
+print('OK — EJ 1.21: cockpit classico invariato, modalità GPS con mappa e quadrante affiancati')
