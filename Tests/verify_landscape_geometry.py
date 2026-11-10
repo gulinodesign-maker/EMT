@@ -78,9 +78,7 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     text_left=cx-d*.33
     text_right=cx+d*.33
     left_top=cx-d*.325
-    right_top=cx+d*.325
     assert left_top>0
-    assert right_top<w*.60
     text_top=h*.494+d*(.889-.5-.065)
     line_y=min(h*.790,text_top-max(12,h*.014))
     foot_y=h*.937
@@ -90,7 +88,10 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     control_side=min(control_h*.96,w*.059,w*.052)
     button_start=w-max(12,w*.018)-8*control_side-7*w*.008
     ideal_run=w*(.385-.323)*((foot_y-line_y)/(h*(.985-.790)))
-    run=min(ideal_run,max(0,button_start-max(9,w*.012)-right_top))
+    max_right_foot=button_start-max(9,w*.012)
+    right_top=min(cx+d*.325,max_right_foot-ideal_run)
+    assert right_top<w*.60
+    run=min(ideal_run,max(0,max_right_foot-right_top))
     assert left_top-run>=0,(w,h)
     assert right_top+run+max(9,w*.012)<=button_start+1e-8,(w,h)
     assert (right_top-left_top)<d*.66
