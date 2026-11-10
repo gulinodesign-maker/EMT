@@ -2,7 +2,7 @@ import SwiftUI
 import UIKit
 import Darwin
 
-// EJ 1.14 — top bar continua, raccordi inferiori senza gradini.
+// EJ 1.16 — top bar ribassata, tachimetro al 97%, arco inferiore aperto.
 // Geometry, rings, numerals and panels are real SwiftUI controls (no reference bitmap as UI).
 // Misure esclusivamente da Core Location / JK BLE, senza campioni sintetici.
 enum CockpitTheme: String, CaseIterable, Identifiable {
@@ -164,7 +164,7 @@ private struct ContinuousHorizonLine: View {
         GeometryReader { geometry in
             let w = geometry.size.width
             let h = geometry.size.height
-            let y = h * 0.67
+            let y = h * 0.73
             let line = Path { p in
                 p.move(to: CGPoint(x: 0, y: y))
                 p.addLine(to: CGPoint(x: w, y: y))
@@ -265,9 +265,9 @@ struct CockpitDashboard:View {
             let wingWidth = w * 0.390
             // Margine reale su entrambi i lati: le ali non toccano il display.
             let wingInset = max(5, w * 0.006)
-            // Un cerchio di diametro <= 93% della dimensione verticale:
-            // evita i tagli in landscape anche con le corone e il loro alone.
-            let dialSize = min(h * 0.952, w * 0.57)
+            // Diametro al 97% dell’altezza, con centro ribassato al 50,5%.
+            // La corona esterna resta interamente entro i bordi del display.
+            let dialSize = min(h * 0.970, w * 0.57)
             ZStack(alignment: .topLeading) {
                 CarbonBackdrop(theme: theme)
 
@@ -286,7 +286,7 @@ struct CockpitDashboard:View {
                                  power: live.map { -($0.power) },
                                  theme: theme)
                     .frame(width: dialSize, height: dialSize)
-                    .position(x: w / 2, y: h * 0.50)
+                    .position(x: w / 2, y: h * 0.505)
                     .zIndex(30)
 
                 // Raccordo luminoso superiore concentrico al tachimetro, in primo piano.
@@ -294,12 +294,12 @@ struct CockpitDashboard:View {
                     .stroke(theme.accent.opacity(0.48), lineWidth: max(3, h * 0.009))
                     .blur(radius: h * 0.014)
                     .frame(width: dialSize * 0.992, height: dialSize * 0.992)
-                    .position(x: w * 0.50, y: h * 0.50)
+                    .position(x: w * 0.50, y: h * 0.505)
                     .zIndex(33)
                 GaugeArc(start: 208, end: 332)
                     .stroke(theme.accent.opacity(0.90), lineWidth: 1.4)
                     .frame(width: dialSize * 0.992, height: dialSize * 0.992)
-                    .position(x: w * 0.50, y: h * 0.50)
+                    .position(x: w * 0.50, y: h * 0.505)
                     .zIndex(34)
                 ContinuousHorizonLine(theme: theme)
                     .frame(width: w, height: headerHeight)
@@ -626,9 +626,8 @@ private struct OpenSpeedCluster: View {
                         .accessibilityLabel("GPS non disponibile")
                 }
 
-                // Il profilo luminoso sopra A/kW e quello sotto ai pulsanti
-                // sono ORA una sola ContinuousLowerLine in EcojumboRootView.
-                // Nessuna curva o decorazione viene più duplicata qui.
+                // Il profilo unico sopra A/kW è aperto alle estremita, senza
+                // alcuna linea orizzontale sotto i pulsanti di navigazione.
 
                 HStack(spacing: 0) {
                     Text(current.map { String(format: "%.0f A", $0) } ?? "— A")
