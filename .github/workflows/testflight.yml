@@ -59,9 +59,13 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # La build 9 e' gia' su App Store Connect.
-          # Il contatore di questo workflow cresce per ogni nuovo avvio.
-          BUILD_NUMBER=$((9 + GITHUB_RUN_NUMBER))
+          # Il numero ufficiale della build viene dal progetto Xcode.
+          # Anche i retry del workflow devono conservare la build 21.
+          BUILD_NUMBER="$(sed -n 's/.*CURRENT_PROJECT_VERSION = \([0-9][0-9]*\);.*/\1/p' Ecojumbo.xcodeproj/project.pbxproj | head -1)"
+          if [[ -z "$BUILD_NUMBER" || ! "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::Numero build Xcode non valido"
+            exit 1
+          fi
           echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
           echo "Numero build TestFlight: $BUILD_NUMBER"
 
@@ -97,6 +101,7 @@ jobs:
             -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CODE_SIGN_STYLE=Automatic \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
 
       - name: Invia a TestFlight
