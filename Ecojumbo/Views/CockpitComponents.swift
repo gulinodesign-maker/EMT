@@ -977,7 +977,6 @@ private enum GPSLowerLineGeometry {
         let footY = h * 0.937
         let topHalfWidth = d * 0.325
         let leftTopX = center - topHalfWidth
-        let rightTopX = center + topHalfWidth
         let controlsHeight = max(51, min(83, h * 0.105))
         let controlSide = min(controlsHeight * 0.96, w * 0.059, w * 0.052)
         let buttonStart = w - max(12, w * 0.018) - 8 * controlSide - 7 * w * 0.008
@@ -986,6 +985,9 @@ private enum GPSLowerLineGeometry {
         let standardVerticalRun = h * (0.985 - 0.790)
         let idealRun = standardHorizontalRun * ((footY - topY) / standardVerticalRun)
         let maxRightFoot = buttonStart - max(9, w * 0.012)
+        // Riduci soltanto la larghezza del ponte sui display stretti:
+        // mantieni la stessa pendenza del fianco e non toccare il dock.
+        let rightTopX = min(center + topHalfWidth, maxRightFoot - idealRun)
         let run = min(idealRun, max(0, maxRightFoot - rightTopX))
         return [
             CGPoint(x: leftTopX - run, y: footY),
