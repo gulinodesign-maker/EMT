@@ -11,7 +11,7 @@ for source in code:
 for symbol in ('GPSCockpitDashboard','TripsPanel','CellsView','BluetoothView','EcoSettingsView','ThemePickerView'):
     assert re.search(r'\bstruct\s+'+symbol+r'\s*:',joined), f'Missing SwiftUI component: {symbol}'
     assert re.search(r'\b'+symbol+r'\s*\(',code['EcojumboRootView.swift']), f'Not referenced: {symbol}'
-assert 'struct CockpitDashboard: View' in joined  # legacy inutilizzato, nessuna seconda Home accessibile
+assert re.search(r'\bstruct\s+CockpitDashboard\s*:', joined)  # tipo legacy non più richiamato
 assert 'case .dashboard:' not in code['EcojumboRootView.swift']
 assert 'MKDirections(request: request).calculate()' in code['CockpitTabs.swift']
 assert 'GPSCockpitMap(theme: theme)' in code['CockpitComponents.swift']
