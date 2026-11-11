@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 45;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 46;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -370,8 +370,10 @@ assert 'nativeAccuracyGood' not in g  # non fa parte dei parametri 33
 assert 'Color.black.opacity(0.27)' in c
 assert 'Color.black.opacity(0.80)' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello standard senza mappa')]
 assert 'EcoCockpitDockGeometry.standardLeft(width: w, height: h)' in c
-assert '.position(x: panelLeft + panelWidth / 2, y: h * 0.455)' in c
-assert '.frame(width: panelWidth, height: h * 0.70)' in c
+assert '.position(x: panelLeft + panelWidth / 2, y: cardsCenterY)' in c
+assert '.frame(width: panelWidth, height: cardsHeight)' in c
+assert 'let cardsTop = h * 0.099 + outerMargin' in c
+assert 'let cardsBottom = h - dockBottom - dockHeight - outerMargin' in c
 assert 'let fadeStart = min(0.56, max(0.25,' in c
 assert '.init(color: .clear, location: fadeStart)' in c
 assert '.init(color: .white.opacity(0.60), location: fadeStart + 0.055)' in c
@@ -382,8 +384,14 @@ expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
 assert expanded.count('showsBar: true') == 2
 assert 'expandedTile("Corrente batteria"' not in expanded
 assert 'expandedTile("Potenza istantanea"' not in expanded
-assert expanded.count('expandedTile("') == 4
-assert 'let cellHeight = max(1, (h - 3 * gap) / 4)' in expanded
+assert expanded.count('expandedTile("') == 5
+assert 'let cellHeight = max(1, (h - 4 * gap) / 5)' in expanded
+assert 'expandedTile("Dislivello viaggio"' in expanded
+assert 'GPSTripAltitudeSparkline(points: gps.altitudeProfile' in expanded
+assert 'onLongPressGesture(minimumDuration: resettable ? 0.5 : 1.3)' in expanded
+assert 'altitudeProfile.removeAll()' in g
+assert 'recordTripAltitude(fix)' in g
+assert 'tripElevationMeters' in g
 assert 'if showsBar {' in expanded
 assert 'MetricGlowBar(fraction: fraction, theme: theme)' in expanded
 assert 'if let fraction {' not in expanded
@@ -471,4 +479,4 @@ assert 'func locationManager(_ manager: CLLocationManager, didUpdateHeading head
 assert 'func currentHeading(at date: Date = Date())' in g
 assert 'func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager)' in g
 assert 'heading.headingAccuracy <= 45' in g
-print('OK — 45: mappa e layout invariati, GPS nativo ripristinato dalla build 33')
+print('OK — 46: mappa e layout invariati, GPS nativo ripristinato dalla build 33')

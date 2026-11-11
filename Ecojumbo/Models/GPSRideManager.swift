@@ -7,6 +7,12 @@ struct RouteCoordinate: Codable, Equatable {
     let longitude: Double
 }
 
+// Un punto GPS altimetrico associato ai chilometri già accettati dal trip.
+struct TripAltitudePoint: Codable, Equatable {
+    let distanceKm: Double
+    let altitudeMeters: Double
+}
+
 /// GPS del telefono: nessuna velocità o distanza è simulata.
 /// Le distanze accumulate riguardano soltanto le posizioni ricevute con app in uso.
 @MainActor
@@ -28,6 +34,11 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     @Published private(set) var totalKm: Double
     @Published private(set) var hasOdometer: Bool
     @Published private(set) var track: [RouteCoordinate]
+    @Published private(set) var altitudeProfile: [TripAltitudePoint]
+    var tripElevationMeters: Double? {
+        guard let first = altitudeProfile.first, let last = altitudeProfile.last else { return nil }
+        return last.altitudeMeters - first.altitudeMeters
+    }
     @Published private(set) var movingSeconds: TimeInterval = 0
     @Published private(set) var state: String = "GPS non avviato"
     @Published private(set) var isReceiving = false
@@ -48,6 +59,15 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             track = saved
         } else {
             track = []
+        }
+        if let savedData = UserDefaults.standard.data(forKey: "ecojumbo.gps.altitudeProfile"),
+           let saved = try? JSONDecoder().decode([TripAltitudePoint].self, from: savedData),
+           saved.count <= 512,
+           saved.allSatisfy({ $0.distanceKm.isFinite && $0.altitudeMeters.isFinite
+               && $0.distanceKm >= 0 && abs($0.altitudeMeters) <= 10_000 }) {
+            altitudeProfile = saved
+        } else {
+            altitudeProfile = []
         }
         movingSeconds = UserDefaults.standard.double(forKey: "ecojumbo.gps.movingSeconds")
         super.init()
@@ -162,7 +182,9 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     func resetTrip() {
         tripKm = 0
         track.removeAll()
+        altitudeProfile.removeAll()
         UserDefaults.standard.removeObject(forKey: "ecojumbo.gps.track")
+        UserDefaults.standard.removeObject(forKey: "ecojumbo.gps.altitudeProfile")
         movingSeconds = 0
         previousLocation = nil
         lastMotionAt = nil
@@ -250,6 +272,9 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
                   fix.speed >= 0, fix.speedAccuracy >= 0, fix.speedAccuracy <= 5,
                   fix.speed <= 50 else { continue }
 
+            // Primo campione attendibile del viaggio, anche prima di partire.
+            if altitudeProfile.isEmpty { recordTripAltitude(fix) }
+
             if let previous = previousLocation {
                 let dt = fix.timestamp.timeIntervalSince(previous.timestamp)
                 if dt > 0 && dt <= 30 {
@@ -264,6 +289,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
                             UserDefaults.standard.set(totalKm, forKey: "ecojumbo.gps.totalKm")
                         }
                         recordRoutePoint(fix)
+                        recordTripAltitude(fix)
                         if let lastMotionAt {
                             let motionDt = fix.timestamp.timeIntervalSince(lastMotionAt)
                             if motionDt > 0 && motionDt < 30 {
@@ -306,6 +332,36 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         // pausesLocationUpdatesAutomatically = false.
         guard started else { return }
         retryLocation()
+    }
+
+    // Solo altitudini GPS reali riferite alle distanze valide del trip.
+    // Esclude letture con precisione verticale scarsa e salti irrealistici.
+    private func recordTripAltitude(_ fix: CLLocation) {
+        guard fix.verticalAccuracy >= 0, fix.verticalAccuracy <= 20,
+              fix.altitude.isFinite, abs(fix.altitude) <= 10_000,
+              fix.horizontalAccuracy >= 0, fix.horizontalAccuracy <= 35 else { return }
+
+        let measured = fix.altitude
+        var recorded = measured
+        if let previous = altitudeProfile.last {
+            let distanceKm = tripKm - previous.distanceKm
+            guard distanceKm >= 0.02 else { return }
+            guard abs(measured - previous.altitudeMeters)
+                <= max(8.0, distanceKm * 1000 * 0.55 + fix.verticalAccuracy) else { return }
+            recorded = previous.altitudeMeters * 0.65 + measured * 0.35
+        }
+        altitudeProfile.append(TripAltitudePoint(distanceKm: tripKm, altitudeMeters: recorded))
+        // Conserva il punto iniziale, decimando i campioni quando la rotta cresce.
+        if altitudeProfile.count > 512 {
+            let initial = altitudeProfile[0]
+            let reduced = altitudeProfile.dropFirst().enumerated().compactMap {
+                index, point in index.isMultiple(of: 2) ? point : nil
+            }
+            altitudeProfile = [initial] + reduced
+        }
+        if let data = try? JSONEncoder().encode(altitudeProfile) {
+            UserDefaults.standard.set(data, forKey: "ecojumbo.gps.altitudeProfile")
+        }
     }
 
     private func recordRoutePoint(_ fix: CLLocation) {
