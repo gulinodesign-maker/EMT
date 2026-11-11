@@ -189,7 +189,7 @@ private struct CockpitCornerControls: View {
                     gpsButton("map.fill", active: mapEnabled,
                               accessibility: mapEnabled ? "Disattiva la mappa" : "Attiva la mappa",
                               side: gpsSide) {
-                        mapEnabled.toggle()
+                        if selected == .gps { mapEnabled.toggle() }
                         selected = .gps
                     }
                     if mapEnabled && selected == .gps {

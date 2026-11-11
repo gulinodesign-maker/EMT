@@ -98,27 +98,12 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert (right_top-left_top)<d*.66
     assert foot_y<h*.945
     assert h-max(4,h*.006)-control_h>0
-# Sei tessere di vetro altezza esatta, 30% meno larghe e con
-# distanza dal dock anche sugli iPhone più bassi.
+# Build 43: nessuna tessera di telemetria sopra la cartografia.
+assert 'GPSCompactReadings' not in c
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    map_w=w*.64
-    map_h=h*.955
-    card_w=map_w*.265*.70
-    card_h=map_h*.60
-    gap=max(5,card_h*.018)
-    tile=(card_h-5*gap)/6
-    assert tile>0
-    assert math.isclose(card_w/(map_w*.265),.70)
-    x_right=map_w-max(6,map_w*.012)
-    assert x_right-card_w>map_w*.60
-    top_y=h*(.5225-.955/2)+map_h*.21
-    bottom_y=top_y+card_h
-    dock_top=h-max(4,h*.006)-max(51,min(83,h*.105))
-    assert bottom_y<dock_top,(w,h,bottom_y,dock_top)
-    # La ricerca segue il bordo superiore ribassato del GPS.
-    bar_y=h*(.5225-.955/2)+map_h*.0565
-    assert abs(bar_y-h*.099)<h*.001,(w,h,bar_y)
-assert 'let glassWidth = w * 0.265 * 0.70' in c
+    dock_height=max(51,min(83,h*.105))
+    secondary_bottom=max(30,h*.055)
+    assert dock_height+secondary_bottom<h*.28,(w,h)
 assert '.mask(GPSLowerTerminalFade())' in c
 # Il campo di ricerca aderisce anche al ginocchio della linea GPS.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
@@ -247,20 +232,24 @@ assert 'gpsButton("map.fill", active: mapEnabled' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
 assert '.frame(width: panelWidth, height: h * 0.68)' in c
 assert '.position(x: panelLeft + panelWidth / 2, y: h * 0.48)' in c
-# Le schede restano oltre il disco con un margine su tutti gli iPhone.
+# Card e dock standard condividono esattamente i bordi e non invadono il disco.
 for w,h in [(736,414),(844,390),(852,393),(932,430),(956,440),(1536,706),(1536,864),(1806,831)]:
-    d=min(h*.965,w*.55)
-    cx=max(d*.51+w*.010,w*.168+d*.30)
-    left=max(w*.60,cx+d*.545+max(14,w*.018))
-    right=w-max(10,w*.012)
-    assert left>cx+d*.50+14,(w,h,left,cx,d)
-    assert right-left>w*.30,(w,h,right-left)
-    # La mappa scompare completamente PRIMA di incontrare l'anello.
+    dial=min(h*.965,w*.55)
+    dial_center=max(dial*.51+w*.010,w*.168+dial*.30)
+    dial_right=dial_center+dial*.50
+    gap=w*.008
+    right_inset=max(12,w*.018)
+    side=min(max(51,min(83,h*.105))*.96,w*.052)
+    side=min(side,max(20,(w-right_inset-dial_right-max(10,w*.010)-6*gap)/7))
+    left=w-right_inset-7*side-6*gap
+    assert left>=dial_right+max(10,w*.010)-1e-6,(w,h,left,dial_right)
+    assert w-right_inset-left>7*20,(w,h)
+    # Mappa invisibile sotto il tachimetro, ma nitida sulla destra.
     map_w=w*.64
     fade_start=min(.56,max(.25,
-        (cx+d*.50+max(12,w*.016)-w*.36)/map_w))
+        (dial_right+max(12,w*.016)-w*.36)/map_w))
     map_cutoff=w*.36+map_w*fade_start
-    assert map_cutoff>cx+d*.50,(w,h,map_cutoff,cx+d*.50)
+    assert map_cutoff>dial_right,(w,h,map_cutoff,dial_right)
     assert fade_start+.36<=1,(w,h,fade_start)
 expanded=c[c.index('private struct GPSExpandedReadings: View {'):]
 assert expanded.count('showsBar: true')==3
@@ -285,4 +274,4 @@ assert '.init(color: .white.opacity(0.70), location: 0.91)' in c
 assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
 assert 'UserAnnotation()' not in c
 assert 'manager.startUpdatingHeading()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
-print('OK — EJ 1.42: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')
+print('OK — EJ 1.43: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')
