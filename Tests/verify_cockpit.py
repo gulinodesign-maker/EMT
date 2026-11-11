@@ -189,7 +189,7 @@ assert 'Scale delle barre luminose' in o and 'Nessuna barra nelle tre schede chi
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 # Nuovo dock GPS 7 a destra; classico 4+3 invariato.
 assert 'if mapEnabled && selected == .gps {' in u
-assert 'selected == .gps' in u and 'max(4, geometry.size.height * 0.006)' in u
+assert 'selected == .gps' in u and '? max(4, h * 0.006)' in u
 assert 'ForEach(EcoTab.allCases) { tab in' not in u
 assert 'gpsButton("map.fill", active: mapEnabled' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
@@ -203,7 +203,7 @@ assert 'mapControls.send(.recenter)' in u
 assert 'mapControls.send(.zoomIn)' in u
 assert 'mapControls.send(.zoomOut)' in u
 assert 'EcoCockpitDockGeometry.standardSide(width: width, height: screenHeight)' in u
-assert 'screenHeight: geometry.size.height' in u
+assert 'screenHeight: h' in u
 assert 'max(28, geometry.safeAreaInsets.bottom + 14, h * 0.055)' in u
 assert '.position(x: w / 2, y: h - dockBottom - dockHeight / 2)' in u
 assert 'let contentHeight = selected == .gps' in u
