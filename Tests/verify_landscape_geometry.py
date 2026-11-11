@@ -102,8 +102,14 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
 assert 'GPSCompactReadings' not in c
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     dock_height=max(51,min(83,h*.105))
-    secondary_bottom=max(30,h*.055)
-    assert dock_height+secondary_bottom<h*.28,(w,h)
+    secondary_bottom=max(28,h*.055)
+    content_height=h-dock_height-secondary_bottom-10
+    dock_bottom_y=h-secondary_bottom
+    dock_top_y=dock_bottom_y-dock_height
+    assert dock_top_y>content_height,(w,h,dock_top_y,content_height)
+    assert 0<dock_top_y<dock_bottom_y<h,(w,h,dock_top_y,dock_bottom_y)
+assert '.position(x: w / 2, y: h - dockBottom - dockHeight / 2)' in u
+assert '.position(x: w / 2, y: contentHeight / 2)' in u
 assert '.mask(GPSLowerTerminalFade())' in c
 # Il campo di ricerca aderisce anche al ginocchio della linea GPS.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
@@ -230,8 +236,8 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert dock_width+right_margin < w*.66,(w,h,dock_width)
 assert 'gpsButton("map.fill", active: mapEnabled' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
-assert '.frame(width: panelWidth, height: h * 0.68)' in c
-assert '.position(x: panelLeft + panelWidth / 2, y: h * 0.48)' in c
+assert '.frame(width: panelWidth, height: h * 0.70)' in c
+assert '.position(x: panelLeft + panelWidth / 2, y: h * 0.455)' in c
 # Card e dock standard condividono esattamente i bordi e non invadono il disco.
 for w,h in [(736,414),(844,390),(852,393),(932,430),(956,440),(1536,706),(1536,864),(1806,831)]:
     dial=min(h*.965,w*.55)
@@ -250,9 +256,22 @@ for w,h in [(736,414),(844,390),(852,393),(932,430),(956,440),(1536,706),(1536,8
         (dial_right+max(12,w*.016)-w*.36)/map_w))
     map_cutoff=w*.36+map_w*fade_start
     assert map_cutoff>dial_right,(w,h,map_cutoff,dial_right)
-    assert fade_start+.36<=1,(w,h,fade_start)
+    assert fade_start+.12<=1,(w,h,fade_start)
+    # La dissolvenza non oscura un terzo della mappa.
+    assert (fade_start+.12)*map_w < (fade_start+.36)*map_w
+    # MapKit viene tagliata esattamente sotto la top bar arancione.
+    map_top=h*.045
+    map_h=h*.955
+    top_bar_y=h*.099
+    mask_cutoff=(top_bar_y-map_top)/map_h
+    assert abs(mask_cutoff - ((.099-.045)/.955))<1e-10
+    assert map_top+mask_cutoff*map_h==top_bar_y or abs(map_top+mask_cutoff*map_h-top_bar_y)<1e-8
 expanded=c[c.index('private struct GPSExpandedReadings: View {'):]
-assert expanded.count('showsBar: true')==3
+assert expanded.count('showsBar: true')==2
+assert expanded.count('expandedTile("')==4
+assert 'expandedTile("Corrente batteria"' not in expanded
+assert 'expandedTile("Potenza istantanea"' not in expanded
+assert 'let cellHeight = max(1, (h - 3 * gap) / 4)' in expanded
 assert 'if showsBar {' in expanded
 assert 'MetricGlowBar(fraction: fraction, theme: theme)' in expanded
 assert 'SpeedGlyphOutlineView' not in c  # il font velocita resta SwiftUI semplice
@@ -274,4 +293,4 @@ assert '.init(color: .white.opacity(0.70), location: 0.91)' in c
 assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
 assert 'UserAnnotation()' not in c
 assert 'manager.startUpdatingHeading()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
-print('OK — EJ 1.43: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')
+print('OK — EJ 1.44: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')
