@@ -90,7 +90,8 @@ assert (r/'RiferimentoGrafico/Cockpit_1_09_utente.jpg').stat().st_size>100000
 assert 'private struct PremiumWing: View' in c and 'metricTile(reading, width: w, height: tileHeight)' in c
 assert 'ForEach(readings.indices' in c
 assert c.count('WingReading(value:')==6
-assert c.count('showsBar: true')==3 and c.count('showsBar: false')==3
+legacy = c[:c.index('private struct GPSExpandedReadings: View {')]
+assert legacy.count('showsBar: true')==3 and legacy.count('showsBar: false')==3
 for sym in ('bolt.fill','voltage','road.lanes','chart.bar.fill','mappin','speedometer'):
     assert f'icon: "{sym}"' in c
 assert 'if reading.showsBar {' in c and 'MetricGlowBar(fraction: reading.fraction' in c
