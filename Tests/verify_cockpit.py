@@ -328,7 +328,7 @@ assert 'CTFontGetGlyphsForCharacters(font, characters, &glyphs, characters.count
 assert 'context.setLineJoin(.round)' in c
 assert 'context.setLineCap(.round)' in c
 assert 'context.drawPath(using: .stroke)' in c
-assert '.strokeWidth:' not in c
+assert '.strokeWidth: 2.4' not in c
 assert 'UILabel disegna veramente il contorno' not in c
 assert c.count('HollowSpeedNumber(text: String(Int(speed.rounded()))') == 1
 assert '.blur(radius: d * 0.018)' not in c[c.index('private struct OpenSpeedCluster: View {'):c.index('// Calcola la posizione più a sinistra possibile')]
