@@ -2,6 +2,7 @@ import SwiftUI
 import MapKit
 import Combine
 import UIKit
+import CoreText
 import Darwin
 
 
@@ -547,6 +548,22 @@ private enum GPSManeuverIcon {
     }
 }
 
+// Ritaglio geometrico per le sei schede Home: le card restano
+// completamente FUORI dal disco tachimetro anche in modalità chiara.
+// Si ritaglia dal gruppo delle ali, senza introdurre un disco bianco opaco.
+private struct DayWingOutsideDial: Shape {
+    let center: CGPoint
+    let radius: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.addRect(rect)
+        path.addEllipse(in: CGRect(x: center.x - radius, y: center.y - radius,
+                                  width: radius * 2, height: radius * 2))
+        return path
+    }
+}
+
 struct CockpitDashboard:View {
     @StateObject private var navigation = EcoNavigationStore.shared
     @Environment(\.colorScheme) private var colorScheme
@@ -619,14 +636,25 @@ struct CockpitDashboard:View {
                     .zIndex(0)
 
 
-                PremiumWing(readings: leftRows, theme: theme, left: true)
-                    .frame(width: wingWidth, height: wingHeight)
-                    .position(x: wingInset + wingWidth / 2, y: h * 0.490)
-                    .zIndex(1)
-                PremiumWing(readings: rightRows, theme: theme, left: false)
-                    .frame(width: wingWidth, height: wingHeight)
-                    .position(x: w - wingInset - wingWidth / 2, y: h * 0.490)
-                    .zIndex(1)
+                ZStack {
+                    PremiumWing(readings: leftRows, theme: theme, left: true)
+                        .frame(width: wingWidth, height: wingHeight)
+                        .position(x: wingInset + wingWidth / 2, y: h * 0.490)
+                    PremiumWing(readings: rightRows, theme: theme, left: false)
+                        .frame(width: wingWidth, height: wingHeight)
+                        .position(x: w - wingInset - wingWidth / 2, y: h * 0.490)
+                }
+                .frame(width: w, height: h)
+                .mask {
+                    if colorScheme == .light {
+                        DayWingOutsideDial(center: CGPoint(x: w * 0.50, y: h * 0.507),
+                                           radius: dialSize * 0.495)
+                            .fill(style: FillStyle(eoFill: true))
+                    } else {
+                        Rectangle().fill(.white)
+                    }
+                }
+                .zIndex(1)
 
                 // Disco carbonio opaco in PRIMO PIANO: i dati laterali restano dietro.
                 OpenSpeedCluster(speed: liveSpeed,
@@ -898,36 +926,117 @@ private struct SegmentedGaugeBar: View {
     }
 }
 
-// UILabel disegna veramente il contorno delle cifre (non testo bianco con un'ombra arancio).
-private struct HollowSpeedNumber:UIViewRepresentable {
-    let text:String
-    let size:CGFloat
-    let accent:UIColor
-    func makeUIView(context:Context)->UILabel {
-        let label=UILabel()
-        label.textAlignment = .center
-        label.backgroundColor = .clear
-        label.adjustsFontSizeToFitWidth = true
-        label.minimumScaleFactor = 0.55
-        label.numberOfLines = 1
-        return label
+// Il contorno delle cifre usa il percorso vettoriale del glifo, non
+// NSAttributedString.strokeWidth: quest'ultimo crea punte/miter all'interno
+// di alcuni caratteri (in particolare il "2"), simili a stelline.
+private final class SpeedGlyphOutlineView: UIView {
+    var digits = "" { didSet { setNeedsDisplay() } }
+    var pointSize: CGFloat = 80 { didSet { setNeedsDisplay() } }
+    var strokeColor: UIColor = .orange { didSet { setNeedsDisplay() } }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isOpaque = false
+        backgroundColor = .clear
+        contentMode = .redraw
+        isUserInteractionEnabled = false
     }
-    func updateUIView(_ uiView:UILabel,context:Context) {
-        // Un solo contorno reale, senza due UILabel sovrapposte:
-        // la doppia composizione precedente creava artefatti luminosi.
-        let font = UIFont.systemFont(ofSize: size, weight: .semibold)
-        uiView.attributedText = NSAttributedString(string: text, attributes: [
-            .font: font,
-            .foregroundColor: UIColor.clear,
-            .strokeColor: accent,
-            .strokeWidth: 2.4,
-            .kern: 0
-        ])
-        uiView.layer.shadowColor = accent.cgColor
-        uiView.layer.shadowOpacity = 0.60
-        uiView.layer.shadowRadius = max(2, size * 0.035)
-        uiView.layer.shadowOffset = .zero
-        uiView.layer.masksToBounds = false
+    required init?(coder: NSCoder) { fatalError("Storyboard non supportato") }
+
+    override func draw(_ rect: CGRect) {
+        guard let context = UIGraphicsGetCurrent(), !digits.isEmpty else { return }
+        let uiFont = UIFont.monospacedDigitSystemFont(ofSize: pointSize, weight: .medium)
+        let font = CTFontCreateWithName(uiFont.fontName as CFString, pointSize, nil)
+        let characters = Array(digits.utf16)
+        var glyphs = [CGGlyph](repeating: 0, count: characters.count)
+        guard CTFontGetGlyphsForCharacters(font, characters, &glyphs, characters.count) else { return }
+        var advances = [CGSize](repeating: .zero, count: glyphs.count)
+        CTFontGetAdvancesForGlyphs(font, .horizontal, glyphs, &advances, glyphs.count)
+
+        let path = CGMutablePath()
+        var penX: CGFloat = 0
+        for index in glyphs.indices {
+            if let outline = CTFontCreatePathForGlyph(font, glyphs[index], nil) {
+                let transform = CGAffineTransform(translationX: penX, y: 0)
+                path.addPath(outline, transform: transform)
+            }
+            penX += advances[index].width
+        }
+        let glyphBounds = path.boundingBoxOfPath
+        guard !glyphBounds.isEmpty else { return }
+        let fit = min(1, rect.width * 0.93 / glyphBounds.width,
+                     rect.height * 0.91 / glyphBounds.height)
+
+        context.saveGState()
+        context.translateBy(x: rect.midX, y: rect.midY)
+        context.scaleBy(x: fit, y: -fit)
+        context.translateBy(x: -glyphBounds.midX, y: -glyphBounds.midY)
+        context.addPath(path)
+        context.setFillColor(UIColor.clear.cgColor)
+        context.setStrokeColor(strokeColor.cgColor)
+        context.setLineWidth(max(1.7, pointSize * 0.022))
+        // ROUND join elimina gli spigoli acuti prodotti dai miter dei glifi.
+        context.setLineJoin(.round)
+        context.setLineCap(.round)
+        context.setShadow(offset: .zero, blur: max(2, pointSize * 0.028),
+                          color: strokeColor.withAlphaComponent(0.70).cgColor)
+        context.drawPath(using: .stroke)
+        context.restoreGState()
+    }
+}
+
+private struct HollowSpeedNumber: UIViewRepresentable {
+    let text: String
+    let size: CGFloat
+    let accent: UIColor
+
+    func makeUIView(context: Context) -> SpeedGlyphOutlineView {
+        SpeedGlyphOutlineView(frame: .zero)
+    }
+    func updateUIView(_ view: SpeedGlyphOutlineView, context: Context) {
+        view.digits = text
+        view.pointSize = size
+        view.strokeColor = accent
+    }
+}
+
+// Geometria netta delle frecce: segmenti a spigoli e testate squadrate.
+// Mantiene tutte le manovre nell'area interna delle tacche del tachimetro.
+private struct GPSAngularManeuverArrow: Shape {
+    let symbol: String
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width, h = rect.height
+        func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: w * x, y: h * y) }
+        var path = Path()
+        switch symbol {
+        case "arrow.turn.up.left":
+            path.move(to: p(0.83, 0.90))
+            path.addLines([p(0.83, 0.50), p(0.28, 0.50), p(0.28, 0.13)])
+            path.move(to: p(0.10, 0.32))
+            path.addLines([p(0.28, 0.13), p(0.46, 0.32)])
+        case "arrow.turn.up.right":
+            path.move(to: p(0.17, 0.90))
+            path.addLines([p(0.17, 0.50), p(0.72, 0.50), p(0.72, 0.13)])
+            path.move(to: p(0.54, 0.32))
+            path.addLines([p(0.72, 0.13), p(0.90, 0.32)])
+        case "arrow.uturn.left":
+            path.move(to: p(0.79, 0.88))
+            path.addLines([p(0.79, 0.19), p(0.27, 0.19), p(0.27, 0.71)])
+            path.move(to: p(0.10, 0.54))
+            path.addLines([p(0.27, 0.71), p(0.44, 0.54)])
+        case "arrow.clockwise":
+            // Rotatoria: poligono aperto, anziché cerchio molto smussato.
+            path.move(to: p(0.17, 0.78))
+            path.addLines([p(0.17, 0.26), p(0.77, 0.26), p(0.77, 0.72)])
+            path.move(to: p(0.59, 0.54))
+            path.addLines([p(0.77, 0.72), p(0.95, 0.54)])
+        default:
+            path.move(to: p(0.50, 0.88))
+            path.addLine(to: p(0.50, 0.12))
+            path.move(to: p(0.27, 0.34))
+            path.addLines([p(0.50, 0.12), p(0.73, 0.34)])
+        }
+        return path
     }
 }
 
@@ -1010,14 +1119,15 @@ private struct OpenSpeedCluster: View {
                 // La freccia bianca occupa la zona superiore, lontana dalle
                 // cifre; nessun pannello testuale e nessuna scritta GPS.
                 if let navigationArrow {
-                    Image(systemName: navigationArrow)
-                        .font(.system(size: d * 0.184, weight: .bold))
-                        .foregroundStyle(.white)
-                        .shadow(color: colorScheme == .light ? .black.opacity(0.78) : .black.opacity(0.42),
-                                radius: colorScheme == .light ? 3 : 1.5)
-                        .shadow(color: .white.opacity(0.32), radius: d * 0.008)
-                        .frame(width: d * 0.25, height: d * 0.185)
-                        .position(x: d * 0.5, y: d * 0.214)
+                    GPSAngularManeuverArrow(symbol: navigationArrow)
+                        .stroke(Color.white, style: StrokeStyle(
+                            lineWidth: max(3, d * 0.012),
+                            lineCap: .square, lineJoin: .miter, miterLimit: 2))
+                        .shadow(color: colorScheme == .light
+                                ? .black.opacity(0.72) : .black.opacity(0.34),
+                                radius: colorScheme == .light ? 2.5 : 1.2)
+                        .frame(width: d * 0.175, height: d * 0.125)
+                        .position(x: d * 0.5, y: d * 0.245)
                         .accessibilityLabel(navigationInstruction ?? "Prossima manovra")
                 }
 
@@ -1040,12 +1150,6 @@ private struct OpenSpeedCluster: View {
                     }
                 }
                 .position(x: d * 0.5, y: d * 0.495)
-
-                // Linea sopra l'unità di misura, sotto ai numeri.
-                Rectangle()
-                    .fill(colorScheme == .light ? Color(white: 0.30) : .white.opacity(0.88))
-                    .frame(width: d * 0.235, height: max(1.2, d * 0.005))
-                    .position(x: d * 0.5, y: d * 0.682)
 
                 Text("km/h")
                     .font(.system(size: d * 0.047, weight: .medium))
