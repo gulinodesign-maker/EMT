@@ -12,7 +12,6 @@ struct EcojumboApp: App {
             EcojumboRootView()
                 .environmentObject(bluetooth)
                 .environmentObject(gps)
-                .preferredColorScheme(.dark)
                 .onAppear {
                     UIApplication.shared.isIdleTimerDisabled = true
                 }
