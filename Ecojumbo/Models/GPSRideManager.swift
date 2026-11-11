@@ -13,6 +13,9 @@ struct RouteCoordinate: Codable, Equatable {
 final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocationManagerDelegate {
     @Published private(set) var speedKmh: Double?
     @Published private(set) var speedDiagnostic = "Velocità GPS non ancora misurata"
+    @Published private(set) var lastNativeSpeed: Double?
+    @Published private(set) var lastNativeSpeedAccuracy: Double?
+    @Published private(set) var lastGPSFixTime: Date?
     // Ultima posizione reale accurata, usata come partenza da MapKit.
     @Published private(set) var lastGPSCoordinate: CLLocationCoordinate2D?
     @Published private(set) var lastHorizontalAccuracy: CLLocationAccuracy?
@@ -58,6 +61,19 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         // MapKit deve poter acquisire una partenza anche prima di muoversi.
         manager.distanceFilter = kCLDistanceFilterNone
         manager.pausesLocationUpdatesAutomatically = false
+    }
+
+    var hasPreciseLocation: Bool { manager.accuracyAuthorization == .fullAccuracy }
+
+    var authorizationDescription: String {
+        switch manager.authorizationStatus {
+        case .authorizedAlways: "Sempre"
+        case .authorizedWhenInUse: "Durante l'uso"
+        case .denied: "Negata"
+        case .restricted: "Limitata"
+        case .notDetermined: "Non richiesta"
+        @unknown default: "Non disponibile"
+        }
     }
 
     var isPermissionDenied: Bool {
@@ -138,6 +154,9 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         previousSpeedFix = nil
         lastMotionAt = nil
         speedDiagnostic = "Velocità GPS non ancora misurata"
+        lastNativeSpeed = nil
+        lastNativeSpeedAccuracy = nil
+        lastGPSFixTime = nil
         isReceiving = false
         state = "GPS in pausa"
     }
@@ -180,6 +199,12 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard started else { return }
         for fix in locations.sorted(by: { $0.timestamp < $1.timestamp }) {
+            if abs(fix.timestamp.timeIntervalSinceNow) <= 25 {
+                lastGPSFixTime = fix.timestamp
+                lastNativeSpeed = fix.speed
+                lastNativeSpeedAccuracy = fix.speedAccuracy
+                lastHorizontalAccuracy = fix.horizontalAccuracy >= 0 ? fix.horizontalAccuracy : nil
+            }
             // La posizione per MapKit funziona anche da fermi e non richiede
             // una misura di velocità valida. Precisione massima 300 m per
             // evitare partenze chilometriche errate nella navigazione.
@@ -214,10 +239,16 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             // La velocità nativa viene accettata quando affidabile anche
             // se speedAccuracy == -1 (dato di incertezza non disponibile).
             // Mai ricavare la velocità da punti MapKit simulati.
+            // Una misura nativa con incertezza <= 3 m/s può essere usata
+            // anche con posizione da 65 a 150 metri: accuratezza di velocità
+            // e accuratezza della coordinata sono grandezze diverse.
+            let nativeAccuracyGood = fix.speedAccuracy >= 0 && fix.speedAccuracy <= 3
             let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 20
-                && fix.horizontalAccuracy <= 65
                 && fix.speed >= 0 && fix.speed <= 50
-                && (fix.speedAccuracy < 0 || fix.speedAccuracy <= 7)
+                && ((fix.horizontalAccuracy <= 65 &&
+                     (fix.speedAccuracy < 0 || fix.speedAccuracy <= 7))
+                    || (hasPreciseLocation && fix.horizontalAccuracy <= 150 &&
+                        nativeAccuracyGood))
             if usableSpeed {
                 let kmh = fix.speed * 3.6
                 speedKmh = kmh < 1.5 ? 0 : kmh

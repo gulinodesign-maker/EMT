@@ -1269,10 +1269,8 @@ struct GPSCockpitDashboard: View {
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
             // Nessun pannello può entrare nella circonferenza del tachimetro,
             // neppure su iPhone stretti: bordo calcolato sul quadrante reale.
-            let panelLeft = max(w * 0.60,
-                                dialCenterX + dialSize * 0.545 + max(14, w * 0.018))
-            let panelRightInset = max(10, w * 0.012)
-            let panelWidth = max(1, w - panelLeft - panelRightInset)
+            let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)
+            let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) - panelLeft)
             let live = bluetooth.snapshot
             ZStack {
                 CarbonBackdrop(theme: theme)
@@ -1399,6 +1397,7 @@ private struct GPSHorizonLine: View {
 @MainActor
 private struct GPSHeader: View {
     @Environment(\.colorScheme) private var colorScheme
+    @State private var showGPSDiagnostics = false
     let theme: CockpitTheme
     let now: Date
     let positionAvailable: Bool
@@ -1420,12 +1419,19 @@ private struct GPSHeader: View {
                     .font(.system(size: h * 0.44, weight: .bold))
                     .monospacedDigit()
                 Spacer(minLength: 0)
-                Image(systemName: "location.north.fill")
-                Circle().fill(speedAvailable ? theme.accent
-                              : (positionAvailable ? Color.yellow : Color.gray))
-                    .frame(width: max(5, h * 0.14), height: max(5, h * 0.14))
-                    .accessibilityLabel(speedAvailable ? "GPS e velocità disponibili"
-                        : (positionAvailable ? "GPS attivo: velocità non misurata" : "GPS senza posizione"))
+                Button { showGPSDiagnostics = true } label: {
+                    HStack(spacing: max(5, h * 0.09)) {
+                        Image(systemName: "location.north.fill")
+                        Circle().fill(speedAvailable ? theme.accent
+                                      : (positionAvailable ? Color.yellow : Color.gray))
+                            .frame(width: max(5, h * 0.14), height: max(5, h * 0.14))
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Apri diagnostica GPS e velocità")
+                .accessibilityHint(speedAvailable ? "Velocità GPS disponibile"
+                    : (positionAvailable ? "Posizione attiva, velocità non misurata" : "Posizione assente"))
                 Rectangle().fill(colorScheme == .light
                                  ? Color.black.opacity(0.33) : .white.opacity(0.55))
                     .frame(width: 1, height: h * 0.43)
@@ -1443,6 +1449,62 @@ private struct GPSHeader: View {
             .padding(.horizontal, max(14, w * 0.031))
             .padding(.bottom, h * 0.08)
             .frame(width: w, height: h)
+        }
+        .sheet(isPresented: $showGPSDiagnostics) {
+            GPSDiagnosticsView()
+        }
+    }
+}
+
+// Diagnostica non invasiva, accessibile toccando l'icona GPS nell'header.
+// Nessun dato simulato, né coordinate registrate o inviate all'esterno.
+@MainActor
+private struct GPSDiagnosticsView: View {
+    @EnvironmentObject private var gps: GPSRideManager
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Stato GPS") {
+                    Text(gps.speedStatus())
+                    LabeledContent("Autorizzazione", value: gps.authorizationDescription)
+                    LabeledContent("Posizione precisa", value: gps.hasPreciseLocation ? "Attiva" : "Disattiva")
+                    LabeledContent("Velocità sul tachimetro",
+                                   value: gps.currentSpeed().map {
+                                       String(format: "%.1f km/h", $0)
+                                   } ?? "Non disponibile")
+                }
+                Section("Ultimo aggiornamento Core Location") {
+                    LabeledContent("Età ultimo fix",
+                                   value: gps.lastGPSFixTime.map {
+                                       String(format: "%.0f s", max(0, Date().timeIntervalSince($0)))
+                                   } ?? "Nessun fix")
+                    LabeledContent("Precisione orizzontale",
+                                   value: gps.lastHorizontalAccuracy.map {
+                                       String(format: "±%.0f m", $0)
+                                   } ?? "Non disponibile")
+                    LabeledContent("Velocità nativa",
+                                   value: gps.lastNativeSpeed.map {
+                                       $0 >= 0 ? String(format: "%.1f km/h", $0 * 3.6) : "Non misurata (−1)"
+                                   } ?? "Nessun dato")
+                    LabeledContent("Incertezza velocità",
+                                   value: gps.lastNativeSpeedAccuracy.map {
+                                       $0 >= 0 ? String(format: "%.1f m/s", $0) : "Non comunicata"
+                                   } ?? "Nessun dato")
+                    LabeledContent("Diagnostica", value: gps.speedDiagnostic)
+                }
+                Section {
+                    Button("Riprova acquisizione GPS") { gps.retryLocation() }
+                    Button("Apri Impostazioni posizione") {
+                        if let settings = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(settings)
+                        }
+                    }
+                } footer: {
+                    Text("Per misurare la velocità in modo affidabile, consenti l'accesso alla posizione precisa. Il trattino resta visibile quando iOS non restituisce una misura attendibile.")
+                }
+            }
+            .navigationTitle("Diagnostica GPS")
         }
     }
 }
@@ -1613,18 +1675,12 @@ private struct GPSCockpitMap: View {
                     .init(color: .white.opacity(0.70), location: 0.91),
                     .init(color: .clear, location: 1)
                 ], startPoint: .top, endPoint: .bottom))
+                // Solo una lieve ombra superiore: MapKit resta leggibile anche al buio.
+                // La maschera sinistra continua a proteggere il tachimetro.
                 LinearGradient(stops: [
-                    .init(color: colorScheme == .light ? Color.white.opacity(0.72) : .black.opacity(0.80), location: 0),
-                    .init(color: colorScheme == .light ? Color.white.opacity(0.20) : .black.opacity(0.26), location: 0.20),
-                    .init(color: .clear, location: 0.39),
+                    .init(color: colorScheme == .light ? Color.white.opacity(0.12) : .black.opacity(0.12), location: 0),
+                    .init(color: .clear, location: 0.20),
                     .init(color: .clear, location: 1)
-                ], startPoint: .leading, endPoint: .trailing)
-                    .allowsHitTesting(false)
-                LinearGradient(stops: [
-                    .init(color: colorScheme == .light ? Color.white.opacity(0.67) : .black.opacity(0.82), location: 0),
-                    .init(color: .clear, location: 0.22),
-                    .init(color: .clear, location: 0.76),
-                    .init(color: colorScheme == .light ? Color.white.opacity(0.10) : .black.opacity(0.16), location: 1)
                 ], startPoint: .top, endPoint: .bottom)
                     .allowsHitTesting(false)
                 GPSSearchTopBand()
@@ -1632,8 +1688,8 @@ private struct GPSCockpitMap: View {
                         Color.white.opacity(0.96),
                         Color(red: 0.90, green: 0.93, blue: 0.97).opacity(0.90)
                     ] : [
-                        Color.black.opacity(0.50),
-                        Color.black.opacity(0.50)
+                        Color.black.opacity(0.27),
+                        Color.black.opacity(0.18)
                     ], startPoint: .top, endPoint: .bottom))
                     .frame(width: w, height: h)
                     .mask(GPSSearchBottomFade())
@@ -1719,14 +1775,7 @@ private struct GPSCockpitMap: View {
                 .padding(.top, h * 0.0565)
                 .frame(width: w, height: h, alignment: .topLeading)
 
-                // Sei letture leggermente più grandi, ma raccolte nel bordo destro;
-                // solo il trip parziale intercetta il gesto di pressione prolungata.
-                let glassWidth = w * 0.265 * 0.70
-                let glassHeight = h * 0.60
-                GPSCompactReadings(theme: theme)
-                    .frame(width: glassWidth, height: glassHeight)
-                    .position(x: w - max(6, w * 0.012) - glassWidth / 2,
-                              y: h * (0.21 + 0.60 / 2))
+                // Build 43: nessuna card BMS sopra la cartografia.
 
             }
             .frame(width: w, height: h)
@@ -1893,101 +1942,6 @@ private struct GPSCockpitMap: View {
     }
 }
 
-// Le sei letture continuano a usare dati reali dal BMS e dal GPS.
-// Ogni valore è in un pannello di vetro indipendente, non su banda nera.
-@MainActor
-private struct GPSCompactReadings: View {
-    @Environment(\.colorScheme) private var colorScheme
-    @EnvironmentObject private var gps: GPSRideManager
-    @EnvironmentObject private var bluetooth: JKBluetoothManager
-    let theme: CockpitTheme
-
-    var body: some View {
-        GeometryReader { geo in
-            let h = geo.size.height
-            let gap = max(5, h * 0.018)
-            // La somma delle sei altezze e dei cinque intervalli resta
-            // sempre identica allo spazio disponibile: niente sovrapposizioni.
-            let tileHeight = max(1, (h - 5 * gap) / 6)
-            let live = bluetooth.snapshot
-            VStack(spacing: gap) {
-                glassReading(live.map { "\($0.soc)%" } ?? "—%",
-                             icon: "bolt.fill", height: tileHeight)
-                glassReading(live.map { String(format: "%.0f V", $0.voltage) } ?? "— V",
-                             icon: "v.circle", height: tileHeight)
-                glassReading(live.map { String(format: "%.0f A", -$0.current) } ?? "— A",
-                             icon: "a.circle", height: tileHeight)
-                glassReading(live.map { String(format: "%.1f kW", -$0.power / 1000) } ?? "— kW",
-                             icon: "chart.bar.fill", height: tileHeight)
-                glassReading(String(format: "%.1f km", gps.tripKm),
-                             icon: "point.topleft.down.curvedto.point.bottomright.up",
-                             height: tileHeight, resettable: true)
-                glassReading(gps.hasOdometer ? String(format: "%.0f km", gps.totalKm) : "— km",
-                             icon: "speedometer", height: tileHeight)
-            }
-            .frame(width: geo.size.width, height: h, alignment: .trailing)
-        }
-    }
-
-    private func glassReading(_ value: String, icon: String, height: CGFloat,
-                              resettable: Bool = false) -> some View {
-        let corner = max(10, height * 0.21)
-        return HStack(spacing: max(4, height * 0.07)) {
-            Spacer(minLength: 0)
-            Text(value)
-                .font(.system(size: min(37, max(12, height * 0.38)), weight: .semibold))
-                .monospacedDigit()
-                .lineLimit(1)
-                .minimumScaleFactor(0.54)
-                .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
-                .shadow(color: .black.opacity(0.65), radius: 2, y: 1)
-            Rectangle()
-                .fill(colorScheme == .light ? Color.black.opacity(0.29) : .white.opacity(0.53))
-                .frame(width: 1, height: height * 0.44)
-            Image(systemName: icon)
-                .font(.system(size: min(30, max(12, height * 0.34))))
-                .foregroundStyle(theme.accent)
-                .frame(width: height * 0.40)
-        }
-        .padding(.horizontal, max(4, height * 0.07))
-        .frame(height: height)
-        .background(colorScheme == .light ? .regularMaterial : .ultraThinMaterial,
-                    in: RoundedRectangle(cornerRadius: corner, style: .continuous))
-        .background {
-            RoundedRectangle(cornerRadius: corner, style: .continuous)
-                .fill(LinearGradient(colors: [
-                    .white.opacity(0.17),
-                    .white.opacity(0.06),
-                    .black.opacity(0.05)
-                ], startPoint: .topLeading, endPoint: .bottomTrailing))
-        }
-        .overlay {
-            RoundedRectangle(cornerRadius: corner, style: .continuous)
-                .stroke(LinearGradient(colors: [
-                    .white.opacity(0.48),
-                    .white.opacity(0.12),
-                    .white.opacity(0.27)
-                ], startPoint: .topLeading, endPoint: .bottomTrailing),
-                        lineWidth: 1)
-                .allowsHitTesting(false)
-        }
-        .shadow(color: .black.opacity(0.28), radius: 5, y: 2)
-        .contentShape(RoundedRectangle(cornerRadius: corner))
-        .onLongPressGesture(minimumDuration: 1.3) {
-            guard resettable else { return }
-            gps.resetTrip()
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        }
-        .allowsHitTesting(resettable)
-        .accessibilityHint(resettable
-            ? "Tieni premuto per 1,3 secondi per azzerare il viaggio parziale." : "")
-        .accessibilityAction(named: "Azzera chilometri parziali") {
-            if resettable { gps.resetTrip() }
-        }
-    }
-}
-
-
 // Pannello senza mappa: stessi dati GPS/BMS reali, sei tessere estese,
 // con etichette leggibili e barre soltanto per le grandezze con scala.
 @MainActor
@@ -2072,7 +2026,7 @@ private struct GPSExpandedReadings: View {
         }
         .padding(.horizontal, max(7, height * 0.14))
         .frame(height: height)
-        .background(colorScheme == .light ? .regularMaterial : .ultraThinMaterial,
+        .background(colorScheme == .light ? Color.white.opacity(0.97) : Color(white: 0.12).opacity(0.96),
                     in: RoundedRectangle(cornerRadius: max(9, height * 0.22), style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: max(9, height * 0.22), style: .continuous)
