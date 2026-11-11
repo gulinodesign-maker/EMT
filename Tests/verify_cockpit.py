@@ -97,7 +97,7 @@ assert 'bluetooth.snapshot' in c and 'gps.currentSpeed(at:now)' in c
 assert '48 A' not in c and '62 km/h' not in c and '400 V' not in c
 assert '— V' in c and '— kW' in c and '— km' in c
 assert 'HollowSpeedNumber(text: String(Int(speed.rounded()))' in c and 'Text("km/h")' in c
-assert 'Text("GPS")' in c and 'Text("P")' not in c
+assert 'Label("GPS", systemImage: "location.north.fill")' in c and 'Text("P")' not in c
 assert 'SpeedLEDStream(d: d, speed: speed)' in c and 'SpeedScaleTicks(d: d)' in c
 assert 'SegmentedGaugeBar(d:' in c
 
