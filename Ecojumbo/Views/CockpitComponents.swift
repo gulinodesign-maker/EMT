@@ -1212,8 +1212,26 @@ private struct GPSLowerGlow: View {
 struct GPSCockpitDashboard: View {
     @EnvironmentObject private var gps: GPSRideManager
     @EnvironmentObject private var bluetooth: JKBluetoothManager
+    @StateObject private var navigation = EcoNavigationStore.shared
     let theme: CockpitTheme
     let now: Date
+
+    private var maneuverSymbol: String? {
+        guard navigation.isNavigating else { return nil }
+        let instruction = navigation.guidanceInstruction.lowercased()
+        if instruction.contains("inversion") || instruction.contains("uturn")
+            || instruction.contains("u-turn") { return "arrow.uturn.left" }
+        if instruction.contains("rotond") || instruction.contains("roundabout") {
+            return "arrow.clockwise"
+        }
+        if instruction.contains("sinistr") || instruction.contains("left") {
+            return "arrow.turn.up.left"
+        }
+        if instruction.contains("destr") || instruction.contains("right") {
+            return "arrow.turn.up.right"
+        }
+        return "arrow.up"
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -1242,7 +1260,10 @@ struct GPSCockpitDashboard: View {
                 OpenSpeedCluster(speed: gps.currentSpeed(at: now),
                                  incomingPower: live.map { Swift.max(0, $0.power) },
                                  outgoingPower: live.map { Swift.max(0, -$0.power) },
-                                 theme: theme)
+                                 theme: theme,
+                                 navigationArrow: maneuverSymbol,
+                                 navigationInstruction: navigation.guidanceInstruction,
+                                 showsGPSBadge: false)
                     .frame(width: dialSize, height: dialSize)
                     .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(25)
@@ -1607,37 +1628,8 @@ private struct GPSCockpitMap: View {
                         .padding(.trailing, max(10, w * 0.022))
                     }
 
-                    if navigation.isNavigating {
-                        HStack(spacing: 7) {
-                            Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
-                                .foregroundStyle(theme.accent)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(navigation.guidanceInstruction)
-                                    .lineLimit(2)
-                                    .font(.system(size: max(11, h * 0.027), weight: .semibold))
-                                Text(navigation.guidanceDistanceLabel)
-                                    .font(.caption)
-                                    .foregroundStyle(.white.opacity(0.75))
-                            }
-                            Spacer(minLength: 0)
-                        }
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .background(.black.opacity(0.83),
-                                    in: RoundedRectangle(cornerRadius: 10))
-                        .padding(.leading, w * 0.255)
-                        .padding(.trailing, max(10, w * 0.022))
-                        .accessibilityElement(children: .combine)
-                    } else if navigation.hasArrived {
-                        Label("Destinazione raggiunta", systemImage: "checkmark.circle.fill")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .padding(9)
-                            .background(.black.opacity(0.83),
-                                        in: RoundedRectangle(cornerRadius: 10))
-                            .padding(.leading, w * 0.255)
-                    }
+                    // Nessun pannello manovra sopra la mappa:
+                    // solo il simbolo dentro il tachimetro.
                     if navigation.isLoading {
                         ProgressView("Calcolo il percorso…")
                             .font(.caption)
