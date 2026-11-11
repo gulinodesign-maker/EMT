@@ -940,6 +940,10 @@ private struct OpenSpeedCluster: View {
     let incomingPower: Double?
     let outgoingPower: Double?
     let theme: CockpitTheme
+    // L'ODO compare solo quando richiesto dal cockpit GPS; il flusso di
+    // velocità e i parametri Core Location rimangono invariati.
+    var showsOdometer: Bool = false
+    var odometerKm: Double? = nil
     // Layout unico per Home e GPS. Freccia visibile solo se la rotta è attiva.
     var navigationArrow: String? = nil
     var navigationInstruction: String? = nil
@@ -1046,6 +1050,23 @@ private struct OpenSpeedCluster: View {
                     }
                 }
                 .position(x: d * 0.5, y: d * 0.495)
+
+                // Chilometraggio TOTALE persistente, distinto dal Trip.
+                // Si trova all'interno del quadrante, subito sopra "km/h".
+                if showsOdometer {
+                    Text(odometerKm.map { String(format: "ODO %.0f km", $0) }
+                         ?? "ODO — km")
+                        .font(.system(size: d * 0.027, weight: .semibold,
+                                      design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(colorScheme == .light
+                                         ? Color(white: 0.29) : .white.opacity(0.78))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.70)
+                        .frame(width: d * 0.48, height: d * 0.055)
+                        .position(x: d * 0.50, y: d * 0.690)
+                        .accessibilityLabel("Chilometraggio totale")
+                }
 
                 Text("km/h")
                     .font(.system(size: d * 0.047, weight: .medium))
@@ -1276,6 +1297,11 @@ struct GPSCockpitDashboard: View {
             let h = geo.size.height
             let dialSize = GPSDialLayout.size(width: w, height: h)
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
+            // Pulsante sotto/sinistra del quadrante: fuori dalla scala e dal ponte kW.
+            let resetSide = max(42, min(58, h * 0.08))
+            let resetX = max(resetSide / 2 + max(10, w * 0.008),
+                             dialCenterX - dialSize * 0.56)
+            let resetY = min(h - resetSide * 0.58, h * 0.840)
             // Nessun pannello può entrare nella circonferenza del tachimetro,
             // neppure su iPhone stretti: bordo calcolato sul quadrante reale.
             let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)
@@ -1330,6 +1356,8 @@ struct GPSCockpitDashboard: View {
                                  incomingPower: live.map { Swift.max(0, $0.power) },
                                  outgoingPower: live.map { Swift.max(0, -$0.power) },
                                  theme: theme,
+                                 showsOdometer: true,
+                                 odometerKm: gps.hasOdometer ? gps.totalKm : nil,
                                  navigationArrow: maneuverSymbol,
                                  navigationInstruction: navigation.guidanceInstruction)
                     .frame(width: dialSize, height: dialSize)
@@ -1347,6 +1375,12 @@ struct GPSCockpitDashboard: View {
                     .frame(width: w, height: h)
                     .allowsHitTesting(false)
                     .zIndex(28)
+
+                // Reset indipendente dalla Telemetria, visibile con mappa ON/OFF.
+                GPSTripResetControl(theme: theme)
+                    .frame(width: resetSide, height: resetSide)
+                    .position(x: resetX, y: resetY)
+                    .zIndex(38)
 
                 GPSHeader(theme: theme, now: now,
                           positionAvailable: gps.currentCoordinate(at: now) != nil,
@@ -1368,6 +1402,50 @@ struct GPSCockpitDashboard: View {
         .accessibilityLabel(mapEnabled
             ? "Cruscotto Ecojumbo con mappa e percorso GPS"
             : "Cruscotto Ecojumbo con letture della batteria")
+    }
+}
+
+// Pulsante dedicato per azzerare trip e profilo/dislivello del viaggio.
+// Il contachilometri totale non viene mai azzerato.
+@MainActor
+private struct GPSTripResetControl: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var gps: GPSRideManager
+    let theme: CockpitTheme
+
+    var body: some View {
+        GeometryReader { geo in
+            let side = min(geo.size.width, geo.size.height)
+            VStack(spacing: max(1, side * 0.014)) {
+                Image(systemName: "arrow.counterclockwise")
+                    .font(.system(size: side * 0.35, weight: .semibold))
+                    .symbolRenderingMode(.monochrome)
+                Text("RESET")
+                    .font(.system(size: max(7, side * 0.13), weight: .bold,
+                                  design: .rounded))
+                    .tracking(0.2)
+            }
+            .foregroundStyle(colorScheme == .light
+                             ? Color(white: 0.20) : .white.opacity(0.93))
+            .frame(width: side, height: side)
+            .background {
+                Circle().fill(colorScheme == .light
+                              ? Color.white.opacity(0.88)
+                              : Color.black.opacity(0.78))
+            }
+            .overlay {
+                Circle().stroke(theme.accent.opacity(0.72), lineWidth: 1.2)
+            }
+            .contentShape(Circle())
+            .onLongPressGesture(minimumDuration: 0.5) {
+                gps.resetTrip()
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Azzera trip e dislivello")
+        .accessibilityHint("Tieni premuto per mezzo secondo")
+        .accessibilityAddTraits(.isButton)
     }
 }
 
@@ -2067,8 +2145,9 @@ private struct EcoRangeEstimate {
     }
 }
 
-// Pannello standard senza mappa: display unico TELEMETRIA.
-// Display OLED secondario minimalista. Tutte le misure restano LIVE:
+// Telemetria SENZA pannello: righe, barre e testi direttamente sullo
+// sfondo originale del cockpit, senza cornice, card o ombre dedicate.
+// Tutte le misure restano LIVE:
 // Nessun valore fittizio viene usato quando BMS o GPS non sono disponibili.
 @MainActor
 private struct GPSExpandedReadings: View {
@@ -2130,7 +2209,7 @@ private struct GPSExpandedReadings: View {
 
                 telemetryRow("TRIP",
                              value: String(format: "%.1f km", gps.tripKm),
-                             fraction: nil, height: rowHeight, resettable: true)
+                             fraction: nil, height: rowHeight)
                 telemetryDivider(height: dividerHeight)
 
                 telemetryRow("DISL",
@@ -2143,26 +2222,9 @@ private struct GPSExpandedReadings: View {
             .frame(width: max(1, width - 2 * insetX), height: innerHeight)
             .padding(.horizontal, insetX)
             .padding(.vertical, insetY)
+            // Nessun .background, .overlay o .shadow: la Telemetria posa
+            // direttamente sul CarbonBackdrop della modalità standard.
             .frame(width: width, height: height)
-            .background {
-                RoundedRectangle(cornerRadius: max(14, min(29, height * 0.055)),
-                                 style: .continuous)
-                    .fill(LinearGradient(colors: colorScheme == .light ? [
-                        Color.white.opacity(0.985),
-                        Color(red: 0.94, green: 0.95, blue: 0.97).opacity(0.95)
-                    ] : [
-                        Color(white: 0.095).opacity(0.98),
-                        Color(white: 0.025).opacity(0.98)
-                    ], startPoint: .topLeading, endPoint: .bottomTrailing))
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: max(14, min(29, height * 0.055)),
-                                 style: .continuous)
-                    .stroke(theme.accent.opacity(colorScheme == .light ? 0.57 : 0.83),
-                            lineWidth: max(0.9, min(1.6, height * 0.0024)))
-            }
-            .shadow(color: theme.accent.opacity(colorScheme == .light ? 0.07 : 0.18),
-                    radius: max(4, height * 0.018))
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Telemetria")
@@ -2178,7 +2240,7 @@ private struct GPSExpandedReadings: View {
     private func telemetryRow(_ label: String, value: String,
                               fraction: Double?, showsBar: Bool = false,
                               showAltitudeGraph: Bool = false,
-                              height: CGFloat, resettable: Bool = false) -> some View {
+                              height: CGFloat) -> some View {
         VStack(spacing: 0) {
             HStack(spacing: max(6, height * 0.1)) {
                 Text(label)
@@ -2215,18 +2277,8 @@ private struct GPSExpandedReadings: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: height)
-        .contentShape(Rectangle())
-        .onLongPressGesture(minimumDuration: resettable ? 0.5 : 1.3) {
-            if resettable {
-                gps.resetTrip()
-                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            }
-        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(value)")
-        .accessibilityHint(resettable
-                           ? "Tieni premuto per mezzo secondo per azzerare trip e dislivello"
-                           : "")
     }
 }
 
