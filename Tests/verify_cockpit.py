@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (37): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (38): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 37;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 38;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -356,8 +356,11 @@ assert '@AppStorage("ecojumbo.appearanceMode")' in u
 assert '.preferredColorScheme(selectedAppearance.preferredScheme)' in u
 assert 'appearanceMode = isDay' in u
 assert 'sun.max.fill' in u and 'moon.stars.fill' in u
-assert '.position(x: max(30, geometry.size.width * 0.040),' in u
-assert 'y: geometry.size.height * 0.765)' in u
+assert 'x: selected == .dashboard' in u
+assert 'y: selected == .dashboard' in u
+assert 'geometry.size.height * 0.158' in u
+assert ': geometry.size.height * 0.765' in u
+assert '+ min(136, geometry.size.width * 0.108)' in u
 assert '.position(x: geometry.size.width * 0.165, y: geometry.size.height * 0.159)' not in u
 assert 'Picker("Modalità schermo", selection: $appearanceMode)' in o
 assert 'ForEach(EcoAppearanceMode.allCases)' in o
@@ -389,4 +392,17 @@ assert 'DayWingOutsideDial(center: CGPoint(x: w * 0.50, y: h * 0.507),' in c
 assert '.fill(style: FillStyle(eoFill: true))' in c
 assert 'if colorScheme == .light {' in c
 assert 'PremiumWing(readings: leftRows' in c and 'PremiumWing(readings: rightRows' in c
-print('OK — 37: cifre racing inclinate, frecce SF riconoscibili e tasto luce in basso a sinistra')
+# Build 38: Core Location riparte in foreground, fix mappa e speed disaccoppiati.
+assert 'func speedStatus(at date: Date = Date()) -> String' in g
+assert 'lastHorizontalAccuracy = fix.horizontalAccuracy' in g
+assert 'fix.horizontalAccuracy <= 65' in g
+assert '(fix.speedAccuracy < 0 || fix.speedAccuracy <= 7)' in g
+assert 'if usableSpeed {' in g
+assert 'guard age < 12 else { return nil }' in g
+assert 'guard age < 30, currentCoordinate(at: date) != nil else { return nil }' in g
+assert 'fix.horizontalAccuracy <= 35' in g and 'fix.speedAccuracy <= 5' in g
+assert 'if phase == .active { gps.retryLocation() }' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
+assert 'Text(gps.speedStatus(at: now))' in c
+assert 'if liveSpeed == nil {' in c
+assert 'if gps.currentCoordinate() == nil || gps.currentSpeed() == nil {' in c
+print('OK — 38: GPS foreground, tachimetro indipendente dal trip, stato e retry Home/Mappe')

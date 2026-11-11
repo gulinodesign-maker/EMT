@@ -17,6 +17,7 @@ struct EcojumboApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     UIApplication.shared.isIdleTimerDisabled = (phase == .active)
+                    if phase == .active { gps.retryLocation() }
                 }
                 .onDisappear {
                     UIApplication.shared.isIdleTimerDisabled = false

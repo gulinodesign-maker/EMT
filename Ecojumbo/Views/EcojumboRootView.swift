@@ -125,8 +125,17 @@ struct EcojumboRootView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(isDay ? "Attiva modalità scura" : "Attiva modalità chiara")
-                    .position(x: max(30, geometry.size.width * 0.040),
-                              y: geometry.size.height * 0.765)
+                    .position(
+                        x: selected == .dashboard
+                            ? max(12, geometry.size.width * 0.016)
+                                + min(136, geometry.size.width * 0.108)
+                                + max(8, geometry.size.width * 0.007)
+                                + max(29, geometry.size.height * 0.052) / 2
+                            : max(30, geometry.size.width * 0.040),
+                        y: selected == .dashboard
+                            ? geometry.size.height * 0.158
+                            : geometry.size.height * 0.765
+                    )
                     .zIndex(55)
                 }
 
