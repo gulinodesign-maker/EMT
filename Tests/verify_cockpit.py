@@ -13,16 +13,20 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 40;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 41;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
 assert info['NSLocationWhenInUseUsageDescription'] and info['NSBluetoothAlwaysUsageDescription']
-assert 'case dashboard, trips, gps, battery, bms, settings, themes' in u
-assert 'EcoTab.allCases.dropFirst().prefix(3)' in u and 'EcoTab.allCases.suffix(3)' in u
+assert 'case gps, trips, battery, bms, settings, themes' in u
+assert '@AppStorage("ecojumbo.mapEnabled") private var mapEnabled = true' in u
+assert '@State private var selected: EcoTab = .gps' in u
+assert 'case .dashboard:' not in u
+assert 'ForEach([EcoTab.trips, .battery, .bms, .settings, .themes])' in u
+assert 'if mapEnabled && selected == .gps {' in u
 assert 'BluetoothGlyph()' in u and 'CockpitCornerControls' in u
 # GPS è una modalità del cockpit, non una NavigationStack separata.
-assert 'GPSCockpitDashboard(theme: theme, now: tick)' in u
+assert 'GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)' in u
 assert 'NavigationStack { AppleMapsPanel() }' not in u
 assert 'NavigationStack { RoutesPanel() }' not in u
 assert 'case .gps: "GPS"' in u
@@ -45,8 +49,8 @@ assert 'MKDirections(request: request).calculate()' in t
 assert 'request.transportType = .automobile' in t
 assert 'www.google.com' not in t and 'GoogleMapsPanel' not in t
 assert 'struct RoutesPanel' not in t and 'struct AppleMapsPanel' not in t
-assert 'EcoTab.allCases.dropFirst().prefix(3)' in u
-assert '(tab == .gps && selected == .gps) ? .dashboard : tab' in u
+assert 'selected = selected == tab ? .gps : tab' in u
+assert 'mapEnabled.toggle()' in u and 'selected = .gps' in u
 assert 'lastGPSCoordinate = fix.coordinate' in g
 assert 'func currentCoordinate(at date: Date = Date())' in g
 assert 'GPS in pausa' in g
@@ -103,10 +107,10 @@ assert 'SpeedLEDStream(d: d, speed: speed)' in c and 'SpeedScaleTicks(d: d)' in 
 assert 'SegmentedGaugeBar(d:' in c
 
 # Le linee usano lo stesso raggio effettivo; angoli inferiori retti.
-assert 'ContinuousLowerLine: Shape' in u and 'ContinuousLowerGlow(theme: theme)' in u
+assert 'ContinuousLowerLine: Shape' in u and 'struct ContinuousLowerGlow' in u
 assert 'private struct ContinuousLowerTerminalFade: View' in u
 assert '.mask(ContinuousLowerTerminalFade())' in u
-assert 'ForEach(EcoTab.allCases.dropFirst().prefix(3))' in u
+assert 'ForEach([EcoTab.trips, .battery, .bms, .settings, .themes])' in u
 assert 'private struct GPSLowerContour: Shape' in c
 assert 'private struct GPSLowerShade: Shape' in c
 assert 'private struct GPSLowerGlow: View' in c
@@ -185,10 +189,11 @@ assert 'ForEach(CockpitTheme.allCases)' in t
 assert 'Scale delle barre luminose' in o and 'Nessuna barra nelle tre schede chilometriche' in o
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 # Nuovo dock GPS 7 a destra; classico 4+3 invariato.
-assert 'if selected == .gps {' in u
+assert 'if mapEnabled && selected == .gps {' in u
 assert 'selected == .gps' in u and 'max(4, geometry.size.height * 0.006)' in u
 assert 'ForEach(EcoTab.allCases) { tab in' not in u
-assert 'iconButton(.dashboard, side: gpsSide)' in u
+assert 'gpsButton("map.fill", active: mapEnabled' in u
+assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
 assert 'gpsButton("play.fill"' in u
 assert 'mapControls.send(.toggleNavigation)' in u
 assert 'mapControls.send(.toggleProjection)' in u
@@ -347,11 +352,14 @@ assert '@AppStorage("ecojumbo.appearanceMode")' in u
 assert '.preferredColorScheme(selectedAppearance.preferredScheme)' in u
 assert 'appearanceMode = isDay' in u
 assert 'sun.max.fill' in u and 'moon.stars.fill' in u
-assert 'x: selected == .dashboard' in u
-assert 'y: selected == .dashboard' in u
-assert 'geometry.size.height * 0.158' in u
-assert ': geometry.size.height * 0.765' in u
-assert '+ min(136, geometry.size.width * 0.108)' in u
+assert 'mapEnabled.toggle()' in u
+assert 'appearanceMode = isDay' in u
+assert 'GPSExpandedReadings(theme: theme, now: now)' in c
+assert 'positionAvailable: gps.currentCoordinate(at: now) != nil' in c
+assert 'Color.yellow : Color.gray' in c
+assert '.init(color: .white.opacity(0.20), location: 0.36)' in c
+assert '.init(color: .white.opacity(0.65), location: 0.52)' in c
+assert 'speedDiagnostic' in g and 'estimatedSpeed' in g
 assert '.position(x: geometry.size.width * 0.165, y: geometry.size.height * 0.159)' not in u
 assert 'Picker("Modalità schermo", selection: $appearanceMode)' in o
 assert 'ForEach(EcoAppearanceMode.allCases)' in o
@@ -432,4 +440,4 @@ assert 'func locationManager(_ manager: CLLocationManager, didUpdateHeading head
 assert 'func currentHeading(at date: Date = Date())' in g
 assert 'func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager)' in g
 assert 'heading.headingAccuracy <= 45' in g
-print('OK — 40: mappa a tutta altezza, freccia, tema giorno leggibile, GPS first fix')
+print('OK — 41: mappa a tutta altezza, freccia, tema giorno leggibile, GPS first fix')

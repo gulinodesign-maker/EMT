@@ -53,8 +53,8 @@ assert '.frame(width: w * 0.64, height: h * 0.955)' in c
 assert '.position(x: w * 0.68, y: h * 0.5225)' in c
 assert 'GPSHorizonLine(theme: theme)' in c
 assert 'GPSLowerGlow(theme: theme)' in c
-assert 'EcoTab.allCases.suffix(3)' in u
-assert 'EcoTab.allCases.dropFirst().prefix(3)' in u
+assert 'ForEach([EcoTab.trips, .battery, .bms, .settings, .themes])' in u
+assert '@State private var selected: EcoTab = .gps' in u
 assert 'max(4, geometry.size.height * 0.006)' in u
 assert 'textTop - max(12, h * 0.014)' in c
 assert 'buttonStart - max(9, w * 0.012)' in c
@@ -235,19 +235,18 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     cutout_radius=d*.495
     rim_radius=d*.985/2
     assert cutout_radius>rim_radius,(w,h,cutout_radius,rim_radius)
-# Home: sole/luna a destra della temperatura; GPS: tasto in basso.
+# Build 41: tutti i tasti del dock sono a destra anche sui telefoni stretti.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    left=max(12,w*.016)
-    temp_width=min(136,w*.108)
-    side=max(29,h*.052)
-    home_x=left+temp_width+max(8,w*.007)+side/2
-    dial_left=w*.50-min(h*.982,w*.57)*.5
-    assert home_x-side/2>left+temp_width,(w,h)
-    assert home_x+side/2<dial_left,(w,h)
-    gps_x=max(30,w*.040)
-    gps_y=h*.765
-    assert gps_x-side/2>0 and gps_y+side/2<h*.83
-    assert gps_x+side/2<w*.10
+    dock_h=max(51,min(83,h*.105))
+    side=min(dock_h*.96,w*.059,w*.052)
+    gap=w*.008
+    dock_width=8*side+7*gap
+    right_margin=max(12,w*.018)
+    assert dock_width+right_margin < w*.66,(w,h,dock_width)
+assert 'gpsButton("map.fill", active: mapEnabled' in u
+assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
+assert '.frame(width: w * 0.475, height: h * 0.68)' in c
+assert '.position(x: w * 0.75, y: h * 0.48)' in c
 assert 'SpeedGlyphOutlineView' not in c  # il font velocita resta SwiftUI semplice
 assert 'Text(String(Int(speed.rounded())))' in c
 assert 'CGPoint(x: w * 0.255, y: h * 0.099)' in c
@@ -267,4 +266,4 @@ assert '.init(color: .white.opacity(0.70), location: 0.91)' in c
 assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
 assert 'UserAnnotation()' not in c
 assert 'manager.startUpdatingHeading()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
-print('OK — EJ 1.40: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')
+print('OK — EJ 1.41: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')

@@ -12,6 +12,7 @@ struct RouteCoordinate: Codable, Equatable {
 @MainActor
 final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocationManagerDelegate {
     @Published private(set) var speedKmh: Double?
+    @Published private(set) var speedDiagnostic = "Velocità GPS non ancora misurata"
     // Ultima posizione reale accurata, usata come partenza da MapKit.
     @Published private(set) var lastGPSCoordinate: CLLocationCoordinate2D?
     @Published private(set) var lastHorizontalAccuracy: CLLocationAccuracy?
@@ -31,6 +32,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
 
     private let manager = CLLocationManager()
     private var previousLocation: CLLocation?
+    private var previousSpeedFix: CLLocation?
     private var lastValidAt: Date?
     private var lastMotionAt: Date?
     private var started = false
@@ -75,8 +77,8 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         if let lastHorizontalAccuracy, lastHorizontalAccuracy > 65 {
             return "Posizione ±\(Int(lastHorizontalAccuracy)) m: velocità non affidabile"
         }
-        if speedKmh == nil { return "Posizione ricevuta, velocità non misurata" }
-        return "Attendo nuovo aggiornamento GPS"
+        if currentSpeed(at: date) != nil { return speedDiagnostic }
+        return "Posizione disponibile: " + speedDiagnostic
     }
 
     func start() {
@@ -133,7 +135,9 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         lastCompassAt = nil
         lastOneShotRequestAt = nil
         previousLocation = nil
+        previousSpeedFix = nil
         lastMotionAt = nil
+        speedDiagnostic = "Velocità GPS non ancora misurata"
         isReceiving = false
         state = "GPS in pausa"
     }
@@ -179,7 +183,8 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             // La posizione per MapKit funziona anche da fermi e non richiede
             // una misura di velocità valida. Precisione massima 300 m per
             // evitare partenze chilometriche errate nella navigazione.
-            // Il tachimetro e il trip continuano a richiedere <= 35 m.
+            // Trip richiede <= 35 m; tachimetro nativo <= 65 m.
+            // La stima alternativa richiede due fix reali entro 20 m.
             guard abs(fix.timestamp.timeIntervalSinceNow) < 25,
                   fix.horizontalAccuracy >= 0, fix.horizontalAccuracy <= 300,
                   CLLocationCoordinate2DIsValid(fix.coordinate) else {
@@ -217,7 +222,41 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
                 let kmh = fix.speed * 3.6
                 speedKmh = kmh < 1.5 ? 0 : kmh
                 lastValidAt = fix.timestamp
+                speedDiagnostic = "Velocità nativa Core Location"
+            } else {
+                // Fallback solo con due misure reali nettamente separate rispetto
+                // all'errore GPS: è una stima da distanza/tempo, mai una simulazione.
+                var estimatedSpeed: Double?
+                if let previous = previousSpeedFix,
+                   fix.horizontalAccuracy <= 20,
+                   previous.horizontalAccuracy >= 0,
+                   previous.horizontalAccuracy <= 20 {
+                    let dt = fix.timestamp.timeIntervalSince(previous.timestamp)
+                    if dt >= 3 && dt <= 15 {
+                        let meters = fix.distance(from: previous)
+                        let uncertainty = fix.horizontalAccuracy + previous.horizontalAccuracy
+                        let metersPerSecond = meters / dt
+                        if meters >= max(15, uncertainty * 1.7 + 8),
+                           metersPerSecond >= 2, metersPerSecond <= 40 {
+                            estimatedSpeed = metersPerSecond * 3.6
+                        }
+                    }
+                }
+                if let estimatedSpeed {
+                    speedKmh = estimatedSpeed
+                    lastValidAt = fix.timestamp
+                    speedDiagnostic = "Velocità stimata da movimento GPS reale"
+                } else if fix.speed < 0 {
+                    speedDiagnostic = "Core Location non fornisce la velocità"
+                } else if fix.horizontalAccuracy > 65 {
+                    speedDiagnostic = "Posizione troppo imprecisa per la velocità"
+                } else if fix.speedAccuracy > 7 {
+                    speedDiagnostic = "Precisione della velocità insufficiente"
+                } else {
+                    speedDiagnostic = "Misura della velocità non utilizzabile"
+                }
             }
+            previousSpeedFix = fix
 
             // Trip/odometro: filtri severi invariati contro il rumore GPS.
             guard abs(fix.timestamp.timeIntervalSinceNow) < 10,

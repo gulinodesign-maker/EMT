@@ -40,11 +40,10 @@ struct EcoCard<Content: View>: View {
 }
 
 enum EcoTab: Int, CaseIterable, Identifiable {
-    case dashboard, trips, gps, battery, bms, settings, themes
+    case gps, trips, battery, bms, settings, themes
     var id: Int { rawValue }
     var symbol: String {
         switch self {
-        case .dashboard: "gauge.with.dots.needle.67percent"
         case .trips: "chart.bar.fill"
         case .gps: "point.topleft.down.curvedto.point.bottomright.up"
         case .battery: "battery.100percent"
@@ -55,7 +54,6 @@ enum EcoTab: Int, CaseIterable, Identifiable {
     }
     var label: String {
         switch self {
-        case .dashboard: "Cruscotto"
         case .trips: "Viaggi"
         case .gps: "GPS"
         case .battery: "Batteria"
@@ -72,27 +70,23 @@ struct EcojumboRootView: View {
     @EnvironmentObject private var bluetooth: JKBluetoothManager
     @AppStorage("ecojumbo.theme") private var themeName = "Rame"
     @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
-    @State private var selected: EcoTab = .dashboard
+    @State private var selected: EcoTab = .gps
+    @AppStorage("ecojumbo.mapEnabled") private var mapEnabled = true
     @State private var tick = Date()
 
     private var theme: CockpitTheme { CockpitTheme(rawValue: themeName) ?? .copper }
     private var selectedAppearance: EcoAppearanceMode {
         EcoAppearanceMode(rawValue: appearanceMode) ?? .dark
     }
-    private var isDay: Bool {
-        (selectedAppearance.preferredScheme ?? systemAppearance) == .light
-    }
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
                 Group {
                     switch selected {
-                    case .dashboard:
-                        CockpitDashboard(theme: theme, now: tick)
                     case .trips:
                         NavigationStack { TripsPanel() }
                     case .gps:
-                        GPSCockpitDashboard(theme: theme, now: tick)
+                        GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)
                     case .battery:
                         NavigationStack { CellsView() }
                     case .bms:
@@ -104,59 +98,14 @@ struct EcojumboRootView: View {
                     }
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
-                .padding(.bottom, (selected == .dashboard || selected == .gps) ? 0 : 56)
+                .padding(.bottom, selected == .gps ? 0 : 56)
 
-                // Sole/luna in BASSO A SINISTRA, distaccato dal quadrante e dai comandi GPS.
-                if selected == .dashboard || selected == .gps {
-                    Button {
-                        appearanceMode = isDay
-                            ? EcoAppearanceMode.dark.rawValue
-                            : EcoAppearanceMode.light.rawValue
-                    } label: {
-                        Image(systemName: isDay ? "moon.stars.fill" : "sun.max.fill")
-                            .font(.system(size: max(14, geometry.size.height * 0.030),
-                                          weight: .semibold))
-                            .foregroundStyle(isDay ? Color(white: 0.19) : Color.white)
-                            .frame(width: max(29, geometry.size.height * 0.052),
-                                   height: max(29, geometry.size.height * 0.052))
-                            .background(isDay ? Color.white.opacity(0.82) : Color.black.opacity(0.60),
-                                        in: Circle())
-                            .overlay(Circle().stroke(theme.accent.opacity(0.65), lineWidth: 1))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(isDay ? "Attiva modalità scura" : "Attiva modalità chiara")
-                    .position(
-                        x: selected == .dashboard
-                            ? max(12, geometry.size.width * 0.016)
-                                + min(136, geometry.size.width * 0.108)
-                                + max(8, geometry.size.width * 0.007)
-                                + max(29, geometry.size.height * 0.052) / 2
-                            : max(30, geometry.size.width * 0.040),
-                        y: selected == .dashboard
-                            ? geometry.size.height * 0.158
-                            : geometry.size.height * 0.765
-                    )
-                    .zIndex(55)
-                }
-
-                // Profilo luminoso SOLO sopra il gruppo A/kW, con due discese laterali.
-                // Nessuna linea orizzontale prosegue sotto i tasti funzione.
-                if selected == .dashboard {
-                    ContinuousLowerGlow(theme: theme)
-                        .frame(width: geometry.size.width, height: geometry.size.height)
-                        .allowsHitTesting(false)
-                        .zIndex(45)
-                }
-
-                // In GPS: Home e sei comandi mappa a destra, senza icone ridondanti.
-                // In Home: tre comandi a sinistra e tre a destra, senza tasto tachimetro.
-                // Niente barra piena che schiaccia il tachimetro in landscape.
-                CockpitCornerControls(selected: $selected, theme: theme)
+                // Il cockpit GPS è unico: il dock controlla mappa, sezioni e aspetto.
+                CockpitCornerControls(selected: $selected, mapEnabled: $mapEnabled,
+                                      appearanceMode: $appearanceMode, theme: theme)
                     .frame(width: geometry.size.width,
                            height: max(51, min(83, geometry.size.height * 0.105)))
-                    .padding(.bottom, selected == .gps
-                              ? max(4, geometry.size.height * 0.006)
-                              : max(7, geometry.size.height * 0.075))
+                    .padding(.bottom, max(4, geometry.size.height * 0.006))
                     .zIndex(50)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
@@ -183,9 +132,8 @@ struct EcojumboRootView: View {
     }
 }
 
-// EJ 1.30: Home mostra tre pulsanti a sinistra e tre a destra; GPS Home + sei comandi,
-// Retry TestFlight 1.0 (21): archivio senza firma di sviluppo, esportazione Apple automatica.
-// con icone solo bianche, senza titoli; il tachimetro occupa tutto lo spazio centrale.
+// Build 41: un solo cockpit, con mappa attivabile e comandi sempre a destra.
+// Quando la mappa è nascosta tornano i cinque pulsanti delle sezioni tecniche.
 @MainActor
 private struct CockpitCornerControls: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -193,23 +141,32 @@ private struct CockpitCornerControls: View {
     @StateObject private var mapControls = GPSMapControlStore.shared
     @StateObject private var navigation = EcoNavigationStore.shared
     @Binding var selected: EcoTab
+    @Binding var mapEnabled: Bool
+    @Binding var appearanceMode: String
     let theme: CockpitTheme
+
+    private var isDay: Bool {
+        let preference = EcoAppearanceMode(rawValue: appearanceMode)?.preferredScheme
+        return (preference ?? colorScheme) == .light
+    }
 
     var body: some View {
         GeometryReader { geo in
             let width = geo.size.width
             let height = geo.size.height
             let buttonSide = min(height * 0.96, width * 0.059)
-            let gap = width * 0.010
+            let gpsSide = min(buttonSide, width * 0.052)
+            let gpsGap = width * 0.008
             HStack(alignment: .center, spacing: 0) {
-                if selected == .gps {
-                    // In modalità mappa rimane solo Home delle vecchie schede.
-                    // Tutti gli altri pulsanti controllano esclusivamente MapKit.
-                    let gpsSide = min(buttonSide, width * 0.052)
-                    let gpsGap = width * 0.008
-                    Spacer(minLength: 0)
-                    HStack(spacing: gpsGap) {
-                        iconButton(.dashboard, side: gpsSide)
+                Spacer(minLength: 0)
+                HStack(spacing: gpsGap) {
+                    gpsButton("map.fill", active: mapEnabled,
+                              accessibility: mapEnabled ? "Disattiva la mappa" : "Attiva la mappa",
+                              side: gpsSide) {
+                        mapEnabled.toggle()
+                        selected = .gps
+                    }
+                    if mapEnabled && selected == .gps {
                         gpsButton("play.fill", alternate: "stop.fill",
                                   active: navigation.isNavigating,
                                   enabled: navigation.isNavigating ||
@@ -231,19 +188,17 @@ private struct CockpitCornerControls: View {
                                   side: gpsSide) { mapControls.send(.zoomIn) }
                         gpsButton("minus.magnifyingglass", accessibility: "Riduci zoom mappa",
                                   side: gpsSide) { mapControls.send(.zoomOut) }
-                    }
-                } else {
-                    // Cruscotto Home: tre tasti di sezione a sinistra e tre a destra.
-                    HStack(spacing: gap) {
-                        ForEach(EcoTab.allCases.dropFirst().prefix(3)) { tab in
-                            iconButton(tab, side: buttonSide)
+                    } else {
+                        ForEach([EcoTab.trips, .battery, .bms, .settings, .themes]) { tab in
+                            iconButton(tab, side: gpsSide)
                         }
                     }
-                    Spacer(minLength: 0)
-                    HStack(spacing: gap) {
-                        ForEach(EcoTab.allCases.suffix(3)) { tab in
-                            iconButton(tab, side: buttonSide)
-                        }
+                    gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill",
+                              accessibility: isDay ? "Attiva modalità scura" : "Attiva modalità chiara",
+                              side: gpsSide) {
+                        appearanceMode = isDay
+                            ? EcoAppearanceMode.dark.rawValue
+                            : EcoAppearanceMode.light.rawValue
                     }
                 }
             }
@@ -253,7 +208,7 @@ private struct CockpitCornerControls: View {
     }
 
     private func iconButton(_ tab: EcoTab, side: CGFloat) -> some View {
-        Button { selected = (tab == .gps && selected == .gps) ? .dashboard : tab } label: {
+        Button { selected = selected == tab ? .gps : tab } label: {
             ZStack {
                 RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
                     .fill(LinearGradient(stops: [
