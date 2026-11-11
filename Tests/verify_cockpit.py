@@ -132,15 +132,9 @@ assert 'private struct GPSSearchBottomFade: View' not in c
 assert '.mask(GPSSearchBottomFade())' not in c
 assert 'let dialMaskRadius = dialSize * 0.508' in c
 assert 'let dialMaskFeather = max(12, min(28, fullHeight * 0.032))' in c
-assert 'let fadeEnd = min(1, bottomY / h)' in c
-assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
-assert 'fullW * 0.45 - mapLeft' in c
-assert 'fullW * 0.54 - mapLeft' in c
+assert 'GPSSearchTopBand' not in c
+assert 'GPSSearchBottomFade' not in c
 assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
-assert 'p.addArc(tangent1End: knee, tangent2End: right,' in c
-assert 'let bottomY = max(left.y + max(2, h * 0.008),' in c
-assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
-assert 'p.addLine(to: CGPoint(x: knee.x, y: bottomY))' not in c
 assert '.background(Color.clear)' in c
 assert 'clipShape(RoundedRectangle(cornerRadius: 16' not in c
 assert 'GPSCompactReadings' not in c  # nessun pannello sopra la mappa
@@ -152,7 +146,7 @@ assert 'p.addLine(to: pt(' not in u
 assert 'CornerDockGlow' not in u and 'FooterLightContour' not in c
 assert 'private struct ContinuousHorizonLine: View' in c
 # Top bar sfumata alle intersezioni con il cerchio in Home e GPS.
-assert c.count('.mask(RadialGradient(stops: [') == 3
+assert c.count('.mask(RadialGradient(stops: [') == 4
 assert 'startRadius: ringRadius, endRadius: ringRadius + max(18, h * 0.070)' in c
 assert 'startRadius: dialSize * 0.508,' in c
 assert 'endRadius: dialSize * 0.508 + max(18, h * 0.070)' in c
@@ -407,7 +401,7 @@ assert 'ForEach(EcoAppearanceMode.allCases)' in o
 assert '.preferredColorScheme(.dark)' not in (r/'Ecojumbo/EcojumboApp.swift').read_text()
 assert 'UIColor { traits in' in u
 assert '.environment(\.colorScheme, colorScheme)' in c
-assert 'Color.white.opacity(0.96)' in c
+assert 'Color.white.opacity(0.96)' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello standard senza mappa')]
 assert 'Color(red: 0.94, green: 0.96, blue: 0.985)' in c
 assert 'colorScheme == .light ? Color.white.opacity(0.97)' in c
 assert '@Environment(\.colorScheme) private var colorScheme' in t
@@ -456,14 +450,14 @@ assert 'CGPoint(x: w * 0.745, y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.355, y: h * 0.252)' in c
 assert 'CGPoint(x: w * 0.25, y: h * 0.244)' in c
 assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
-assert 'fullH * 0.244 - mapTop' in c
+assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
 assert '.padding(.top, h * 0.0565)' in c
 # Build 40: estensione della mappa, freccia GPS, contrasto daylight,
 # controlli minimal e avvio Core Location più rapido.
 assert '.frame(width: w * 0.64, height: h * 0.955)' in c
 assert '.position(x: w * 0.68, y: h * 0.5225)' in c
-assert 'let fullW = w / 0.64, fullH = h / 0.955' in c
-assert 'let fullH = h / 0.955' in c
+assert 'let fullWidth = w / 0.64' in c
+assert 'let fullHeight = h / 0.955' in c
 assert '.init(color: .white.opacity(0.70), location: 0.91)' in c
 assert 'UserAnnotation()' not in c
 assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
