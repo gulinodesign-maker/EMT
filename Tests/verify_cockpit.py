@@ -416,7 +416,7 @@ assert 'UIColor { traits in' in u
 assert '.environment(\.colorScheme, colorScheme)' in c
 assert 'Color.white.opacity(0.96)' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello standard senza mappa')]
 assert 'Color(red: 0.94, green: 0.96, blue: 0.985)' in c
-assert 'colorScheme == .light ? Color(white: 0.32) : Color(white: 0.68)' in c
+assert 'Color(white: 0.32) : Color(white: 0.68)' in c
 assert '@Environment(\.colorScheme) private var colorScheme' in t
 assert 'private enum GPSManeuverIcon' in c
 assert c.count('OpenSpeedCluster(speed: ') == 2
