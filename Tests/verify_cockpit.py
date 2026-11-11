@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 46;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 47;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -126,16 +126,17 @@ assert 'MapCamera(centerCoordinate: center' in c
 assert '.mapStyle(.standard(elevation: mapControls.is3D ? .realistic : .flat))' in c
 assert 'heading: heading, pitch: mapControls.is3D ? 55 : 0' in c
 assert 'GPS e ricerca indirizzo nella STESSA barra' in c
-assert 'private struct GPSSearchTopBand: Shape' in c
-assert 'GPSSearchTopBand()' in c
-assert 'private struct GPSSearchBottomFade: View' in c
-assert '.mask(GPSSearchBottomFade())' in c
-assert 'let fadeStart = max(0, (bottomY - max(16, h * 0.045)) / h)' in c
+assert 'private struct GPSSearchTopBand: Shape' not in c
+assert 'GPSSearchTopBand()' not in c
+assert 'private struct GPSSearchBottomFade: View' not in c
+assert '.mask(GPSSearchBottomFade())' not in c
+assert 'let dialMaskRadius = dialSize * 0.508' in c
+assert 'let dialMaskFeather = max(12, min(28, fullHeight * 0.032))' in c
 assert 'let fadeEnd = min(1, bottomY / h)' in c
 assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
 assert 'fullW * 0.45 - mapLeft' in c
 assert 'fullW * 0.54 - mapLeft' in c
-assert 'fullH * 0.099 - mapTop' in c
+assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
 assert 'p.addArc(tangent1End: knee, tangent2End: right,' in c
 assert 'let bottomY = max(left.y + max(2, h * 0.008),' in c
 assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
@@ -367,17 +368,19 @@ assert 'lastNativeSpeed' in g and 'lastNativeSpeedAccuracy' in g
 assert 'lastGPSFixTime = fix.timestamp' in g
 assert 'hasPreciseLocation' in g  # resta disponibile nella diagnostica
 assert 'nativeAccuracyGood' not in g  # non fa parte dei parametri 33
-assert 'Color.black.opacity(0.27)' in c
+assert 'Color.black.opacity(0.27)' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello standard senza mappa')]
 assert 'Color.black.opacity(0.80)' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello standard senza mappa')]
 assert 'EcoCockpitDockGeometry.standardLeft(width: w, height: h)' in c
 assert '.position(x: panelLeft + panelWidth / 2, y: cardsCenterY)' in c
 assert '.frame(width: panelWidth, height: cardsHeight)' in c
 assert 'let cardsTop = h * 0.099 + outerMargin' in c
 assert 'let cardsBottom = h - dockBottom - dockHeight - outerMargin' in c
-assert 'let fadeStart = min(0.56, max(0.25,' in c
-assert '.init(color: .clear, location: fadeStart)' in c
-assert '.init(color: .white.opacity(0.60), location: fadeStart + 0.055)' in c
-assert '.init(color: .white, location: fadeStart + 0.12)' in c
+assert 'let mapLocalDialX = dialCenterX - fullWidth * 0.36' in c
+assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
+assert '.mask(RadialGradient(stops: [' in c
+assert 'center: UnitPoint(x: mapLocalDialX / w, y: mapLocalDialY / h)' in c
+assert 'startRadius: dialMaskRadius' in c
+assert 'endRadius: dialMaskRadius + dialMaskFeather' in c
 assert '.init(color: .clear, location: (0.099 - 0.045) / 0.955)' in c
 assert '.init(color: .white, location: (0.099 - 0.045) / 0.955 + 0.0001)' in c
 expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
@@ -413,7 +416,8 @@ assert c.count('OpenSpeedCluster(speed: ') == 2
 assert 'GPSManeuverIcon.symbol(for: navigation.guidanceInstruction)' in c
 assert '@StateObject private var navigation = EcoNavigationStore.shared' in c
 assert 'navigationArrow: maneuverSymbol' in c
-assert 'Color.black.opacity(0.88)' not in c[c.index('GPSSearchTopBand()'):c.index('VStack(alignment: .leading, spacing: 7)',c.index('GPSSearchTopBand()'))]
+assert 'GPSSearchTopBand()' not in c
+assert 'VStack(alignment: .leading, spacing: 7)' in c
 assert '.mask(RadialGradient(stops: [' in c
 assert '.init(color: .white.opacity(0.58), location: 0.91)' in c
 assert '.shadow(color: .black.opacity(0.88), radius: d * 0.025)' in c
@@ -451,7 +455,7 @@ assert 'CGPoint(x: w * 0.54, y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.745, y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.355, y: h * 0.252)' in c
 assert 'CGPoint(x: w * 0.25, y: h * 0.244)' in c
-assert 'fullH * 0.099 - mapTop' in c
+assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
 assert 'fullH * 0.244 - mapTop' in c
 assert '.padding(.top, h * 0.0565)' in c
 # Build 40: estensione della mappa, freccia GPS, contrasto daylight,
@@ -479,4 +483,4 @@ assert 'func locationManager(_ manager: CLLocationManager, didUpdateHeading head
 assert 'func currentHeading(at date: Date = Date())' in g
 assert 'func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager)' in g
 assert 'heading.headingAccuracy <= 45' in g
-print('OK — 46: mappa e layout invariati, GPS nativo ripristinato dalla build 33')
+print('OK — 47: mappa e layout invariati, GPS nativo ripristinato dalla build 33')

@@ -141,29 +141,12 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
         else: hi=mid
     assert abs(f((lo+hi)/2))<1e-3
 assert '.mask(ContinuousLowerTerminalFade())' in u
-assert 'GPSSearchTopBand()' in c
+assert 'GPSSearchTopBand()' not in c
 assert '.mask(HomeRingBridgeMask().fill(style: FillStyle(eoFill: true)))' in c
-# Il bordo inferiore GPS resta orizzontale e sotto l'estremità
-# inferiore della diagonale superiore, anche sugli schermi stretti.
+# Fascia di ricerca rimossa: resta solo il testo GPS direttamente sulla mappa.
+assert 'GPSSearchTopBand()' not in c
+assert '.mask(GPSSearchBottomFade())' not in c
 for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    mh=H*.955
-    left_y=H*(.244-.045)
-    knee_y=H*(.099-.045)
-    row=max(43,min(60,mh*.089))
-    bottom=max(left_y+max(2,mh*.008),knee_y+row+3)
-    assert bottom>left_y and bottom>knee_y+row,(W,H,bottom)
-assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
-# Dissolvenza del bordo inferiore dell'indirizzo: nessuna alterazione
-# del ginocchio, solo gli ultimi 16-34pt diventano trasparenti.
-for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    mh=H*.955
-    left_y=H*(.244-.045)
-    knee_y=H*(.099-.045)
-    row=max(43,min(60,mh*.089))
-    bottom=max(left_y+max(2,mh*.008),knee_y+row+3)
-    fade_start=max(0,(bottom-max(16,mh*.045))/mh)
-    fade_end=min(1,bottom/mh)
-    assert 0<fade_start<fade_end<1
     # Anche i due terminali arancioni mantengono l'anello pieno
     # fino al tratto finale e arrivano a zero sul ponte.
     controls_h=max(51,min(83,H*.105))
@@ -186,7 +169,7 @@ for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     fade_end=contact_y/H
     assert 0<fade_start<fade_end<1
 assert '.mask(HomeRingTerminalFade())' in c
-assert '.mask(GPSSearchBottomFade())' in c
+assert '.mask(GPSSearchBottomFade())' not in c
 # Raccordo luminoso alto: la top bar si spegne alla corona e
 # torna completamente visibile prima del tratto orizzontale.
 for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
@@ -264,15 +247,26 @@ for w,h in [(736,414),(844,390),(852,393),(932,430),(956,440),(1536,706),(1536,8
     left=w-right_inset-7*side-6*gap
     assert left>=dial_right+max(10,w*.010)-1e-6,(w,h,left,dial_right)
     assert w-right_inset-left>7*20,(w,h)
-    # Mappa invisibile sotto il tachimetro, ma nitida sulla destra.
+    # La maschera circolare segue la corona del tachimetro:
+    # radial distance: pienamente trasparente fino a R, poi visibile a R+feather.
     map_w=w*.64
-    fade_start=min(.56,max(.25,
-        (dial_right+max(12,w*.016)-w*.36)/map_w))
-    map_cutoff=w*.36+map_w*fade_start
-    assert map_cutoff>dial_right,(w,h,map_cutoff,dial_right)
-    assert fade_start+.12<=1,(w,h,fade_start)
-    # La dissolvenza non oscura un terzo della mappa.
-    assert (fade_start+.12)*map_w < (fade_start+.36)*map_w
+    map_h=h*.955
+    map_left=w*.36
+    map_top=h*.045
+    center_y=h*.494
+    radius=dial*.508
+    feather=max(12,min(28,h*.032))
+    assert feather<=28 and feather>=12,(w,h)
+    for dy in (-dial*.3,-dial*.15,0,dial*.15,dial*.3):
+        edge_x=dial_center+(radius*radius-dy*dy)**.5
+        dist=((edge_x-dial_center)**2+dy*dy)**.5
+        assert abs(dist-radius)<1e-6,(w,h,dist,radius)
+    # Non è una linea verticale: a metà quadrante il taglio arriva più a destra.
+    assert dial_center+radius>dial_center+(radius*radius-(dial*.3)**2)**.5
+    local_x=dial_center-map_left
+    local_y=center_y-map_top
+    assert abs(local_x/map_w-(dial_center-w*.36)/(w*.64))<1e-9
+    assert abs(local_y/map_h-(.494-.045)/.955)<1e-9
     # MapKit viene tagliata esattamente sotto la top bar arancione.
     map_top=h*.045
     map_h=h*.955
@@ -294,7 +288,7 @@ assert 'Text(String(Int(speed.rounded())))' in c
 assert 'CGPoint(x: w * 0.255, y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.16, y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.54, y: h * 0.099)' in c
-assert 'fullH * 0.099 - mapTop' in c
+assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
 # La mappa occupa fino al bordo inferiore prima del fade, con la ricerca
 # ancora allineata al profilo della top bar.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
