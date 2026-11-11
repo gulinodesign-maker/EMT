@@ -1286,10 +1286,10 @@ struct GPSCockpitDashboard: View {
                         .position(x: w * 0.68, y: h * 0.5225)
                         .zIndex(5)
                 } else {
-                    // Stessa plancia, ma con sei misure grandi sulla metà destra.
+                    // Quattro misure principali con spazio verticale uniforme.
                     GPSExpandedReadings(theme: theme, now: now)
-                        .frame(width: panelWidth, height: h * 0.68)
-                        .position(x: panelLeft + panelWidth / 2, y: h * 0.48)
+                        .frame(width: panelWidth, height: h * 0.70)
+                        .position(x: panelLeft + panelWidth / 2, y: h * 0.455)
                         .zIndex(6)
                 }
 
@@ -1659,14 +1659,22 @@ private struct GPSCockpitMap: View {
                 // Soltanto il contenuto mappa sfuma nel carbonio a sinistra:
                 // la barra di ricerca e i comandi restano nitidi e cliccabili.
                 .mask(LinearGradient(stops: [
+                    // Fade breve subito dopo il cerchio: niente ampia zona nera.
                     .init(color: .clear, location: 0),
                     .init(color: .clear, location: fadeStart),
-                    .init(color: .white.opacity(0.07), location: fadeStart + 0.10),
-                    .init(color: .white.opacity(0.40), location: fadeStart + 0.20),
-                    .init(color: .white.opacity(0.85), location: fadeStart + 0.30),
-                    .init(color: .white, location: fadeStart + 0.36),
+                    .init(color: .white.opacity(0.60), location: fadeStart + 0.055),
+                    .init(color: .white, location: fadeStart + 0.12),
                     .init(color: .white, location: 1)
                 ], startPoint: .leading, endPoint: .trailing))
+                // Niente MapKit SOPRA il segmento orizzontale della top bar.
+                // La mappa inizia nella coordinata globale h*0.099:
+                // il suo frame ha origine h*0.045 ed altezza h*0.955.
+                .mask(LinearGradient(stops: [
+                    .init(color: .clear, location: 0),
+                    .init(color: .clear, location: (0.099 - 0.045) / 0.955),
+                    .init(color: .white, location: (0.099 - 0.045) / 0.955 + 0.0001),
+                    .init(color: .white, location: 1)
+                ], startPoint: .top, endPoint: .bottom))
                 // Full bleed fino al bordo inferiore del display; il margine
                 // basso si fonde nel cockpit senza banda rettangolare.
                 .mask(LinearGradient(stops: [
@@ -1942,22 +1950,21 @@ private struct GPSCockpitMap: View {
     }
 }
 
-// Pannello senza mappa: stessi dati GPS/BMS reali, sei tessere estese,
-// con etichette leggibili e barre soltanto per le grandezze con scala.
+// Pannello standard senza mappa: quattro schede di telemetria reale.
+// Corrente e potenza restano nelle altre sezioni dell'app e nel cruscotto.
 @MainActor
 private struct GPSExpandedReadings: View {
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps: GPSRideManager
     @EnvironmentObject private var bluetooth: JKBluetoothManager
-    @AppStorage("ecojumbo.bars.averagePowerMaxKW") private var powerScaleKW = 5.0
     let theme: CockpitTheme
     let now: Date
 
     var body: some View {
         GeometryReader { geo in
             let h = geo.size.height
-            let gap = max(4, h * 0.016)
-            let cellHeight = max(1, (h - 5 * gap) / 6)
+            let gap = max(6, h * 0.025)
+            let cellHeight = max(1, (h - 3 * gap) / 4)
             let snapshot = bluetooth.snapshot
             let live = bluetooth.isConnected && snapshot.map({
                 abs(now.timeIntervalSince($0.date)) < 10
@@ -1972,14 +1979,6 @@ private struct GPSExpandedReadings: View {
                              value: live.map { String(format: "%.1f V", $0.voltage) } ?? "— V",
                              icon: "v.circle",
                              fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) },
-                             showsBar: true, height: cellHeight)
-                expandedTile("Corrente batteria",
-                             value: live.map { String(format: "%.1f A", -$0.current) } ?? "— A",
-                             icon: "a.circle", fraction: nil, height: cellHeight)
-                expandedTile("Potenza istantanea",
-                             value: live.map { String(format: "%.1f kW", -$0.power / 1000) } ?? "— kW",
-                             icon: "chart.bar.fill",
-                             fraction: live.map { min(1, max(0, abs($0.power / 1000) / max(0.1, powerScaleKW))) },
                              showsBar: true, height: cellHeight)
                 expandedTile("Trip parziale",
                              value: String(format: "%.1f km", gps.tripKm),
