@@ -208,11 +208,11 @@ for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert max(18,H*.070)<dg*.25
 assert c.count('.mask(RadialGradient(stops: [') == 3
 assert 'func retryLocation()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
-# Build 36: frecce più piccole, spigoli netti e mai sulle tacche.
+# Build 37: frecce SF riconoscibili, più piccole di quelle della 35, lontane dalle tacche.
 # La distanza radiale dal centro resta inferiore alla pista LED (0.361d).
-arrow_top=.245-.125/2
-arrow_bottom=.245+.125/2
-arrow_halfwidth=.175/2
+arrow_top=.233-.165/2
+arrow_bottom=.233+.165/2
+arrow_halfwidth=.205/2
 speed_top=.495-.285/2
 speed_bottom=.495+.285/2
 unit_top=.755-.065/2
@@ -220,9 +220,10 @@ unit_bottom=.755+.065/2
 assert 0<arrow_top<arrow_bottom<speed_top<speed_bottom<unit_top<unit_bottom<.89
 assert speed_top-arrow_bottom>.04
 assert math.hypot(arrow_halfwidth,.5-arrow_top)<.35
-assert 'GPSAngularManeuverArrow(symbol: navigationArrow)' in c
-assert '.frame(width: d * 0.175, height: d * 0.125)' in c
-assert 'y: d * 0.245' in c
+assert 'Image(systemName: navigationArrow)' in c
+assert '.frame(width: d * 0.205, height: d * 0.165)' in c
+assert 'y: d * 0.233' in c
+assert 'GPSAngularManeuverArrow' not in c
 assert 'y: d * 0.682' not in c
 assert 'y: d * 0.755' in c
 assert c.count('HollowSpeedNumber(text: String(Int(speed.rounded()))')==1
@@ -234,4 +235,12 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     cutout_radius=d*.495
     rim_radius=d*.985/2
     assert cutout_radius>rim_radius,(w,h,cutout_radius,rim_radius)
-print('OK — EJ 1.36: frecce compatte fuori dalle tacche, separatore rimosso e schede fuori dal disco')
+# Il comando sole/luna è a sinistra del tachimetro, sopra i tasti del dock.
+for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
+    toggle_x=max(30,w*.040)
+    toggle_y=h*.765
+    toggle_side=max(29,h*.052)
+    assert toggle_x-toggle_side/2>0 and toggle_y+toggle_side/2<h*.83
+    assert toggle_x+toggle_side/2<w*.10
+assert 'weight: .black' in c and 'c: 0.18, d: 1,' in c
+print('OK — EJ 1.37: SF Symbols, contorno sportivo e comando sole/luna basso sinistra')

@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (36): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (37): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 36;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 37;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -315,9 +315,11 @@ assert 'navigationInstruction: navigation.guidanceInstruction' in c
 assert 'showsGPSBadge' not in c
 assert 'Text("GPS")' not in c[c.index('private struct OpenSpeedCluster: View {'):c.index('// Calcola la posizione più a sinistra possibile')]
 assert 'if let navigationArrow {' in c
-assert 'GPSAngularManeuverArrow(symbol: navigationArrow)' in c
-assert 'private struct GPSAngularManeuverArrow: Shape' in c
-assert 'lineCap: .square, lineJoin: .miter, miterLimit: 2' in c
+assert 'Image(systemName: navigationArrow)' in c
+assert '.symbolRenderingMode(.monochrome)' in c
+assert 'GPSAngularManeuverArrow' not in c
+assert 'size: d * 0.142, weight: .semibold' in c
+assert 'y: d * 0.233' in c
 assert 'arrow.turn.up.left' in c and 'arrow.turn.up.right' in c
 assert 'if navigation.isNavigating {\n                        HStack(spacing: 7) {' not in c
 assert 'HollowSpeedNumber(text: String(Int(speed.rounded()))' in c
@@ -326,15 +328,18 @@ assert 'private final class SpeedGlyphOutlineView: UIView' in c
 assert 'CTFontCreatePathForGlyph(font, glyphs[index], nil)' in c
 assert 'CTFontGetGlyphsForCharacters(font, characters, &glyphs, characters.count)' in c
 assert 'context.setLineJoin(.round)' in c
+assert 'weight: .black' in c
+assert 'CGAffineTransform(a: 0.91, b: 0,' in c
+assert 'c: 0.18, d: 1,' in c
 assert 'context.setLineCap(.round)' in c
 assert 'context.drawPath(using: .stroke)' in c
 assert '.strokeWidth: 2.4' not in c
 assert 'UILabel disegna veramente il contorno' not in c
 assert c.count('HollowSpeedNumber(text: String(Int(speed.rounded()))') == 1
 assert '.blur(radius: d * 0.018)' not in c[c.index('private struct OpenSpeedCluster: View {'):c.index('// Calcola la posizione più a sinistra possibile')]
-assert 'stroke(Color.white, style: StrokeStyle(' in c
-assert '.frame(width: d * 0.175, height: d * 0.125)' in c
-assert 'y: d * 0.245' in c
+assert '.foregroundStyle(.white)' in c[c.index('if let navigationArrow {'):c.index('// UNA SOLA istanza')]
+assert '.frame(width: d * 0.205, height: d * 0.165)' in c
+assert 'y: d * 0.233' in c
 assert 'size: d * 0.184' not in c
 assert 'y: d * 0.214' not in c
 assert 'size: d * 0.275' in c
@@ -351,6 +356,9 @@ assert '@AppStorage("ecojumbo.appearanceMode")' in u
 assert '.preferredColorScheme(selectedAppearance.preferredScheme)' in u
 assert 'appearanceMode = isDay' in u
 assert 'sun.max.fill' in u and 'moon.stars.fill' in u
+assert '.position(x: max(30, geometry.size.width * 0.040),' in u
+assert 'y: geometry.size.height * 0.765)' in u
+assert '.position(x: geometry.size.width * 0.165, y: geometry.size.height * 0.159)' not in u
 assert 'Picker("Modalità schermo", selection: $appearanceMode)' in o
 assert 'ForEach(EcoAppearanceMode.allCases)' in o
 assert '.preferredColorScheme(.dark)' not in (r/'Ecojumbo/EcojumboApp.swift').read_text()
@@ -381,4 +389,4 @@ assert 'DayWingOutsideDial(center: CGPoint(x: w * 0.50, y: h * 0.507),' in c
 assert '.fill(style: FillStyle(eoFill: true))' in c
 assert 'if colorScheme == .light {' in c
 assert 'PremiumWing(readings: leftRows' in c and 'PremiumWing(readings: rightRows' in c
-print('OK — 36: glifi CoreText senza punte, frecce angolari interne, no separatore, card diurne ritagliate')
+print('OK — 37: cifre racing inclinate, frecce SF riconoscibili e tasto luce in basso a sinistra')
