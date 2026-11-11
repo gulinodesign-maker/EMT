@@ -1267,6 +1267,12 @@ struct GPSCockpitDashboard: View {
             let h = geo.size.height
             let dialSize = GPSDialLayout.size(width: w, height: h)
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
+            // Nessun pannello può entrare nella circonferenza del tachimetro,
+            // neppure su iPhone stretti: bordo calcolato sul quadrante reale.
+            let panelLeft = max(w * 0.60,
+                                dialCenterX + dialSize * 0.545 + max(14, w * 0.018))
+            let panelRightInset = max(10, w * 0.012)
+            let panelWidth = max(1, w - panelLeft - panelRightInset)
             let live = bluetooth.snapshot
             ZStack {
                 CarbonBackdrop(theme: theme)
@@ -1284,8 +1290,8 @@ struct GPSCockpitDashboard: View {
                 } else {
                     // Stessa plancia, ma con sei misure grandi sulla metà destra.
                     GPSExpandedReadings(theme: theme, now: now)
-                        .frame(width: w * 0.475, height: h * 0.68)
-                        .position(x: w * 0.75, y: h * 0.48)
+                        .frame(width: panelWidth, height: h * 0.68)
+                        .position(x: panelLeft + panelWidth / 2, y: h * 0.48)
                         .zIndex(6)
                 }
 
@@ -1539,6 +1545,14 @@ private struct GPSCockpitMap: View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
+            // La mappa occupa il 64% della larghezza del cockpit.
+            // Il fade resta completamente trasparente FINO OLTRE il tachimetro.
+            let fullWidth = w / 0.64
+            let fullHeight = h / 0.955
+            let dialSize = GPSDialLayout.size(width: fullWidth, height: fullHeight)
+            let dialRight = GPSDialLayout.centerX(width: fullWidth, height: fullHeight) + dialSize * 0.50
+            let fadeStart = min(0.56, max(0.25,
+                (dialRight + max(12, fullWidth * 0.016) - fullWidth * 0.36) / w))
             ZStack(alignment: .top) {
                 Map(position: $camera) {
                     // Freccia veicolo: niente indicatore blu rotondo di default.
@@ -1584,10 +1598,11 @@ private struct GPSCockpitMap: View {
                 // la barra di ricerca e i comandi restano nitidi e cliccabili.
                 .mask(LinearGradient(stops: [
                     .init(color: .clear, location: 0),
-                    .init(color: .clear, location: 0.18),
-                    .init(color: .white.opacity(0.20), location: 0.36),
-                    .init(color: .white.opacity(0.65), location: 0.52),
-                    .init(color: .white, location: 0.70),
+                    .init(color: .clear, location: fadeStart),
+                    .init(color: .white.opacity(0.07), location: fadeStart + 0.10),
+                    .init(color: .white.opacity(0.40), location: fadeStart + 0.20),
+                    .init(color: .white.opacity(0.85), location: fadeStart + 0.30),
+                    .init(color: .white, location: fadeStart + 0.36),
                     .init(color: .white, location: 1)
                 ], startPoint: .leading, endPoint: .trailing))
                 // Full bleed fino al bordo inferiore del display; il margine
@@ -1998,12 +2013,12 @@ private struct GPSExpandedReadings: View {
                              value: live.map { "\($0.soc)%" } ?? "—%",
                              icon: "bolt.fill",
                              fraction: live.map { Double($0.soc) / 100.0 },
-                             height: cellHeight)
+                             showsBar: true, height: cellHeight)
                 expandedTile("Tensione batteria",
                              value: live.map { String(format: "%.1f V", $0.voltage) } ?? "— V",
                              icon: "v.circle",
                              fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) },
-                             height: cellHeight)
+                             showsBar: true, height: cellHeight)
                 expandedTile("Corrente batteria",
                              value: live.map { String(format: "%.1f A", -$0.current) } ?? "— A",
                              icon: "a.circle", fraction: nil, height: cellHeight)
@@ -2011,7 +2026,7 @@ private struct GPSExpandedReadings: View {
                              value: live.map { String(format: "%.1f kW", -$0.power / 1000) } ?? "— kW",
                              icon: "chart.bar.fill",
                              fraction: live.map { min(1, max(0, abs($0.power / 1000) / max(0.1, powerScaleKW))) },
-                             height: cellHeight)
+                             showsBar: true, height: cellHeight)
                 expandedTile("Trip parziale",
                              value: String(format: "%.1f km", gps.tripKm),
                              icon: "point.topleft.down.curvedto.point.bottomright.up",
@@ -2025,9 +2040,9 @@ private struct GPSExpandedReadings: View {
     }
 
     private func expandedTile(_ title: String, value: String, icon: String,
-                              fraction: Double?, height: CGFloat,
-                              resettable: Bool = false) -> some View {
-        VStack(spacing: 1) {
+                              fraction: Double?, showsBar: Bool = false,
+                              height: CGFloat, resettable: Bool = false) -> some View {
+        VStack(spacing: max(2, height * 0.055)) {
             HStack(spacing: max(4, height * 0.10)) {
                 Image(systemName: icon)
                     .font(.system(size: max(11, height * 0.28), weight: .semibold))
@@ -2045,11 +2060,14 @@ private struct GPSExpandedReadings: View {
                     .minimumScaleFactor(0.60)
             }
             .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
-            .frame(height: fraction == nil ? height * 0.88 : height * 0.68)
-            if let fraction {
+            .frame(height: showsBar ? height * 0.58 : height * 0.88)
+            // La traccia resta visibile anche con BMS non connesso:
+            // fraction nil significa nessun riempimento, non barra assente.
+            if showsBar {
                 MetricGlowBar(fraction: fraction, theme: theme)
-                    .frame(height: max(3, height * 0.10))
-                    .padding(.horizontal, max(8, height * 0.36))
+                    .frame(height: max(5, height * 0.13))
+                    .padding(.leading, max(8, height * 0.38))
+                    .padding(.trailing, max(8, height * 0.19))
             }
         }
         .padding(.horizontal, max(7, height * 0.14))
