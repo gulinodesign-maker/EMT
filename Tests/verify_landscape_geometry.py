@@ -180,7 +180,7 @@ for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     dg=min(H*.982,W*.50)
     rg=dg*.508
     assert max(18,H*.070)<dg*.25
-assert c.count('.mask(RadialGradient(stops: [') == 3
+assert c.count('.mask(RadialGradient(stops: [') == 4
 assert 'func retryLocation()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
 # Build 37: frecce SF riconoscibili, più piccole di quelle della 35, lontane dalle tacche.
 # La distanza radiale dal centro resta inferiore alla pista LED (0.361d).
