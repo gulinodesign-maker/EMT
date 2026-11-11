@@ -944,7 +944,7 @@ private final class SpeedGlyphOutlineView: UIView {
     required init?(coder: NSCoder) { fatalError("Storyboard non supportato") }
 
     override func draw(_ rect: CGRect) {
-        guard let context = UIGraphicsGetCurrent(), !digits.isEmpty else { return }
+        guard let context = UIGraphicsGetCurrentContext(), !digits.isEmpty else { return }
         let uiFont = UIFont.monospacedDigitSystemFont(ofSize: pointSize, weight: .medium)
         let font = CTFontCreateWithName(uiFont.fontName as CFString, pointSize, nil)
         let characters = Array(digits.utf16)
