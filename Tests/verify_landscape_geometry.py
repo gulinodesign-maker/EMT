@@ -236,8 +236,22 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert dock_width+right_margin < w*.66,(w,h,dock_width)
 assert 'gpsButton("map.fill", active: mapEnabled' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
-assert '.frame(width: panelWidth, height: h * 0.70)' in c
-assert '.position(x: panelLeft + panelWidth / 2, y: h * 0.455)' in c
+assert '.frame(width: panelWidth, height: cardsHeight)' in c
+assert '.position(x: panelLeft + panelWidth / 2, y: cardsCenterY)' in c
+# Posizione delle cinque schede esattamente fra top bar e dock su ogni iPhone.
+for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
+    dock_height=max(51,min(83,h*.105))
+    dock_bottom=max(4,h*.006)
+    margin=max(8,h*.018)
+    top=h*.099+margin
+    bottom=h-dock_bottom-dock_height-margin
+    center=(top+bottom)/2
+    column_height=bottom-top
+    gap=max(4,column_height*.018)
+    cell_height=(column_height-4*gap)/5
+    assert column_height>0 and cell_height>33,(w,h,cell_height)
+    assert abs((center-column_height/2)-top)<1e-8
+    assert abs((center+column_height/2)-bottom)<1e-8
 # Card e dock standard condividono esattamente i bordi e non invadono il disco.
 for w,h in [(736,414),(844,390),(852,393),(932,430),(956,440),(1536,706),(1536,864),(1806,831)]:
     dial=min(h*.965,w*.55)
@@ -268,10 +282,11 @@ for w,h in [(736,414),(844,390),(852,393),(932,430),(956,440),(1536,706),(1536,8
     assert map_top+mask_cutoff*map_h==top_bar_y or abs(map_top+mask_cutoff*map_h-top_bar_y)<1e-8
 expanded=c[c.index('private struct GPSExpandedReadings: View {'):]
 assert expanded.count('showsBar: true')==2
-assert expanded.count('expandedTile("')==4
+assert expanded.count('expandedTile("')==5
+assert 'expandedTile("Dislivello viaggio"' in expanded
 assert 'expandedTile("Corrente batteria"' not in expanded
 assert 'expandedTile("Potenza istantanea"' not in expanded
-assert 'let cellHeight = max(1, (h - 3 * gap) / 4)' in expanded
+assert 'let cellHeight = max(1, (h - 4 * gap) / 5)' in expanded
 assert 'if showsBar {' in expanded
 assert 'MetricGlowBar(fraction: fraction, theme: theme)' in expanded
 assert 'SpeedGlyphOutlineView' not in c  # il font velocita resta SwiftUI semplice
