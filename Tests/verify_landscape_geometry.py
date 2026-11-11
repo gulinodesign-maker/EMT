@@ -275,7 +275,7 @@ for w,h in [(736,414),(844,390),(852,393),(932,430),(956,440),(1536,706),(1536,8
     assert abs(mask_cutoff - ((.099-.045)/.955))<1e-10
     assert map_top+mask_cutoff*map_h==top_bar_y or abs(map_top+mask_cutoff*map_h-top_bar_y)<1e-8
 expanded=c[c.index('private struct GPSExpandedReadings: View {'):]
-assert expanded.count('showsBar: true')==2
+assert expanded.count('showsBar: true')==3
 assert expanded.count('expandedTile("')==5
 assert 'expandedTile("Dislivello viaggio"' in expanded
 assert 'expandedTile("Corrente batteria"' not in expanded
@@ -302,4 +302,4 @@ assert '.init(color: .white.opacity(0.70), location: 0.91)' in c
 assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
 assert 'UserAnnotation()' not in c
 assert 'manager.startUpdatingHeading()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
-print('OK — EJ 1.48: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')
+print('OK — EJ 1.49: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')

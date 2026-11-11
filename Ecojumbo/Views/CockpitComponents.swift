@@ -1288,6 +1288,12 @@ struct GPSCockpitDashboard: View {
             let cardsBottom = h - dockBottom - dockHeight - outerMargin
             let cardsHeight = max(1, cardsBottom - cardsTop)
             let cardsCenterY = (cardsTop + cardsBottom) / 2
+            // Barra SOC soltanto sulla mappa; sotto la ricerca e sopra il dock.
+            let railWidth = max(36, min(52, w * 0.037))
+            let railTop = h * 0.255
+            let railBottom = h - dockBottom - dockHeight - max(10, h * 0.020)
+            let railHeight = max(70, railBottom - railTop)
+            let railRightInset = max(9, w * 0.010)
             let live = bluetooth.snapshot
             ZStack {
                 CarbonBackdrop(theme: theme)
@@ -1302,6 +1308,12 @@ struct GPSCockpitDashboard: View {
                         .frame(width: w * 0.64, height: h * 0.955)
                         .position(x: w * 0.68, y: h * 0.5225)
                         .zIndex(5)
+
+                    GPSMapBatteryRail(theme: theme, now: now)
+                        .frame(width: railWidth, height: railHeight)
+                        .position(x: w - railRightInset - railWidth / 2,
+                                  y: railTop + railHeight / 2)
+                        .zIndex(29)
                 } else {
                     // Cinque schede principali, centrate fino al dock inferiore.
                     GPSExpandedReadings(theme: theme, now: now)
@@ -1960,6 +1972,101 @@ private struct GPSCockpitMap: View {
     }
 }
 
+// Indicatore verticale SOC esclusivo della modalità mappa.
+// I valori arrivano unicamente da un frame JK BMS recente e validato.
+@MainActor
+private struct GPSMapBatteryRail: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var bluetooth: JKBluetoothManager
+    let theme: CockpitTheme
+    let now: Date
+
+    private var live: JKSnapshot? {
+        guard bluetooth.isConnected, let snap = bluetooth.snapshot,
+              abs(now.timeIntervalSince(snap.date)) < 10 else { return nil }
+        return snap
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            let height = geo.size.height
+            let snapshot = live
+            let charge = snapshot.map { CGFloat(min(1, max(0, Double($0.soc) / 100.0))) }
+            VStack(spacing: max(5, height * 0.025)) {
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: max(13, geo.size.width * 0.40), weight: .bold))
+                    .foregroundStyle(theme.accent)
+                Text(snapshot.map { "\($0.soc)%" } ?? "—%")
+                    .font(.system(size: max(10, geo.size.width * 0.285),
+                                  weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                    .foregroundStyle(colorScheme == .light ? Color(white: 0.13) : .white)
+                GeometryReader { bar in
+                    ZStack(alignment: .bottom) {
+                        Capsule()
+                            .fill(colorScheme == .light
+                                  ? Color(white: 0.82) : Color(white: 0.04))
+                        if let charge {
+                            Capsule()
+                                .fill(LinearGradient(colors: [
+                                    theme.secondary, theme.accent
+                                ], startPoint: .bottom, endPoint: .top))
+                                .frame(height: max(0, (bar.size.height - 5) * charge))
+                                .padding(.horizontal, 3)
+                                .padding(.bottom, 3)
+                        }
+                    }
+                    .overlay {
+                        Capsule().stroke(theme.accent.opacity(0.52), lineWidth: 0.9)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .padding(.horizontal, max(5, geo.size.width * 0.13))
+            .padding(.vertical, max(8, height * 0.025))
+            .frame(width: geo.size.width, height: height)
+            .background(colorScheme == .light
+                        ? Color.white.opacity(0.86) : Color.black.opacity(0.66),
+                        in: RoundedRectangle(cornerRadius: geo.size.width * 0.33))
+            .overlay {
+                RoundedRectangle(cornerRadius: geo.size.width * 0.33)
+                    .stroke(theme.accent.opacity(0.62), lineWidth: 1.1)
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(live.map {
+            "Carica residua batteria \($0.soc) percento"
+        } ?? "Carica residua non disponibile: BMS non collegato")
+    }
+}
+
+// Autonomia basata su percorrenza GPS ed energia effettivamente erogata
+// durante la sessione BMS. Senza almeno 5 km e 0,1 kWh, nessuna previsione.
+private struct EcoRangeEstimate {
+    let kilometers: Double
+    // Frazione della percorrenza a piena carica stimata dallo stesso consumo.
+    let fractionOfFull: Double
+
+    init?(snapshot: JKSnapshot?, session: RideSession) {
+        guard let snapshot, let km = session.observedTripKm,
+              km >= 5, session.dischargedKWh > 0.1,
+              snapshot.remainingAh.isFinite, snapshot.ratedAh.isFinite,
+              snapshot.voltage.isFinite, snapshot.ratedAh > 0,
+              snapshot.remainingAh >= 0, snapshot.voltage > 0 else { return nil }
+        let consumptionKWhPerKm = session.dischargedKWh / km
+        guard consumptionKWhPerKm.isFinite, consumptionKWhPerKm > 0.001 else {
+            return nil
+        }
+        let remainingEnergyKWh = snapshot.remainingAh * snapshot.voltage / 1000
+        let remainingRange = remainingEnergyKWh / consumptionKWhPerKm
+        guard remainingRange.isFinite, remainingRange >= 0 else { return nil }
+        kilometers = min(999, remainingRange)
+        fractionOfFull = min(1, max(0, snapshot.remainingAh / snapshot.ratedAh))
+    }
+}
+
 // Pannello standard senza mappa: cinque schede di telemetria reale.
 // Corrente e potenza restano nelle altre sezioni dell'app e nel cruscotto.
 @MainActor
@@ -1979,6 +2086,7 @@ private struct GPSExpandedReadings: View {
             let live = bluetooth.isConnected && snapshot.map({
                 abs(now.timeIntervalSince($0.date)) < 10
             }) == true ? snapshot : nil
+            let autonomy = EcoRangeEstimate(snapshot: live, session: bluetooth.session)
             VStack(spacing: gap) {
                 expandedTile("Carica residua",
                              value: live.map { "\($0.soc)%" } ?? "—%",
@@ -1990,13 +2098,15 @@ private struct GPSExpandedReadings: View {
                              icon: "v.circle",
                              fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) },
                              showsBar: true, height: cellHeight)
-                expandedTile("Trip parziale",
+                expandedTile("Autonomia residua",
+                             value: autonomy.map { String(format: "%.0f km", $0.kilometers) } ?? "— km",
+                             icon: "road.lanes",
+                             fraction: autonomy?.fractionOfFull,
+                             showsBar: true, height: cellHeight)
+                expandedTile("Trip",
                              value: String(format: "%.1f km", gps.tripKm),
                              icon: "point.topleft.down.curvedto.point.bottomright.up",
                              fraction: nil, height: cellHeight, resettable: true)
-                expandedTile("Chilometraggio",
-                             value: gps.hasOdometer ? String(format: "%.0f km", gps.totalKm) : "— km",
-                             icon: "speedometer", fraction: nil, height: cellHeight)
                 expandedTile("Dislivello viaggio",
                              value: gps.tripElevationMeters.map { String(format: "%+.0f m", $0) } ?? "— m",
                              icon: "mountain.2.fill", fraction: nil,
