@@ -1534,66 +1534,7 @@ final class GPSMapControlStore: ObservableObject {
     func send(_ command: GPSMapCommand) { commands.send(command) }
 }
 
-// Fascia nera della ricerca GPS: la sommità coincide con il tratto
-// inclinato e con il ginocchio della linea arancione della top bar.
-// Le coordinate sono la proiezione esatta del GPSHorizonLine nel MapKit
-// esteso (larghezza 0,64, altezza 0,955, centro 0,68/0,5225).
-private struct GPSSearchTopBand: Shape {
-    func path(in rect: CGRect) -> Path {
-        let w = rect.width, h = rect.height
-        let fullW = w / 0.64, fullH = h / 0.955
-        let mapLeft = fullW * 0.36, mapTop = fullH * 0.045
-        let left = CGPoint(x: fullW * 0.45 - mapLeft,
-                           y: fullH * 0.244 - mapTop)
-        let knee = CGPoint(x: fullW * 0.54 - mapLeft,
-                           y: fullH * 0.099 - mapTop)
-        let right = CGPoint(x: w, y: knee.y)
-        let rowHeight = max(43, min(60, h * 0.089))
-        // Solo il BORDO SUPERIORE segue la diagonale e il ginocchio.
-        // Quello INFERIORE è una singola linea orizzontale, senza punta:
-        // resta qualche punto sotto l'estremità sinistra della diagonale.
-        let bottomY = max(left.y + max(2, h * 0.008),
-                          knee.y + rowHeight + 3)
-        var p = Path()
-        p.move(to: left)
-        p.addArc(tangent1End: knee, tangent2End: right,
-                 radius: CockpitContourGeometry.cornerRadius(
-                     in: CGSize(width: fullW, height: fullH)))
-        p.addLine(to: right)
-        p.addLine(to: CGPoint(x: w, y: bottomY))
-        p.addLine(to: CGPoint(x: left.x, y: bottomY))
-        p.closeSubpath()
-        return p
-    }
-}
-
-// La forma dell'indirizzo ha il bordo superiore a ginocchio e la
-// base orizzontale; solo gli ultimi punti in basso si dissolvono
-// progressivamente nella mappa, senza cancellare le icone di ricerca.
-private struct GPSSearchBottomFade: View {
-    var body: some View {
-        GeometryReader { geometry in
-            let h = geometry.size.height
-            let fullH = h / 0.955
-            let mapTop = fullH * 0.045
-            let leftY = fullH * 0.244 - mapTop
-            let kneeY = fullH * 0.099 - mapTop
-            let rowHeight = max(43, min(60, h * 0.089))
-            let bottomY = max(leftY + max(2, h * 0.008),
-                              kneeY + rowHeight + 3)
-            let fadeStart = max(0, (bottomY - max(16, h * 0.045)) / h)
-            let fadeEnd = min(1, bottomY / h)
-            LinearGradient(stops: [
-                .init(color: .white, location: 0),
-                .init(color: .white, location: fadeStart),
-                .init(color: .clear, location: fadeEnd),
-                .init(color: .clear, location: 1)
-            ], startPoint: .top, endPoint: .bottom)
-        }
-        .allowsHitTesting(false)
-    }
-}
-
+// Riga indirizzo su mappa trasparente, senza sfondi o sfumature dedicate.
 // Ricerca e anteprima della navigazione NON presentano NavigationStack né
 // aprono un'altra pagina: la mappa è figlia del cockpit GPS.
 @MainActor
@@ -1615,14 +1556,16 @@ private struct GPSCockpitMap: View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
-            // La mappa occupa il 64% della larghezza del cockpit.
-            // Il fade resta completamente trasparente FINO OLTRE il tachimetro.
+            // Stesso quadrante e centro di GPSHorizonLine. Il bordo della
+            // cartografia sfuma RADIALMENTE seguendo l'anello del tachimetro.
             let fullWidth = w / 0.64
             let fullHeight = h / 0.955
             let dialSize = GPSDialLayout.size(width: fullWidth, height: fullHeight)
-            let dialRight = GPSDialLayout.centerX(width: fullWidth, height: fullHeight) + dialSize * 0.50
-            let fadeStart = min(0.56, max(0.25,
-                (dialRight + max(12, fullWidth * 0.016) - fullWidth * 0.36) / w))
+            let dialCenterX = GPSDialLayout.centerX(width: fullWidth, height: fullHeight)
+            let mapLocalDialX = dialCenterX - fullWidth * 0.36
+            let mapLocalDialY = fullHeight * (0.494 - 0.045)
+            let dialMaskRadius = dialSize * 0.508
+            let dialMaskFeather = max(12, min(28, fullHeight * 0.032))
             ZStack(alignment: .top) {
                 Map(position: $camera) {
                     // Freccia veicolo: niente indicatore blu rotondo di default.
@@ -1664,16 +1607,14 @@ private struct GPSCockpitMap: View {
                     // sulla posizione dello scooter.
                     if camera.positionedByUser { followsUser = false }
                 }
-                // Soltanto il contenuto mappa sfuma nel carbonio a sinistra:
-                // la barra di ricerca e i comandi restano nitidi e cliccabili.
-                .mask(LinearGradient(stops: [
-                    // Fade breve subito dopo il cerchio: niente ampia zona nera.
+                // Maschera circolare solo su MapKit: dentro il tachimetro
+                // trasparente, sfumatura breve oltre l'anello, poi mappa piena.
+                .mask(RadialGradient(stops: [
                     .init(color: .clear, location: 0),
-                    .init(color: .clear, location: fadeStart),
-                    .init(color: .white.opacity(0.60), location: fadeStart + 0.055),
-                    .init(color: .white, location: fadeStart + 0.12),
                     .init(color: .white, location: 1)
-                ], startPoint: .leading, endPoint: .trailing))
+                ], center: UnitPoint(x: mapLocalDialX / w, y: mapLocalDialY / h),
+                   startRadius: dialMaskRadius,
+                   endRadius: dialMaskRadius + dialMaskFeather))
                 // Niente MapKit SOPRA il segmento orizzontale della top bar.
                 // La mappa inizia nella coordinata globale h*0.099:
                 // il suo frame ha origine h*0.045 ed altezza h*0.955.
@@ -1691,25 +1632,7 @@ private struct GPSCockpitMap: View {
                     .init(color: .white.opacity(0.70), location: 0.91),
                     .init(color: .clear, location: 1)
                 ], startPoint: .top, endPoint: .bottom))
-                // Solo una lieve ombra superiore: MapKit resta leggibile anche al buio.
-                // La maschera sinistra continua a proteggere il tachimetro.
-                LinearGradient(stops: [
-                    .init(color: colorScheme == .light ? Color.white.opacity(0.12) : .black.opacity(0.12), location: 0),
-                    .init(color: .clear, location: 0.20),
-                    .init(color: .clear, location: 1)
-                ], startPoint: .top, endPoint: .bottom)
-                    .allowsHitTesting(false)
-                GPSSearchTopBand()
-                    .fill(LinearGradient(colors: colorScheme == .light ? [
-                        Color.white.opacity(0.96),
-                        Color(red: 0.90, green: 0.93, blue: 0.97).opacity(0.90)
-                    ] : [
-                        Color.black.opacity(0.27),
-                        Color.black.opacity(0.18)
-                    ], startPoint: .top, endPoint: .bottom))
-                    .frame(width: w, height: h)
-                    .mask(GPSSearchBottomFade())
-                    .allowsHitTesting(false)
+                // Nessuna fascia o ombra tra testo GPS/indirizzo e cartografia.
 
                 VStack(alignment: .leading, spacing: 7) {
                     // GPS e ricerca indirizzo nella STESSA barra, non su due fasce.
