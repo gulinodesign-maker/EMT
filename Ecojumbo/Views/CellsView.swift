@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Panoramica delle celle del BMS JK. Nessun dato viene simulato.
 struct CellsView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var bluetooth: JKBluetoothManager
     @AppStorage("ecojumbo.cellCount") private var cellCount = 20
 
@@ -72,7 +73,7 @@ struct CellsView: View {
                     .foregroundStyle(.secondary)
                 Text(value)
                     .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
                     .monospacedDigit()
                     .minimumScaleFactor(0.65)
                     .lineLimit(1)
@@ -92,7 +93,7 @@ struct CellsView: View {
                 Text(String(format: "%.3f V", voltage))
                     .font(.system(.headline, design: .rounded))
                     .monospacedDigit()
-                    .foregroundStyle(.white)
+                    .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
             }
             Spacer(minLength: 0)
         }

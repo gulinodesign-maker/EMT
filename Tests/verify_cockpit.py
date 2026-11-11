@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (33): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (34): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 33;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 34;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -96,7 +96,7 @@ assert 'let instantKW = live.map { -($0.power) / 1000.0 }' in c
 assert 'bluetooth.snapshot' in c and 'gps.currentSpeed(at:now)' in c
 assert '48 A' not in c and '62 km/h' not in c and '400 V' not in c
 assert '— V' in c and '— kW' in c and '— km' in c
-assert 'Text(String(Int(speed.rounded())))' in c and 'Text("km/h")' in c
+assert 'HollowSpeedNumber(text: String(Int(speed.rounded()))' in c and 'Text("km/h")' in c
 assert 'Text("GPS")' in c and 'Text("P")' not in c
 assert 'SpeedLEDStream(d: d, speed: speed)' in c and 'SpeedScaleTicks(d: d)' in c
 assert 'SegmentedGaugeBar(d:' in c
@@ -202,7 +202,7 @@ assert 'let gpsGap = width * 0.008' in u
 # Sfumature neutre su entrambe le modalità.
 assert 'private struct CockpitTopSoftShade: View' in c
 assert 'geo.size.height * 0.125' in c
-assert '.init(color: Color(white: 0.30).opacity(0.38), location: 0)' in c
+assert 'colorScheme == .light ? Color.white.opacity(0.83) : Color(white: 0.30).opacity(0.38)' in c
 assert c.count('CockpitTopSoftShade()') == 2
 assert 'private struct LowerPanelShade: Shape' in u
 assert 'LowerPanelShade()' in u
@@ -303,8 +303,35 @@ assert 'private(set) var courseDegrees: CLLocationDirection?' in g
 assert 'fix.speed >= 1.3, fix.course >= 0, fix.course < 360' in g
 assert 'func currentCourse(at date: Date = Date()) -> CLLocationDirection?' in g
 assert c.count('glassReading(') == 7
-assert '.background(.ultraThinMaterial,' in c
+assert '.background(colorScheme == .light ? .regularMaterial : .ultraThinMaterial,' in c
 assert '.black.opacity(0.35), .black.opacity(0.75)' not in c
 assert '8 * controlSide - 7 * w * 0.008' in c
 assert 'struct GPSCompactReadings: View' in c
-print('OK — 33: posizione GPS retry e rotta differita, top bar sfumata in Home e GPS')
+# Build 34: guida solo come freccia nel quadrante, neon velocità,
+# mappa diurna e modalità chiaro/scuro/automatico con comando rapido.
+assert 'private var maneuverSymbol: String?' in c
+assert 'navigationArrow: maneuverSymbol' in c
+assert 'navigationInstruction: navigation.guidanceInstruction' in c
+assert 'showsGPSBadge: false' in c
+assert 'if let navigationArrow {' in c
+assert 'Image(systemName: navigationArrow)' in c
+assert 'arrow.turn.up.left' in c and 'arrow.turn.up.right' in c
+assert 'if navigation.isNavigating {\n                        HStack(spacing: 7) {' not in c
+assert 'HollowSpeedNumber(text: String(Int(speed.rounded()))' in c
+assert '.strokeWidth:3.5' in c
+assert 'enum EcoAppearanceMode: String, CaseIterable, Identifiable' in u
+assert 'case dark = "Scuro", light = "Chiaro", automatic = "Automatico"' in u
+assert '@AppStorage("ecojumbo.appearanceMode")' in u
+assert '.preferredColorScheme(selectedAppearance.preferredScheme)' in u
+assert 'appearanceMode = isDay' in u
+assert 'sun.max.fill' in u and 'moon.stars.fill' in u
+assert 'Picker("Modalità schermo", selection: $appearanceMode)' in o
+assert 'ForEach(EcoAppearanceMode.allCases)' in o
+assert '.preferredColorScheme(.dark)' not in (r/'Ecojumbo/EcojumboApp.swift').read_text()
+assert 'UIColor { traits in' in u
+assert '.environment(\.colorScheme, colorScheme)' in c
+assert 'Color.white.opacity(0.96)' in c
+assert 'Color(red: 0.94, green: 0.96, blue: 0.985)' in c
+assert 'colorScheme == .light ? .regularMaterial : .ultraThinMaterial' in c
+assert '@Environment(\.colorScheme) private var colorScheme' in t
+print('OK — 34: frecce GPS nel tachimetro, velocità neon, tema giorno/notte completo')

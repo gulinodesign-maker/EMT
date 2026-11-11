@@ -150,9 +150,21 @@ struct EcoSettingsView: View {
     @AppStorage("ecojumbo.chargeAlert") private var chargeAlert = 80
     @AppStorage("ecojumbo.frameFormat") private var rawFormat = JKFrameFormat.automatic.rawValue
     @AppStorage("ecojumbo.bars.averagePowerMaxKW") private var averagePowerMaxKW = 5.0
+    @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
 
     var body: some View {
         Form {
+            Section("Aspetto dell'app") {
+                Picker("Modalità schermo", selection: $appearanceMode) {
+                    ForEach(EcoAppearanceMode.allCases) { mode in
+                        Text(mode.rawValue).tag(mode.rawValue)
+                    }
+                }
+                .pickerStyle(.segmented)
+                Text("Automatico segue l'aspetto del dispositivo (anche il cambio programmato giorno/notte). La scelta vale per la Home, tutte le pagine e Apple Maps.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
             Section("Il mio Ecojumbo") {
                 LabeledContent("Batteria", value: "EVE LF206 · LiFePO4")
                 Stepper("Celle in serie: \(cellCount)", value: $cellCount, in: 1...24)

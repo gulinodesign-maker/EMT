@@ -72,6 +72,7 @@ final class EcoOutsideWeather: ObservableObject {
 
 @MainActor
 private struct EcoOutsideTemperature: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps: GPSRideManager
     @StateObject private var weather = EcoOutsideWeather.shared
     let now: Date
@@ -87,15 +88,15 @@ private struct EcoOutsideTemperature: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: "thermometer.medium")
-                .foregroundStyle(Color.white.opacity(0.82))
+                .foregroundStyle(colorScheme == .light ? Color(white: 0.22) : Color.white.opacity(0.82))
             Text(currentTemperature.map { String(format: "%.0f°C", $0) } ?? "—°C")
                 .monospacedDigit()
-                .foregroundStyle(.white)
+                .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
         }
         .font(.system(size: 15, weight: .semibold))
         .padding(.horizontal, 5)
         .padding(.vertical, 3)
-        .background(.black.opacity(0.58),
+        .background(colorScheme == .light ? Color.white.opacity(0.85) : Color.black.opacity(0.58),
                     in: RoundedRectangle(cornerRadius: 7, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(currentTemperature.map {
@@ -182,16 +183,26 @@ enum CockpitContourGeometry {
 
 // Carbonio reale come texture ripetuta, indipendente dalle metriche e dalle preferenze.
 private struct CarbonBackdrop: View {
+    @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                Color(red: 0.015, green: 0.016, blue: 0.019)
-                Image("CarbonWeave").resizable(resizingMode: .tile).opacity(0.52)
-                LinearGradient(colors: [.black.opacity(0.55), .clear, .black.opacity(0.70)],
-                               startPoint: .top, endPoint: .bottom)
-                RadialGradient(colors: [theme.secondary.opacity(0.14), .clear, .black.opacity(0.56)],
-                               center: .center, startRadius: 0, endRadius: max(geo.size.width, geo.size.height) * 0.62)
+                colorScheme == .light
+                    ? Color(red: 0.94, green: 0.96, blue: 0.985)
+                    : Color(red: 0.015, green: 0.016, blue: 0.019)
+                Image("CarbonWeave")
+                    .resizable(resizingMode: .tile)
+                    .opacity(colorScheme == .light ? 0.08 : 0.52)
+                LinearGradient(colors: colorScheme == .light
+                    ? [Color.white.opacity(0.45), .clear, Color(red: 0.75, green: 0.80, blue: 0.88).opacity(0.25)]
+                    : [.black.opacity(0.55), .clear, .black.opacity(0.70)],
+                    startPoint: .top, endPoint: .bottom)
+                RadialGradient(colors: colorScheme == .light
+                    ? [theme.accent.opacity(0.07), .clear, .white.opacity(0.08)]
+                    : [theme.secondary.opacity(0.14), .clear, .black.opacity(0.56)],
+                    center: .center, startRadius: 0,
+                    endRadius: max(geo.size.width, geo.size.height) * 0.62)
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
@@ -202,12 +213,13 @@ private struct CarbonBackdrop: View {
 // EJ 1.23 — sfumatura grigio antracite SOPRA la top bar, presente in entrambe le
 // modalità e indipendente dal tema colore selezionato.
 private struct CockpitTopSoftShade: View {
+    @Environment(\.colorScheme) private var colorScheme
     var body: some View {
         GeometryReader { geo in
             LinearGradient(stops: [
-                .init(color: Color(white: 0.30).opacity(0.38), location: 0),
-                .init(color: Color(white: 0.23).opacity(0.26), location: 0.48),
-                .init(color: Color(white: 0.14).opacity(0.08), location: 0.82),
+                .init(color: colorScheme == .light ? Color.white.opacity(0.83) : Color(white: 0.30).opacity(0.38), location: 0),
+                .init(color: colorScheme == .light ? Color.white.opacity(0.34) : Color(white: 0.23).opacity(0.26), location: 0.48),
+                .init(color: colorScheme == .light ? Color.white.opacity(0.08) : Color(white: 0.14).opacity(0.08), location: 0.82),
                 .init(color: .clear, location: 1)
             ], startPoint: .top, endPoint: .bottom)
             .frame(width: geo.size.width, height: geo.size.height * 0.125,
@@ -273,6 +285,7 @@ private struct MetricGlowBar: View {
 // Sei schede indipendenti, come nel cockpit finale approvato.
 // Le tre letture in chilometri NON hanno barre, neppure quando il GPS è attivo.
 private struct PremiumWing: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps: GPSRideManager
     let readings: [WingReading]
     let theme: CockpitTheme
@@ -322,7 +335,7 @@ private struct PremiumWing: View {
             if reading.icon == "voltage" {
                 Text("V")
                     .font(.system(size: iconSide * 0.54, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
             } else {
                 Image(systemName: reading.icon)
                     .resizable()
@@ -335,8 +348,10 @@ private struct PremiumWing: View {
 
         return ZStack {
             RoundedRectangle(cornerRadius: height * 0.28, style: .continuous)
-                .fill(LinearGradient(colors: [Color(white: 0.105), Color(white: 0.045)],
-                                     startPoint: .top, endPoint: .bottom))
+                .fill(LinearGradient(colors: colorScheme == .light
+                    ? [Color.white, Color(red: 0.86, green: 0.89, blue: 0.94)]
+                    : [Color(white: 0.105), Color(white: 0.045)],
+                    startPoint: .top, endPoint: .bottom))
                 .overlay {
                     RoundedRectangle(cornerRadius: height * 0.28, style: .continuous)
                         .stroke(LinearGradient(colors: [.white.opacity(0.52), .white.opacity(0.09),
@@ -354,8 +369,8 @@ private struct PremiumWing: View {
                         .monospacedDigit()
                         .lineLimit(1)
                         .minimumScaleFactor(0.48)
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.85), radius: 2, y: 2)
+                        .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
+                        .shadow(color: .black.opacity(colorScheme == .light ? 0.08 : 0.85), radius: 2, y: 2)
                     if left { icon }
                     if !left { Spacer(minLength: 0) }
                 }
@@ -519,6 +534,7 @@ private struct HomeRingTerminalFade: View {
 }
 
 struct CockpitDashboard:View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps:GPSRideManager
     @EnvironmentObject private var bluetooth:JKBluetoothManager
     let theme:CockpitTheme
@@ -660,7 +676,7 @@ struct CockpitDashboard:View {
                 .accessibilityLabel("Ora corrente")
             Spacer(minLength: 0)
             Image(systemName: "location.north.fill")
-                .foregroundStyle(.white)
+                .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
                 .accessibilityLabel("GPS")
             Circle().fill(liveSpeed == nil ? Color.gray : theme.accent)
                 .frame(width: max(5, height * 0.14), height: max(5, height * 0.14))
@@ -676,7 +692,7 @@ struct CockpitDashboard:View {
             PhoneChargeMeter()
         }
         .font(.system(size: max(13, height * 0.34), weight: .medium))
-        .foregroundStyle(.white)
+        .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
         .padding(.horizontal, max(14, width * 0.031))
         .padding(.bottom, height * 0.08)
     }
@@ -726,6 +742,7 @@ private struct GaugeArc: Shape {
 // Tacche della velocità: nessun numero predefinito da 0 a 120.
 // Il LED rosso sottostante indica la quota della scala già percorsa.
 private struct SpeedScaleTicks: View {
+    @Environment(\.colorScheme) private var colorScheme
     let d: CGFloat
 
     var body: some View {
@@ -753,7 +770,9 @@ private struct SpeedScaleTicks: View {
             var tick = Path()
             tick.move(to: from)
             tick.addLine(to: to)
-            let color = Color.white.opacity(isMajor ? 1.0 : 0.77)
+            let color = colorScheme == .light
+                ? Color(white: 0.22).opacity(isMajor ? 1.0 : 0.72)
+                : Color.white.opacity(isMajor ? 1.0 : 0.77)
             let thickness: CGFloat = isMajor ? d * 0.005 : d * 0.0022
             context.stroke(tick, with: .color(color),
                            style: StrokeStyle(lineWidth: thickness, lineCap: .round))
@@ -875,12 +894,12 @@ private struct HollowSpeedNumber:UIViewRepresentable {
         return label
     }
     func updateUIView(_ uiView:UILabel,context:Context) {
-        let font=UIFont.systemFont(ofSize:size,weight:.thin)
+        let font=UIFont.systemFont(ofSize:size,weight:.bold)
         uiView.attributedText = NSAttributedString(string:text,attributes:[
             .font:font,
             .foregroundColor:UIColor.clear,
             .strokeColor:accent,
-            .strokeWidth:2.7
+            .strokeWidth:3.5
         ])
     }
 }
@@ -888,10 +907,15 @@ private struct HollowSpeedNumber:UIViewRepresentable {
 // Scala strumentazione e corona a elementi discreti, non una immagine fissa.
 // Il numero di velocità è disegnato a contorno; la lettura proviene solo dal GPS.
 private struct OpenSpeedCluster: View {
+    @Environment(\.colorScheme) private var colorScheme
     let speed: Double?
     let incomingPower: Double?
     let outgoingPower: Double?
     let theme: CockpitTheme
+    // Solo nel cockpit mappa: freccia senza pannelli di istruzioni.
+    var navigationArrow: String? = nil
+    var navigationInstruction: String? = nil
+    var showsGPSBadge = true
 
     private func magnitude(_ input: Double, limit: Double) -> Double {
         Swift.max(0, Swift.min(1, abs(input) / limit))
@@ -907,17 +931,18 @@ private struct OpenSpeedCluster: View {
             ZStack {
                 // Il carbonio chiude completamente il quadrante sopra le ali sottostanti.
                 Circle()
-                    .fill(Color(red: 0.016, green: 0.015, blue: 0.017))
+                    .fill(colorScheme == .light ? Color(red: 0.975, green: 0.982, blue: 0.993) : Color(red: 0.016, green: 0.015, blue: 0.017))
                     .frame(width: d * 0.986, height: d * 0.986)
                     .shadow(color: .black.opacity(0.88), radius: d * 0.025)
                 Image("CarbonWeave")
                     .resizable(resizingMode: .tile)
-                    .opacity(0.74)
+                    .opacity(colorScheme == .light ? 0.07 : 0.74)
                     .frame(width: d * 0.982, height: d * 0.982)
                     .clipShape(Circle())
                 Circle()
-                    .fill(RadialGradient(colors: [.black.opacity(0.36), .clear,
-                                                  .black.opacity(0.55)], center: .center,
+                    .fill(RadialGradient(colors: colorScheme == .light
+                        ? [Color(white: 0.85).opacity(0.20), .clear, Color(white: 0.72).opacity(0.11)]
+                        : [.black.opacity(0.36), .clear, .black.opacity(0.55)], center: .center,
                                          startRadius: d * 0.06, endRadius: d * 0.49))
                     .frame(width: d * 0.98, height: d * 0.98)
 
@@ -940,41 +965,62 @@ private struct OpenSpeedCluster: View {
                 SpeedLEDStream(d: d, speed: speed)
                 SpeedScaleTicks(d: d)
 
+                // Freccia chiara, grande e isolata SOPRA la velocità.
+                if let navigationArrow {
+                    Image(systemName: navigationArrow)
+                        .font(.system(size: d * 0.125, weight: .bold))
+                        .foregroundStyle(theme.accent)
+                        .shadow(color: theme.accent.opacity(0.7), radius: d * 0.018)
+                        .frame(width: d * 0.19, height: d * 0.17)
+                        .position(x: d * 0.5, y: d * 0.255)
+                        .accessibilityLabel(navigationInstruction ?? "Prossima manovra")
+                }
+
                 VStack(spacing: d * 0.004) {
                     if let speed {
-                        Text(String(Int(speed.rounded())))
-                            .font(.system(size: d * 0.245, weight: .bold, design: .rounded))
-                            .monospacedDigit()
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.55)
-                            .frame(height: d * 0.245)
-                            .accessibilityLabel("Velocità GPS: \(Int(speed.rounded())) chilometri orari")
+                        ZStack {
+                            // Tracciato di contorno trasparente e neon diffuso,
+                            // ispirato ai numeri luminosi del riferimento.
+                            HollowSpeedNumber(text: String(Int(speed.rounded())),
+                                              size: d * 0.245,
+                                              accent: UIColor(theme.accent))
+                                .blur(radius: d * 0.018)
+                                .opacity(0.88)
+                            HollowSpeedNumber(text: String(Int(speed.rounded())),
+                                              size: d * 0.245,
+                                              accent: UIColor(theme.accent))
+                                .shadow(color: theme.accent.opacity(0.92), radius: d * 0.010)
+                        }
+                        .frame(width: d * 0.47, height: d * 0.245)
+                        .accessibilityLabel("Velocità GPS: \(Int(speed.rounded())) chilometri orari")
                     } else {
                         Text("—")
                             .font(.system(size: d * 0.19, weight: .light))
-                            .foregroundStyle(.white.opacity(0.90))
+                            .foregroundStyle(colorScheme == .light ? Color(white: 0.25) : .white.opacity(0.90))
                             .frame(height: d * 0.245)
                             .accessibilityLabel("GPS non disponibile")
                     }
                     Text("km/h")
                         .font(.system(size: d * 0.070, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.81))
-                    Rectangle().fill(.white)
+                        .foregroundStyle(colorScheme == .light ? Color(white: 0.22) : .white.opacity(0.81))
+                    Rectangle().fill(colorScheme == .light ? Color(white: 0.30) : .white)
                         .frame(width: d * 0.215, height: max(1.2, d * 0.006))
                         .padding(.top, d * 0.017)
-                    Text("GPS")
-                        .font(.system(size: d * 0.062, weight: .heavy, design: .rounded))
-                        .foregroundStyle(.white)
-                        .frame(width: d * 0.165, height: d * 0.087)
-                        .background(Color.black.opacity(0.88), in:
-                            RoundedRectangle(cornerRadius: d * 0.030, style: .continuous))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: d * 0.030, style: .continuous)
-                                .stroke(theme.accent, lineWidth: max(1, d * 0.003))
-                        }
-                        .shadow(color: theme.accent.opacity(0.34), radius: d * 0.012)
-                        .padding(.top, d * 0.025)
+                    if showsGPSBadge {
+                        Text("GPS")
+                            .font(.system(size: d * 0.062, weight: .heavy, design: .rounded))
+                            .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
+                            .frame(width: d * 0.165, height: d * 0.087)
+                            .background(colorScheme == .light
+                                        ? Color.white.opacity(0.87) : Color.black.opacity(0.88),
+                                        in: RoundedRectangle(cornerRadius: d * 0.030, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: d * 0.030, style: .continuous)
+                                    .stroke(theme.accent, lineWidth: max(1, d * 0.003))
+                            }
+                            .shadow(color: theme.accent.opacity(0.34), radius: d * 0.012)
+                            .padding(.top, d * 0.025)
+                    }
                 }
                 .frame(width: d * 0.52, height: d * 0.46)
                 .position(x: d * 0.50, y: d * 0.485)
@@ -987,7 +1033,7 @@ private struct OpenSpeedCluster: View {
                         .foregroundStyle(CockpitTheme.regenAccent)
                         .frame(maxWidth: .infinity)
                         .accessibilityLabel("Potenza in ingresso alla batteria")
-                    Rectangle().fill(.white.opacity(0.70))
+                    Rectangle().fill(colorScheme == .light ? Color(white: 0.34) : .white.opacity(0.70))
                         .frame(width: 1, height: d * 0.086)
                     Text(outgoingPower.map { String(format: "%.2f kW", $0 / 1000) } ?? "— kW")
                         .foregroundStyle(CockpitTheme.dischargeAccent)
@@ -1175,8 +1221,26 @@ private struct GPSLowerGlow: View {
 struct GPSCockpitDashboard: View {
     @EnvironmentObject private var gps: GPSRideManager
     @EnvironmentObject private var bluetooth: JKBluetoothManager
+    @StateObject private var navigation = EcoNavigationStore.shared
     let theme: CockpitTheme
     let now: Date
+
+    private var maneuverSymbol: String? {
+        guard navigation.isNavigating else { return nil }
+        let instruction = navigation.guidanceInstruction.lowercased()
+        if instruction.contains("inversion") || instruction.contains("uturn")
+            || instruction.contains("u-turn") { return "arrow.uturn.left" }
+        if instruction.contains("rotond") || instruction.contains("roundabout") {
+            return "arrow.clockwise"
+        }
+        if instruction.contains("sinistr") || instruction.contains("left") {
+            return "arrow.turn.up.left"
+        }
+        if instruction.contains("destr") || instruction.contains("right") {
+            return "arrow.turn.up.right"
+        }
+        return "arrow.up"
+    }
 
     var body: some View {
         GeometryReader { geo in
@@ -1205,7 +1269,10 @@ struct GPSCockpitDashboard: View {
                 OpenSpeedCluster(speed: gps.currentSpeed(at: now),
                                  incomingPower: live.map { Swift.max(0, $0.power) },
                                  outgoingPower: live.map { Swift.max(0, -$0.power) },
-                                 theme: theme)
+                                 theme: theme,
+                                 navigationArrow: maneuverSymbol,
+                                 navigationInstruction: navigation.guidanceInstruction,
+                                 showsGPSBadge: false)
                     .frame(width: dialSize, height: dialSize)
                     .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(25)
@@ -1296,6 +1363,7 @@ private struct GPSHorizonLine: View {
 
 @MainActor
 private struct GPSHeader: View {
+    @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
     let now: Date
     let speedAvailable: Bool
@@ -1329,7 +1397,7 @@ private struct GPSHeader: View {
                 PhoneChargeMeter()
             }
             .font(.system(size: max(13, h * 0.34), weight: .medium))
-            .foregroundStyle(.white)
+            .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
             .padding(.horizontal, max(14, w * 0.031))
             .padding(.bottom, h * 0.08)
             .frame(width: w, height: h)
@@ -1418,6 +1486,7 @@ private struct GPSSearchBottomFade: View {
 // aprono un'altra pagina: la mappa è figlia del cockpit GPS.
 @MainActor
 private struct GPSCockpitMap: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps: GPSRideManager
     @StateObject private var navigation = EcoNavigationStore.shared
     @AppStorage("ecojumbo.mapsDestination") private var destination = ""
@@ -1447,6 +1516,8 @@ private struct GPSCockpitMap: View {
                 }
                 // Terreno ed edifici 3D dove Apple Maps li rende disponibili.
                 .mapStyle(.standard(elevation: mapControls.is3D ? .realistic : .flat))
+                // La mappa standard eredita il tema diurno/notturno dalla WindowGroup.
+                .environment(\.colorScheme, colorScheme)
                 .mapControls { MapCompass() }
                 .onMapCameraChange(frequency: .onEnd) { context in
                     visibleCamera = context.camera
@@ -1463,21 +1534,24 @@ private struct GPSCockpitMap: View {
                     .init(color: .white, location: 1)
                 ], startPoint: .leading, endPoint: .trailing))
                 LinearGradient(stops: [
-                    .init(color: .black.opacity(0.80), location: 0),
-                    .init(color: .black.opacity(0.26), location: 0.20),
+                    .init(color: colorScheme == .light ? Color.white.opacity(0.72) : .black.opacity(0.80), location: 0),
+                    .init(color: colorScheme == .light ? Color.white.opacity(0.20) : .black.opacity(0.26), location: 0.20),
                     .init(color: .clear, location: 0.39),
                     .init(color: .clear, location: 1)
                 ], startPoint: .leading, endPoint: .trailing)
                     .allowsHitTesting(false)
                 LinearGradient(stops: [
-                    .init(color: .black.opacity(0.82), location: 0),
+                    .init(color: colorScheme == .light ? Color.white.opacity(0.67) : .black.opacity(0.82), location: 0),
                     .init(color: .clear, location: 0.22),
                     .init(color: .clear, location: 0.76),
-                    .init(color: .black.opacity(0.85), location: 1)
+                    .init(color: colorScheme == .light ? Color.white.opacity(0.34) : .black.opacity(0.85), location: 1)
                 ], startPoint: .top, endPoint: .bottom)
                     .allowsHitTesting(false)
                 GPSSearchTopBand()
-                    .fill(LinearGradient(colors: [
+                    .fill(LinearGradient(colors: colorScheme == .light ? [
+                        Color.white.opacity(0.96),
+                        Color(red: 0.90, green: 0.93, blue: 0.97).opacity(0.90)
+                    ] : [
                         Color.black.opacity(0.88),
                         Color(white: 0.08).opacity(0.91)
                     ], startPoint: .top, endPoint: .bottom))
@@ -1492,13 +1566,13 @@ private struct GPSCockpitMap: View {
                             .font(.system(size: min(19, max(12, h * 0.028)), weight: .bold))
                             .fixedSize()
                         Rectangle()
-                            .fill(.white.opacity(0.40))
+                            .fill(colorScheme == .light ? Color.black.opacity(0.36) : .white.opacity(0.40))
                             .frame(width: 1, height: min(25, h * 0.038))
                         Image(systemName: "magnifyingglass")
-                            .foregroundStyle(.white.opacity(0.70))
+                            .foregroundStyle(colorScheme == .light ? Color(white: 0.30) : .white.opacity(0.70))
                         TextField("Indirizzo di destinazione", text: $destination)
                             .font(.system(size: min(19, max(12, h * 0.030))))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
                             .tint(theme.accent)
                             .textInputAutocapitalization(.words)
                             .autocorrectionDisabled()
@@ -1509,7 +1583,7 @@ private struct GPSCockpitMap: View {
                             Text(navigation.distanceLabel)
                                 .font(.caption)
                                 .lineLimit(1)
-                                .foregroundStyle(.white.opacity(0.77))
+                                .foregroundStyle(colorScheme == .light ? Color(white: 0.25) : .white.opacity(0.77))
                         }
                         Button(action: calculateRoute) {
                             Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
@@ -1523,7 +1597,7 @@ private struct GPSCockpitMap: View {
                                 navigation.clear()
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
                             }
                             .accessibilityLabel("Cancella itinerario")
                         }
@@ -1549,7 +1623,7 @@ private struct GPSCockpitMap: View {
                             Text(gps.state)
                                 .font(.system(size: max(11, h * 0.023), weight: .medium))
                                 .lineLimit(2)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
                             Spacer(minLength: 3)
                             Button(gps.isPermissionDenied ? "Impostazioni" : "Riprova") {
                                 if gps.isPermissionDenied,
@@ -1564,48 +1638,19 @@ private struct GPSCockpitMap: View {
                         }
                         .padding(.horizontal, 9)
                         .padding(.vertical, 7)
-                        .background(Color.black.opacity(0.83),
+                        .background(colorScheme == .light ? Color.white.opacity(0.91) : Color.black.opacity(0.83),
                                     in: RoundedRectangle(cornerRadius: 9))
                         .padding(.leading, w * 0.285)
                         .padding(.trailing, max(10, w * 0.022))
                     }
 
-                    if navigation.isNavigating {
-                        HStack(spacing: 7) {
-                            Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
-                                .foregroundStyle(theme.accent)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(navigation.guidanceInstruction)
-                                    .lineLimit(2)
-                                    .font(.system(size: max(11, h * 0.027), weight: .semibold))
-                                Text(navigation.guidanceDistanceLabel)
-                                    .font(.caption)
-                                    .foregroundStyle(.white.opacity(0.75))
-                            }
-                            Spacer(minLength: 0)
-                        }
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .background(.black.opacity(0.83),
-                                    in: RoundedRectangle(cornerRadius: 10))
-                        .padding(.leading, w * 0.255)
-                        .padding(.trailing, max(10, w * 0.022))
-                        .accessibilityElement(children: .combine)
-                    } else if navigation.hasArrived {
-                        Label("Destinazione raggiunta", systemImage: "checkmark.circle.fill")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.white)
-                            .padding(9)
-                            .background(.black.opacity(0.83),
-                                        in: RoundedRectangle(cornerRadius: 10))
-                            .padding(.leading, w * 0.255)
-                    }
+                    // Nessun pannello manovra sopra la mappa:
+                    // solo il simbolo dentro il tachimetro.
                     if navigation.isLoading {
                         ProgressView("Calcolo il percorso…")
                             .font(.caption)
                             .padding(8)
-                            .background(.black.opacity(0.78),
+                            .background(colorScheme == .light ? Color.white.opacity(0.88) : .black.opacity(0.78),
                                         in: RoundedRectangle(cornerRadius: 8))
                             .padding(.leading, w * 0.255)
                     } else if let errorMessage = navigation.errorMessage {
@@ -1614,7 +1659,7 @@ private struct GPSCockpitMap: View {
                             .foregroundStyle(.orange)
                             .lineLimit(2)
                             .padding(8)
-                            .background(.black.opacity(0.78),
+                            .background(colorScheme == .light ? Color.white.opacity(0.88) : .black.opacity(0.78),
                                         in: RoundedRectangle(cornerRadius: 8))
                             .padding(.leading, w * 0.255)
                     }
@@ -1802,6 +1847,7 @@ private struct GPSCockpitMap: View {
 // Ogni valore è in un pannello di vetro indipendente, non su banda nera.
 @MainActor
 private struct GPSCompactReadings: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps: GPSRideManager
     @EnvironmentObject private var bluetooth: JKBluetoothManager
     let theme: CockpitTheme
@@ -1843,10 +1889,10 @@ private struct GPSCompactReadings: View {
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.54)
-                .foregroundStyle(.white)
+                .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
                 .shadow(color: .black.opacity(0.65), radius: 2, y: 1)
             Rectangle()
-                .fill(.white.opacity(0.53))
+                .fill(colorScheme == .light ? Color.black.opacity(0.29) : .white.opacity(0.53))
                 .frame(width: 1, height: height * 0.44)
             Image(systemName: icon)
                 .font(.system(size: min(30, max(12, height * 0.34))))
@@ -1855,7 +1901,7 @@ private struct GPSCompactReadings: View {
         }
         .padding(.horizontal, max(4, height * 0.07))
         .frame(height: height)
-        .background(.ultraThinMaterial,
+        .background(colorScheme == .light ? .regularMaterial : .ultraThinMaterial,
                     in: RoundedRectangle(cornerRadius: corner, style: .continuous))
         .background {
             RoundedRectangle(cornerRadius: corner, style: .continuous)
