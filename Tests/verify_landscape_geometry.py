@@ -206,7 +206,7 @@ for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     dg=min(H*.982,W*.50)
     rg=dg*.508
     assert max(18,H*.070)<dg*.25
-assert c.count('.mask(RadialGradient(stops: [') == 2
+assert c.count('.mask(RadialGradient(stops: [') == 3
 assert 'func retryLocation()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
 # Build 35: lo stesso tachimetro interno in Home e GPS:
 # freccia e cifre separate, linea fra cifre e unità, km/h in basso.
