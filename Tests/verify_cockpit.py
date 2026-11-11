@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 44;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 45;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -365,8 +365,8 @@ assert 'GPSDiagnosticsView()' in c
 assert 'GPSHeader: View' in c and 'showGPSDiagnostics = true' in c
 assert 'lastNativeSpeed' in g and 'lastNativeSpeedAccuracy' in g
 assert 'lastGPSFixTime = fix.timestamp' in g
-assert 'hasPreciseLocation && fix.horizontalAccuracy <= 150' in g
-assert 'nativeAccuracyGood' in g
+assert 'hasPreciseLocation' in g  # resta disponibile nella diagnostica
+assert 'nativeAccuracyGood' not in g  # non fa parte dei parametri 33
 assert 'Color.black.opacity(0.27)' in c
 assert 'Color.black.opacity(0.80)' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello standard senza mappa')]
 assert 'EcoCockpitDockGeometry.standardLeft(width: w, height: h)' in c
@@ -387,7 +387,9 @@ assert 'let cellHeight = max(1, (h - 3 * gap) / 4)' in expanded
 assert 'if showsBar {' in expanded
 assert 'MetricGlowBar(fraction: fraction, theme: theme)' in expanded
 assert 'if let fraction {' not in expanded
-assert 'speedDiagnostic' in g and 'estimatedSpeed' in g
+assert 'speedDiagnostic' in g and 'estimatedSpeed' not in g
+assert 'manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation' in g
+assert 'manager.requestLocation()' not in g
 assert '.position(x: geometry.size.width * 0.165, y: geometry.size.height * 0.159)' not in u
 assert 'Picker("Modalità schermo", selection: $appearanceMode)' in o
 assert 'ForEach(EcoAppearanceMode.allCases)' in o
@@ -421,11 +423,13 @@ assert 'PremiumWing(readings: leftRows' in c and 'PremiumWing(readings: rightRow
 # Build 38: Core Location riparte in foreground, fix mappa e speed disaccoppiati.
 assert 'func speedStatus(at date: Date = Date()) -> String' in g
 assert 'lastHorizontalAccuracy = fix.horizontalAccuracy' in g
-assert 'fix.horizontalAccuracy <= 65' in g
-assert '(fix.speedAccuracy < 0 || fix.speedAccuracy <= 7)' in g
+assert 'fix.horizontalAccuracy <= 35' in g  # soglia tachimetro build 33
+assert 'let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10' in g
+assert 'fix.speedAccuracy >= 0' in g and 'fix.speedAccuracy <= 5' in g
+assert 'date.timeIntervalSince(lastValidAt) < 8' in g
 assert 'if usableSpeed {' in g
-assert 'guard age < 12 else { return nil }' in g
-assert 'guard age < 30, currentCoordinate(at: date) != nil else { return nil }' in g
+assert 'date.timeIntervalSince(lastValidAt) < 8' in g
+assert 'if speedKmh < 1.5 {' not in g
 assert 'fix.horizontalAccuracy <= 35' in g and 'fix.speedAccuracy <= 5' in g
 assert 'if phase == .active { gps.retryLocation() }' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
 assert 'Text(gps.speedStatus(at: now))' not in c
@@ -459,12 +463,12 @@ assert 'Text(text)' in u and 'foregroundStyle(colorScheme == .light ? Color(whit
 assert 'Color(white: 0.96) : Color(white: 0.19)' in u
 assert 'Color(white: 0.92) : Color(white: 0.08)' in u
 assert 'if selected == .gps { mapEnabled.toggle() }' in u
-assert 'manager.desiredAccuracy = kCLLocationAccuracyBest' in g
+assert 'manager.desiredAccuracy = kCLLocationAccuracyBest\n' not in g
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation' in g
-assert 'manager.requestLocation()' in g
+assert 'manager.requestLocation()' not in g
 assert 'manager.startUpdatingHeading()' in g
 assert 'func locationManager(_ manager: CLLocationManager, didUpdateHeading heading: CLHeading)' in g
 assert 'func currentHeading(at date: Date = Date())' in g
 assert 'func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager)' in g
 assert 'heading.headingAccuracy <= 45' in g
-print('OK — 44: mappa a tutta altezza, freccia, tema giorno leggibile, GPS first fix')
+print('OK — 45: mappa e layout invariati, GPS nativo ripristinato dalla build 33')

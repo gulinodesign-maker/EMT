@@ -24,7 +24,6 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     private var lastGoodCoordinateAt: Date?
     private var lastCourseAt: Date?
     private var lastCompassAt: Date?
-    private var lastOneShotRequestAt: Date?
     @Published private(set) var tripKm: Double
     @Published private(set) var totalKm: Double
     @Published private(set) var hasOdometer: Bool
@@ -35,7 +34,6 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
 
     private let manager = CLLocationManager()
     private var previousLocation: CLLocation?
-    private var previousSpeedFix: CLLocation?
     private var lastValidAt: Date?
     private var lastMotionAt: Date?
     private var started = false
@@ -54,8 +52,9 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         movingSeconds = UserDefaults.standard.double(forKey: "ecojumbo.gps.movingSeconds")
         super.init()
         manager.delegate = self
-        // Primo fix rapido; precisione di navigazione dopo il primo fix valido.
-        manager.desiredAccuracy = kCLLocationAccuracyBest
+        // Ripristinati i parametri della build 33: precisione di navigazione
+        // immediata, senza attendere un primo fix entro 65 metri.
+        manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
         manager.activityType = .automotiveNavigation
         // La localizzazione non deve sospendersi mentre lo scooter è fermo:
         // MapKit deve poter acquisire una partenza anche prima di muoversi.
@@ -90,7 +89,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             return "Attiva Posizione precisa per la velocità"
         }
         if currentCoordinate(at: date) == nil { return state }
-        if let lastHorizontalAccuracy, lastHorizontalAccuracy > 65 {
+        if let lastHorizontalAccuracy, lastHorizontalAccuracy > 35 {
             return "Posizione ±\(Int(lastHorizontalAccuracy)) m: velocità non affidabile"
         }
         if currentSpeed(at: date) != nil { return speedDiagnostic }
@@ -114,16 +113,9 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         }
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
-            // Lo stream resta attivo, ma una richiesta singola aiuta ad
-            // ottenere il primo fix senza aspettare il movimento.
+            // Come nella build 33: acquisizione continua senza richiesta one-shot.
             manager.startUpdatingLocation()
             if CLLocationManager.headingAvailable() { manager.startUpdatingHeading() }
-            let now = Date()
-            if currentCoordinate(at: now) == nil,
-               lastOneShotRequestAt.map({ now.timeIntervalSince($0) > 15 }) ?? true {
-                lastOneShotRequestAt = now
-                manager.requestLocation()
-            }
             state = "Ricerca posizione del dispositivo…"
         case .notDetermined:
             state = "Autorizza l'accesso alla posizione"
@@ -149,9 +141,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         lastCourseAt = nil
         compassHeadingDegrees = nil
         lastCompassAt = nil
-        lastOneShotRequestAt = nil
         previousLocation = nil
-        previousSpeedFix = nil
         lastMotionAt = nil
         speedDiagnostic = "Velocità GPS non ancora misurata"
         lastNativeSpeed = nil
@@ -208,8 +198,8 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             // La posizione per MapKit funziona anche da fermi e non richiede
             // una misura di velocità valida. Precisione massima 300 m per
             // evitare partenze chilometriche errate nella navigazione.
-            // Trip richiede <= 35 m; tachimetro nativo <= 65 m.
-            // La stima alternativa richiede due fix reali entro 20 m.
+            // Come nella build 33: tachimetro e trip richiedono <= 35 m.
+            // La posizione per la mappa è indipendente (fino a 300 m).
             guard abs(fix.timestamp.timeIntervalSinceNow) < 25,
                   fix.horizontalAccuracy >= 0, fix.horizontalAccuracy <= 300,
                   CLLocationCoordinate2DIsValid(fix.coordinate) else {
@@ -226,68 +216,33 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
                 lastCourseAt = fix.timestamp
             }
             lastGPSCoordinate = fix.coordinate
-            if fix.horizontalAccuracy <= 65 &&
-               manager.desiredAccuracy != kCLLocationAccuracyBestForNavigation {
-                manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
-            }
             lastHorizontalAccuracy = fix.horizontalAccuracy
             lastGoodCoordinateAt = fix.timestamp
             state = fix.horizontalAccuracy > 35
                 ? "Posizione approssimata (±\(Int(fix.horizontalAccuracy)) m)"
                 : "GPS attivo"
             isReceiving = true
-            // La velocità nativa viene accettata quando affidabile anche
-            // se speedAccuracy == -1 (dato di incertezza non disponibile).
-            // Mai ricavare la velocità da punti MapKit simulati.
-            // Una misura nativa con incertezza <= 3 m/s può essere usata
-            // anche con posizione da 65 a 150 metri: accuratezza di velocità
-            // e accuratezza della coordinata sono grandezze diverse.
-            let nativeAccuracyGood = fix.speedAccuracy >= 0 && fix.speedAccuracy <= 3
-            let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 20
-                && fix.speed >= 0 && fix.speed <= 50
-                && ((fix.horizontalAccuracy <= 65 &&
-                     (fix.speedAccuracy < 0 || fix.speedAccuracy <= 7))
-                    || (hasPreciseLocation && fix.horizontalAccuracy <= 150 &&
-                        nativeAccuracyGood))
+            // Identici criteri di validazione velocità GPS della build 33.
+            // Nessuna stima da coordinate e nessuna lettura simulata.
+            let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10
+                && fix.horizontalAccuracy >= 0 && fix.horizontalAccuracy <= 35
+                && fix.speed >= 0 && fix.speedAccuracy >= 0
+                && fix.speedAccuracy <= 5 && fix.speed <= 50
             if usableSpeed {
                 let kmh = fix.speed * 3.6
                 speedKmh = kmh < 1.5 ? 0 : kmh
                 lastValidAt = fix.timestamp
-                speedDiagnostic = "Velocità nativa Core Location"
+                speedDiagnostic = "Velocità GPS nativa (parametri build 33)"
+                state = "GPS attivo"
+            } else if fix.speed < 0 {
+                speedDiagnostic = "Core Location non fornisce la velocità"
+            } else if fix.horizontalAccuracy > 35 {
+                speedDiagnostic = "Precisione posizione oltre 35 m"
+            } else if fix.speedAccuracy < 0 || fix.speedAccuracy > 5 {
+                speedDiagnostic = "Precisione velocità fuori 0–5 m/s"
             } else {
-                // Fallback solo con due misure reali nettamente separate rispetto
-                // all'errore GPS: è una stima da distanza/tempo, mai una simulazione.
-                var estimatedSpeed: Double?
-                if let previous = previousSpeedFix,
-                   fix.horizontalAccuracy <= 20,
-                   previous.horizontalAccuracy >= 0,
-                   previous.horizontalAccuracy <= 20 {
-                    let dt = fix.timestamp.timeIntervalSince(previous.timestamp)
-                    if dt >= 3 && dt <= 15 {
-                        let meters = fix.distance(from: previous)
-                        let uncertainty = fix.horizontalAccuracy + previous.horizontalAccuracy
-                        let metersPerSecond = meters / dt
-                        if meters >= max(15, uncertainty * 1.7 + 8),
-                           metersPerSecond >= 2, metersPerSecond <= 40 {
-                            estimatedSpeed = metersPerSecond * 3.6
-                        }
-                    }
-                }
-                if let estimatedSpeed {
-                    speedKmh = estimatedSpeed
-                    lastValidAt = fix.timestamp
-                    speedDiagnostic = "Velocità stimata da movimento GPS reale"
-                } else if fix.speed < 0 {
-                    speedDiagnostic = "Core Location non fornisce la velocità"
-                } else if fix.horizontalAccuracy > 65 {
-                    speedDiagnostic = "Posizione troppo imprecisa per la velocità"
-                } else if fix.speedAccuracy > 7 {
-                    speedDiagnostic = "Precisione della velocità insufficiente"
-                } else {
-                    speedDiagnostic = "Misura della velocità non utilizzabile"
-                }
+                speedDiagnostic = "Velocità nativa non valida o non recente"
             }
-            previousSpeedFix = fix
 
             // Trip/odometro: filtri severi invariati contro il rumore GPS.
             guard abs(fix.timestamp.timeIntervalSinceNow) < 10,
@@ -394,16 +349,8 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
 
     /// I dati GPS non devono restare visibili come correnti se la localizzazione si interrompe.
     func currentSpeed(at date: Date = Date()) -> Double? {
-        guard let speedKmh, let lastValidAt else { return nil }
-        let age = date.timeIntervalSince(lastValidAt)
-        guard age >= -2 else { return nil }
-        if speedKmh < 1.5 {
-            // A scooter fermo gli aggiornamenti validi possono essere più radi.
-            guard age < 30, currentCoordinate(at: date) != nil else { return nil }
-        } else {
-            // Mai mantenere un valore positivo se il segnale si interrompe.
-            guard age < 12 else { return nil }
-        }
+        // Build 33: non mantenere visibili misurazioni GPS oltre 8 secondi.
+        guard let lastValidAt, date.timeIntervalSince(lastValidAt) < 8 else { return nil }
         return speedKmh
     }
 }
