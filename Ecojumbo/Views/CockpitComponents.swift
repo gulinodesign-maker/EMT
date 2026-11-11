@@ -182,16 +182,26 @@ enum CockpitContourGeometry {
 
 // Carbonio reale come texture ripetuta, indipendente dalle metriche e dalle preferenze.
 private struct CarbonBackdrop: View {
+    @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                Color(red: 0.015, green: 0.016, blue: 0.019)
-                Image("CarbonWeave").resizable(resizingMode: .tile).opacity(0.52)
-                LinearGradient(colors: [.black.opacity(0.55), .clear, .black.opacity(0.70)],
-                               startPoint: .top, endPoint: .bottom)
-                RadialGradient(colors: [theme.secondary.opacity(0.14), .clear, .black.opacity(0.56)],
-                               center: .center, startRadius: 0, endRadius: max(geo.size.width, geo.size.height) * 0.62)
+                colorScheme == .light
+                    ? Color(red: 0.94, green: 0.96, blue: 0.985)
+                    : Color(red: 0.015, green: 0.016, blue: 0.019)
+                Image("CarbonWeave")
+                    .resizable(resizingMode: .tile)
+                    .opacity(colorScheme == .light ? 0.08 : 0.52)
+                LinearGradient(colors: colorScheme == .light
+                    ? [Color.white.opacity(0.45), .clear, Color(red: 0.75, green: 0.80, blue: 0.88).opacity(0.25)]
+                    : [.black.opacity(0.55), .clear, .black.opacity(0.70)],
+                    startPoint: .top, endPoint: .bottom)
+                RadialGradient(colors: colorScheme == .light
+                    ? [theme.accent.opacity(0.07), .clear, .white.opacity(0.08)]
+                    : [theme.secondary.opacity(0.14), .clear, .black.opacity(0.56)],
+                    center: .center, startRadius: 0,
+                    endRadius: max(geo.size.width, geo.size.height) * 0.62)
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
@@ -202,12 +212,13 @@ private struct CarbonBackdrop: View {
 // EJ 1.23 — sfumatura grigio antracite SOPRA la top bar, presente in entrambe le
 // modalità e indipendente dal tema colore selezionato.
 private struct CockpitTopSoftShade: View {
+    @Environment(\.colorScheme) private var colorScheme
     var body: some View {
         GeometryReader { geo in
             LinearGradient(stops: [
-                .init(color: Color(white: 0.30).opacity(0.38), location: 0),
-                .init(color: Color(white: 0.23).opacity(0.26), location: 0.48),
-                .init(color: Color(white: 0.14).opacity(0.08), location: 0.82),
+                .init(color: colorScheme == .light ? Color.white.opacity(0.83) : Color(white: 0.30).opacity(0.38), location: 0),
+                .init(color: colorScheme == .light ? Color.white.opacity(0.34) : Color(white: 0.23).opacity(0.26), location: 0.48),
+                .init(color: colorScheme == .light ? Color.white.opacity(0.08) : Color(white: 0.14).opacity(0.08), location: 0.82),
                 .init(color: .clear, location: 1)
             ], startPoint: .top, endPoint: .bottom)
             .frame(width: geo.size.width, height: geo.size.height * 0.125,
@@ -875,12 +886,12 @@ private struct HollowSpeedNumber:UIViewRepresentable {
         return label
     }
     func updateUIView(_ uiView:UILabel,context:Context) {
-        let font=UIFont.systemFont(ofSize:size,weight:.thin)
+        let font=UIFont.systemFont(ofSize:size,weight:.bold)
         uiView.attributedText = NSAttributedString(string:text,attributes:[
             .font:font,
             .foregroundColor:UIColor.clear,
             .strokeColor:accent,
-            .strokeWidth:2.7
+            .strokeWidth:3.5
         ])
     }
 }
@@ -888,10 +899,15 @@ private struct HollowSpeedNumber:UIViewRepresentable {
 // Scala strumentazione e corona a elementi discreti, non una immagine fissa.
 // Il numero di velocità è disegnato a contorno; la lettura proviene solo dal GPS.
 private struct OpenSpeedCluster: View {
+    @Environment(\.colorScheme) private var colorScheme
     let speed: Double?
     let incomingPower: Double?
     let outgoingPower: Double?
     let theme: CockpitTheme
+    // Solo nel cockpit mappa: freccia senza pannelli di istruzioni.
+    var navigationArrow: String? = nil
+    var navigationInstruction: String? = nil
+    var showsGPSBadge = true
 
     private func magnitude(_ input: Double, limit: Double) -> Double {
         Swift.max(0, Swift.min(1, abs(input) / limit))
@@ -940,16 +956,34 @@ private struct OpenSpeedCluster: View {
                 SpeedLEDStream(d: d, speed: speed)
                 SpeedScaleTicks(d: d)
 
+                // Freccia chiara, grande e isolata SOPRA la velocità.
+                if let navigationArrow {
+                    Image(systemName: navigationArrow)
+                        .font(.system(size: d * 0.125, weight: .bold))
+                        .foregroundStyle(theme.accent)
+                        .shadow(color: theme.accent.opacity(0.7), radius: d * 0.018)
+                        .frame(width: d * 0.19, height: d * 0.17)
+                        .position(x: d * 0.5, y: d * 0.255)
+                        .accessibilityLabel(navigationInstruction ?? "Prossima manovra")
+                }
+
                 VStack(spacing: d * 0.004) {
                     if let speed {
-                        Text(String(Int(speed.rounded())))
-                            .font(.system(size: d * 0.245, weight: .bold, design: .rounded))
-                            .monospacedDigit()
-                            .foregroundStyle(.white)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.55)
-                            .frame(height: d * 0.245)
-                            .accessibilityLabel("Velocità GPS: \(Int(speed.rounded())) chilometri orari")
+                        ZStack {
+                            // Tracciato di contorno trasparente e neon diffuso,
+                            // ispirato ai numeri luminosi del riferimento.
+                            HollowSpeedNumber(text: String(Int(speed.rounded())),
+                                              size: d * 0.245,
+                                              accent: UIColor(theme.accent))
+                                .blur(radius: d * 0.018)
+                                .opacity(0.88)
+                            HollowSpeedNumber(text: String(Int(speed.rounded())),
+                                              size: d * 0.245,
+                                              accent: UIColor(theme.accent))
+                                .shadow(color: theme.accent.opacity(0.92), radius: d * 0.010)
+                        }
+                        .frame(width: d * 0.47, height: d * 0.245)
+                        .accessibilityLabel("Velocità GPS: \(Int(speed.rounded())) chilometri orari")
                     } else {
                         Text("—")
                             .font(.system(size: d * 0.19, weight: .light))
@@ -963,18 +997,21 @@ private struct OpenSpeedCluster: View {
                     Rectangle().fill(.white)
                         .frame(width: d * 0.215, height: max(1.2, d * 0.006))
                         .padding(.top, d * 0.017)
-                    Text("GPS")
-                        .font(.system(size: d * 0.062, weight: .heavy, design: .rounded))
-                        .foregroundStyle(.white)
-                        .frame(width: d * 0.165, height: d * 0.087)
-                        .background(Color.black.opacity(0.88), in:
-                            RoundedRectangle(cornerRadius: d * 0.030, style: .continuous))
-                        .overlay {
-                            RoundedRectangle(cornerRadius: d * 0.030, style: .continuous)
-                                .stroke(theme.accent, lineWidth: max(1, d * 0.003))
-                        }
-                        .shadow(color: theme.accent.opacity(0.34), radius: d * 0.012)
-                        .padding(.top, d * 0.025)
+                    if showsGPSBadge {
+                        Text("GPS")
+                            .font(.system(size: d * 0.062, weight: .heavy, design: .rounded))
+                            .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
+                            .frame(width: d * 0.165, height: d * 0.087)
+                            .background(colorScheme == .light
+                                        ? Color.white.opacity(0.87) : Color.black.opacity(0.88),
+                                        in: RoundedRectangle(cornerRadius: d * 0.030, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: d * 0.030, style: .continuous)
+                                    .stroke(theme.accent, lineWidth: max(1, d * 0.003))
+                            }
+                            .shadow(color: theme.accent.opacity(0.34), radius: d * 0.012)
+                            .padding(.top, d * 0.025)
+                    }
                 }
                 .frame(width: d * 0.52, height: d * 0.46)
                 .position(x: d * 0.50, y: d * 0.485)
