@@ -368,7 +368,7 @@ assert 'lastGPSFixTime = fix.timestamp' in g
 assert 'hasPreciseLocation && fix.horizontalAccuracy <= 150' in g
 assert 'nativeAccuracyGood' in g
 assert 'Color.black.opacity(0.27)' in c
-assert 'Color.black.opacity(0.80)' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello senza mappa')]
+assert 'Color.black.opacity(0.80)' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello standard senza mappa')]
 assert 'EcoCockpitDockGeometry.standardLeft(width: w, height: h)' in c
 assert '.position(x: panelLeft + panelWidth / 2, y: h * 0.455)' in c
 assert '.frame(width: panelWidth, height: h * 0.70)' in c
