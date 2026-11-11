@@ -145,6 +145,7 @@ struct EcoSettingsView: View {
     @EnvironmentObject private var bluetooth: JKBluetoothManager
     @State private var odometerText = ""
     @State private var odometerStatus: String?
+    @FocusState private var odometerFieldFocused: Bool
     @AppStorage("ecojumbo.cellCount") private var cellCount = 20
     @AppStorage("ecojumbo.capacity") private var capacity = 206
     @AppStorage("ecojumbo.chargeAlert") private var chargeAlert = 80
@@ -196,16 +197,11 @@ struct EcoSettingsView: View {
                 HStack {
                     TextField("Chilometri attuali", text: $odometerText)
                         .keyboardType(.decimalPad)
+                        .focused($odometerFieldFocused)
+                        .submitLabel(.done)
+                        .onSubmit(saveOdometer)
                     Text("km").foregroundStyle(.secondary)
-                    Button("Salva") {
-                        let normalized = odometerText.replacingOccurrences(of: ",", with: ".")
-                        if let number = Double(normalized), number.isFinite, (0...9_999_999).contains(number) {
-                            gps.setOdometer(number)
-                            odometerStatus = "Chilometraggio aggiornato sul telefono."
-                        } else {
-                            odometerStatus = "Inserisci un numero di chilometri valido."
-                        }
-                    }
+                    Button("Salva", action: saveOdometer)
                     .buttonStyle(.borderedProminent)
                     .tint(Color.ecoGreen)
                 }
@@ -246,10 +242,33 @@ struct EcoSettingsView: View {
         .scrollContentBackground(.hidden)
         .background(Color.ecoBackground)
         .navigationTitle("Scooter")
+        // .decimalPad non offre il tasto Invio su iPhone in landscape:
+        // il pulsante sopra la tastiera permette di SALVARE e chiuderla.
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Conferma e salva", action: saveOdometer)
+                    .fontWeight(.semibold)
+            }
+        }
         .onAppear {
             bluetooth.applyFormat(JKFrameFormat(rawValue: rawFormat) ?? .automatic, cells: cellCount)
             odometerText = gps.hasOdometer ? String(format: "%.1f", gps.totalKm) : ""
         }
+    }
+
+    private func saveOdometer() {
+        let normalized = odometerText.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: ",", with: ".")
+        guard let number = Double(normalized), number.isFinite,
+              (0...9_999_999).contains(number) else {
+            odometerStatus = "Inserisci un numero di chilometri valido."
+            return
+        }
+        gps.setOdometer(number)
+        odometerText = String(format: "%.1f", gps.totalKm)
+        odometerStatus = "Chilometraggio aggiornato sul telefono."
+        odometerFieldFocused = false
     }
 }
 

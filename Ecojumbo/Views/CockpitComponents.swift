@@ -1029,13 +1029,13 @@ private struct OpenSpeedCluster: View {
                         .accessibilityLabel(navigationInstruction ?? "Prossima manovra")
                 }
 
-                // Cifre arancioni semplici senza contorno, ombre o artifici tipografici.
+                // Cifre velocità rosse, senza contorno, ombre o artifici tipografici.
                 Group {
                     if let speed {
                         Text(String(Int(speed.rounded())))
                             .font(.system(size: d * 0.275, weight: .bold, design: .rounded))
                             .monospacedDigit()
-                            .foregroundStyle(Color(red: 1.0, green: 0.43, blue: 0.04))
+                            .foregroundStyle(CockpitTheme.dischargeAccent)
                             .lineLimit(1)
                             .minimumScaleFactor(0.65)
                             .frame(width: d * 0.60, height: d * 0.285)
@@ -1314,11 +1314,15 @@ struct GPSCockpitDashboard: View {
             let cardsBottom = h - dockBottom - dockHeight - outerMargin
             let cardsHeight = max(1, cardsBottom - cardsTop)
             let cardsCenterY = (cardsTop + cardsBottom) / 2
-            // Barra SOC soltanto sulla mappa; sotto la ricerca e sopra il dock.
+            // Indicatore SOC mappa: intero corpo centrato VERTICALMENTE tra
+            // linea arancione della top bar e bordo superiore del dock.
             let railWidth = max(36, min(52, w * 0.037))
-            let railTop = h * 0.255
-            let railBottom = h - dockBottom - dockHeight - max(10, h * 0.020)
-            let railHeight = max(70, railBottom - railTop)
+            let railTopBound = h * 0.099
+            let railBottomBound = h - dockBottom - dockHeight
+            let railSafeMargin = max(10, h * 0.020)
+            let railHeight = min(max(70, h * 0.615),
+                                 max(70, railBottomBound - railTopBound - 2 * railSafeMargin))
+            let railCenterY = (railTopBound + railBottomBound) / 2
             let railRightInset = max(9, w * 0.010)
             let live = bluetooth.snapshot
             ZStack {
@@ -1338,7 +1342,7 @@ struct GPSCockpitDashboard: View {
                     GPSMapBatteryRail(theme: theme, now: now)
                         .frame(width: railWidth, height: railHeight)
                         .position(x: w - railRightInset - railWidth / 2,
-                                  y: railTop + railHeight / 2)
+                                  y: railCenterY)
                         .zIndex(29)
                 } else {
                     // Cinque schede principali, centrate fino al dock inferiore.
@@ -1722,6 +1726,7 @@ private struct GPSCockpitMap: View {
     @State private var hasCenteredOnGPS = false
     @State private var followsUser = true
     @State private var followDistance: CLLocationDistance = 2600
+    @State private var mapViewportSize: CGSize = .zero
     @StateObject private var mapControls = GPSMapControlStore.shared
     @State private var lastKnownHeading: CLLocationDirection?
     let theme: CockpitTheme
@@ -1889,6 +1894,7 @@ private struct GPSCockpitMap: View {
             .frame(width: w, height: h)
             // Nessuna clip arrotondata e nessun bordo rettangolare sulla mappa.
             .onAppear {
+                mapViewportSize = geo.size
                 gps.start()
                 hasCenteredOnGPS = gps.currentCoordinate() != nil
                 if navigation.isNavigating {
@@ -1901,6 +1907,12 @@ private struct GPSCockpitMap: View {
                     Task {
                         await navigation.resumePendingRoute(origin: gps.currentCoordinate())
                     }
+                }
+            }
+            .onChange(of: geo.size) { _, newSize in
+                mapViewportSize = newSize
+                if followsUser, let point = gps.currentCoordinate() {
+                    followCamera(at: point)
                 }
             }
             .onReceive(gps.$lastGPSCoordinate) { coordinate in
@@ -1973,9 +1985,33 @@ private struct GPSCockpitMap: View {
             ? min(230, max(45, followDistance * 0.14)) : 0
         let bearing = heading * .pi / 180
         let longitudeScale = max(0.2, abs(cos(coordinate.latitude * .pi / 180)))
+        // Il veicolo si colloca a metà dello spazio EFFETTIVAMENTE visibile
+        // fra il bordo destro del quadrante e il bordo sinistro della barra SOC.
+        // Spostiamo il centro della telecamera: le coordinate reali e il
+        // tracciato MKPolyline non vengono mai alterati.
+        let mapWidth = mapViewportSize.width
+        let mapHeight = mapViewportSize.height
+        let fullWidth = mapWidth / 0.64
+        let fullHeight = mapHeight / 0.955
+        let dialSize = GPSDialLayout.size(width: fullWidth, height: fullHeight)
+        let dialRightX = GPSDialLayout.centerX(width: fullWidth, height: fullHeight)
+            + dialSize * 0.508
+        let batteryWidth = max(36, min(52, fullWidth * 0.037))
+        let batteryInset = max(9, fullWidth * 0.010)
+        let batteryLeftX = fullWidth - batteryInset - batteryWidth
+        let targetX = (dialRightX + batteryLeftX) / 2 - fullWidth * 0.36
+        let horizontalPixels = max(-mapWidth * 0.25,
+                                   min(mapWidth * 0.25, targetX - mapWidth / 2))
+        // Distanza metrica proporzionale all'altezza della viewport, con
+        // orientamento coerente a heading-up e zoom. Non tocca il GPS.
+        let cameraLateralMeters = mapHeight > 1
+            ? Double(horizontalPixels / mapHeight) * followDistance
+                * (mapControls.is3D ? 0.82 : 0.95) : 0
+        let northMeters = lookAhead * cos(bearing) + cameraLateralMeters * sin(bearing)
+        let eastMeters = lookAhead * sin(bearing) - cameraLateralMeters * cos(bearing)
         let center = CLLocationCoordinate2D(
-            latitude: coordinate.latitude + lookAhead * cos(bearing) / 111_320,
-            longitude: coordinate.longitude + lookAhead * sin(bearing) / (111_320 * longitudeScale))
+            latitude: coordinate.latitude + northMeters / 111_320,
+            longitude: coordinate.longitude + eastMeters / (111_320 * longitudeScale))
         camera = .camera(MapCamera(centerCoordinate: center,
                                    distance: followDistance,
                                    heading: heading, pitch: mapControls.is3D ? 55 : 0))

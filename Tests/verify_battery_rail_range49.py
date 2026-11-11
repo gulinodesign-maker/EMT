@@ -19,8 +19,10 @@ assert "GPSMapBatteryRail(theme: theme, now: now)" in map_branch
 assert "railRightInset" in map_branch
 assert ".zIndex(29)" in map_branch
 assert "GPSMapBatteryRail" not in dashboard.split("} else {", 1)[1]
-assert "let railTop = h * 0.255" in dashboard
-assert "let railBottom = h - dockBottom - dockHeight - max(10, h * 0.020)" in dashboard
+assert "let railTopBound = h * 0.099" in dashboard
+assert "let railBottomBound = h - dockBottom - dockHeight" in dashboard
+assert "let railCenterY = (railTopBound + railBottomBound) / 2" in dashboard
+assert "y: railCenterY" in dashboard
 
 # No BMS frames or stale snapshots -> no fabricated percentage or filled bar.
 assert "guard bluetooth.isConnected, let snap = bluetooth.snapshot" in rail
@@ -62,12 +64,18 @@ assert "if mapEnabled && selected == .gps {" in u
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     dock_height = max(51,min(83,h*.105))
     dock_bottom = max(4,h*.006)
-    top=h*.255
-    bottom=h-dock_bottom-dock_height-max(10,h*.020)
+    top_bound=h*.099
+    bottom_bound=h-dock_bottom-dock_height
+    margin=max(10,h*.020)
+    rail_h=min(max(70,h*.615),max(70,bottom_bound-top_bound-2*margin))
+    center=(top_bound+bottom_bound)/2
+    top=center-rail_h/2
+    bottom=center+rail_h/2
     rail_width=max(36,min(52,w*.037))
     right=max(9,w*.010)
     assert bottom>top and rail_width>0
-    assert top>=h*.099
-    assert bottom < h-dock_height-dock_bottom
+    assert top>=top_bound+margin-1e-6
+    assert bottom<=bottom_bound-margin+1e-6
+    assert abs(center-(top_bound+bottom_bound)/2)<1e-9
     assert w-right-rail_width > w*.85
-print("OK — build 51, SOC map-only and grounded remaining-range card")
+print("OK — build 52, SOC map-only and grounded remaining-range card")
