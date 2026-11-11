@@ -208,21 +208,30 @@ for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert max(18,H*.070)<dg*.25
 assert c.count('.mask(RadialGradient(stops: [') == 3
 assert 'func retryLocation()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
-# Build 35: lo stesso tachimetro interno in Home e GPS:
-# freccia e cifre separate, linea fra cifre e unità, km/h in basso.
-arrow_top=.214-.185/2
-arrow_bottom=.214+.185/2
+# Build 36: frecce più piccole, spigoli netti e mai sulle tacche.
+# La distanza radiale dal centro resta inferiore alla pista LED (0.361d).
+arrow_top=.245-.125/2
+arrow_bottom=.245+.125/2
+arrow_halfwidth=.175/2
 speed_top=.495-.285/2
 speed_bottom=.495+.285/2
-separator=.682
 unit_top=.755-.065/2
 unit_bottom=.755+.065/2
-assert 0<arrow_top<arrow_bottom<speed_top<speed_bottom<separator<unit_top<unit_bottom<.89
+assert 0<arrow_top<arrow_bottom<speed_top<speed_bottom<unit_top<unit_bottom<.89
 assert speed_top-arrow_bottom>.04
-assert 'y: d * 0.682' in c
+assert math.hypot(arrow_halfwidth,.5-arrow_top)<.35
+assert 'GPSAngularManeuverArrow(symbol: navigationArrow)' in c
+assert '.frame(width: d * 0.175, height: d * 0.125)' in c
+assert 'y: d * 0.245' in c
+assert 'y: d * 0.682' not in c
 assert 'y: d * 0.755' in c
-assert 'HollowSpeedNumber(text: String(Int(speed.rounded()))' in c
 assert c.count('HollowSpeedNumber(text: String(Int(speed.rounded()))')==1
-assert 'navigationArrow: maneuverSymbol' in c
-assert 'GPSManeuverIcon.symbol(for: navigation.guidanceInstruction)' in c
-print('OK — EJ 1.35: frecce e cifre distinte, linea sopra km/h, layout unico Home/GPS')
+assert 'context.setLineJoin(.round)' in c
+# I sei pannelli non disegnano nella circonferenza, anche nel tema chiaro.
+assert 'DayWingOutsideDial(center: CGPoint(x: w * 0.50, y: h * 0.507),' in c
+for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
+    d=min(h*.982,w*.57)
+    cutout_radius=d*.495
+    rim_radius=d*.985/2
+    assert cutout_radius>rim_radius,(w,h,cutout_radius,rim_radius)
+print('OK — EJ 1.36: frecce compatte fuori dalle tacche, separatore rimosso e schede fuori dal disco')
