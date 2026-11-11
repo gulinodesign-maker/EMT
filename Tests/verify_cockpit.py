@@ -131,7 +131,7 @@ assert 'let fadeEnd = min(1, bottomY / h)' in c
 assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
 assert 'fullW * 0.45 - mapLeft' in c
 assert 'fullW * 0.54 - mapLeft' in c
-assert 'fullH * 0.085 - mapTop' in c
+assert 'fullH * 0.099 - mapTop' in c
 assert 'p.addArc(tangent1End: knee, tangent2End: right,' in c
 assert 'let bottomY = max(left.y + max(2, h * 0.008),' in c
 assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
@@ -243,7 +243,7 @@ assert 'let glassHeight = h * 0.60' in c
 assert 'let tileHeight = max(1, (h - 5 * gap) / 6)' in c
 assert '.position(x: w - max(6, w * 0.012) - glassWidth / 2,' in c
 assert 'y: h * (0.21 + 0.60 / 2)' in c
-assert '.padding(.top, h * 0.045)' in c
+assert '.padding(.top, h * 0.061)' in c
 assert '.padding(.leading, w * 0.285)' in c
 assert 'height: tileHeight, resettable: true)' in c
 assert 'if reading.title == "Trip parziale"' in c
