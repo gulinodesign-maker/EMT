@@ -272,6 +272,7 @@ final class EcoNavigationStore: ObservableObject {
 // EcoNavigationStore resta condiviso e mantiene la rotta quando si cambia modalità.
 
 struct ThemePickerView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @AppStorage("ecojumbo.theme") private var selection = CockpitTheme.copper.rawValue
     // Sempre tre a tre: sei temi disposti in due righe da tre.
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)
@@ -334,7 +335,7 @@ struct ThemePickerView: View {
                                     .font(.system(size: 15, weight: .semibold))
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.70)
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
                             }
                             .frame(maxWidth: .infinity)
                             .padding(10)
@@ -342,7 +343,7 @@ struct ThemePickerView: View {
                                 RoundedRectangle(cornerRadius: 15, style: .continuous))
                             .overlay {
                                 RoundedRectangle(cornerRadius: 15, style: .continuous)
-                                    .stroke(selection == theme.rawValue ? theme.accent : .white.opacity(0.16),
+                                    .stroke(selection == theme.rawValue ? theme.accent : (colorScheme == .light ? Color.black.opacity(0.15) : .white.opacity(0.16)),
                                             lineWidth: selection == theme.rawValue ? 2 : 1)
                             }
                         }
