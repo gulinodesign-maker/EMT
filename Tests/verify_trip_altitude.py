@@ -36,8 +36,8 @@ assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in res
 
 # Cinque schede e grafico basato su misure, non punti dimostrativi.
 expanded = cockpit[cockpit.index("private struct GPSExpandedReadings: View {"):]
-assert expanded.count('expandedTile("') == 5
-assert 'expandedTile("Dislivello viaggio"' in expanded
+assert expanded.count('telemetryRow("') == 5
+assert 'telemetryRow("DISL"' in expanded
 assert 'GPSTripAltitudeSparkline(points: gps.altitudeProfile' in expanded
 assert "if points.count >= 2" in expanded
 assert "points.map(\\.altitudeMeters)" in expanded

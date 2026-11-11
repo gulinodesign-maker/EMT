@@ -2067,8 +2067,9 @@ private struct EcoRangeEstimate {
     }
 }
 
+// Pannello standard senza mappa: display unico TELEMETRIA.
 // Display OLED secondario minimalista. Tutte le misure restano LIVE:
- // nessun valore fittizio viene usato quando BMS o GPS non sono disponibili.
+// Nessun valore fittizio viene usato quando BMS o GPS non sono disponibili.
 @MainActor
 private struct GPSExpandedReadings: View {
     @Environment(\.colorScheme) private var colorScheme

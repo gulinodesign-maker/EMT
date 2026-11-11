@@ -31,11 +31,11 @@ assert "Double($0.soc) / 100.0" in rail
 
 # Same five telemetry cards, but replacing total odometer with trip
 # and former trip slot with energy-based estimated range with its own bar.
-assert standard.count('expandedTile("') == 5
-assert 'expandedTile("Autonomia residua"' in standard
-assert 'expandedTile("Trip"' in standard
-assert 'expandedTile("Chilometraggio"' not in standard
-assert 'expandedTile("Trip parziale"' not in standard
+assert standard.count('telemetryRow("') == 5
+assert 'telemetryRow("AUT"' in standard
+assert 'telemetryRow("TRIP"' in standard
+assert 'telemetryRow("Chilometraggio"' not in standard
+assert 'telemetryRow("Trip parziale"' not in standard
 assert standard.count("showsBar: true") == 3
 assert "resettable: true" in standard
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in standard
@@ -69,4 +69,4 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert top>=h*.099
     assert bottom < h-dock_height-dock_bottom
     assert w-right-rail_width > w*.85
-print("OK — build 49, SOC map-only and grounded remaining-range card")
+print("OK — build 50, SOC map-only and grounded remaining-range card")
