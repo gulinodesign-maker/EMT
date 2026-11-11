@@ -2,10 +2,30 @@ import SwiftUI
 import Combine
 import UIKit
 
-// Colori dell'interfaccia tecnica secondaria: quelli del cockpit sono modificabili.
+// Modalità persistente condivisa fra cruscotto, mappe e schermate tecniche.
+enum EcoAppearanceMode: String, CaseIterable, Identifiable {
+    case dark = "Scuro", light = "Chiaro", automatic = "Automatico"
+    var id: String { rawValue }
+    var preferredScheme: ColorScheme? {
+        switch self {
+        case .dark: .dark
+        case .light: .light
+        case .automatic: nil // segue l'aspetto e l'orario impostati su iOS
+        }
+    }
+}
+
 extension Color {
-    static let ecoBackground = Color(red: 0.026, green: 0.030, blue: 0.038)
-    static let ecoCard = Color(red: 0.095, green: 0.104, blue: 0.119)
+    static let ecoBackground = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.026, green: 0.030, blue: 0.038, alpha: 1)
+            : UIColor(red: 0.945, green: 0.957, blue: 0.975, alpha: 1)
+    })
+    static let ecoCard = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0.095, green: 0.104, blue: 0.119, alpha: 1)
+            : UIColor(red: 1, green: 1, blue: 1, alpha: 1)
+    })
     static let ecoGreen = Color(red: 0.98, green: 0.48, blue: 0.08)
 }
 
@@ -47,13 +67,21 @@ enum EcoTab: Int, CaseIterable, Identifiable {
 }
 
 struct EcojumboRootView: View {
+    @Environment(\.colorScheme) private var systemAppearance
     @EnvironmentObject private var gps: GPSRideManager
     @EnvironmentObject private var bluetooth: JKBluetoothManager
     @AppStorage("ecojumbo.theme") private var themeName = "Rame"
+    @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
     @State private var selected: EcoTab = .dashboard
     @State private var tick = Date()
 
     private var theme: CockpitTheme { CockpitTheme(rawValue: themeName) ?? .copper }
+    private var selectedAppearance: EcoAppearanceMode {
+        EcoAppearanceMode(rawValue: appearanceMode) ?? .dark
+    }
+    private var isDay: Bool {
+        (selectedAppearance.preferredScheme ?? systemAppearance) == .light
+    }
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
@@ -78,6 +106,29 @@ struct EcojumboRootView: View {
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .padding(.bottom, (selected == .dashboard || selected == .gps) ? 0 : 56)
 
+                // Sole/luna a portata di mano, senza occupare i tasti GPS.
+                if selected == .dashboard || selected == .gps {
+                    Button {
+                        appearanceMode = isDay
+                            ? EcoAppearanceMode.dark.rawValue
+                            : EcoAppearanceMode.light.rawValue
+                    } label: {
+                        Image(systemName: isDay ? "moon.stars.fill" : "sun.max.fill")
+                            .font(.system(size: max(14, geometry.size.height * 0.030),
+                                          weight: .semibold))
+                            .foregroundStyle(isDay ? Color(white: 0.19) : Color.white)
+                            .frame(width: max(29, geometry.size.height * 0.052),
+                                   height: max(29, geometry.size.height * 0.052))
+                            .background(isDay ? Color.white.opacity(0.82) : Color.black.opacity(0.60),
+                                        in: Circle())
+                            .overlay(Circle().stroke(theme.accent.opacity(0.65), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(isDay ? "Attiva modalità scura" : "Attiva modalità chiara")
+                    .position(x: geometry.size.width * 0.165, y: geometry.size.height * 0.159)
+                    .zIndex(55)
+                }
+
                 // Profilo luminoso SOLO sopra il gruppo A/kW, con due discese laterali.
                 // Nessuna linea orizzontale prosegue sotto i tasti funzione.
                 if selected == .dashboard {
@@ -99,12 +150,12 @@ struct EcojumboRootView: View {
                     .zIndex(50)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
-            .background(Color.black)
+            .background(Color.ecoBackground)
         }
         .ignoresSafeArea(.container, edges: .all)
-        .background(Color.black.ignoresSafeArea())
+        .background(Color.ecoBackground.ignoresSafeArea())
         .statusBarHidden(true)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(selectedAppearance.preferredScheme)
         .onAppear {
             gps.start()
             bluetooth.applyFormat(JKFrameFormat(rawValue: UserDefaults.standard.string(forKey: "ecojumbo.frameFormat") ?? "Automatico") ?? .automatic,
@@ -127,6 +178,7 @@ struct EcojumboRootView: View {
 // con icone solo bianche, senza titoli; il tachimetro occupa tutto lo spazio centrale.
 @MainActor
 private struct CockpitCornerControls: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps: GPSRideManager
     @StateObject private var mapControls = GPSMapControlStore.shared
     @StateObject private var navigation = EcoNavigationStore.shared
@@ -195,10 +247,10 @@ private struct CockpitCornerControls: View {
             ZStack {
                 RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
                     .fill(LinearGradient(stops: [
-                        .init(color: Color(white: 0.37), location: 0),
-                        .init(color: Color(white: 0.19), location: 0.21),
-                        .init(color: Color(white: 0.08), location: 0.78),
-                        .init(color: Color(white: 0.14), location: 1)
+                        .init(color: colorScheme == .light ? .white : Color(white: 0.37), location: 0),
+                        .init(color: colorScheme == .light ? Color(white: 0.89) : Color(white: 0.19), location: 0.21),
+                        .init(color: colorScheme == .light ? Color(white: 0.79) : Color(white: 0.08), location: 0.78),
+                        .init(color: colorScheme == .light ? Color(white: 0.84) : Color(white: 0.14), location: 1)
                     ], startPoint: .top, endPoint: .bottom))
                 RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
                     .stroke(LinearGradient(colors: [
@@ -214,7 +266,7 @@ private struct CockpitCornerControls: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: side * 0.57, height: side * 0.55)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
                 }
             }
             .frame(width: side, height: side)
@@ -235,10 +287,10 @@ private struct CockpitCornerControls: View {
             ZStack {
                 RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
                     .fill(LinearGradient(stops: [
-                        .init(color: Color(white: 0.37), location: 0),
-                        .init(color: Color(white: 0.19), location: 0.21),
-                        .init(color: Color(white: 0.08), location: 0.78),
-                        .init(color: Color(white: 0.14), location: 1)
+                        .init(color: colorScheme == .light ? .white : Color(white: 0.37), location: 0),
+                        .init(color: colorScheme == .light ? Color(white: 0.89) : Color(white: 0.19), location: 0.21),
+                        .init(color: colorScheme == .light ? Color(white: 0.79) : Color(white: 0.08), location: 0.78),
+                        .init(color: colorScheme == .light ? Color(white: 0.84) : Color(white: 0.14), location: 1)
                     ], startPoint: .top, endPoint: .bottom))
                 RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
                     .stroke(LinearGradient(colors: [
@@ -256,7 +308,7 @@ private struct CockpitCornerControls: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: side * 0.55, height: side * 0.55)
-                        .foregroundStyle(.white)
+                        .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
                 }
             }
             .frame(width: side, height: side)
