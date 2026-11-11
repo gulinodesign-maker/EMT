@@ -142,7 +142,7 @@ assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
 assert 'p.addLine(to: CGPoint(x: knee.x, y: bottomY))' not in c
 assert '.background(Color.clear)' in c
 assert 'clipShape(RoundedRectangle(cornerRadius: 16' not in c
-assert 'min(37, max(12, height * 0.38))' in c
+assert 'GPSCompactReadings' not in c  # nessun pannello sopra la mappa
 assert 'buttonStart - max(9, w * 0.012)' in c
 assert 'CockpitContourGeometry.roundedPath(points:' in u
 assert 'CockpitContourGeometry.roundedPath(points:' in c
@@ -365,7 +365,7 @@ assert 'hasPreciseLocation && fix.horizontalAccuracy <= 150' in g
 assert 'nativeAccuracyGood' in g
 assert 'Color.black.opacity(0.27)' in c
 assert 'Color.black.opacity(0.80)' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello senza mappa')]
-assert 'dialCenterX + dialSize * 0.545 + max(14, w * 0.018)' in c
+assert 'EcoCockpitDockGeometry.standardLeft(width: w, height: h)' in c
 assert '.position(x: panelLeft + panelWidth / 2, y: h * 0.48)' in c
 assert 'let fadeStart = min(0.56, max(0.25,' in c
 assert '.init(color: .clear, location: fadeStart)' in c
@@ -418,7 +418,7 @@ assert 'guard age < 30, currentCoordinate(at: date) != nil else { return nil }' 
 assert 'fix.horizontalAccuracy <= 35' in g and 'fix.speedAccuracy <= 5' in g
 assert 'if phase == .active { gps.retryLocation() }' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
 assert 'Text(gps.speedStatus(at: now))' not in c
-assert 'gps.speedStatus()' not in c
+assert 'gps.speedStatus()' in c  # diagnostica solo su richiesta
 assert 'if liveSpeed == nil {' not in c
 assert 'if gps.currentCoordinate() == nil || gps.currentSpeed() == nil {' not in c
 assert 'func speedStatus(at date: Date = Date()) -> String' in g
@@ -445,9 +445,9 @@ assert 'struct BluetoothGlyph:View {' in c
 assert '.stroke(colorScheme == .light ? Color(white: 0.16) : .white,' in c
 assert 'Color.black.opacity(0.33)' in c
 assert 'Text(text)' in u and 'foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)' in u
-assert 'colorScheme == .light ? 0.10 : 0.90' in u
-assert 'colorScheme == .light ? 0.07 : 0.16' in u
-assert 'colorScheme == .light ? 0.06 : 0.31' in u
+assert 'Color(white: 0.96) : Color(white: 0.19)' in u
+assert 'Color(white: 0.92) : Color(white: 0.08)' in u
+assert 'if selected == .gps { mapEnabled.toggle() }' in u
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBest' in g
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation' in g
 assert 'manager.requestLocation()' in g
