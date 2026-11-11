@@ -49,8 +49,8 @@ assert 'private struct GPSGaugeHalo: View' in c
 assert 'LowerPanelShade()' in u
 assert c.count('CockpitTopSoftShade()') == 2
 assert '.position(x: dialCenterX, y: h * 0.494)' in c
-assert '.frame(width: w * 0.64, height: h * 0.89)' in c
-assert '.position(x: w * 0.68, y: h * 0.49)' in c
+assert '.frame(width: w * 0.64, height: h * 0.955)' in c
+assert '.position(x: w * 0.68, y: h * 0.5225)' in c
 assert 'GPSHorizonLine(theme: theme)' in c
 assert 'GPSLowerGlow(theme: theme)' in c
 assert 'EcoTab.allCases.suffix(3)' in u
@@ -102,7 +102,7 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
 # distanza dal dock anche sugli iPhone più bassi.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     map_w=w*.64
-    map_h=h*.89
+    map_h=h*.955
     card_w=map_w*.265*.70
     card_h=map_h*.60
     gap=max(5,card_h*.018)
@@ -111,19 +111,19 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert math.isclose(card_w/(map_w*.265),.70)
     x_right=map_w-max(6,map_w*.012)
     assert x_right-card_w>map_w*.60
-    top_y=h*(.49-.89/2)+map_h*.21
+    top_y=h*(.5225-.955/2)+map_h*.21
     bottom_y=top_y+card_h
     dock_top=h-max(4,h*.006)-max(51,min(83,h*.105))
     assert bottom_y<dock_top,(w,h,bottom_y,dock_top)
     # La ricerca segue il bordo superiore ribassato del GPS.
-    bar_y=h*(.49-.89/2)+map_h*.061
+    bar_y=h*(.5225-.955/2)+map_h*.0565
     assert abs(bar_y-h*.099)<h*.001,(w,h,bar_y)
 assert 'let glassWidth = w * 0.265 * 0.70' in c
 assert '.mask(GPSLowerTerminalFade())' in c
 # Il campo di ricerca aderisce anche al ginocchio della linea GPS.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     map_w=w*.64
-    map_h=h*.89
+    map_h=h*.955
     knee_global=(w*.54,h*.099)
     knee_local=(w*.54-w*.36,h*.099-h*.045)
     assert math.isclose(knee_local[0]+w*.36,knee_global[0])
@@ -155,7 +155,7 @@ assert '.mask(HomeRingBridgeMask().fill(style: FillStyle(eoFill: true)))' in c
 # Il bordo inferiore GPS resta orizzontale e sotto l'estremità
 # inferiore della diagonale superiore, anche sugli schermi stretti.
 for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    mh=H*.89
+    mh=H*.955
     left_y=H*(.244-.045)
     knee_y=H*(.099-.045)
     row=max(43,min(60,mh*.089))
@@ -165,7 +165,7 @@ assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
 # Dissolvenza del bordo inferiore dell'indirizzo: nessuna alterazione
 # del ginocchio, solo gli ultimi 16-34pt diventano trasparenti.
 for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    mh=H*.89
+    mh=H*.955
     left_y=H*(.244-.045)
     knee_y=H*(.099-.045)
     row=max(43,min(60,mh*.089))
@@ -248,10 +248,23 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     gps_y=h*.765
     assert gps_x-side/2>0 and gps_y+side/2<h*.83
     assert gps_x+side/2<w*.10
-assert 'weight: .black' not in c
+assert 'SpeedGlyphOutlineView' not in c  # il font velocita resta SwiftUI semplice
 assert 'Text(String(Int(speed.rounded())))' in c
 assert 'CGPoint(x: w * 0.255, y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.16, y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.54, y: h * 0.099)' in c
 assert 'fullH * 0.099 - mapTop' in c
-print('OK — EJ 1.39: top bar simmetrica ribassata, fascia GPS allineata, velocita nativa')
+# La mappa occupa fino al bordo inferiore prima del fade, con la ricerca
+# ancora allineata al profilo della top bar.
+for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
+    top=h*(.5225-.955/2)
+    bottom=h*(.5225+.955/2)
+    assert abs(top-h*.045)<1e-5,(w,h,top)
+    assert abs(bottom-h)<1e-5,(w,h,bottom)
+    search=top+h*.955*.0565
+    assert abs(search-h*.099)<h*.001,(w,h,search)
+assert '.init(color: .white.opacity(0.70), location: 0.91)' in c
+assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
+assert 'UserAnnotation()' not in c
+assert 'manager.startUpdatingHeading()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
+print('OK — EJ 1.40: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')

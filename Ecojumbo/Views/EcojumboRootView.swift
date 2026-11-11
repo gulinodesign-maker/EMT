@@ -264,9 +264,9 @@ private struct CockpitCornerControls: View {
                     ], startPoint: .top, endPoint: .bottom))
                 RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
                     .stroke(LinearGradient(colors: [
-                        selected == tab ? theme.accent : .white.opacity(0.80),
+                        selected == tab ? theme.accent : (colorScheme == .light ? Color.black.opacity(0.16) : .white.opacity(0.80)),
                         .white.opacity(0.13),
-                        selected == tab ? theme.accent.opacity(0.80) : .white.opacity(0.38)
+                        selected == tab ? theme.accent.opacity(0.80) : (colorScheme == .light ? Color.black.opacity(0.10) : .white.opacity(0.38))
                     ], startPoint: .top, endPoint: .bottom), lineWidth: selected == tab ? 1.6 : 0.9)
                 if tab == .bms {
                     BluetoothGlyph()
@@ -280,8 +280,12 @@ private struct CockpitCornerControls: View {
                 }
             }
             .frame(width: side, height: side)
-            .shadow(color: .black.opacity(0.90), radius: side * 0.16, y: 2)
-            .shadow(color: selected == tab ? theme.accent.opacity(0.31) : .clear, radius: 5)
+            .shadow(color: .black.opacity(colorScheme == .light ? 0.10 : 0.90),
+                    radius: side * (colorScheme == .light ? 0.07 : 0.16),
+                    y: colorScheme == .light ? 1 : 2)
+            .shadow(color: selected == tab
+                    ? theme.accent.opacity(colorScheme == .light ? 0.06 : 0.31)
+                    : .clear, radius: colorScheme == .light ? 2 : 5)
             .contentShape(RoundedRectangle(cornerRadius: side * 0.23))
         }
         .buttonStyle(.plain)
@@ -304,15 +308,15 @@ private struct CockpitCornerControls: View {
                     ], startPoint: .top, endPoint: .bottom))
                 RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
                     .stroke(LinearGradient(colors: [
-                        active ? theme.accent : .white.opacity(0.80),
+                        active ? theme.accent : (colorScheme == .light ? Color.black.opacity(0.16) : .white.opacity(0.80)),
                         .white.opacity(0.13),
-                        active ? theme.accent.opacity(0.80) : .white.opacity(0.38)
+                        active ? theme.accent.opacity(0.80) : (colorScheme == .light ? Color.black.opacity(0.10) : .white.opacity(0.38))
                     ], startPoint: .top, endPoint: .bottom),
                             lineWidth: active ? 1.6 : 0.9)
                 if let text {
                     Text(text)
                         .font(.system(size: side * 0.28, weight: .heavy, design: .rounded))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
                 } else {
                     Image(systemName: active ? (alternate ?? symbol) : symbol)
                         .resizable()
@@ -322,8 +326,12 @@ private struct CockpitCornerControls: View {
                 }
             }
             .frame(width: side, height: side)
-            .shadow(color: .black.opacity(0.90), radius: side * 0.16, y: 2)
-            .shadow(color: active ? theme.accent.opacity(0.31) : .clear, radius: 5)
+            .shadow(color: .black.opacity(colorScheme == .light ? 0.10 : 0.90),
+                    radius: side * (colorScheme == .light ? 0.07 : 0.16),
+                    y: colorScheme == .light ? 1 : 2)
+            .shadow(color: active
+                    ? theme.accent.opacity(colorScheme == .light ? 0.06 : 0.31)
+                    : .clear, radius: colorScheme == .light ? 2 : 5)
             .contentShape(RoundedRectangle(cornerRadius: side * 0.23))
         }
         .buttonStyle(.plain)

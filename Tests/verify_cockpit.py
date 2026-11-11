@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (39): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (40): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 39;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 40;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -33,7 +33,8 @@ assert 'private struct GPSCompactReadings: View' in c
 assert 'OpenSpeedCluster(speed: gps.currentSpeed(at: now)' in c
 assert 'GPSCockpitMap(theme: theme)' in c
 assert 'GPSCompactReadings(theme: theme)' in c
-assert 'Map(position: $camera)' in c and 'UserAnnotation()' in c
+assert 'Map(position: $camera)' in c and 'UserAnnotation()' not in c
+assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
 assert 'MapPolyline(roadRoute.polyline)' in c
 assert 'Marker(navigation.destinationName, coordinate: coordinate)' in c
 assert 'navigation.plan(destination: destination, origin: gps.currentCoordinate())' in c
@@ -229,7 +230,8 @@ assert 'mapAction("minus.magnifyingglass"' not in c
 assert '.onReceive(mapControls.commands)' in c
 assert 'GPSMapControlStore.shared' in c
 assert 'width: w * 0.64' in c
-assert 'height: h * 0.89' in c
+assert 'height: h * 0.955' in c
+assert '.position(x: w * 0.68, y: h * 0.5225)' in c
 # Trip persistente: riavvio app non cancella il parziale; azzeramento solo con long press.
 assert 'UserDefaults.standard.double(forKey: "ecojumbo.gps.tripKm")' in g
 assert 'UserDefaults.standard.set(tripKm, forKey: "ecojumbo.gps.tripKm")' in g
@@ -243,7 +245,7 @@ assert 'let glassHeight = h * 0.60' in c
 assert 'let tileHeight = max(1, (h - 5 * gap) / 6)' in c
 assert '.position(x: w - max(6, w * 0.012) - glassWidth / 2,' in c
 assert 'y: h * (0.21 + 0.60 / 2)' in c
-assert '.padding(.top, h * 0.061)' in c
+assert '.padding(.top, h * 0.0565)' in c
 assert '.padding(.leading, w * 0.285)' in c
 assert 'height: tileHeight, resettable: true)' in c
 assert 'if reading.title == "Trip parziale"' in c
@@ -404,5 +406,30 @@ assert 'CGPoint(x: w * 0.355, y: h * 0.252)' in c
 assert 'CGPoint(x: w * 0.25, y: h * 0.244)' in c
 assert 'fullH * 0.099 - mapTop' in c
 assert 'fullH * 0.244 - mapTop' in c
-assert '.padding(.top, h * 0.061)' in c
-print('OK — 39: speed arancione semplice, niente popup GPS, top bar spostata in Home/GPS')
+assert '.padding(.top, h * 0.0565)' in c
+# Build 40: estensione della mappa, freccia GPS, contrasto daylight,
+# controlli minimal e avvio Core Location più rapido.
+assert '.frame(width: w * 0.64, height: h * 0.955)' in c
+assert '.position(x: w * 0.68, y: h * 0.5225)' in c
+assert 'let fullW = w / 0.64, fullH = h / 0.955' in c
+assert 'let fullH = h / 0.955' in c
+assert '.init(color: .white.opacity(0.70), location: 0.91)' in c
+assert 'UserAnnotation()' not in c
+assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
+assert '(gps.currentHeading() ?? 0) - (visibleCamera?.heading ?? 0)' in c
+assert 'struct BluetoothGlyph:View {' in c
+assert '.stroke(colorScheme == .light ? Color(white: 0.16) : .white,' in c
+assert 'Color.black.opacity(0.33)' in c
+assert 'Text(text)' in u and 'foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)' in u
+assert 'colorScheme == .light ? 0.10 : 0.90' in u
+assert 'colorScheme == .light ? 0.07 : 0.16' in u
+assert 'colorScheme == .light ? 0.06 : 0.31' in u
+assert 'manager.desiredAccuracy = kCLLocationAccuracyBest' in g
+assert 'manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation' in g
+assert 'manager.requestLocation()' in g
+assert 'manager.startUpdatingHeading()' in g
+assert 'func locationManager(_ manager: CLLocationManager, didUpdateHeading heading: CLHeading)' in g
+assert 'func currentHeading(at date: Date = Date())' in g
+assert 'func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager)' in g
+assert 'heading.headingAccuracy <= 45' in g
+print('OK — 40: mappa a tutta altezza, freccia, tema giorno leggibile, GPS first fix')

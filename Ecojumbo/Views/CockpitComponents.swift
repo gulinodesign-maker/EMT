@@ -441,6 +441,7 @@ private struct ContinuousHorizonLine: View {
 
 // Disegniamo il pittogramma: alcuni iOS non possiedono 'bluetooth' fra gli SF Symbols.
 struct BluetoothGlyph:View {
+    @Environment(\.colorScheme) private var colorScheme
     var body:some View {
         GeometryReader { proxy in
             let w=proxy.size.width, h=proxy.size.height
@@ -454,7 +455,8 @@ struct BluetoothGlyph:View {
                 p.addLine(to:CGPoint(x:w*0.79,y:h*0.73))
                 p.addLine(to:CGPoint(x:w*0.50,y:h*0.96))
             }
-            .stroke(.white,style:StrokeStyle(lineWidth:max(1.5,w*0.105),lineCap:.round,lineJoin:.round))
+            .stroke(colorScheme == .light ? Color(white: 0.16) : .white,
+                    style:StrokeStyle(lineWidth:max(1.5,w*0.105),lineCap:.round,lineJoin:.round))
         }
         .accessibilityLabel("Bluetooth")
     }
@@ -714,7 +716,8 @@ struct CockpitDashboard:View {
                 .resizable().scaledToFit()
                 .frame(width: height * 0.73, height: height * 0.72)
                 .accessibilityLabel("Ecojumbo")
-            Rectangle().fill(.white.opacity(0.55))
+            Rectangle().fill(colorScheme == .light
+                                 ? Color.black.opacity(0.33) : .white.opacity(0.55))
                 .frame(width: 1, height: height * 0.40)
             Text(now.formatted(date: .omitted, time: .shortened))
                 .font(.system(size: height * 0.44, weight: .bold))
@@ -728,13 +731,15 @@ struct CockpitDashboard:View {
             Circle().fill(liveSpeed == nil ? Color.gray : theme.accent)
                 .frame(width: max(5, height * 0.14), height: max(5, height * 0.14))
                 .accessibilityLabel(liveSpeed == nil ? "GPS non disponibile" : "GPS attivo")
-            Rectangle().fill(.white.opacity(0.55))
+            Rectangle().fill(colorScheme == .light
+                                 ? Color.black.opacity(0.33) : .white.opacity(0.55))
                 .frame(width: 1, height: height * 0.43).padding(.horizontal, 2)
             BluetoothGlyph().frame(width: height * 0.27, height: height * 0.43)
             Circle().fill(live == nil ? Color.gray : theme.accent)
                 .frame(width: max(5, height * 0.14), height: max(5, height * 0.14))
                 .accessibilityLabel(live == nil ? "BMS non disponibile" : "BMS collegato")
-            Rectangle().fill(.white.opacity(0.55))
+            Rectangle().fill(colorScheme == .light
+                                 ? Color.black.opacity(0.33) : .white.opacity(0.55))
                 .frame(width: 1, height: height * 0.43).padding(.horizontal, 2)
             PhoneChargeMeter()
         }
@@ -1271,8 +1276,8 @@ struct GPSCockpitDashboard: View {
                 // Mappa 3D a tutta area, senza riquadro: parte sotto il
                 // cruscotto e arriva fino al margine destro, con bordi sfumati.
                 GPSCockpitMap(theme: theme)
-                    .frame(width: w * 0.64, height: h * 0.89)
-                    .position(x: w * 0.68, y: h * 0.49)
+                    .frame(width: w * 0.64, height: h * 0.955)
+                    .position(x: w * 0.68, y: h * 0.5225)
                     .zIndex(5)
 
                 GPSHorizonLine(theme: theme)
@@ -1389,7 +1394,8 @@ private struct GPSHeader: View {
                 Image("EcojumboMark")
                     .resizable().scaledToFit()
                     .frame(width: h * 0.73, height: h * 0.72)
-                Rectangle().fill(.white.opacity(0.55))
+                Rectangle().fill(colorScheme == .light
+                                 ? Color.black.opacity(0.33) : .white.opacity(0.55))
                     .frame(width: 1, height: h * 0.40)
                 Text(now.formatted(date: .omitted, time: .shortened))
                     .font(.system(size: h * 0.44, weight: .bold))
@@ -1398,13 +1404,15 @@ private struct GPSHeader: View {
                 Image(systemName: "location.north.fill")
                 Circle().fill(speedAvailable ? theme.accent : .gray)
                     .frame(width: max(5, h * 0.14), height: max(5, h * 0.14))
-                Rectangle().fill(.white.opacity(0.55))
+                Rectangle().fill(colorScheme == .light
+                                 ? Color.black.opacity(0.33) : .white.opacity(0.55))
                     .frame(width: 1, height: h * 0.43)
                 BluetoothGlyph()
                     .frame(width: h * 0.27, height: h * 0.43)
                 Circle().fill(bmsAvailable ? theme.accent : .gray)
                     .frame(width: max(5, h * 0.14), height: max(5, h * 0.14))
-                Rectangle().fill(.white.opacity(0.55))
+                Rectangle().fill(colorScheme == .light
+                                 ? Color.black.opacity(0.33) : .white.opacity(0.55))
                     .frame(width: 1, height: h * 0.43)
                 PhoneChargeMeter()
             }
@@ -1437,11 +1445,11 @@ final class GPSMapControlStore: ObservableObject {
 // Fascia nera della ricerca GPS: la sommità coincide con il tratto
 // inclinato e con il ginocchio della linea arancione della top bar.
 // Le coordinate sono la proiezione esatta del GPSHorizonLine nel MapKit
-// esteso (larghezza 0,64 e altezza 0,89 del cockpit, centro 0,68/0,49).
+// esteso (larghezza 0,64, altezza 0,955, centro 0,68/0,5225).
 private struct GPSSearchTopBand: Shape {
     func path(in rect: CGRect) -> Path {
         let w = rect.width, h = rect.height
-        let fullW = w / 0.64, fullH = h / 0.89
+        let fullW = w / 0.64, fullH = h / 0.955
         let mapLeft = fullW * 0.36, mapTop = fullH * 0.045
         let left = CGPoint(x: fullW * 0.45 - mapLeft,
                            y: fullH * 0.244 - mapTop)
@@ -1474,7 +1482,7 @@ private struct GPSSearchBottomFade: View {
     var body: some View {
         GeometryReader { geometry in
             let h = geometry.size.height
-            let fullH = h / 0.89
+            let fullH = h / 0.955
             let mapTop = fullH * 0.045
             let leftY = fullH * 0.244 - mapTop
             let kneeY = fullH * 0.099 - mapTop
@@ -1517,7 +1525,26 @@ private struct GPSCockpitMap: View {
             let h = geo.size.height
             ZStack(alignment: .top) {
                 Map(position: $camera) {
-                    UserAnnotation()
+                    // Freccia veicolo: niente indicatore blu rotondo di default.
+                    // Rotazione in base alla rotta/compass reali; senza heading
+                    // valido rimane una semplice freccia rivolta verso nord.
+                    if let coordinate = gps.currentCoordinate() {
+                        Annotation("", coordinate: coordinate, anchor: .center) {
+                            Image(systemName: "location.north.fill")
+                                .font(.system(size: 29, weight: .black))
+                                .foregroundStyle(theme.accent)
+                                .shadow(color: colorScheme == .light
+                                        ? .white.opacity(0.96) : .black.opacity(0.92),
+                                        radius: 3)
+                                .shadow(color: theme.accent.opacity(0.32), radius: 5)
+                                .rotationEffect(.degrees(
+                                    (gps.currentHeading() ?? 0) - (visibleCamera?.heading ?? 0)
+                                ))
+                                .frame(width: 48, height: 48)
+                                .accessibilityLabel("Posizione dello scooter")
+                        }
+                        .annotationTitles(.hidden)
+                    }
                     if let roadRoute = navigation.route {
                         MapPolyline(roadRoute.polyline)
                             .stroke(theme.accent, lineWidth: 5)
@@ -1545,6 +1572,14 @@ private struct GPSCockpitMap: View {
                     .init(color: .white, location: 0.34),
                     .init(color: .white, location: 1)
                 ], startPoint: .leading, endPoint: .trailing))
+                // Full bleed fino al bordo inferiore del display; il margine
+                // basso si fonde nel cockpit senza banda rettangolare.
+                .mask(LinearGradient(stops: [
+                    .init(color: .white, location: 0),
+                    .init(color: .white, location: 0.82),
+                    .init(color: .white.opacity(0.70), location: 0.91),
+                    .init(color: .clear, location: 1)
+                ], startPoint: .top, endPoint: .bottom))
                 LinearGradient(stops: [
                     .init(color: colorScheme == .light ? Color.white.opacity(0.72) : .black.opacity(0.80), location: 0),
                     .init(color: colorScheme == .light ? Color.white.opacity(0.20) : .black.opacity(0.26), location: 0.20),
@@ -1556,7 +1591,7 @@ private struct GPSCockpitMap: View {
                     .init(color: colorScheme == .light ? Color.white.opacity(0.67) : .black.opacity(0.82), location: 0),
                     .init(color: .clear, location: 0.22),
                     .init(color: .clear, location: 0.76),
-                    .init(color: colorScheme == .light ? Color.white.opacity(0.34) : .black.opacity(0.85), location: 1)
+                    .init(color: colorScheme == .light ? Color.white.opacity(0.10) : .black.opacity(0.16), location: 1)
                 ], startPoint: .top, endPoint: .bottom)
                     .allowsHitTesting(false)
                 GPSSearchTopBand()
@@ -1648,7 +1683,7 @@ private struct GPSCockpitMap: View {
                     Spacer(minLength: 0)
                 }
                 // Il bordo superiore si allinea alla top bar della Home GPS.
-                .padding(.top, h * 0.061)
+                .padding(.top, h * 0.0565)
                 .frame(width: w, height: h, alignment: .topLeading)
 
                 // Sei letture leggermente più grandi, ma raccolte nel bordo destro;

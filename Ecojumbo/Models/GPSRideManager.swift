@@ -16,8 +16,11 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     @Published private(set) var lastGPSCoordinate: CLLocationCoordinate2D?
     @Published private(set) var lastHorizontalAccuracy: CLLocationAccuracy?
     @Published private(set) var courseDegrees: CLLocationDirection?
+    @Published private(set) var compassHeadingDegrees: CLLocationDirection?
     private var lastGoodCoordinateAt: Date?
     private var lastCourseAt: Date?
+    private var lastCompassAt: Date?
+    private var lastOneShotRequestAt: Date?
     @Published private(set) var tripKm: Double
     @Published private(set) var totalKm: Double
     @Published private(set) var hasOdometer: Bool
@@ -46,7 +49,8 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         movingSeconds = UserDefaults.standard.double(forKey: "ecojumbo.gps.movingSeconds")
         super.init()
         manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
+        // Primo fix rapido; precisione di navigazione dopo il primo fix valido.
+        manager.desiredAccuracy = kCLLocationAccuracyBest
         manager.activityType = .automotiveNavigation
         // La localizzazione non deve sospendersi mentre lo scooter è fermo:
         // MapKit deve poter acquisire una partenza anche prima di muoversi.
@@ -92,7 +96,16 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         }
         switch manager.authorizationStatus {
         case .authorizedWhenInUse, .authorizedAlways:
+            // Lo stream resta attivo, ma una richiesta singola aiuta ad
+            // ottenere il primo fix senza aspettare il movimento.
             manager.startUpdatingLocation()
+            if CLLocationManager.headingAvailable() { manager.startUpdatingHeading() }
+            let now = Date()
+            if currentCoordinate(at: now) == nil,
+               lastOneShotRequestAt.map({ now.timeIntervalSince($0) > 15 }) ?? true {
+                lastOneShotRequestAt = now
+                manager.requestLocation()
+            }
             state = "Ricerca posizione del dispositivo…"
         case .notDetermined:
             state = "Autorizza l'accesso alla posizione"
@@ -108,6 +121,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     func stop() {
         started = false
         manager.stopUpdatingLocation()
+        if CLLocationManager.headingAvailable() { manager.stopUpdatingHeading() }
         speedKmh = nil
         lastGPSCoordinate = nil
         lastHorizontalAccuracy = nil
@@ -115,6 +129,9 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         lastValidAt = nil
         courseDegrees = nil
         lastCourseAt = nil
+        compassHeadingDegrees = nil
+        lastCompassAt = nil
+        lastOneShotRequestAt = nil
         previousLocation = nil
         lastMotionAt = nil
         isReceiving = false
@@ -179,6 +196,10 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
                 lastCourseAt = fix.timestamp
             }
             lastGPSCoordinate = fix.coordinate
+            if fix.horizontalAccuracy <= 65 &&
+               manager.desiredAccuracy != kCLLocationAccuracyBestForNavigation {
+                manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
+            }
             lastHorizontalAccuracy = fix.horizontalAccuracy
             lastGoodCoordinateAt = fix.timestamp
             state = fix.horizontalAccuracy > 35
@@ -233,6 +254,33 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             }
             previousLocation = fix
         }
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateHeading heading: CLHeading) {
+        // Bussola reale come fallback del course quando lo scooter è fermo.
+        // Ignora letture non attendibili e assenza del sensore.
+        guard started, heading.headingAccuracy >= 0,
+              heading.headingAccuracy <= 45 else { return }
+        let degrees = heading.trueHeading >= 0
+            ? heading.trueHeading : heading.magneticHeading
+        guard degrees >= 0, degrees < 360 else { return }
+        compassHeadingDegrees = degrees
+        lastCompassAt = Date()
+    }
+
+    func currentHeading(at date: Date = Date()) -> CLLocationDirection? {
+        if let course = currentCourse(at: date) { return course }
+        guard let lastCompassAt, let compassHeadingDegrees,
+              date.timeIntervalSince(lastCompassAt) >= 0,
+              date.timeIntervalSince(lastCompassAt) < 20 else { return nil }
+        return compassHeadingDegrees
+    }
+
+    func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager) {
+        // Alcuni sistemi sospendono gli aggiornamenti da fermi nonostante
+        // pausesLocationUpdatesAutomatically = false.
+        guard started else { return }
+        retryLocation()
     }
 
     private func recordRoutePoint(_ fix: CLLocation) {
