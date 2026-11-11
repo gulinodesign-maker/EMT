@@ -106,7 +106,7 @@ struct EcojumboRootView: View {
                 .frame(width: geometry.size.width, height: geometry.size.height)
                 .padding(.bottom, (selected == .dashboard || selected == .gps) ? 0 : 56)
 
-                // Sole/luna a portata di mano, senza occupare i tasti GPS.
+                // Sole/luna in BASSO A SINISTRA, distaccato dal quadrante e dai comandi GPS.
                 if selected == .dashboard || selected == .gps {
                     Button {
                         appearanceMode = isDay
@@ -125,7 +125,8 @@ struct EcojumboRootView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(isDay ? "Attiva modalità scura" : "Attiva modalità chiara")
-                    .position(x: geometry.size.width * 0.165, y: geometry.size.height * 0.159)
+                    .position(x: max(30, geometry.size.width * 0.040),
+                              y: geometry.size.height * 0.765)
                     .zIndex(55)
                 }
 

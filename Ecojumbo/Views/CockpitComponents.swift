@@ -926,9 +926,9 @@ private struct SegmentedGaugeBar: View {
     }
 }
 
-// Il contorno delle cifre usa il percorso vettoriale del glifo, non
-// NSAttributedString.strokeWidth: quest'ultimo crea punte/miter all'interno
-// di alcuni caratteri (in particolare il "2"), simili a stelline.
+// Cifre SPORTIVE: disegno vettoriale racing inclinato, peso Black,
+// contorno neon con giunzioni rotonde, senza punte o artefatti interni.
+// Il tracciato resta uno solo per tutte le cifre, come nella build 36.
 private final class SpeedGlyphOutlineView: UIView {
     var digits = "" { didSet { setNeedsDisplay() } }
     var pointSize: CGFloat = 80 { didSet { setNeedsDisplay() } }
@@ -945,7 +945,9 @@ private final class SpeedGlyphOutlineView: UIView {
 
     override func draw(_ rect: CGRect) {
         guard let context = UIGraphicsGetCurrentContext(), !digits.isEmpty else { return }
-        let uiFont = UIFont.monospacedDigitSystemFont(ofSize: pointSize, weight: .medium)
+        // Il peso Black dà alle cifre un profilo da strumentazione sportiva;
+        // l'inclinazione è applicata al percorso, non tramite font esterni.
+        let uiFont = UIFont.monospacedDigitSystemFont(ofSize: pointSize, weight: .black)
         let font = CTFontCreateWithName(uiFont.fontName as CFString, pointSize, nil)
         let characters = Array(digits.utf16)
         var glyphs = [CGGlyph](repeating: 0, count: characters.count)
@@ -957,7 +959,11 @@ private final class SpeedGlyphOutlineView: UIView {
         var penX: CGFloat = 0
         for index in glyphs.indices {
             if let outline = CTFontCreatePathForGlyph(font, glyphs[index], nil) {
-                let transform = CGAffineTransform(translationX: penX, y: 0)
+                // Compressione orizzontale + inclinazione racing in avanti.
+                // I glifi restano leggibili e il fit viene ricalcolato sul path.
+                let transform = CGAffineTransform(a: 0.91, b: 0,
+                                                  c: 0.18, d: 1,
+                                                  tx: penX * 0.91, ty: 0)
                 path.addPath(outline, transform: transform)
             }
             penX += advances[index].width
@@ -974,7 +980,7 @@ private final class SpeedGlyphOutlineView: UIView {
         context.addPath(path)
         context.setFillColor(UIColor.clear.cgColor)
         context.setStrokeColor(strokeColor.cgColor)
-        context.setLineWidth(max(1.7, pointSize * 0.022))
+        context.setLineWidth(max(1.9, pointSize * 0.024))
         // ROUND join elimina gli spigoli acuti prodotti dai miter dei glifi.
         context.setLineJoin(.round)
         context.setLineCap(.round)
@@ -997,46 +1003,6 @@ private struct HollowSpeedNumber: UIViewRepresentable {
         view.digits = text
         view.pointSize = size
         view.strokeColor = accent
-    }
-}
-
-// Geometria netta delle frecce: segmenti a spigoli e testate squadrate.
-// Mantiene tutte le manovre nell'area interna delle tacche del tachimetro.
-private struct GPSAngularManeuverArrow: Shape {
-    let symbol: String
-    func path(in rect: CGRect) -> Path {
-        let w = rect.width, h = rect.height
-        func p(_ x: CGFloat, _ y: CGFloat) -> CGPoint { CGPoint(x: w * x, y: h * y) }
-        var path = Path()
-        switch symbol {
-        case "arrow.turn.up.left":
-            path.move(to: p(0.83, 0.90))
-            path.addLines([p(0.83, 0.50), p(0.28, 0.50), p(0.28, 0.13)])
-            path.move(to: p(0.10, 0.32))
-            path.addLines([p(0.28, 0.13), p(0.46, 0.32)])
-        case "arrow.turn.up.right":
-            path.move(to: p(0.17, 0.90))
-            path.addLines([p(0.17, 0.50), p(0.72, 0.50), p(0.72, 0.13)])
-            path.move(to: p(0.54, 0.32))
-            path.addLines([p(0.72, 0.13), p(0.90, 0.32)])
-        case "arrow.uturn.left":
-            path.move(to: p(0.79, 0.88))
-            path.addLines([p(0.79, 0.19), p(0.27, 0.19), p(0.27, 0.71)])
-            path.move(to: p(0.10, 0.54))
-            path.addLines([p(0.27, 0.71), p(0.44, 0.54)])
-        case "arrow.clockwise":
-            // Rotatoria: poligono aperto, anziché cerchio molto smussato.
-            path.move(to: p(0.17, 0.78))
-            path.addLines([p(0.17, 0.26), p(0.77, 0.26), p(0.77, 0.72)])
-            path.move(to: p(0.59, 0.54))
-            path.addLines([p(0.77, 0.72), p(0.95, 0.54)])
-        default:
-            path.move(to: p(0.50, 0.88))
-            path.addLine(to: p(0.50, 0.12))
-            path.move(to: p(0.27, 0.34))
-            path.addLines([p(0.50, 0.12), p(0.73, 0.34)])
-        }
-        return path
     }
 }
 
@@ -1119,15 +1085,17 @@ private struct OpenSpeedCluster: View {
                 // La freccia bianca occupa la zona superiore, lontana dalle
                 // cifre; nessun pannello testuale e nessuna scritta GPS.
                 if let navigationArrow {
-                    GPSAngularManeuverArrow(symbol: navigationArrow)
-                        .stroke(Color.white, style: StrokeStyle(
-                            lineWidth: max(3, d * 0.012),
-                            lineCap: .square, lineJoin: .miter, miterLimit: 2))
+                    // Ripristino dei simboli SF (35): frecce chiare e
+                    // riconoscibili, ma ridotte per non coprire le tacche.
+                    Image(systemName: navigationArrow)
+                        .symbolRenderingMode(.monochrome)
+                        .font(.system(size: d * 0.124, weight: .semibold))
+                        .foregroundStyle(.white)
                         .shadow(color: colorScheme == .light
-                                ? .black.opacity(0.72) : .black.opacity(0.34),
-                                radius: colorScheme == .light ? 2.5 : 1.2)
-                        .frame(width: d * 0.175, height: d * 0.125)
-                        .position(x: d * 0.5, y: d * 0.245)
+                                ? .black.opacity(0.78) : .black.opacity(0.42),
+                                radius: colorScheme == .light ? 2.8 : 1.4)
+                        .frame(width: d * 0.205, height: d * 0.142)
+                        .position(x: d * 0.5, y: d * 0.241)
                         .accessibilityLabel(navigationInstruction ?? "Prossima manovra")
                 }
 
