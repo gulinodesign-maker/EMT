@@ -115,17 +115,17 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     bottom_y=top_y+card_h
     dock_top=h-max(4,h*.006)-max(51,min(83,h*.105))
     assert bottom_y<dock_top,(w,h,bottom_y,dock_top)
-    # Bordo barra indirizzo coincidente con la linea superiore (0.085 h).
-    bar_y=h*(.49-.89/2)+map_h*.045
-    assert abs(bar_y-h*.085)<h*.001,(w,h,bar_y)
+    # La ricerca segue il bordo superiore ribassato del GPS.
+    bar_y=h*(.49-.89/2)+map_h*.061
+    assert abs(bar_y-h*.099)<h*.001,(w,h,bar_y)
 assert 'let glassWidth = w * 0.265 * 0.70' in c
 assert '.mask(GPSLowerTerminalFade())' in c
 # Il campo di ricerca aderisce anche al ginocchio della linea GPS.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     map_w=w*.64
     map_h=h*.89
-    knee_global=(w*.54,h*.085)
-    knee_local=(w*.54-w*.36,h*.085-h*.045)
+    knee_global=(w*.54,h*.099)
+    knee_local=(w*.54-w*.36,h*.099-h*.045)
     assert math.isclose(knee_local[0]+w*.36,knee_global[0])
     assert math.isclose(knee_local[1]+h*.045,knee_global[1])
     d=min(h*.982,w*.57)
@@ -156,8 +156,8 @@ assert '.mask(HomeRingBridgeMask().fill(style: FillStyle(eoFill: true)))' in c
 # inferiore della diagonale superiore, anche sugli schermi stretti.
 for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     mh=H*.89
-    left_y=H*(.23-.045)
-    knee_y=H*(.085-.045)
+    left_y=H*(.244-.045)
+    knee_y=H*(.099-.045)
     row=max(43,min(60,mh*.089))
     bottom=max(left_y+max(2,mh*.008),knee_y+row+3)
     assert bottom>left_y and bottom>knee_y+row,(W,H,bottom)
@@ -166,8 +166,8 @@ assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
 # del ginocchio, solo gli ultimi 16-34pt diventano trasparenti.
 for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     mh=H*.89
-    left_y=H*(.23-.045)
-    knee_y=H*(.085-.045)
+    left_y=H*(.244-.045)
+    knee_y=H*(.099-.045)
     row=max(43,min(60,mh*.089))
     bottom=max(left_y+max(2,mh*.008),knee_y+row+3)
     fade_start=max(0,(bottom-max(16,mh*.045))/mh)
@@ -226,8 +226,8 @@ assert 'y: d * 0.241' in c
 assert 'GPSAngularManeuverArrow' not in c
 assert 'y: d * 0.682' not in c
 assert 'y: d * 0.755' in c
-assert c.count('HollowSpeedNumber(text: String(Int(speed.rounded()))')==1
-assert 'context.setLineJoin(.round)' in c
+assert c.count('Text(String(Int(speed.rounded())))')==1
+assert 'SpeedGlyphOutlineView' not in c
 # I sei pannelli non disegnano nella circonferenza, anche nel tema chiaro.
 assert 'DayWingOutsideDial(center: CGPoint(x: w * 0.50, y: h * 0.507),' in c
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
@@ -248,5 +248,10 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     gps_y=h*.765
     assert gps_x-side/2>0 and gps_y+side/2<h*.83
     assert gps_x+side/2<w*.10
-assert 'weight: .black' in c and 'c: 0.18, d: 1,' in c
-print('OK — EJ 1.38: tasto tema accanto alla temperatura Home, Mappe invariata')
+assert 'weight: .black' not in c
+assert 'Text(String(Int(speed.rounded())))' in c
+assert 'CGPoint(x: w * 0.255, y: h * 0.099)' in c
+assert 'CGPoint(x: w * 0.16, y: h * 0.099)' in c
+assert 'CGPoint(x: w * 0.54, y: h * 0.099)' in c
+assert 'fullH * 0.099 - mapTop' in c
+print('OK — EJ 1.39: top bar simmetrica ribassata, fascia GPS allineata, velocita nativa')
