@@ -1484,6 +1484,7 @@ private struct GPSSearchBottomFade: View {
 // aprono un'altra pagina: la mappa è figlia del cockpit GPS.
 @MainActor
 private struct GPSCockpitMap: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps: GPSRideManager
     @StateObject private var navigation = EcoNavigationStore.shared
     @AppStorage("ecojumbo.mapsDestination") private var destination = ""
@@ -1513,6 +1514,8 @@ private struct GPSCockpitMap: View {
                 }
                 // Terreno ed edifici 3D dove Apple Maps li rende disponibili.
                 .mapStyle(.standard(elevation: mapControls.is3D ? .realistic : .flat))
+                // La mappa standard eredita il tema diurno/notturno dalla WindowGroup.
+                .environment(\.colorScheme, colorScheme)
                 .mapControls { MapCompass() }
                 .onMapCameraChange(frequency: .onEnd) { context in
                     visibleCamera = context.camera
@@ -1529,21 +1532,24 @@ private struct GPSCockpitMap: View {
                     .init(color: .white, location: 1)
                 ], startPoint: .leading, endPoint: .trailing))
                 LinearGradient(stops: [
-                    .init(color: .black.opacity(0.80), location: 0),
-                    .init(color: .black.opacity(0.26), location: 0.20),
+                    .init(color: colorScheme == .light ? Color.white.opacity(0.72) : .black.opacity(0.80), location: 0),
+                    .init(color: colorScheme == .light ? Color.white.opacity(0.20) : .black.opacity(0.26), location: 0.20),
                     .init(color: .clear, location: 0.39),
                     .init(color: .clear, location: 1)
                 ], startPoint: .leading, endPoint: .trailing)
                     .allowsHitTesting(false)
                 LinearGradient(stops: [
-                    .init(color: .black.opacity(0.82), location: 0),
+                    .init(color: colorScheme == .light ? Color.white.opacity(0.67) : .black.opacity(0.82), location: 0),
                     .init(color: .clear, location: 0.22),
                     .init(color: .clear, location: 0.76),
-                    .init(color: .black.opacity(0.85), location: 1)
+                    .init(color: colorScheme == .light ? Color.white.opacity(0.34) : .black.opacity(0.85), location: 1)
                 ], startPoint: .top, endPoint: .bottom)
                     .allowsHitTesting(false)
                 GPSSearchTopBand()
-                    .fill(LinearGradient(colors: [
+                    .fill(LinearGradient(colors: colorScheme == .light ? [
+                        Color.white.opacity(0.96),
+                        Color(red: 0.90, green: 0.93, blue: 0.97).opacity(0.90)
+                    ] : [
                         Color.black.opacity(0.88),
                         Color(white: 0.08).opacity(0.91)
                     ], startPoint: .top, endPoint: .bottom))
@@ -1558,13 +1564,13 @@ private struct GPSCockpitMap: View {
                             .font(.system(size: min(19, max(12, h * 0.028)), weight: .bold))
                             .fixedSize()
                         Rectangle()
-                            .fill(.white.opacity(0.40))
+                            .fill(colorScheme == .light ? Color.black.opacity(0.36) : .white.opacity(0.40))
                             .frame(width: 1, height: min(25, h * 0.038))
                         Image(systemName: "magnifyingglass")
-                            .foregroundStyle(.white.opacity(0.70))
+                            .foregroundStyle(colorScheme == .light ? Color(white: 0.30) : .white.opacity(0.70))
                         TextField("Indirizzo di destinazione", text: $destination)
                             .font(.system(size: min(19, max(12, h * 0.030))))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
                             .tint(theme.accent)
                             .textInputAutocapitalization(.words)
                             .autocorrectionDisabled()
@@ -1575,7 +1581,7 @@ private struct GPSCockpitMap: View {
                             Text(navigation.distanceLabel)
                                 .font(.caption)
                                 .lineLimit(1)
-                                .foregroundStyle(.white.opacity(0.77))
+                                .foregroundStyle(colorScheme == .light ? Color(white: 0.25) : .white.opacity(0.77))
                         }
                         Button(action: calculateRoute) {
                             Image(systemName: "arrow.triangle.turn.up.right.diamond.fill")
@@ -1589,7 +1595,7 @@ private struct GPSCockpitMap: View {
                                 navigation.clear()
                             } label: {
                                 Image(systemName: "xmark.circle.fill")
-                                    .foregroundStyle(.white)
+                                    .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
                             }
                             .accessibilityLabel("Cancella itinerario")
                         }
@@ -1615,7 +1621,7 @@ private struct GPSCockpitMap: View {
                             Text(gps.state)
                                 .font(.system(size: max(11, h * 0.023), weight: .medium))
                                 .lineLimit(2)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
                             Spacer(minLength: 3)
                             Button(gps.isPermissionDenied ? "Impostazioni" : "Riprova") {
                                 if gps.isPermissionDenied,
@@ -1630,7 +1636,7 @@ private struct GPSCockpitMap: View {
                         }
                         .padding(.horizontal, 9)
                         .padding(.vertical, 7)
-                        .background(Color.black.opacity(0.83),
+                        .background(colorScheme == .light ? Color.white.opacity(0.91) : Color.black.opacity(0.83),
                                     in: RoundedRectangle(cornerRadius: 9))
                         .padding(.leading, w * 0.285)
                         .padding(.trailing, max(10, w * 0.022))
@@ -1642,7 +1648,7 @@ private struct GPSCockpitMap: View {
                         ProgressView("Calcolo il percorso…")
                             .font(.caption)
                             .padding(8)
-                            .background(.black.opacity(0.78),
+                            .background(colorScheme == .light ? Color.white.opacity(0.88) : .black.opacity(0.78),
                                         in: RoundedRectangle(cornerRadius: 8))
                             .padding(.leading, w * 0.255)
                     } else if let errorMessage = navigation.errorMessage {
@@ -1651,7 +1657,7 @@ private struct GPSCockpitMap: View {
                             .foregroundStyle(.orange)
                             .lineLimit(2)
                             .padding(8)
-                            .background(.black.opacity(0.78),
+                            .background(colorScheme == .light ? Color.white.opacity(0.88) : .black.opacity(0.78),
                                         in: RoundedRectangle(cornerRadius: 8))
                             .padding(.leading, w * 0.255)
                     }
@@ -1839,6 +1845,7 @@ private struct GPSCockpitMap: View {
 // Ogni valore è in un pannello di vetro indipendente, non su banda nera.
 @MainActor
 private struct GPSCompactReadings: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps: GPSRideManager
     @EnvironmentObject private var bluetooth: JKBluetoothManager
     let theme: CockpitTheme
@@ -1880,10 +1887,10 @@ private struct GPSCompactReadings: View {
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.54)
-                .foregroundStyle(.white)
+                .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
                 .shadow(color: .black.opacity(0.65), radius: 2, y: 1)
             Rectangle()
-                .fill(.white.opacity(0.53))
+                .fill(colorScheme == .light ? Color.black.opacity(0.29) : .white.opacity(0.53))
                 .frame(width: 1, height: height * 0.44)
             Image(systemName: icon)
                 .font(.system(size: min(30, max(12, height * 0.34))))
@@ -1892,7 +1899,7 @@ private struct GPSCompactReadings: View {
         }
         .padding(.horizontal, max(4, height * 0.07))
         .frame(height: height)
-        .background(.ultraThinMaterial,
+        .background(colorScheme == .light ? .regularMaterial : .ultraThinMaterial,
                     in: RoundedRectangle(cornerRadius: corner, style: .continuous))
         .background {
             RoundedRectangle(cornerRadius: corner, style: .continuous)
