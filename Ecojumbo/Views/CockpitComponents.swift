@@ -1253,6 +1253,7 @@ struct GPSCockpitDashboard: View {
     @StateObject private var navigation = EcoNavigationStore.shared
     let theme: CockpitTheme
     let now: Date
+    let mapEnabled: Bool
 
     private var maneuverSymbol: String? {
         navigation.isNavigating
@@ -1275,10 +1276,18 @@ struct GPSCockpitDashboard: View {
 
                 // Mappa 3D a tutta area, senza riquadro: parte sotto il
                 // cruscotto e arriva fino al margine destro, con bordi sfumati.
-                GPSCockpitMap(theme: theme)
-                    .frame(width: w * 0.64, height: h * 0.955)
-                    .position(x: w * 0.68, y: h * 0.5225)
-                    .zIndex(5)
+                if mapEnabled {
+                    GPSCockpitMap(theme: theme)
+                        .frame(width: w * 0.64, height: h * 0.955)
+                        .position(x: w * 0.68, y: h * 0.5225)
+                        .zIndex(5)
+                } else {
+                    // Stessa plancia, ma con sei misure grandi sulla metà destra.
+                    GPSExpandedReadings(theme: theme, now: now)
+                        .frame(width: w * 0.475, height: h * 0.68)
+                        .position(x: w * 0.75, y: h * 0.48)
+                        .zIndex(6)
+                }
 
                 GPSHorizonLine(theme: theme)
                     .frame(width: w, height: h)
@@ -1307,6 +1316,7 @@ struct GPSCockpitDashboard: View {
                     .zIndex(28)
 
                 GPSHeader(theme: theme, now: now,
+                          positionAvailable: gps.currentCoordinate(at: now) != nil,
                           speedAvailable: gps.currentSpeed(at: now) != nil,
                           bmsAvailable: live != nil)
                     .frame(width: w, height: h * 0.125)
@@ -1322,7 +1332,9 @@ struct GPSCockpitDashboard: View {
             .clipped()
         }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Cockpit GPS Ecojumbo con percorso stradale MapKit")
+        .accessibilityLabel(mapEnabled
+            ? "Cruscotto Ecojumbo con mappa e percorso GPS"
+            : "Cruscotto Ecojumbo con letture della batteria")
     }
 }
 
@@ -1383,6 +1395,7 @@ private struct GPSHeader: View {
     @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
     let now: Date
+    let positionAvailable: Bool
     let speedAvailable: Bool
     let bmsAvailable: Bool
 
@@ -1402,8 +1415,11 @@ private struct GPSHeader: View {
                     .monospacedDigit()
                 Spacer(minLength: 0)
                 Image(systemName: "location.north.fill")
-                Circle().fill(speedAvailable ? theme.accent : .gray)
+                Circle().fill(speedAvailable ? theme.accent
+                              : (positionAvailable ? Color.yellow : Color.gray))
                     .frame(width: max(5, h * 0.14), height: max(5, h * 0.14))
+                    .accessibilityLabel(speedAvailable ? "GPS e velocità disponibili"
+                        : (positionAvailable ? "GPS attivo: velocità non misurata" : "GPS senza posizione"))
                 Rectangle().fill(colorScheme == .light
                                  ? Color.black.opacity(0.33) : .white.opacity(0.55))
                     .frame(width: 1, height: h * 0.43)
@@ -1568,8 +1584,10 @@ private struct GPSCockpitMap: View {
                 // la barra di ricerca e i comandi restano nitidi e cliccabili.
                 .mask(LinearGradient(stops: [
                     .init(color: .clear, location: 0),
-                    .init(color: .white.opacity(0.60), location: 0.15),
-                    .init(color: .white, location: 0.34),
+                    .init(color: .clear, location: 0.18),
+                    .init(color: .white.opacity(0.20), location: 0.36),
+                    .init(color: .white.opacity(0.65), location: 0.52),
+                    .init(color: .white, location: 0.70),
                     .init(color: .white, location: 1)
                 ], startPoint: .leading, endPoint: .trailing))
                 // Full bleed fino al bordo inferiore del display; il margine
@@ -1951,5 +1969,106 @@ private struct GPSCompactReadings: View {
         .accessibilityAction(named: "Azzera chilometri parziali") {
             if resettable { gps.resetTrip() }
         }
+    }
+}
+
+
+// Pannello senza mappa: stessi dati GPS/BMS reali, sei tessere estese,
+// con etichette leggibili e barre soltanto per le grandezze con scala.
+@MainActor
+private struct GPSExpandedReadings: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var gps: GPSRideManager
+    @EnvironmentObject private var bluetooth: JKBluetoothManager
+    @AppStorage("ecojumbo.bars.averagePowerMaxKW") private var powerScaleKW = 5.0
+    let theme: CockpitTheme
+    let now: Date
+
+    var body: some View {
+        GeometryReader { geo in
+            let h = geo.size.height
+            let gap = max(4, h * 0.016)
+            let cellHeight = max(1, (h - 5 * gap) / 6)
+            let snapshot = bluetooth.snapshot
+            let live = bluetooth.isConnected && snapshot.map({
+                abs(now.timeIntervalSince($0.date)) < 10
+            }) == true ? snapshot : nil
+            VStack(spacing: gap) {
+                expandedTile("Carica residua",
+                             value: live.map { "\($0.soc)%" } ?? "—%",
+                             icon: "bolt.fill",
+                             fraction: live.map { Double($0.soc) / 100.0 },
+                             height: cellHeight)
+                expandedTile("Tensione batteria",
+                             value: live.map { String(format: "%.1f V", $0.voltage) } ?? "— V",
+                             icon: "v.circle",
+                             fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) },
+                             height: cellHeight)
+                expandedTile("Corrente batteria",
+                             value: live.map { String(format: "%.1f A", -$0.current) } ?? "— A",
+                             icon: "a.circle", fraction: nil, height: cellHeight)
+                expandedTile("Potenza istantanea",
+                             value: live.map { String(format: "%.1f kW", -$0.power / 1000) } ?? "— kW",
+                             icon: "chart.bar.fill",
+                             fraction: live.map { min(1, max(0, abs($0.power / 1000) / max(0.1, powerScaleKW))) },
+                             height: cellHeight)
+                expandedTile("Trip parziale",
+                             value: String(format: "%.1f km", gps.tripKm),
+                             icon: "point.topleft.down.curvedto.point.bottomright.up",
+                             fraction: nil, height: cellHeight, resettable: true)
+                expandedTile("Chilometraggio",
+                             value: gps.hasOdometer ? String(format: "%.0f km", gps.totalKm) : "— km",
+                             icon: "speedometer", fraction: nil, height: cellHeight)
+            }
+            .frame(width: geo.size.width, height: h)
+        }
+    }
+
+    private func expandedTile(_ title: String, value: String, icon: String,
+                              fraction: Double?, height: CGFloat,
+                              resettable: Bool = false) -> some View {
+        VStack(spacing: 1) {
+            HStack(spacing: max(4, height * 0.10)) {
+                Image(systemName: icon)
+                    .font(.system(size: max(11, height * 0.28), weight: .semibold))
+                    .foregroundStyle(theme.accent)
+                    .frame(width: height * 0.35)
+                Text(title)
+                    .font(.system(size: max(11, height * 0.26), weight: .medium))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.75)
+                Spacer(minLength: 2)
+                Text(value)
+                    .font(.system(size: max(13, height * 0.36), weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.60)
+            }
+            .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
+            .frame(height: fraction == nil ? height * 0.88 : height * 0.68)
+            if let fraction {
+                MetricGlowBar(fraction: fraction, theme: theme)
+                    .frame(height: max(3, height * 0.10))
+                    .padding(.horizontal, max(8, height * 0.36))
+            }
+        }
+        .padding(.horizontal, max(7, height * 0.14))
+        .frame(height: height)
+        .background(colorScheme == .light ? .regularMaterial : .ultraThinMaterial,
+                    in: RoundedRectangle(cornerRadius: max(9, height * 0.22), style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: max(9, height * 0.22), style: .continuous)
+                .stroke(theme.accent.opacity(colorScheme == .light ? 0.25 : 0.48), lineWidth: 0.9)
+        }
+        .contentShape(Rectangle())
+        .onLongPressGesture(minimumDuration: 1.3) {
+            if resettable {
+                gps.resetTrip()
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title): \(value)")
+        .accessibilityHint(resettable ? "Tieni premuto per azzerare il trip parziale" : "")
     }
 }
