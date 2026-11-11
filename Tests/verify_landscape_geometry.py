@@ -210,8 +210,8 @@ assert c.count('.mask(RadialGradient(stops: [') == 3
 assert 'func retryLocation()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
 # Build 37: frecce SF riconoscibili, più piccole di quelle della 35, lontane dalle tacche.
 # La distanza radiale dal centro resta inferiore alla pista LED (0.361d).
-arrow_top=.233-.165/2
-arrow_bottom=.233+.165/2
+arrow_top=.241-.142/2
+arrow_bottom=.241+.142/2
 arrow_halfwidth=.205/2
 speed_top=.495-.285/2
 speed_bottom=.495+.285/2
@@ -221,8 +221,8 @@ assert 0<arrow_top<arrow_bottom<speed_top<speed_bottom<unit_top<unit_bottom<.89
 assert speed_top-arrow_bottom>.04
 assert math.hypot(arrow_halfwidth,.5-arrow_top)<.35
 assert 'Image(systemName: navigationArrow)' in c
-assert '.frame(width: d * 0.205, height: d * 0.165)' in c
-assert 'y: d * 0.233' in c
+assert '.frame(width: d * 0.205, height: d * 0.142)' in c
+assert 'y: d * 0.241' in c
 assert 'GPSAngularManeuverArrow' not in c
 assert 'y: d * 0.682' not in c
 assert 'y: d * 0.755' in c

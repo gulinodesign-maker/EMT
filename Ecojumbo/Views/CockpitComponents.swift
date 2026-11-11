@@ -1089,13 +1089,13 @@ private struct OpenSpeedCluster: View {
                     // riconoscibili, ma ridotte per non coprire le tacche.
                     Image(systemName: navigationArrow)
                         .symbolRenderingMode(.monochrome)
-                        .font(.system(size: d * 0.142, weight: .semibold))
+                        .font(.system(size: d * 0.124, weight: .semibold))
                         .foregroundStyle(.white)
                         .shadow(color: colorScheme == .light
                                 ? .black.opacity(0.78) : .black.opacity(0.42),
                                 radius: colorScheme == .light ? 2.8 : 1.4)
-                        .frame(width: d * 0.205, height: d * 0.165)
-                        .position(x: d * 0.5, y: d * 0.233)
+                        .frame(width: d * 0.205, height: d * 0.142)
+                        .position(x: d * 0.5, y: d * 0.241)
                         .accessibilityLabel(navigationInstruction ?? "Prossima manovra")
                 }
 

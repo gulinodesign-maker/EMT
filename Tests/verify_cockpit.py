@@ -318,8 +318,8 @@ assert 'if let navigationArrow {' in c
 assert 'Image(systemName: navigationArrow)' in c
 assert '.symbolRenderingMode(.monochrome)' in c
 assert 'GPSAngularManeuverArrow' not in c
-assert 'size: d * 0.142, weight: .semibold' in c
-assert 'y: d * 0.233' in c
+assert 'size: d * 0.124, weight: .semibold' in c
+assert 'y: d * 0.241' in c
 assert 'arrow.turn.up.left' in c and 'arrow.turn.up.right' in c
 assert 'if navigation.isNavigating {\n                        HStack(spacing: 7) {' not in c
 assert 'HollowSpeedNumber(text: String(Int(speed.rounded()))' in c
@@ -338,8 +338,8 @@ assert 'UILabel disegna veramente il contorno' not in c
 assert c.count('HollowSpeedNumber(text: String(Int(speed.rounded()))') == 1
 assert '.blur(radius: d * 0.018)' not in c[c.index('private struct OpenSpeedCluster: View {'):c.index('// Calcola la posizione più a sinistra possibile')]
 assert '.foregroundStyle(.white)' in c[c.index('if let navigationArrow {'):c.index('// UNA SOLA istanza')]
-assert '.frame(width: d * 0.205, height: d * 0.165)' in c
-assert 'y: d * 0.233' in c
+assert '.frame(width: d * 0.205, height: d * 0.142)' in c
+assert 'y: d * 0.241' in c
 assert 'size: d * 0.184' not in c
 assert 'y: d * 0.214' not in c
 assert 'size: d * 0.275' in c
