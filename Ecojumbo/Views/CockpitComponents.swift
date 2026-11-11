@@ -700,6 +700,38 @@ struct CockpitDashboard:View {
                     .position(x: max(12, w * 0.016) + min(136, w * 0.108) / 2,
                               y: h * 0.158)
                     .zIndex(41)
+
+                // Diagnostica e comando GPS visibili anche nella Home.
+                if liveSpeed == nil {
+                    let noticeWidth = min(w * 0.185, 270)
+                    Button {
+                        if gps.isPermissionDenied,
+                           let url = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(url)
+                        } else {
+                            gps.retryLocation()
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "location.slash").foregroundStyle(theme.accent)
+                            Text(gps.speedStatus(at: now))
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
+                        }
+                        .font(.system(size: max(10, h * 0.021), weight: .semibold))
+                        .foregroundStyle(colorScheme == .light ? Color(white: 0.22) : .white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 5)
+                        .frame(width: noticeWidth, alignment: .leading)
+                        .background(colorScheme == .light
+                                    ? Color.white.opacity(0.72) : Color.black.opacity(0.55),
+                                    in: RoundedRectangle(cornerRadius: 7))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Stato GPS: \(gps.speedStatus(at: now)). Tocca per riprovare.")
+                    .position(x: max(12, w * 0.016) + noticeWidth / 2, y: h * 0.258)
+                    .zIndex(41)
+                }
             }
             .frame(width:w,height:h)
             .clipped()
@@ -1705,11 +1737,12 @@ private struct GPSCockpitMap: View {
 
                     // In assenza di posizione non nascondere la causa dietro
                     // al trattino del tachimetro: permessi, precisione e retry.
-                    if gps.currentCoordinate() == nil {
+                    if gps.currentCoordinate() == nil || gps.currentSpeed() == nil {
                         HStack(spacing: 7) {
                             Image(systemName: "location.slash")
                                 .foregroundStyle(.orange)
-                            Text(gps.state)
+                            Text(gps.currentCoordinate() == nil
+                                 ? gps.state : gps.speedStatus())
                                 .font(.system(size: max(11, h * 0.023), weight: .medium))
                                 .lineLimit(2)
                                 .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)

@@ -14,6 +14,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     @Published private(set) var speedKmh: Double?
     // Ultima posizione reale accurata, usata come partenza da MapKit.
     @Published private(set) var lastGPSCoordinate: CLLocationCoordinate2D?
+    @Published private(set) var lastHorizontalAccuracy: CLLocationAccuracy?
     @Published private(set) var courseDegrees: CLLocationDirection?
     private var lastGoodCoordinateAt: Date?
     private var lastCourseAt: Date?
@@ -57,6 +58,23 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         manager.authorizationStatus == .denied || manager.authorizationStatus == .restricted
     }
 
+    // Un fix valido per la mappa non assicura una misura di velocità.
+    func speedStatus(at date: Date = Date()) -> String {
+        if isPermissionDenied { return "Posizione negata: apri Impostazioni" }
+        if !CLLocationManager.locationServicesEnabled() {
+            return "Localizzazione disattivata sul dispositivo"
+        }
+        if manager.accuracyAuthorization == .reducedAccuracy {
+            return "Attiva Posizione precisa per la velocità"
+        }
+        if currentCoordinate(at: date) == nil { return state }
+        if let lastHorizontalAccuracy, lastHorizontalAccuracy > 65 {
+            return "Posizione ±\(Int(lastHorizontalAccuracy)) m: velocità non affidabile"
+        }
+        if speedKmh == nil { return "Posizione ricevuta, velocità non misurata" }
+        return "Attendo nuovo aggiornamento GPS"
+    }
+
     func start() {
         guard !started else { return }
         started = true
@@ -92,7 +110,9 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         manager.stopUpdatingLocation()
         speedKmh = nil
         lastGPSCoordinate = nil
+        lastHorizontalAccuracy = nil
         lastGoodCoordinateAt = nil
+        lastValidAt = nil
         courseDegrees = nil
         lastCourseAt = nil
         previousLocation = nil
@@ -124,8 +144,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         guard started else { return }
         switch manager.authorizationStatus {
         case .authorizedAlways, .authorizedWhenInUse:
-            manager.startUpdatingLocation()
-            state = "Ricerca segnale GPS…"
+            retryLocation()
         case .denied, .restricted:
             speedKmh = nil
             isReceiving = false
@@ -160,21 +179,30 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
                 lastCourseAt = fix.timestamp
             }
             lastGPSCoordinate = fix.coordinate
+            lastHorizontalAccuracy = fix.horizontalAccuracy
             lastGoodCoordinateAt = fix.timestamp
             state = fix.horizontalAccuracy > 35
                 ? "Posizione approssimata (±\(Int(fix.horizontalAccuracy)) m)"
                 : "GPS attivo"
             isReceiving = true
-            // Ignoriamo velocità negative o non misurate per le statistiche.
+            // La velocità nativa viene accettata quando affidabile anche
+            // se speedAccuracy == -1 (dato di incertezza non disponibile).
+            // Mai ricavare la velocità da punti MapKit simulati.
+            let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 20
+                && fix.horizontalAccuracy <= 65
+                && fix.speed >= 0 && fix.speed <= 50
+                && (fix.speedAccuracy < 0 || fix.speedAccuracy <= 7)
+            if usableSpeed {
+                let kmh = fix.speed * 3.6
+                speedKmh = kmh < 1.5 ? 0 : kmh
+                lastValidAt = fix.timestamp
+            }
+
+            // Trip/odometro: filtri severi invariati contro il rumore GPS.
             guard abs(fix.timestamp.timeIntervalSinceNow) < 10,
                   fix.horizontalAccuracy >= 0, fix.horizontalAccuracy <= 35,
                   fix.speed >= 0, fix.speedAccuracy >= 0, fix.speedAccuracy <= 5,
                   fix.speed <= 50 else { continue }
-            let kmh = fix.speed * 3.6
-            speedKmh = kmh < 1.5 ? 0 : kmh
-            state = "GPS attivo"
-            isReceiving = true
-            lastValidAt = fix.timestamp
 
             if let previous = previousLocation {
                 let dt = fix.timestamp.timeIntervalSince(previous.timestamp)
@@ -248,7 +276,16 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
 
     /// I dati GPS non devono restare visibili come correnti se la localizzazione si interrompe.
     func currentSpeed(at date: Date = Date()) -> Double? {
-        guard let lastValidAt, date.timeIntervalSince(lastValidAt) < 8 else { return nil }
+        guard let speedKmh, let lastValidAt else { return nil }
+        let age = date.timeIntervalSince(lastValidAt)
+        guard age >= -2 else { return nil }
+        if speedKmh < 1.5 {
+            // A scooter fermo gli aggiornamenti validi possono essere più radi.
+            guard age < 30, currentCoordinate(at: date) != nil else { return nil }
+        } else {
+            // Mai mantenere un valore positivo se il segnale si interrompe.
+            guard age < 12 else { return nil }
+        }
         return speedKmh
     }
 }

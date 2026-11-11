@@ -235,12 +235,18 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     cutout_radius=d*.495
     rim_radius=d*.985/2
     assert cutout_radius>rim_radius,(w,h,cutout_radius,rim_radius)
-# Il comando sole/luna è a sinistra del tachimetro, sopra i tasti del dock.
+# Home: sole/luna a destra della temperatura; GPS: tasto in basso.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    toggle_x=max(30,w*.040)
-    toggle_y=h*.765
-    toggle_side=max(29,h*.052)
-    assert toggle_x-toggle_side/2>0 and toggle_y+toggle_side/2<h*.83
-    assert toggle_x+toggle_side/2<w*.10
+    left=max(12,w*.016)
+    temp_width=min(136,w*.108)
+    side=max(29,h*.052)
+    home_x=left+temp_width+max(8,w*.007)+side/2
+    dial_left=w*.50-min(h*.982,w*.57)*.5
+    assert home_x-side/2>left+temp_width,(w,h)
+    assert home_x+side/2<dial_left,(w,h)
+    gps_x=max(30,w*.040)
+    gps_y=h*.765
+    assert gps_x-side/2>0 and gps_y+side/2<h*.83
+    assert gps_x+side/2<w*.10
 assert 'weight: .black' in c and 'c: 0.18, d: 1,' in c
-print('OK — EJ 1.37: SF Symbols, contorno sportivo e comando sole/luna basso sinistra')
+print('OK — EJ 1.38: tasto tema accanto alla temperatura Home, Mappe invariata')
