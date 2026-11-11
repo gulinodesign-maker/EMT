@@ -245,8 +245,27 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert dock_width+right_margin < w*.66,(w,h,dock_width)
 assert 'gpsButton("map.fill", active: mapEnabled' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
-assert '.frame(width: w * 0.475, height: h * 0.68)' in c
-assert '.position(x: w * 0.75, y: h * 0.48)' in c
+assert '.frame(width: panelWidth, height: h * 0.68)' in c
+assert '.position(x: panelLeft + panelWidth / 2, y: h * 0.48)' in c
+# Le schede restano oltre il disco con un margine su tutti gli iPhone.
+for w,h in [(736,414),(844,390),(852,393),(932,430),(956,440),(1536,706),(1536,864),(1806,831)]:
+    d=min(h*.965,w*.55)
+    cx=max(d*.51+w*.010,w*.168+d*.30)
+    left=max(w*.60,cx+d*.545+max(14,w*.018))
+    right=w-max(10,w*.012)
+    assert left>cx+d*.50+14,(w,h,left,cx,d)
+    assert right-left>w*.30,(w,h,right-left)
+    # La mappa scompare completamente PRIMA di incontrare l'anello.
+    map_w=w*.64
+    fade_start=min(.56,max(.25,
+        (cx+d*.50+max(12,w*.016)-w*.36)/map_w))
+    map_cutoff=w*.36+map_w*fade_start
+    assert map_cutoff>cx+d*.50,(w,h,map_cutoff,cx+d*.50)
+    assert fade_start+.36<=1,(w,h,fade_start)
+expanded=c[c.index('private struct GPSExpandedReadings: View {'):]
+assert expanded.count('showsBar: true')==3
+assert 'if showsBar {' in expanded
+assert 'MetricGlowBar(fraction: fraction, theme: theme)' in expanded
 assert 'SpeedGlyphOutlineView' not in c  # il font velocita resta SwiftUI semplice
 assert 'Text(String(Int(speed.rounded())))' in c
 assert 'CGPoint(x: w * 0.255, y: h * 0.099)' in c
@@ -266,4 +285,4 @@ assert '.init(color: .white.opacity(0.70), location: 0.91)' in c
 assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
 assert 'UserAnnotation()' not in c
 assert 'manager.startUpdatingHeading()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
-print('OK — EJ 1.41: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')
+print('OK — EJ 1.42: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')

@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 41;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 42;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -357,8 +357,18 @@ assert 'appearanceMode = isDay' in u
 assert 'GPSExpandedReadings(theme: theme, now: now)' in c
 assert 'positionAvailable: gps.currentCoordinate(at: now) != nil' in c
 assert 'Color.yellow : Color.gray' in c
-assert '.init(color: .white.opacity(0.20), location: 0.36)' in c
-assert '.init(color: .white.opacity(0.65), location: 0.52)' in c
+assert 'let panelLeft = max(w * 0.60,' in c
+assert 'dialCenterX + dialSize * 0.545 + max(14, w * 0.018)' in c
+assert '.position(x: panelLeft + panelWidth / 2, y: h * 0.48)' in c
+assert 'let fadeStart = min(0.56, max(0.25,' in c
+assert '.init(color: .clear, location: fadeStart)' in c
+assert '.init(color: .white.opacity(0.07), location: fadeStart + 0.10)' in c
+assert '.init(color: .white.opacity(0.85), location: fadeStart + 0.30)' in c
+expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
+assert expanded.count('showsBar: true') == 3
+assert 'if showsBar {' in expanded
+assert 'MetricGlowBar(fraction: fraction, theme: theme)' in expanded
+assert 'if let fraction {' not in expanded
 assert 'speedDiagnostic' in g and 'estimatedSpeed' in g
 assert '.position(x: geometry.size.width * 0.165, y: geometry.size.height * 0.159)' not in u
 assert 'Picker("Modalità schermo", selection: $appearanceMode)' in o
@@ -440,4 +450,4 @@ assert 'func locationManager(_ manager: CLLocationManager, didUpdateHeading head
 assert 'func currentHeading(at date: Date = Date())' in g
 assert 'func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager)' in g
 assert 'heading.headingAccuracy <= 45' in g
-print('OK — 41: mappa a tutta altezza, freccia, tema giorno leggibile, GPS first fix')
+print('OK — 42: mappa a tutta altezza, freccia, tema giorno leggibile, GPS first fix')
