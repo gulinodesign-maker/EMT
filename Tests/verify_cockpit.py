@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 49;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 50;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -308,7 +308,7 @@ assert 'let lookAhead = mapControls.headingUp' in c
 assert 'private(set) var courseDegrees: CLLocationDirection?' in g
 assert 'fix.speed >= 1.3, fix.course >= 0, fix.course < 360' in g
 assert 'func currentCourse(at date: Date = Date()) -> CLLocationDirection?' in g
-assert '.background(colorScheme == .light ? Color.white.opacity(0.97)' in c
+assert 'RoundedRectangle(cornerRadius: max(14, min(29, height * 0.055))' in c
 assert '.black.opacity(0.35), .black.opacity(0.75)' not in c
 assert '8 * controlSide - 7 * w * 0.008' in c
 # Build 34: guida solo come freccia nel quadrante, neon velocità,
@@ -386,19 +386,20 @@ assert 'Color(white: 0.92).opacity(0.035)' in c
 assert '.init(color: .clear, location: 0.62)' in c
 expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
 assert expanded.count('showsBar: true') == 3
-assert 'expandedTile("Corrente batteria"' not in expanded
-assert 'expandedTile("Potenza istantanea"' not in expanded
-assert expanded.count('expandedTile("') == 5
-assert 'let cellHeight = max(1, (h - 4 * gap) / 5)' in expanded
-assert 'expandedTile("Dislivello viaggio"' in expanded
+assert 'telemetryRow("Corrente batteria"' not in expanded
+assert 'telemetryRow("Potenza istantanea"' not in expanded
+assert expanded.count('telemetryRow("') == 5
+assert 'let rowHeight = max(1, (innerHeight - headerHeight - 4 * dividerHeight) / 5)' in expanded
+assert 'Text("TELEMETRIA")' in expanded
+assert 'telemetryRow("DISL"' in expanded
 assert 'GPSTripAltitudeSparkline(points: gps.altitudeProfile' in expanded
 assert 'onLongPressGesture(minimumDuration: resettable ? 0.5 : 1.3)' in expanded
 assert 'altitudeProfile.removeAll()' in g
 assert 'recordTripAltitude(fix)' in g
 assert 'tripElevationMeters' in g
 assert 'if showsBar {' in expanded
-assert 'MetricGlowBar(fraction: fraction, theme: theme)' in expanded
-assert 'if let fraction {' not in expanded
+assert 'TelemetrySlimBar(fraction: fraction, theme: theme)' in expanded
+assert 'if let progress, progress > 0 {' in expanded
 assert 'speedDiagnostic' in g and 'estimatedSpeed' not in g
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation' in g
 assert 'manager.requestLocation()' not in g
@@ -410,7 +411,7 @@ assert 'UIColor { traits in' in u
 assert '.environment(\.colorScheme, colorScheme)' in c
 assert 'Color.white.opacity(0.96)' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello standard senza mappa')]
 assert 'Color(red: 0.94, green: 0.96, blue: 0.985)' in c
-assert 'colorScheme == .light ? Color.white.opacity(0.97)' in c
+assert 'LinearGradient(colors: colorScheme == .light ? [' in c
 assert '@Environment(\.colorScheme) private var colorScheme' in t
 assert 'private enum GPSManeuverIcon' in c
 assert c.count('OpenSpeedCluster(speed: ') == 2
@@ -484,4 +485,4 @@ assert 'func locationManager(_ manager: CLLocationManager, didUpdateHeading head
 assert 'func currentHeading(at date: Date = Date())' in g
 assert 'func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager)' in g
 assert 'heading.headingAccuracy <= 45' in g
-print('OK — 49: mappa e layout invariati, GPS nativo ripristinato dalla build 33')
+print('OK — 50: mappa e layout invariati, GPS nativo ripristinato dalla build 33')
