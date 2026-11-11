@@ -42,6 +42,8 @@ assert 'GPSTripAltitudeSparkline(points: gps.altitudeProfile' in expanded
 assert "if points.count >= 2" in expanded
 assert "points.map(\\.altitudeMeters)" in expanded
 assert "showAltitudeGraph: true" in expanded
-assert "minimumDuration: resettable ? 0.5 : 1.3" in expanded
+assert "minimumDuration: resettable ? 0.5 : 1.3" not in expanded
+assert "private struct GPSTripResetControl: View" in cockpit
+assert ".onLongPressGesture(minimumDuration: 0.5)" in cockpit
 assert 'String(format: "%+.0f m", $0)' in expanded
-print("OK — build 46, dislivello GPS reale, grafico, reset e velocità preservata")
+print("OK — build 51, dislivello GPS e reset dedicato preservati")

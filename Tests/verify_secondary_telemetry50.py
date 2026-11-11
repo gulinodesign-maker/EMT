@@ -6,7 +6,7 @@ c=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 g=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 p=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert p.count("CURRENT_PROJECT_VERSION = 50;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 51;") == 2
 dashboard=c.split("struct GPSCockpitDashboard: View {",1)[1].split("private struct GPSHorizonLine: View {",1)[0]
 view=c.split("private struct GPSExpandedReadings: View {",1)[1].split(
     "// Altitudine GPS sul percorso effettivamente registrato dal trip.",1)[0]
@@ -18,8 +18,11 @@ assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in dashboar
 assert 'Text("TELEMETRIA")' in view
 assert "VStack(spacing: 0)" in view
 assert "private func telemetryDivider(height: CGFloat)" in view
-assert "RoundedRectangle(cornerRadius: max(14, min(29, height * 0.055))" in view
-assert "LinearGradient(colors: colorScheme == .light ? [" in view
+assert "RoundedRectangle(cornerRadius: max(14, min(29, height * 0.055))" not in view
+assert ".background {" not in view.split("private func telemetryDivider",1)[0]
+assert ".overlay {" not in view.split("private func telemetryDivider",1)[0]
+assert ".shadow(color: theme.accent.opacity(colorScheme == .light" not in view
+assert "GPSExpandedReadings(theme: theme, now: now)" in dashboard
 assert "private struct TelemetrySlimBar: View" in view
 assert view.count('telemetryRow("') == 5
 assert view.count("telemetryDivider(height: dividerHeight)") == 4
@@ -43,8 +46,13 @@ assert "if let progress, progress > 0" in view
 
 # 0.5 second long press resets both trip/elevation exactly as before.
 assert 'telemetryRow("TRIP"' in view
-assert "minimumDuration: resettable ? 0.5 : 1.3" in view
-assert "gps.resetTrip()" in view
+assert "minimumDuration: resettable ? 0.5 : 1.3" not in view
+assert "gps.resetTrip()" not in view
+reset = c.split("private struct GPSTripResetControl: View {",1)[1].split(
+    "private struct GPSHorizonLine: View {",1)[0]
+assert ".onLongPressGesture(minimumDuration: 0.5)" in reset
+assert "gps.resetTrip()" in reset
+assert "UIImpactFeedbackGenerator(style: .medium).impactOccurred()" in reset
 assert "altitudeProfile.removeAll()" in g
 assert "tripKm = 0" in g
 
@@ -71,4 +79,4 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert row>35, (w,h,row)
     assert 5*row+4*.8+header+2*inset<=panel+1e-6
     assert max(11,row*.31) < row*.41
-print("OK — build 50: telemetria unificata, dati live, GPS invariato")
+print("OK — build 51: telemetria unificata, dati live, GPS invariato")

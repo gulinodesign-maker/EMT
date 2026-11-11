@@ -37,7 +37,8 @@ assert 'telemetryRow("TRIP"' in standard
 assert 'telemetryRow("Chilometraggio"' not in standard
 assert 'telemetryRow("Trip parziale"' not in standard
 assert standard.count("showsBar: true") == 3
-assert "resettable: true" in standard
+assert "resettable: true" not in standard
+assert "GPSTripResetControl(theme: theme)" in dashboard
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in standard
 
 # Estimate uses real energy and observed GPS distance; no predefined km per charge.
@@ -69,4 +70,4 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert top>=h*.099
     assert bottom < h-dock_height-dock_bottom
     assert w-right-rail_width > w*.85
-print("OK — build 50, SOC map-only and grounded remaining-range card")
+print("OK — build 51, SOC map-only and grounded remaining-range card")
