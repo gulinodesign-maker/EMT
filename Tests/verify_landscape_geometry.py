@@ -55,7 +55,7 @@ assert 'GPSHorizonLine(theme: theme)' in c
 assert 'GPSLowerGlow(theme: theme)' in c
 assert 'ForEach([EcoTab.trips, .battery, .bms, .settings, .themes])' in u
 assert '@State private var selected: EcoTab = .gps' in u
-assert 'max(4, geometry.size.height * 0.006)' in u
+assert '? max(4, h * 0.006)' in u
 assert 'textTop - max(12, h * 0.014)' in c
 assert 'buttonStart - max(9, w * 0.012)' in c
 for w,h in [(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
