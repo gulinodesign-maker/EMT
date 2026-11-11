@@ -202,7 +202,7 @@ assert 'let gpsGap = width * 0.008' in u
 # Sfumature neutre su entrambe le modalità.
 assert 'private struct CockpitTopSoftShade: View' in c
 assert 'geo.size.height * 0.125' in c
-assert '.init(color: Color(white: 0.30).opacity(0.38), location: 0)' in c
+assert 'colorScheme == .light ? Color.white.opacity(0.83) : Color(white: 0.30).opacity(0.38)' in c
 assert c.count('CockpitTopSoftShade()') == 2
 assert 'private struct LowerPanelShade: Shape' in u
 assert 'LowerPanelShade()' in u
