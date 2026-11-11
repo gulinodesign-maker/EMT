@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (35): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (36): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 35;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 36;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -315,24 +315,36 @@ assert 'navigationInstruction: navigation.guidanceInstruction' in c
 assert 'showsGPSBadge' not in c
 assert 'Text("GPS")' not in c[c.index('private struct OpenSpeedCluster: View {'):c.index('// Calcola la posizione più a sinistra possibile')]
 assert 'if let navigationArrow {' in c
-assert 'Image(systemName: navigationArrow)' in c
+assert 'GPSAngularManeuverArrow(symbol: navigationArrow)' in c
+assert 'private struct GPSAngularManeuverArrow: Shape' in c
+assert 'lineCap: .square, lineJoin: .miter, miterLimit: 2' in c
 assert 'arrow.turn.up.left' in c and 'arrow.turn.up.right' in c
 assert 'if navigation.isNavigating {\n                        HStack(spacing: 7) {' not in c
 assert 'HollowSpeedNumber(text: String(Int(speed.rounded()))' in c
-assert '.strokeWidth: 2.4' in c
-assert 'let font = UIFont.systemFont(ofSize: size, weight: .semibold)' in c
+assert 'import CoreText' in c
+assert 'private final class SpeedGlyphOutlineView: UIView' in c
+assert 'CTFontCreatePathForGlyph(font, glyphs[index], nil)' in c
+assert 'CTFontGetGlyphsForCharacters(font, characters, &glyphs, characters.count)' in c
+assert 'context.setLineJoin(.round)' in c
+assert 'context.setLineCap(.round)' in c
+assert 'context.drawPath(using: .stroke)' in c
+assert '.strokeWidth:' not in c
+assert 'UILabel disegna veramente il contorno' not in c
 assert c.count('HollowSpeedNumber(text: String(Int(speed.rounded()))') == 1
 assert '.blur(radius: d * 0.018)' not in c[c.index('private struct OpenSpeedCluster: View {'):c.index('// Calcola la posizione più a sinistra possibile')]
-assert '.foregroundStyle(.white)' in c[c.index('// Stessa strumentazione nella Home'):c.index('// Due potenze separate')]
-assert 'size: d * 0.184' in c
-assert 'y: d * 0.214' in c
+assert 'stroke(Color.white, style: StrokeStyle(' in c
+assert '.frame(width: d * 0.175, height: d * 0.125)' in c
+assert 'y: d * 0.245' in c
+assert 'size: d * 0.184' not in c
+assert 'y: d * 0.214' not in c
 assert 'size: d * 0.275' in c
 assert 'y: d * 0.495' in c
 assert 'Text("km/h")' in c
 assert 'size: d * 0.047' in c
-assert 'y: d * 0.682' in c
+assert 'y: d * 0.682' not in c
 assert 'y: d * 0.755' in c
-assert c.index('y: d * 0.682') < c.index('Text("km/h")')
+assert 'Text("km/h")' in c
+assert 'Linea sopra l' not in c
 assert 'enum EcoAppearanceMode: String, CaseIterable, Identifiable' in u
 assert 'case dark = "Scuro", light = "Chiaro", automatic = "Automatico"' in u
 assert '@AppStorage("ecojumbo.appearanceMode")' in u
@@ -359,4 +371,14 @@ assert '.mask(RadialGradient(stops: [' in c
 assert '.init(color: .white.opacity(0.58), location: 0.91)' in c
 assert '.shadow(color: .black.opacity(0.88), radius: d * 0.025)' in c
 assert 'if colorScheme == .light {' in c
-print('OK — 35: layout speedometer condiviso, numero senza doppio glow, frecce bianche, barra GPS 50%, light fade')
+# Build 36: pannelli Home ritagliati alla circonferenza in modalità
+# diurna; nessun valore o bordo card può risultare sotto il tachimetro.
+assert 'private struct DayWingOutsideDial: Shape' in c
+assert 'path.addRect(rect)' in c
+assert 'path.addEllipse(in: CGRect(x: center.x - radius,' in c
+assert 'radius: dialSize * 0.495' in c
+assert 'DayWingOutsideDial(center: CGPoint(x: w * 0.50, y: h * 0.507),' in c
+assert '.fill(style: FillStyle(eoFill: true))' in c
+assert 'if colorScheme == .light {' in c
+assert 'PremiumWing(readings: leftRows' in c and 'PremiumWing(readings: rightRows' in c
+print('OK — 36: glifi CoreText senza punte, frecce angolari interne, no separatore, card diurne ritagliate')
