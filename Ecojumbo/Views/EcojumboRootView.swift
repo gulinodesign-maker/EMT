@@ -64,6 +64,26 @@ enum EcoTab: Int, CaseIterable, Identifiable {
     }
 }
 
+// Geometria condivisa: i sette tasti e le sei card hanno gli stessi bordi.
+enum EcoCockpitDockGeometry {
+    static func gap(width: CGFloat) -> CGFloat { width * 0.008 }
+    static func rightInset(width: CGFloat) -> CGFloat { max(12, width * 0.018) }
+
+    static func standardSide(width: CGFloat, height: CGFloat) -> CGFloat {
+        let dial = min(height * 0.965, width * 0.55)
+        let dialX = max(dial * 0.51 + width * 0.010, width * 0.168 + dial * 0.30)
+        let safeLeft = dialX + dial * 0.50 + max(10, width * 0.010)
+        let idealSide = min(max(51, min(83, height * 0.105)) * 0.96, width * 0.052)
+        let available = width - rightInset(width: width) - safeLeft - 6 * gap(width: width)
+        return min(idealSide, max(20, available / 7))
+    }
+
+    static func standardLeft(width: CGFloat, height: CGFloat) -> CGFloat {
+        width - rightInset(width: width) - 7 * standardSide(width: width, height: height)
+            - 6 * gap(width: width)
+    }
+}
+
 struct EcojumboRootView: View {
     @Environment(\.colorScheme) private var systemAppearance
     @EnvironmentObject private var gps: GPSRideManager
@@ -98,14 +118,17 @@ struct EcojumboRootView: View {
                     }
                 }
                 .frame(width: geometry.size.width, height: geometry.size.height)
-                .padding(.bottom, selected == .gps ? 0 : 56)
+                .padding(.bottom, selected == .gps ? 0 : max(110, geometry.size.height * 0.18))
 
                 // Il cockpit GPS è unico: il dock controlla mappa, sezioni e aspetto.
                 CockpitCornerControls(selected: $selected, mapEnabled: $mapEnabled,
-                                      appearanceMode: $appearanceMode, theme: theme)
+                                      appearanceMode: $appearanceMode, theme: theme,
+                                      screenHeight: geometry.size.height)
                     .frame(width: geometry.size.width,
                            height: max(51, min(83, geometry.size.height * 0.105)))
-                    .padding(.bottom, max(4, geometry.size.height * 0.006))
+                    .padding(.bottom, selected == .gps
+                              ? max(4, geometry.size.height * 0.006)
+                              : max(30, geometry.size.height * 0.055))
                     .zIndex(50)
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
@@ -144,6 +167,7 @@ private struct CockpitCornerControls: View {
     @Binding var mapEnabled: Bool
     @Binding var appearanceMode: String
     let theme: CockpitTheme
+    let screenHeight: CGFloat
 
     private var isDay: Bool {
         let preference = EcoAppearanceMode(rawValue: appearanceMode)?.preferredScheme
@@ -155,7 +179,9 @@ private struct CockpitCornerControls: View {
             let width = geo.size.width
             let height = geo.size.height
             let buttonSide = min(height * 0.96, width * 0.059)
-            let gpsSide = min(buttonSide, width * 0.052)
+            let gpsSide = (mapEnabled && selected == .gps)
+                ? min(buttonSide, width * 0.052)
+                : EcoCockpitDockGeometry.standardSide(width: width, height: screenHeight)
             let gpsGap = width * 0.008
             HStack(alignment: .center, spacing: 0) {
                 Spacer(minLength: 0)
@@ -163,7 +189,7 @@ private struct CockpitCornerControls: View {
                     gpsButton("map.fill", active: mapEnabled,
                               accessibility: mapEnabled ? "Disattiva la mappa" : "Attiva la mappa",
                               side: gpsSide) {
-                        mapEnabled.toggle()
+                        if selected == .gps { mapEnabled.toggle() }
                         selected = .gps
                     }
                     if mapEnabled && selected == .gps {
@@ -213,8 +239,8 @@ private struct CockpitCornerControls: View {
                 RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
                     .fill(LinearGradient(stops: [
                         .init(color: colorScheme == .light ? .white : Color(white: 0.37), location: 0),
-                        .init(color: colorScheme == .light ? Color(white: 0.89) : Color(white: 0.19), location: 0.21),
-                        .init(color: colorScheme == .light ? Color(white: 0.79) : Color(white: 0.08), location: 0.78),
+                        .init(color: colorScheme == .light ? Color(white: 0.96) : Color(white: 0.19), location: 0.21),
+                        .init(color: colorScheme == .light ? Color(white: 0.92) : Color(white: 0.08), location: 0.78),
                         .init(color: colorScheme == .light ? Color(white: 0.84) : Color(white: 0.14), location: 1)
                     ], startPoint: .top, endPoint: .bottom))
                 RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
@@ -235,12 +261,8 @@ private struct CockpitCornerControls: View {
                 }
             }
             .frame(width: side, height: side)
-            .shadow(color: .black.opacity(colorScheme == .light ? 0.10 : 0.90),
-                    radius: side * (colorScheme == .light ? 0.07 : 0.16),
-                    y: colorScheme == .light ? 1 : 2)
-            .shadow(color: selected == tab
-                    ? theme.accent.opacity(colorScheme == .light ? 0.06 : 0.31)
-                    : .clear, radius: colorScheme == .light ? 2 : 5)
+
+
             .contentShape(RoundedRectangle(cornerRadius: side * 0.23))
         }
         .buttonStyle(.plain)
@@ -257,8 +279,8 @@ private struct CockpitCornerControls: View {
                 RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
                     .fill(LinearGradient(stops: [
                         .init(color: colorScheme == .light ? .white : Color(white: 0.37), location: 0),
-                        .init(color: colorScheme == .light ? Color(white: 0.89) : Color(white: 0.19), location: 0.21),
-                        .init(color: colorScheme == .light ? Color(white: 0.79) : Color(white: 0.08), location: 0.78),
+                        .init(color: colorScheme == .light ? Color(white: 0.96) : Color(white: 0.19), location: 0.21),
+                        .init(color: colorScheme == .light ? Color(white: 0.92) : Color(white: 0.08), location: 0.78),
                         .init(color: colorScheme == .light ? Color(white: 0.84) : Color(white: 0.14), location: 1)
                     ], startPoint: .top, endPoint: .bottom))
                 RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
@@ -281,17 +303,13 @@ private struct CockpitCornerControls: View {
                 }
             }
             .frame(width: side, height: side)
-            .shadow(color: .black.opacity(colorScheme == .light ? 0.10 : 0.90),
-                    radius: side * (colorScheme == .light ? 0.07 : 0.16),
-                    y: colorScheme == .light ? 1 : 2)
-            .shadow(color: active
-                    ? theme.accent.opacity(colorScheme == .light ? 0.06 : 0.31)
-                    : .clear, radius: colorScheme == .light ? 2 : 5)
+
+
             .contentShape(RoundedRectangle(cornerRadius: side * 0.23))
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.50)
+        .opacity(enabled ? 1 : 0.68)
         .accessibilityLabel(accessibility)
         .accessibilityAddTraits(active ? [.isSelected] : [])
     }

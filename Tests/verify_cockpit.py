@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 42;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 43;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -33,10 +33,8 @@ assert 'case .gps: "GPS"' in u
 assert 'case .maps' not in u and 'case .routes' not in u
 assert 'GPSCockpitDashboard: View' in c
 assert 'private struct GPSCockpitMap: View' in c
-assert 'private struct GPSCompactReadings: View' in c
 assert 'OpenSpeedCluster(speed: gps.currentSpeed(at: now)' in c
 assert 'GPSCockpitMap(theme: theme)' in c
-assert 'GPSCompactReadings(theme: theme)' in c
 assert 'Map(position: $camera)' in c and 'UserAnnotation()' not in c
 assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
 assert 'MapPolyline(roadRoute.polyline)' in c
@@ -74,8 +72,8 @@ assert t.index('searchResponse.mapItems.first') < t.index('guard let origin, CLL
 assert 'await navigation.resumePendingRoute(origin: gps.currentCoordinate())' in c
 assert 'navigation.isWaitingForGPS' in c
 assert 'Image(systemName: "location.slash")' not in c
-assert 'gps.retryLocation()' not in c
-assert 'UIApplication.openSettingsURLString' not in c
+assert 'gps.retryLocation()' in c  # solo pannello diagnostico aperto dall'utente
+assert 'UIApplication.openSettingsURLString' in c  # link permessi nel pannello diagnostico
 assert 'else if let destinationPoint = navigation.destinationCoordinate' in c
 
 assert 'struct CellsView: View' in (r/'Ecojumbo/Views/CellsView.swift').read_text()
@@ -144,7 +142,7 @@ assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
 assert 'p.addLine(to: CGPoint(x: knee.x, y: bottomY))' not in c
 assert '.background(Color.clear)' in c
 assert 'clipShape(RoundedRectangle(cornerRadius: 16' not in c
-assert 'min(37, max(12, height * 0.38))' in c
+assert 'GPSCompactReadings' not in c  # nessun pannello sopra la mappa
 assert 'buttonStart - max(9, w * 0.012)' in c
 assert 'CockpitContourGeometry.roundedPath(points:' in u
 assert 'CockpitContourGeometry.roundedPath(points:' in c
@@ -204,7 +202,12 @@ assert 'accessibility: "Mostra intero percorso"' not in u
 assert 'mapControls.send(.recenter)' in u
 assert 'mapControls.send(.zoomIn)' in u
 assert 'mapControls.send(.zoomOut)' in u
-assert 'let gpsSide = min(buttonSide, width * 0.052)' in u
+assert 'EcoCockpitDockGeometry.standardSide(width: width, height: screenHeight)' in u
+assert 'screenHeight: geometry.size.height' in u
+assert ': max(30, geometry.size.height * 0.055)' in u
+assert 'selected == .gps ? 0 : max(110, geometry.size.height * 0.18)' in u
+assert 'Color(white: 0.96) : Color(white: 0.19)' in u
+assert '.shadow(color: .black.opacity(colorScheme == .light ? 0.10 : 0.90)' not in u
 assert 'let gpsGap = width * 0.008' in u
 # Sfumature neutre su entrambe le modalità.
 assert 'private struct CockpitTopSoftShade: View' in c
@@ -245,15 +248,11 @@ assert 'func resetTrip()' in g
 assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.tripKm")' in g
 assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in g
 assert 'onLongPressGesture(minimumDuration: 1.3)' in c
-assert 'glassReading(String(format: "%.1f km", gps.tripKm)' in c
-assert 'let glassWidth = w * 0.265 * 0.70' in c
-assert 'let glassHeight = h * 0.60' in c
-assert 'let tileHeight = max(1, (h - 5 * gap) / 6)' in c
-assert '.position(x: w - max(6, w * 0.012) - glassWidth / 2,' in c
-assert 'y: h * (0.21 + 0.60 / 2)' in c
+assert 'GPSCompactReadings' not in c
+assert 'GPSCompactReadings(theme: theme)' not in c
+assert 'glassReading(' not in c
 assert '.padding(.top, h * 0.0565)' in c
 assert '.padding(.leading, w * 0.285)' in c
-assert 'height: tileHeight, resettable: true)' in c
 assert 'if reading.title == "Trip parziale"' in c
 assert 'gps.resetTrip()' in c
 assert 'UIApplication.shared.isIdleTimerDisabled = true' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
@@ -310,11 +309,9 @@ assert 'let lookAhead = mapControls.headingUp' in c
 assert 'private(set) var courseDegrees: CLLocationDirection?' in g
 assert 'fix.speed >= 1.3, fix.course >= 0, fix.course < 360' in g
 assert 'func currentCourse(at date: Date = Date()) -> CLLocationDirection?' in g
-assert c.count('glassReading(') == 7
-assert '.background(colorScheme == .light ? .regularMaterial : .ultraThinMaterial,' in c
+assert '.background(colorScheme == .light ? Color.white.opacity(0.97)' in c
 assert '.black.opacity(0.35), .black.opacity(0.75)' not in c
 assert '8 * controlSide - 7 * w * 0.008' in c
-assert 'struct GPSCompactReadings: View' in c
 # Build 34: guida solo come freccia nel quadrante, neon velocità,
 # mappa diurna e modalità chiaro/scuro/automatico con comando rapido.
 assert 'private var maneuverSymbol: String?' in c
@@ -358,8 +355,17 @@ assert 'appearanceMode = isDay' in u
 assert 'GPSExpandedReadings(theme: theme, now: now)' in c
 assert 'positionAvailable: gps.currentCoordinate(at: now) != nil' in c
 assert 'Color.yellow : Color.gray' in c
-assert 'let panelLeft = max(w * 0.60,' in c
-assert 'dialCenterX + dialSize * 0.545 + max(14, w * 0.018)' in c
+assert 'let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)' in c
+assert 'let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) - panelLeft)' in c
+assert 'GPSDiagnosticsView()' in c
+assert 'GPSHeader: View' in c and 'showGPSDiagnostics = true' in c
+assert 'lastNativeSpeed' in g and 'lastNativeSpeedAccuracy' in g
+assert 'lastGPSFixTime = fix.timestamp' in g
+assert 'hasPreciseLocation && fix.horizontalAccuracy <= 150' in g
+assert 'nativeAccuracyGood' in g
+assert 'Color.black.opacity(0.27)' in c
+assert 'Color.black.opacity(0.80)' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello senza mappa')]
+assert 'EcoCockpitDockGeometry.standardLeft(width: w, height: h)' in c
 assert '.position(x: panelLeft + panelWidth / 2, y: h * 0.48)' in c
 assert 'let fadeStart = min(0.56, max(0.25,' in c
 assert '.init(color: .clear, location: fadeStart)' in c
@@ -379,14 +385,13 @@ assert 'UIColor { traits in' in u
 assert '.environment(\.colorScheme, colorScheme)' in c
 assert 'Color.white.opacity(0.96)' in c
 assert 'Color(red: 0.94, green: 0.96, blue: 0.985)' in c
-assert 'colorScheme == .light ? .regularMaterial : .ultraThinMaterial' in c
+assert 'colorScheme == .light ? Color.white.opacity(0.97)' in c
 assert '@Environment(\.colorScheme) private var colorScheme' in t
 assert 'private enum GPSManeuverIcon' in c
 assert c.count('OpenSpeedCluster(speed: ') == 2
 assert 'GPSManeuverIcon.symbol(for: navigation.guidanceInstruction)' in c
 assert '@StateObject private var navigation = EcoNavigationStore.shared' in c
 assert 'navigationArrow: maneuverSymbol' in c
-assert 'Color.black.opacity(0.50)' in c
 assert 'Color.black.opacity(0.88)' not in c[c.index('GPSSearchTopBand()'):c.index('VStack(alignment: .leading, spacing: 7)',c.index('GPSSearchTopBand()'))]
 assert '.mask(RadialGradient(stops: [' in c
 assert '.init(color: .white.opacity(0.58), location: 0.91)' in c
@@ -413,7 +418,7 @@ assert 'guard age < 30, currentCoordinate(at: date) != nil else { return nil }' 
 assert 'fix.horizontalAccuracy <= 35' in g and 'fix.speedAccuracy <= 5' in g
 assert 'if phase == .active { gps.retryLocation() }' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
 assert 'Text(gps.speedStatus(at: now))' not in c
-assert 'gps.speedStatus()' not in c
+assert 'gps.speedStatus()' in c  # diagnostica solo su richiesta
 assert 'if liveSpeed == nil {' not in c
 assert 'if gps.currentCoordinate() == nil || gps.currentSpeed() == nil {' not in c
 assert 'func speedStatus(at date: Date = Date()) -> String' in g
@@ -440,9 +445,9 @@ assert 'struct BluetoothGlyph:View {' in c
 assert '.stroke(colorScheme == .light ? Color(white: 0.16) : .white,' in c
 assert 'Color.black.opacity(0.33)' in c
 assert 'Text(text)' in u and 'foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)' in u
-assert 'colorScheme == .light ? 0.10 : 0.90' in u
-assert 'colorScheme == .light ? 0.07 : 0.16' in u
-assert 'colorScheme == .light ? 0.06 : 0.31' in u
+assert 'Color(white: 0.96) : Color(white: 0.19)' in u
+assert 'Color(white: 0.92) : Color(white: 0.08)' in u
+assert 'if selected == .gps { mapEnabled.toggle() }' in u
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBest' in g
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation' in g
 assert 'manager.requestLocation()' in g
@@ -451,4 +456,4 @@ assert 'func locationManager(_ manager: CLLocationManager, didUpdateHeading head
 assert 'func currentHeading(at date: Date = Date())' in g
 assert 'func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager)' in g
 assert 'heading.headingAccuracy <= 45' in g
-print('OK — 42: mappa a tutta altezza, freccia, tema giorno leggibile, GPS first fix')
+print('OK — 43: mappa a tutta altezza, freccia, tema giorno leggibile, GPS first fix')
