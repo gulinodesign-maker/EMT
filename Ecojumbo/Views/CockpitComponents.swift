@@ -534,6 +534,7 @@ private struct HomeRingTerminalFade: View {
 }
 
 struct CockpitDashboard:View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps:GPSRideManager
     @EnvironmentObject private var bluetooth:JKBluetoothManager
     let theme:CockpitTheme
@@ -675,7 +676,7 @@ struct CockpitDashboard:View {
                 .accessibilityLabel("Ora corrente")
             Spacer(minLength: 0)
             Image(systemName: "location.north.fill")
-                .foregroundStyle(.white)
+                .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
                 .accessibilityLabel("GPS")
             Circle().fill(liveSpeed == nil ? Color.gray : theme.accent)
                 .frame(width: max(5, height * 0.14), height: max(5, height * 0.14))
@@ -691,7 +692,7 @@ struct CockpitDashboard:View {
             PhoneChargeMeter()
         }
         .font(.system(size: max(13, height * 0.34), weight: .medium))
-        .foregroundStyle(.white)
+        .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
         .padding(.horizontal, max(14, width * 0.031))
         .padding(.bottom, height * 0.08)
     }
@@ -1362,6 +1363,7 @@ private struct GPSHorizonLine: View {
 
 @MainActor
 private struct GPSHeader: View {
+    @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
     let now: Date
     let speedAvailable: Bool
@@ -1395,7 +1397,7 @@ private struct GPSHeader: View {
                 PhoneChargeMeter()
             }
             .font(.system(size: max(13, h * 0.34), weight: .medium))
-            .foregroundStyle(.white)
+            .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
             .padding(.horizontal, max(14, w * 0.031))
             .padding(.bottom, h * 0.08)
             .frame(width: w, height: h)
