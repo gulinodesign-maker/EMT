@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 47;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 48;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -375,8 +375,15 @@ assert '.mask(RadialGradient(stops: [' in c
 assert 'center: UnitPoint(x: mapLocalDialX / w, y: mapLocalDialY / h)' in c
 assert 'startRadius: dialMaskRadius' in c
 assert 'endRadius: dialMaskRadius + dialMaskFeather' in c
-assert '.init(color: .clear, location: (0.099 - 0.045) / 0.955)' in c
-assert '.init(color: .white, location: (0.099 - 0.045) / 0.955 + 0.0001)' in c
+assert 'private struct GPSMapTopContourClip: Shape' in c
+assert 'private struct GPSMapLowerContourClip: Shape' in c
+assert '.mask(GPSMapTopContourClip())' in c
+assert '.mask(GPSMapLowerContourClip())' in c
+assert 'GPSLowerLineGeometry.points(' in c
+assert 'GPSMapContourSpace.local(points[3], cockpit: cockpit)' in c
+assert 'Color(white: 0.88).opacity(0.10)' in c
+assert 'Color(white: 0.92).opacity(0.035)' in c
+assert '.init(color: .clear, location: 0.62)' in c
 expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
 assert expanded.count('showsBar: true') == 2
 assert 'expandedTile("Corrente batteria"' not in expanded
@@ -477,4 +484,4 @@ assert 'func locationManager(_ manager: CLLocationManager, didUpdateHeading head
 assert 'func currentHeading(at date: Date = Date())' in g
 assert 'func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager)' in g
 assert 'heading.headingAccuracy <= 45' in g
-print('OK — 47: mappa e layout invariati, GPS nativo ripristinato dalla build 33')
+print('OK — 48: mappa e layout invariati, GPS nativo ripristinato dalla build 33')

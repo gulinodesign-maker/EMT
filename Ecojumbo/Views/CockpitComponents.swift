@@ -1205,6 +1205,7 @@ private struct GPSLowerTerminalFade: View {
 }
 
 private struct GPSLowerGlow: View {
+    @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
 
     var body: some View {
@@ -1214,7 +1215,15 @@ private struct GPSLowerGlow: View {
                 // Luce grigio-antracite subito sotto il ponte: sfuma
                 // verso il basso senza creare un pannello separato.
                 GPSLowerShade()
-                    .fill(LinearGradient(stops: [
+                    .fill(LinearGradient(stops: colorScheme == .light ? [
+                        // Day: il velo scompare presto verso il basso, senza
+                        // la precedente grande macchia grigia sotto i kW.
+                        .init(color: Color(white: 0.88).opacity(0.10), location: 0),
+                        .init(color: Color(white: 0.92).opacity(0.035), location: 0.28),
+                        .init(color: .clear, location: 0.62),
+                        .init(color: .clear, location: 1)
+                    ] : [
+                        // Dark: stesso effetto approvato nella build 47.
                         .init(color: Color(white: 0.42).opacity(0.36), location: 0),
                         .init(color: Color(white: 0.29).opacity(0.22), location: 0.42),
                         .init(color: Color(white: 0.17).opacity(0.07), location: 0.78),
@@ -1534,6 +1543,81 @@ final class GPSMapControlStore: ObservableObject {
     func send(_ command: GPSMapCommand) { commands.send(command) }
 }
 
+// Clip esatto dei due raccordi arancioni. Le coordinate sono quelle del
+// cockpit, convertite nello spazio locale di MapKit (64% × 95,5%).
+// A differenza del solo fade radiale, questi due tagli eliminano i cunei
+// che sbordavano sopra la linea alta e sotto il ponte dei kW.
+private enum GPSMapContourSpace {
+    static func cockpitSize(for rect: CGRect) -> CGSize {
+        CGSize(width: rect.width / 0.64, height: rect.height / 0.955)
+    }
+
+    static func local(_ point: CGPoint, cockpit: CGSize) -> CGPoint {
+        CGPoint(x: point.x - cockpit.width * 0.36,
+                y: point.y - cockpit.height * 0.045)
+    }
+}
+
+private struct GPSMapTopContourClip: Shape {
+    func path(in rect: CGRect) -> Path {
+        let cockpit = GPSMapContourSpace.cockpitSize(for: rect)
+        let w = cockpit.width
+        let h = cockpit.height
+        // Inset di sicurezza sotto la linea luminosa, in punti reali.
+        let clearance = max(2, h * 0.003)
+        let corner = CockpitContourGeometry.cornerRadius(in: cockpit)
+        let start = GPSMapContourSpace.local(
+            CGPoint(x: w * 0.45, y: h * 0.244 + clearance), cockpit: cockpit)
+        let elbow = GPSMapContourSpace.local(
+            CGPoint(x: w * 0.54, y: h * 0.099 + clearance), cockpit: cockpit)
+
+        var path = Path()
+        path.move(to: CGPoint(x: 0, y: rect.height))
+        path.addLine(to: CGPoint(x: rect.width, y: rect.height))
+        path.addLine(to: CGPoint(x: rect.width, y: elbow.y))
+        // Stesso addArc tangente usato dalla linea superiore del cockpit.
+        path.addArc(tangent1End: elbow, tangent2End: start, radius: corner)
+        path.addLine(to: start)
+        path.addLine(to: CGPoint(x: 0, y: start.y))
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct GPSMapLowerContourClip: Shape {
+    func path(in rect: CGRect) -> Path {
+        let cockpit = GPSMapContourSpace.cockpitSize(for: rect)
+        let h = cockpit.height
+        let points = GPSLowerLineGeometry.points(
+            in: CGRect(origin: .zero, size: cockpit))
+        let corner = CockpitContourGeometry.cornerRadius(in: cockpit)
+        let clearance = max(2, h * 0.003)
+        // Teniamo la cartografia a DESTRA del fianco discendente dei kW.
+        // Sotto il piede destro, niente triangolo con testo "Maps/Legal".
+        let topLeft = GPSMapContourSpace.local(points[1], cockpit: cockpit)
+        let topRight = GPSMapContourSpace.local(points[2], cockpit: cockpit)
+        let foot = GPSMapContourSpace.local(points[3], cockpit: cockpit)
+        let safeTopLeft = CGPoint(x: topLeft.x, y: topLeft.y - clearance)
+        let safeTopRight = CGPoint(x: topRight.x + clearance,
+                                   y: topRight.y - clearance)
+        let safeFoot = CGPoint(x: foot.x + clearance, y: foot.y - clearance)
+
+        var path = Path()
+        path.move(to: .zero)
+        path.addLine(to: CGPoint(x: rect.width, y: 0))
+        path.addLine(to: CGPoint(x: rect.width, y: rect.height))
+        path.addLine(to: CGPoint(x: safeFoot.x, y: rect.height))
+        path.addLine(to: safeFoot)
+        // Raggio del raccordo identico a GPSLowerContour.
+        path.addArc(tangent1End: safeTopRight, tangent2End: safeTopLeft,
+                    radius: corner)
+        path.addLine(to: safeTopLeft)
+        path.addLine(to: CGPoint(x: 0, y: safeTopLeft.y))
+        path.closeSubpath()
+        return path
+    }
+}
+
 // Riga indirizzo su mappa trasparente, senza sfondi o sfumature dedicate.
 // Ricerca e anteprima della navigazione NON presentano NavigationStack né
 // aprono un'altra pagina: la mappa è figlia del cockpit GPS.
@@ -1615,15 +1699,10 @@ private struct GPSCockpitMap: View {
                 ], center: UnitPoint(x: mapLocalDialX / w, y: mapLocalDialY / h),
                    startRadius: dialMaskRadius,
                    endRadius: dialMaskRadius + dialMaskFeather))
-                // Niente MapKit SOPRA il segmento orizzontale della top bar.
-                // La mappa inizia nella coordinata globale h*0.099:
-                // il suo frame ha origine h*0.045 ed altezza h*0.955.
-                .mask(LinearGradient(stops: [
-                    .init(color: .clear, location: 0),
-                    .init(color: .clear, location: (0.099 - 0.045) / 0.955),
-                    .init(color: .white, location: (0.099 - 0.045) / 0.955 + 0.0001),
-                    .init(color: .white, location: 1)
-                ], startPoint: .top, endPoint: .bottom))
+                // I segmenti arancioni sono veri bordi di clipping, anche
+                // nei raccordi obliqui e nei due triangoli di confine.
+                .mask(GPSMapTopContourClip())
+                .mask(GPSMapLowerContourClip())
                 // Full bleed fino al bordo inferiore del display; il margine
                 // basso si fonde nel cockpit senza banda rettangolare.
                 .mask(LinearGradient(stops: [

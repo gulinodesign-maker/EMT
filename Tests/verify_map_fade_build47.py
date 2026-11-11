@@ -25,9 +25,12 @@ assert "Color.black.opacity(0.27)" not in map_section
 assert "fadeStart + 0.055" not in map_section
 assert ".background(Color.clear)" in map_section
 
-# La top bar continua a tagliare MapKit al suo bordo inferiore.
-assert ".init(color: .clear, location: (0.099 - 0.045) / 0.955)" in map_section
-assert ".init(color: .white, location: (0.099 - 0.045) / 0.955 + 0.0001)" in map_section
+# I segmenti della top bar e del ponte kW sono limiti di clipping reali.
+assert ".mask(GPSMapTopContourClip())" in map_section
+assert ".mask(GPSMapLowerContourClip())" in map_section
+assert "private struct GPSMapTopContourClip: Shape" in cockpit
+assert "private struct GPSMapLowerContourClip: Shape" in cockpit
+assert "GPSLowerLineGeometry.points(" in cockpit
 
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     d = min(h*.965,w*.55)
