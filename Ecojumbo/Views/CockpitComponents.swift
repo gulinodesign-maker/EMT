@@ -2067,8 +2067,8 @@ private struct EcoRangeEstimate {
     }
 }
 
-// Pannello standard senza mappa: cinque schede di telemetria reale.
-// Corrente e potenza restano nelle altre sezioni dell'app e nel cruscotto.
+// Display OLED secondario minimalista. Tutte le misure restano LIVE:
+ // nessun valore fittizio viene usato quando BMS o GPS non sono disponibili.
 @MainActor
 private struct GPSExpandedReadings: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -2079,90 +2079,141 @@ private struct GPSExpandedReadings: View {
 
     var body: some View {
         GeometryReader { geo in
-            let h = geo.size.height
-            let gap = max(4, h * 0.018)
-            let cellHeight = max(1, (h - 4 * gap) / 5)
+            let width = geo.size.width
+            let height = geo.size.height
+            let insetX = max(10, min(23, width * 0.036))
+            let insetY = max(7, min(17, height * 0.022))
+            let innerHeight = max(1, height - 2 * insetY)
+            let headerHeight = max(24, min(42, innerHeight * 0.105))
+            let dividerHeight: CGFloat = 0.8
+            let rowHeight = max(1, (innerHeight - headerHeight - 4 * dividerHeight) / 5)
             let snapshot = bluetooth.snapshot
             let live = bluetooth.isConnected && snapshot.map({
                 abs(now.timeIntervalSince($0.date)) < 10
             }) == true ? snapshot : nil
             let autonomy = EcoRangeEstimate(snapshot: live, session: bluetooth.session)
-            VStack(spacing: gap) {
-                expandedTile("Carica residua",
+
+            VStack(spacing: 0) {
+                HStack(spacing: max(7, width * 0.015)) {
+                    Rectangle().fill(theme.accent.opacity(0.75))
+                        .frame(width: max(15, width * 0.052), height: 1)
+                    Text("TELEMETRIA")
+                        .font(.system(size: max(11, min(17, rowHeight * 0.225)),
+                                      weight: .semibold, design: .rounded))
+                        .tracking(2.0)
+                        .foregroundStyle(colorScheme == .light
+                                         ? Color(white: 0.33) : Color(white: 0.65))
+                    Rectangle().fill(theme.accent.opacity(0.75))
+                        .frame(width: max(15, width * 0.052), height: 1)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: headerHeight)
+
+                telemetryRow("SOC",
                              value: live.map { "\($0.soc)%" } ?? "—%",
-                             icon: "bolt.fill",
                              fraction: live.map { Double($0.soc) / 100.0 },
-                             showsBar: true, height: cellHeight)
-                expandedTile("Tensione batteria",
+                             showsBar: true, height: rowHeight)
+                telemetryDivider(height: dividerHeight)
+
+                telemetryRow("V BAT",
                              value: live.map { String(format: "%.1f V", $0.voltage) } ?? "— V",
-                             icon: "v.circle",
                              fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) },
-                             showsBar: true, height: cellHeight)
-                expandedTile("Autonomia residua",
+                             showsBar: true, height: rowHeight)
+                telemetryDivider(height: dividerHeight)
+
+                telemetryRow("AUT",
                              value: autonomy.map { String(format: "%.0f km", $0.kilometers) } ?? "— km",
-                             icon: "road.lanes",
                              fraction: autonomy?.fractionOfFull,
-                             showsBar: true, height: cellHeight)
-                expandedTile("Trip",
+                             showsBar: true, height: rowHeight)
+                telemetryDivider(height: dividerHeight)
+
+                telemetryRow("TRIP",
                              value: String(format: "%.1f km", gps.tripKm),
-                             icon: "point.topleft.down.curvedto.point.bottomright.up",
-                             fraction: nil, height: cellHeight, resettable: true)
-                expandedTile("Dislivello viaggio",
-                             value: gps.tripElevationMeters.map { String(format: "%+.0f m", $0) } ?? "— m",
-                             icon: "mountain.2.fill", fraction: nil,
-                             showAltitudeGraph: true, height: cellHeight)
+                             fraction: nil, height: rowHeight, resettable: true)
+                telemetryDivider(height: dividerHeight)
+
+                telemetryRow("DISL",
+                             value: gps.tripElevationMeters.map {
+                                 String(format: "%+.0f m", $0)
+                             } ?? "— m",
+                             fraction: nil, showAltitudeGraph: true,
+                             height: rowHeight)
             }
-            .frame(width: geo.size.width, height: h)
+            .frame(width: max(1, width - 2 * insetX), height: innerHeight)
+            .padding(.horizontal, insetX)
+            .padding(.vertical, insetY)
+            .frame(width: width, height: height)
+            .background {
+                RoundedRectangle(cornerRadius: max(14, min(29, height * 0.055)),
+                                 style: .continuous)
+                    .fill(LinearGradient(colors: colorScheme == .light ? [
+                        Color.white.opacity(0.985),
+                        Color(red: 0.94, green: 0.95, blue: 0.97).opacity(0.95)
+                    ] : [
+                        Color(white: 0.095).opacity(0.98),
+                        Color(white: 0.025).opacity(0.98)
+                    ], startPoint: .topLeading, endPoint: .bottomTrailing))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: max(14, min(29, height * 0.055)),
+                                 style: .continuous)
+                    .stroke(theme.accent.opacity(colorScheme == .light ? 0.57 : 0.83),
+                            lineWidth: max(0.9, min(1.6, height * 0.0024)))
+            }
+            .shadow(color: theme.accent.opacity(colorScheme == .light ? 0.07 : 0.18),
+                    radius: max(4, height * 0.018))
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Telemetria")
     }
 
-    private func expandedTile(_ title: String, value: String, icon: String,
+    private func telemetryDivider(height: CGFloat) -> some View {
+        Rectangle()
+            .fill(colorScheme == .light
+                  ? Color.black.opacity(0.12) : Color.white.opacity(0.17))
+            .frame(height: height)
+    }
+
+    private func telemetryRow(_ label: String, value: String,
                               fraction: Double?, showsBar: Bool = false,
                               showAltitudeGraph: Bool = false,
                               height: CGFloat, resettable: Bool = false) -> some View {
-        VStack(spacing: max(2, height * 0.055)) {
-            HStack(spacing: max(4, height * 0.10)) {
-                Image(systemName: icon)
-                    .font(.system(size: max(11, height * 0.28), weight: .semibold))
-                    .foregroundStyle(theme.accent)
-                    .frame(width: height * 0.35)
-                Text(title)
-                    .font(.system(size: max(11, height * 0.26), weight: .medium))
+        VStack(spacing: 0) {
+            HStack(spacing: max(6, height * 0.1)) {
+                Text(label)
+                    .font(.system(size: max(11, min(23, height * 0.245)),
+                                  weight: .medium, design: .rounded))
+                    .tracking(0.6)
+                    .foregroundStyle(colorScheme == .light
+                                     ? Color(white: 0.32) : Color(white: 0.68))
                     .lineLimit(1)
-                    .minimumScaleFactor(0.75)
-                Spacer(minLength: 2)
+                    .minimumScaleFactor(0.8)
+
+                Spacer(minLength: 4)
+
                 Text(value)
-                    .font(.system(size: max(13, height * 0.36), weight: .bold, design: .rounded))
+                    .font(.system(size: max(15, min(34, height * 0.36)),
+                                  weight: .bold, design: .rounded))
                     .monospacedDigit()
+                    .foregroundStyle(colorScheme == .light ? Color(white: 0.10) : .white)
                     .lineLimit(1)
                     .minimumScaleFactor(0.60)
             }
-            .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
-            .frame(height: showAltitudeGraph ? height * 0.48
-                   : (showsBar ? height * 0.58 : height * 0.88))
-            if showAltitudeGraph {
-                GPSTripAltitudeSparkline(points: gps.altitudeProfile, color: theme.accent)
-                    .frame(height: max(10, height * 0.30))
-                    .padding(.leading, max(8, height * 0.38))
-                    .padding(.trailing, max(8, height * 0.19))
-            }
-            // La traccia resta visibile anche con BMS non connesso:
-            // fraction nil significa nessun riempimento, non barra assente.
+            .frame(height: showsBar || showAltitudeGraph
+                   ? height * 0.59 : height, alignment: .center)
+
             if showsBar {
-                MetricGlowBar(fraction: fraction, theme: theme)
-                    .frame(height: max(5, height * 0.13))
-                    .padding(.leading, max(8, height * 0.38))
-                    .padding(.trailing, max(8, height * 0.19))
+                // Frazione nil: sfondo visibile e nessun riempimento simulato.
+                TelemetrySlimBar(fraction: fraction, theme: theme)
+                    .frame(height: max(4, min(8, height * 0.090)))
+                    .padding(.top, max(1, height * 0.028))
+            } else if showAltitudeGraph {
+                GPSTripAltitudeSparkline(points: gps.altitudeProfile, color: theme.accent)
+                    .frame(height: max(11, height * 0.31))
             }
         }
-        .padding(.horizontal, max(7, height * 0.14))
+        .frame(maxWidth: .infinity)
         .frame(height: height)
-        .background(colorScheme == .light ? Color.white.opacity(0.97) : Color(white: 0.12).opacity(0.96),
-                    in: RoundedRectangle(cornerRadius: max(9, height * 0.22), style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: max(9, height * 0.22), style: .continuous)
-                .stroke(theme.accent.opacity(colorScheme == .light ? 0.25 : 0.48), lineWidth: 0.9)
-        }
         .contentShape(Rectangle())
         .onLongPressGesture(minimumDuration: resettable ? 0.5 : 1.3) {
             if resettable {
@@ -2171,8 +2222,43 @@ private struct GPSExpandedReadings: View {
             }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title): \(value)")
-        .accessibilityHint(resettable ? "Tieni premuto per mezzo secondo per azzerare trip e dislivello" : "")
+        .accessibilityLabel("\(label): \(value)")
+        .accessibilityHint(resettable
+                           ? "Tieni premuto per mezzo secondo per azzerare trip e dislivello"
+                           : "")
+    }
+}
+
+// Progressi sottili e luminosi, soltanto per SOC, tensione e autonomia.
+private struct TelemetrySlimBar: View {
+    let fraction: Double?
+    let theme: CockpitTheme
+
+    var body: some View {
+        GeometryReader { geo in
+            let progress = fraction.map { min(1, max(0, $0)) }
+            ZStack(alignment: .leading) {
+                Capsule()
+                    .fill(Color(white: 0.15).opacity(0.88))
+                    .overlay {
+                        Capsule().stroke(Color.white.opacity(0.18), lineWidth: 0.7)
+                    }
+
+                if let progress, progress > 0 {
+                    Capsule()
+                        .fill(LinearGradient(colors: [theme.secondary, theme.accent],
+                                             startPoint: .leading, endPoint: .trailing))
+                        .frame(width: max(1, geo.size.width * CGFloat(progress)))
+                        .shadow(color: theme.accent.opacity(0.34),
+                                radius: max(1, geo.size.height * 0.52))
+                }
+            }
+            .frame(width: geo.size.width, height: geo.size.height)
+        }
+        .animation(.easeInOut(duration: 0.3), value: fraction)
+        .accessibilityValue(fraction.map {
+            "\(Int(($0 * 100).rounded())) percento della scala grafica"
+        } ?? "Dati non disponibili")
     }
 }
 
