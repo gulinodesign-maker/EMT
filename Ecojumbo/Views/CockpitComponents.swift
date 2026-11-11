@@ -1029,11 +1029,13 @@ private struct OpenSpeedCluster: View {
                         .accessibilityLabel(navigationInstruction ?? "Prossima manovra")
                 }
 
-                // Cifre velocità rosse, senza contorno, ombre o artifici tipografici.
+                // Cifre velocità rosse in Arial Bold, senza contorno o ombre.
                 Group {
                     if let speed {
                         Text(String(Int(speed.rounded())))
-                            .font(.system(size: d * 0.275, weight: .bold, design: .rounded))
+                            // Arial Bold (nome PostScript iOS): solo le cifre
+                            // della velocità; scalatura e colore invariati.
+                            .font(.custom("Arial-BoldMT", size: d * 0.275))
                             .monospacedDigit()
                             .foregroundStyle(CockpitTheme.dischargeAccent)
                             .lineLimit(1)

@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 52;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 53;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -331,7 +331,7 @@ assert 'arrow.turn.up.left' in c and 'arrow.turn.up.right' in c
 assert 'if navigation.isNavigating {\n                        HStack(spacing: 7) {' not in c
 # Build 39: velocità leggibile in SwiftUI e senza disegno vettoriale.
 assert 'Text(String(Int(speed.rounded())))' in c
-assert '.font(.system(size: d * 0.275, weight: .bold, design: .rounded))' in c
+assert '.font(.custom("Arial-BoldMT", size: d * 0.275))' in c
 assert '.foregroundStyle(CockpitTheme.dischargeAccent)' in c
 assert '.monospacedDigit()' in c
 assert 'SpeedGlyphOutlineView' not in c
