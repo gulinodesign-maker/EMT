@@ -206,6 +206,23 @@ for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     dg=min(H*.982,W*.50)
     rg=dg*.508
     assert max(18,H*.070)<dg*.25
-assert c.count('.mask(RadialGradient(stops: [') == 2
+assert c.count('.mask(RadialGradient(stops: [') == 3
 assert 'func retryLocation()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
-print('OK — EJ 1.33: sfumature superiori su entrambe le schermate, GPS retry')
+# Build 35: lo stesso tachimetro interno in Home e GPS:
+# freccia e cifre separate, linea fra cifre e unità, km/h in basso.
+arrow_top=.214-.185/2
+arrow_bottom=.214+.185/2
+speed_top=.495-.285/2
+speed_bottom=.495+.285/2
+separator=.682
+unit_top=.755-.065/2
+unit_bottom=.755+.065/2
+assert 0<arrow_top<arrow_bottom<speed_top<speed_bottom<separator<unit_top<unit_bottom<.89
+assert speed_top-arrow_bottom>.04
+assert 'y: d * 0.682' in c
+assert 'y: d * 0.755' in c
+assert 'HollowSpeedNumber(text: String(Int(speed.rounded()))' in c
+assert c.count('HollowSpeedNumber(text: String(Int(speed.rounded()))')==1
+assert 'navigationArrow: maneuverSymbol' in c
+assert 'GPSManeuverIcon.symbol(for: navigation.guidanceInstruction)' in c
+print('OK — EJ 1.35: frecce e cifre distinte, linea sopra km/h, layout unico Home/GPS')

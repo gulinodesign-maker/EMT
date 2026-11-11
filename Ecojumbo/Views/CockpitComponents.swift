@@ -533,7 +533,22 @@ private struct HomeRingTerminalFade: View {
     }
 }
 
+// Condiviso fra Home e GPS: una manovra ha sempre la stessa icona.
+private enum GPSManeuverIcon {
+    static func symbol(for instruction: String) -> String {
+        let hint = instruction.lowercased()
+        if hint.contains("inversion") || hint.contains("uturn") || hint.contains("u-turn") {
+            return "arrow.uturn.left"
+        }
+        if hint.contains("rotond") || hint.contains("roundabout") { return "arrow.clockwise" }
+        if hint.contains("sinistr") || hint.contains("left") { return "arrow.turn.up.left" }
+        if hint.contains("destr") || hint.contains("right") { return "arrow.turn.up.right" }
+        return "arrow.up"
+    }
+}
+
 struct CockpitDashboard:View {
+    @StateObject private var navigation = EcoNavigationStore.shared
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps:GPSRideManager
     @EnvironmentObject private var bluetooth:JKBluetoothManager
@@ -617,7 +632,11 @@ struct CockpitDashboard:View {
                 OpenSpeedCluster(speed: liveSpeed,
                                  incomingPower: live.map { Swift.max(0, $0.power) },
                                  outgoingPower: live.map { Swift.max(0, -$0.power) },
-                                 theme: theme)
+                                 theme: theme,
+                                 navigationArrow: navigation.isNavigating
+                                     ? GPSManeuverIcon.symbol(for: navigation.guidanceInstruction)
+                                     : nil,
+                                 navigationInstruction: navigation.guidanceInstruction)
                     .frame(width: dialSize, height: dialSize)
                     .position(x: w / 2, y: h * 0.507)
                     .zIndex(30)
@@ -894,13 +913,21 @@ private struct HollowSpeedNumber:UIViewRepresentable {
         return label
     }
     func updateUIView(_ uiView:UILabel,context:Context) {
-        let font=UIFont.systemFont(ofSize:size,weight:.bold)
-        uiView.attributedText = NSAttributedString(string:text,attributes:[
-            .font:font,
-            .foregroundColor:UIColor.clear,
-            .strokeColor:accent,
-            .strokeWidth:3.5
+        // Un solo contorno reale, senza due UILabel sovrapposte:
+        // la doppia composizione precedente creava artefatti luminosi.
+        let font = UIFont.systemFont(ofSize: size, weight: .semibold)
+        uiView.attributedText = NSAttributedString(string: text, attributes: [
+            .font: font,
+            .foregroundColor: UIColor.clear,
+            .strokeColor: accent,
+            .strokeWidth: 2.4,
+            .kern: 0
         ])
+        uiView.layer.shadowColor = accent.cgColor
+        uiView.layer.shadowOpacity = 0.60
+        uiView.layer.shadowRadius = max(2, size * 0.035)
+        uiView.layer.shadowOffset = .zero
+        uiView.layer.masksToBounds = false
     }
 }
 
@@ -912,10 +939,9 @@ private struct OpenSpeedCluster: View {
     let incomingPower: Double?
     let outgoingPower: Double?
     let theme: CockpitTheme
-    // Solo nel cockpit mappa: freccia senza pannelli di istruzioni.
+    // Layout unico per Home e GPS. Freccia visibile solo se la rotta è attiva.
     var navigationArrow: String? = nil
     var navigationInstruction: String? = nil
-    var showsGPSBadge = true
 
     private func magnitude(_ input: Double, limit: Double) -> Double {
         Swift.max(0, Swift.min(1, abs(input) / limit))
@@ -930,13 +956,27 @@ private struct OpenSpeedCluster: View {
             let inputFill = incomingPower.map { magnitude($0, limit: 13_000) }
             ZStack {
                 // Il carbonio chiude completamente il quadrante sopra le ali sottostanti.
-                Circle()
-                    .fill(colorScheme == .light ? Color(red: 0.975, green: 0.982, blue: 0.993) : Color(red: 0.016, green: 0.015, blue: 0.017))
-                    .frame(width: d * 0.986, height: d * 0.986)
-                    .shadow(color: .black.opacity(0.88), radius: d * 0.025)
+                // In modalità diurna il fondo si fonde nel cockpit: non
+                // compare il disco bianco pieno sopra mappa o pannelli.
+                if colorScheme == .light {
+                    Circle()
+                        .fill(Color(red: 0.94, green: 0.96, blue: 0.985).opacity(0.95))
+                        .frame(width: d * 0.986, height: d * 0.986)
+                        .mask(RadialGradient(stops: [
+                            .init(color: .white, location: 0),
+                            .init(color: .white, location: 0.77),
+                            .init(color: .white.opacity(0.58), location: 0.91),
+                            .init(color: .clear, location: 1)
+                        ], center: .center, startRadius: 0, endRadius: d * 0.493))
+                } else {
+                    Circle()
+                        .fill(Color(red: 0.016, green: 0.015, blue: 0.017))
+                        .frame(width: d * 0.986, height: d * 0.986)
+                        .shadow(color: .black.opacity(0.88), radius: d * 0.025)
+                }
                 Image("CarbonWeave")
                     .resizable(resizingMode: .tile)
-                    .opacity(colorScheme == .light ? 0.07 : 0.74)
+                    .opacity(colorScheme == .light ? 0 : 0.74)
                     .frame(width: d * 0.982, height: d * 0.982)
                     .clipShape(Circle())
                 Circle()
@@ -945,6 +985,7 @@ private struct OpenSpeedCluster: View {
                         : [.black.opacity(0.36), .clear, .black.opacity(0.55)], center: .center,
                                          startRadius: d * 0.06, endRadius: d * 0.49))
                     .frame(width: d * 0.98, height: d * 0.98)
+                    .opacity(colorScheme == .light ? 0 : 1)
 
                 // Le due scale hanno un'anima grigia per tutta la corsa; solo dati REALI
                 // attivano segmenti luminosi e colorati (mai valori inventati).
@@ -965,65 +1006,53 @@ private struct OpenSpeedCluster: View {
                 SpeedLEDStream(d: d, speed: speed)
                 SpeedScaleTicks(d: d)
 
-                // Freccia chiara, grande e isolata SOPRA la velocità.
+                // Stessa strumentazione nella Home e nella mappa.
+                // La freccia bianca occupa la zona superiore, lontana dalle
+                // cifre; nessun pannello testuale e nessuna scritta GPS.
                 if let navigationArrow {
                     Image(systemName: navigationArrow)
-                        .font(.system(size: d * 0.125, weight: .bold))
-                        .foregroundStyle(theme.accent)
-                        .shadow(color: theme.accent.opacity(0.7), radius: d * 0.018)
-                        .frame(width: d * 0.19, height: d * 0.17)
-                        .position(x: d * 0.5, y: d * 0.255)
+                        .font(.system(size: d * 0.184, weight: .bold))
+                        .foregroundStyle(.white)
+                        .shadow(color: colorScheme == .light ? .black.opacity(0.78) : .black.opacity(0.42),
+                                radius: colorScheme == .light ? 3 : 1.5)
+                        .shadow(color: .white.opacity(0.32), radius: d * 0.008)
+                        .frame(width: d * 0.25, height: d * 0.185)
+                        .position(x: d * 0.5, y: d * 0.214)
                         .accessibilityLabel(navigationInstruction ?? "Prossima manovra")
                 }
 
-                VStack(spacing: d * 0.004) {
+                // UNA SOLA istanza di UILabel a tracciato: niente sovrapposizione
+                // di contorni, niente stella o artefatto nelle cifre neon.
+                Group {
                     if let speed {
-                        ZStack {
-                            // Tracciato di contorno trasparente e neon diffuso,
-                            // ispirato ai numeri luminosi del riferimento.
-                            HollowSpeedNumber(text: String(Int(speed.rounded())),
-                                              size: d * 0.245,
-                                              accent: UIColor(theme.accent))
-                                .blur(radius: d * 0.018)
-                                .opacity(0.88)
-                            HollowSpeedNumber(text: String(Int(speed.rounded())),
-                                              size: d * 0.245,
-                                              accent: UIColor(theme.accent))
-                                .shadow(color: theme.accent.opacity(0.92), radius: d * 0.010)
-                        }
-                        .frame(width: d * 0.47, height: d * 0.245)
-                        .accessibilityLabel("Velocità GPS: \(Int(speed.rounded())) chilometri orari")
+                        HollowSpeedNumber(text: String(Int(speed.rounded())),
+                                          size: d * 0.275,
+                                          accent: UIColor(theme.accent))
+                            .frame(width: d * 0.60, height: d * 0.285)
+                            .accessibilityLabel("Velocità GPS: \(Int(speed.rounded())) chilometri orari")
                     } else {
                         Text("—")
-                            .font(.system(size: d * 0.19, weight: .light))
-                            .foregroundStyle(colorScheme == .light ? Color(white: 0.25) : .white.opacity(0.90))
-                            .frame(height: d * 0.245)
+                            .font(.system(size: d * 0.22, weight: .light))
+                            .foregroundStyle(colorScheme == .light
+                                             ? Color(white: 0.25) : .white.opacity(0.90))
+                            .frame(width: d * 0.60, height: d * 0.285)
                             .accessibilityLabel("GPS non disponibile")
                     }
-                    Text("km/h")
-                        .font(.system(size: d * 0.070, weight: .medium))
-                        .foregroundStyle(colorScheme == .light ? Color(white: 0.22) : .white.opacity(0.81))
-                    Rectangle().fill(colorScheme == .light ? Color(white: 0.30) : .white)
-                        .frame(width: d * 0.215, height: max(1.2, d * 0.006))
-                        .padding(.top, d * 0.017)
-                    if showsGPSBadge {
-                        Text("GPS")
-                            .font(.system(size: d * 0.062, weight: .heavy, design: .rounded))
-                            .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
-                            .frame(width: d * 0.165, height: d * 0.087)
-                            .background(colorScheme == .light
-                                        ? Color.white.opacity(0.87) : Color.black.opacity(0.88),
-                                        in: RoundedRectangle(cornerRadius: d * 0.030, style: .continuous))
-                            .overlay {
-                                RoundedRectangle(cornerRadius: d * 0.030, style: .continuous)
-                                    .stroke(theme.accent, lineWidth: max(1, d * 0.003))
-                            }
-                            .shadow(color: theme.accent.opacity(0.34), radius: d * 0.012)
-                            .padding(.top, d * 0.025)
-                    }
                 }
-                .frame(width: d * 0.52, height: d * 0.46)
-                .position(x: d * 0.50, y: d * 0.485)
+                .position(x: d * 0.5, y: d * 0.495)
+
+                // Linea sopra l'unità di misura, sotto ai numeri.
+                Rectangle()
+                    .fill(colorScheme == .light ? Color(white: 0.30) : .white.opacity(0.88))
+                    .frame(width: d * 0.235, height: max(1.2, d * 0.005))
+                    .position(x: d * 0.5, y: d * 0.682)
+
+                Text("km/h")
+                    .font(.system(size: d * 0.047, weight: .medium))
+                    .foregroundStyle(colorScheme == .light
+                                     ? Color(white: 0.24) : .white.opacity(0.85))
+                    .frame(width: d * 0.20, height: d * 0.065)
+                    .position(x: d * 0.5, y: d * 0.755)
 
                 // Due potenze separate, invece di corrente A e potenza con segno:
                 // azzurro = ingresso batteria, rosso = uscita batteria.
@@ -1226,20 +1255,9 @@ struct GPSCockpitDashboard: View {
     let now: Date
 
     private var maneuverSymbol: String? {
-        guard navigation.isNavigating else { return nil }
-        let instruction = navigation.guidanceInstruction.lowercased()
-        if instruction.contains("inversion") || instruction.contains("uturn")
-            || instruction.contains("u-turn") { return "arrow.uturn.left" }
-        if instruction.contains("rotond") || instruction.contains("roundabout") {
-            return "arrow.clockwise"
-        }
-        if instruction.contains("sinistr") || instruction.contains("left") {
-            return "arrow.turn.up.left"
-        }
-        if instruction.contains("destr") || instruction.contains("right") {
-            return "arrow.turn.up.right"
-        }
-        return "arrow.up"
+        navigation.isNavigating
+            ? GPSManeuverIcon.symbol(for: navigation.guidanceInstruction)
+            : nil
     }
 
     var body: some View {
@@ -1271,8 +1289,7 @@ struct GPSCockpitDashboard: View {
                                  outgoingPower: live.map { Swift.max(0, -$0.power) },
                                  theme: theme,
                                  navigationArrow: maneuverSymbol,
-                                 navigationInstruction: navigation.guidanceInstruction,
-                                 showsGPSBadge: false)
+                                 navigationInstruction: navigation.guidanceInstruction)
                     .frame(width: dialSize, height: dialSize)
                     .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(25)
@@ -1552,8 +1569,8 @@ private struct GPSCockpitMap: View {
                         Color.white.opacity(0.96),
                         Color(red: 0.90, green: 0.93, blue: 0.97).opacity(0.90)
                     ] : [
-                        Color.black.opacity(0.88),
-                        Color(white: 0.08).opacity(0.91)
+                        Color.black.opacity(0.50),
+                        Color.black.opacity(0.50)
                     ], startPoint: .top, endPoint: .bottom))
                     .frame(width: w, height: h)
                     .mask(GPSSearchBottomFade())
