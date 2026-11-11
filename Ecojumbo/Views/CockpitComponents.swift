@@ -1271,6 +1271,14 @@ struct GPSCockpitDashboard: View {
             // neppure su iPhone stretti: bordo calcolato sul quadrante reale.
             let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)
             let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) - panelLeft)
+            // Le card occupano il centro dello spazio tra la top bar e il dock.
+            let dockHeight = max(51, min(83, h * 0.105))
+            let dockBottom = max(4, h * 0.006)
+            let outerMargin = max(8, h * 0.018)
+            let cardsTop = h * 0.099 + outerMargin
+            let cardsBottom = h - dockBottom - dockHeight - outerMargin
+            let cardsHeight = max(1, cardsBottom - cardsTop)
+            let cardsCenterY = (cardsTop + cardsBottom) / 2
             let live = bluetooth.snapshot
             ZStack {
                 CarbonBackdrop(theme: theme)
@@ -1286,10 +1294,10 @@ struct GPSCockpitDashboard: View {
                         .position(x: w * 0.68, y: h * 0.5225)
                         .zIndex(5)
                 } else {
-                    // Quattro misure principali con spazio verticale uniforme.
+                    // Cinque schede principali, centrate fino al dock inferiore.
                     GPSExpandedReadings(theme: theme, now: now)
-                        .frame(width: panelWidth, height: h * 0.70)
-                        .position(x: panelLeft + panelWidth / 2, y: h * 0.455)
+                        .frame(width: panelWidth, height: cardsHeight)
+                        .position(x: panelLeft + panelWidth / 2, y: cardsCenterY)
                         .zIndex(6)
                 }
 
@@ -1950,7 +1958,7 @@ private struct GPSCockpitMap: View {
     }
 }
 
-// Pannello standard senza mappa: quattro schede di telemetria reale.
+// Pannello standard senza mappa: cinque schede di telemetria reale.
 // Corrente e potenza restano nelle altre sezioni dell'app e nel cruscotto.
 @MainActor
 private struct GPSExpandedReadings: View {
@@ -1963,8 +1971,8 @@ private struct GPSExpandedReadings: View {
     var body: some View {
         GeometryReader { geo in
             let h = geo.size.height
-            let gap = max(6, h * 0.025)
-            let cellHeight = max(1, (h - 3 * gap) / 4)
+            let gap = max(4, h * 0.018)
+            let cellHeight = max(1, (h - 4 * gap) / 5)
             let snapshot = bluetooth.snapshot
             let live = bluetooth.isConnected && snapshot.map({
                 abs(now.timeIntervalSince($0.date)) < 10
@@ -1987,6 +1995,10 @@ private struct GPSExpandedReadings: View {
                 expandedTile("Chilometraggio",
                              value: gps.hasOdometer ? String(format: "%.0f km", gps.totalKm) : "— km",
                              icon: "speedometer", fraction: nil, height: cellHeight)
+                expandedTile("Dislivello viaggio",
+                             value: gps.tripElevationMeters.map { String(format: "%+.0f m", $0) } ?? "— m",
+                             icon: "mountain.2.fill", fraction: nil,
+                             showAltitudeGraph: true, height: cellHeight)
             }
             .frame(width: geo.size.width, height: h)
         }
@@ -1994,6 +2006,7 @@ private struct GPSExpandedReadings: View {
 
     private func expandedTile(_ title: String, value: String, icon: String,
                               fraction: Double?, showsBar: Bool = false,
+                              showAltitudeGraph: Bool = false,
                               height: CGFloat, resettable: Bool = false) -> some View {
         VStack(spacing: max(2, height * 0.055)) {
             HStack(spacing: max(4, height * 0.10)) {
@@ -2013,7 +2026,14 @@ private struct GPSExpandedReadings: View {
                     .minimumScaleFactor(0.60)
             }
             .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
-            .frame(height: showsBar ? height * 0.58 : height * 0.88)
+            .frame(height: showAltitudeGraph ? height * 0.48
+                   : (showsBar ? height * 0.58 : height * 0.88))
+            if showAltitudeGraph {
+                GPSTripAltitudeSparkline(points: gps.altitudeProfile, color: theme.accent)
+                    .frame(height: max(10, height * 0.30))
+                    .padding(.leading, max(8, height * 0.38))
+                    .padding(.trailing, max(8, height * 0.19))
+            }
             // La traccia resta visibile anche con BMS non connesso:
             // fraction nil significa nessun riempimento, non barra assente.
             if showsBar {
@@ -2032,7 +2052,7 @@ private struct GPSExpandedReadings: View {
                 .stroke(theme.accent.opacity(colorScheme == .light ? 0.25 : 0.48), lineWidth: 0.9)
         }
         .contentShape(Rectangle())
-        .onLongPressGesture(minimumDuration: 1.3) {
+        .onLongPressGesture(minimumDuration: resettable ? 0.5 : 1.3) {
             if resettable {
                 gps.resetTrip()
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
@@ -2040,6 +2060,49 @@ private struct GPSExpandedReadings: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(title): \(value)")
-        .accessibilityHint(resettable ? "Tieni premuto per azzerare il trip parziale" : "")
+        .accessibilityHint(resettable ? "Tieni premuto per mezzo secondo per azzerare trip e dislivello" : "")
+    }
+}
+
+
+// Altitudine GPS sul percorso effettivamente registrato dal trip.
+// In assenza di misure reali non viene disegnato un profilo fittizio.
+private struct GPSTripAltitudeSparkline: View {
+    let points: [TripAltitudePoint]
+    let color: Color
+
+    var body: some View {
+        GeometryReader { geo in
+            if points.count >= 2, let first = points.first, let last = points.last {
+                let heights = points.map(\.altitudeMeters)
+                let lowest = heights.min() ?? first.altitudeMeters
+                let highest = heights.max() ?? last.altitudeMeters
+                let verticalSpan = max(2.0, highest - lowest)
+                let horizontalSpan = max(0.001, last.distanceKm - first.distanceKm)
+                Path { path in
+                    for (index, point) in points.enumerated() {
+                        let x = CGFloat((point.distanceKm - first.distanceKm) / horizontalSpan)
+                            * geo.size.width
+                        let y = geo.size.height * CGFloat(
+                            1.0 - (point.altitudeMeters - lowest) / verticalSpan
+                        )
+                        if index == 0 {
+                            path.move(to: CGPoint(x: x, y: y))
+                        } else {
+                            path.addLine(to: CGPoint(x: x, y: y))
+                        }
+                    }
+                }
+                .stroke(color, style: StrokeStyle(lineWidth: 1.8,
+                                                 lineCap: .round, lineJoin: .round))
+            } else {
+                Text("Profilo GPS in attesa")
+                    .font(.system(size: max(9, geo.size.height * 0.60), weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .accessibilityLabel("Profilo altimetrico reale del viaggio")
     }
 }
