@@ -2145,6 +2145,7 @@ private struct EcoRangeEstimate {
     }
 }
 
+// Pannello standard senza mappa: letture Telemetria senza card.
 // Telemetria SENZA pannello: righe, barre e testi direttamente sullo
 // sfondo originale del cockpit, senza cornice, card o ombre dedicate.
 // Tutte le misure restano LIVE:
