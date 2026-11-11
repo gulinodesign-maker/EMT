@@ -147,7 +147,7 @@ assert 'p.addLine(to: pt(' not in u
 assert 'CornerDockGlow' not in u and 'FooterLightContour' not in c
 assert 'private struct ContinuousHorizonLine: View' in c
 # Top bar sfumata alle intersezioni con il cerchio in Home e GPS.
-assert c.count('.mask(RadialGradient(stops: [') == 2
+assert c.count('.mask(RadialGradient(stops: [') == 3
 assert 'startRadius: ringRadius, endRadius: ringRadius + max(18, h * 0.070)' in c
 assert 'startRadius: dialSize * 0.508,' in c
 assert 'endRadius: dialSize * 0.508 + max(18, h * 0.070)' in c
