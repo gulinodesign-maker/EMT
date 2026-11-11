@@ -64,7 +64,7 @@ enum EcoTab: Int, CaseIterable, Identifiable {
     }
 }
 
-// Geometria condivisa: i sette tasti e le sei card hanno gli stessi bordi.
+// Geometria condivisa: i sette tasti e le quattro card hanno gli stessi bordi.
 enum EcoCockpitDockGeometry {
     static func gap(width: CGFloat) -> CGFloat { width * 0.008 }
     static func rightInset(width: CGFloat) -> CGFloat { max(12, width * 0.018) }
@@ -100,7 +100,17 @@ struct EcojumboRootView: View {
     }
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .bottom) {
+            let w = geometry.size.width
+            let h = geometry.size.height
+            let dockHeight = max(51, min(83, h * 0.105))
+            // La barra resta SEMPRE dentro la finestra. Il margine in basso
+            // riserva spazio anche alle zone home/safe-area landscape.
+            let dockBottom = selected == .gps
+                ? max(4, h * 0.006)
+                : max(28, geometry.safeAreaInsets.bottom + 14, h * 0.055)
+            let contentHeight = selected == .gps
+                ? h : max(1, h - dockHeight - dockBottom - 10)
+            ZStack(alignment: .topLeading) {
                 Group {
                     switch selected {
                     case .trips:
@@ -117,21 +127,19 @@ struct EcojumboRootView: View {
                         NavigationStack { ThemePickerView() }
                     }
                 }
-                .frame(width: geometry.size.width, height: geometry.size.height)
-                .padding(.bottom, selected == .gps ? 0 : max(110, geometry.size.height * 0.18))
+                .frame(width: w, height: contentHeight)
+                .position(x: w / 2, y: contentHeight / 2)
 
-                // Il cockpit GPS è unico: il dock controlla mappa, sezioni e aspetto.
+                // Dock flottante, NON parte del contenuto scrollabile. La posizione
+                // dipende dal bordo inferiore dello schermo, mai da padding esterni.
                 CockpitCornerControls(selected: $selected, mapEnabled: $mapEnabled,
                                       appearanceMode: $appearanceMode, theme: theme,
-                                      screenHeight: geometry.size.height)
-                    .frame(width: geometry.size.width,
-                           height: max(51, min(83, geometry.size.height * 0.105)))
-                    .padding(.bottom, selected == .gps
-                              ? max(4, geometry.size.height * 0.006)
-                              : max(30, geometry.size.height * 0.055))
+                                      screenHeight: h)
+                    .frame(width: w, height: dockHeight)
+                    .position(x: w / 2, y: h - dockBottom - dockHeight / 2)
                     .zIndex(50)
             }
-            .frame(width: geometry.size.width, height: geometry.size.height)
+            .frame(width: w, height: h)
             .background(Color.ecoBackground)
         }
         .ignoresSafeArea(.container, edges: .all)
