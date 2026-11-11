@@ -302,4 +302,4 @@ assert '.init(color: .white.opacity(0.70), location: 0.91)' in c
 assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
 assert 'UserAnnotation()' not in c
 assert 'manager.startUpdatingHeading()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
-print('OK — EJ 1.51: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')
+print('OK — EJ 1.52: mappa al bordo con fade, segnaposto a freccia e ricerca allineata')
