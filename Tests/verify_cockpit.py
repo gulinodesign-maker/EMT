@@ -1,4 +1,4 @@
-"""Regressioni Ecojumbo 1.0 (38): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
+"""Regressioni Ecojumbo 1.0 (39): navigazione GPS 3D, dock e vetro, trip, temperatura e potenze cockpit."""
 from pathlib import Path
 import plistlib
 
@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 38;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 39;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -68,9 +68,9 @@ assert 'searchResponse.mapItems.first' in t
 assert t.index('searchResponse.mapItems.first') < t.index('guard let origin, CLLocationCoordinate2DIsValid(origin) else')
 assert 'await navigation.resumePendingRoute(origin: gps.currentCoordinate())' in c
 assert 'navigation.isWaitingForGPS' in c
-assert 'Image(systemName: "location.slash")' in c
-assert 'gps.retryLocation()' in c
-assert 'UIApplication.openSettingsURLString' in c
+assert 'Image(systemName: "location.slash")' not in c
+assert 'gps.retryLocation()' not in c
+assert 'UIApplication.openSettingsURLString' not in c
 assert 'else if let destinationPoint = navigation.destinationCoordinate' in c
 
 assert 'struct CellsView: View' in (r/'Ecojumbo/Views/CellsView.swift').read_text()
@@ -96,7 +96,7 @@ assert 'let instantKW = live.map { -($0.power) / 1000.0 }' in c
 assert 'bluetooth.snapshot' in c and 'gps.currentSpeed(at:now)' in c
 assert '48 A' not in c and '62 km/h' not in c and '400 V' not in c
 assert '— V' in c and '— kW' in c and '— km' in c
-assert 'HollowSpeedNumber(text: String(Int(speed.rounded()))' in c and 'Text("km/h")' in c
+assert 'Text(String(Int(speed.rounded())))' in c and 'Text("km/h")' in c
 assert 'Label("GPS", systemImage: "location.north.fill")' in c and 'Text("P")' not in c
 assert 'SpeedLEDStream(d: d, speed: speed)' in c and 'SpeedScaleTicks(d: d)' in c
 assert 'SegmentedGaugeBar(d:' in c
@@ -131,7 +131,7 @@ assert 'let fadeEnd = min(1, bottomY / h)' in c
 assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
 assert 'fullW * 0.45 - mapLeft' in c
 assert 'fullW * 0.54 - mapLeft' in c
-assert 'fullH * 0.085 - mapTop' in c
+assert 'fullH * 0.099 - mapTop' in c
 assert 'p.addArc(tangent1End: knee, tangent2End: right,' in c
 assert 'let bottomY = max(left.y + max(2, h * 0.008),' in c
 assert 'p.addLine(to: CGPoint(x: left.x, y: bottomY))' in c
@@ -243,7 +243,7 @@ assert 'let glassHeight = h * 0.60' in c
 assert 'let tileHeight = max(1, (h - 5 * gap) / 6)' in c
 assert '.position(x: w - max(6, w * 0.012) - glassWidth / 2,' in c
 assert 'y: h * (0.21 + 0.60 / 2)' in c
-assert '.padding(.top, h * 0.045)' in c
+assert '.padding(.top, h * 0.061)' in c
 assert '.padding(.leading, w * 0.285)' in c
 assert 'height: tileHeight, resettable: true)' in c
 assert 'if reading.title == "Trip parziale"' in c
@@ -322,34 +322,23 @@ assert 'size: d * 0.124, weight: .semibold' in c
 assert 'y: d * 0.241' in c
 assert 'arrow.turn.up.left' in c and 'arrow.turn.up.right' in c
 assert 'if navigation.isNavigating {\n                        HStack(spacing: 7) {' not in c
-assert 'HollowSpeedNumber(text: String(Int(speed.rounded()))' in c
-assert 'import CoreText' in c
-assert 'private final class SpeedGlyphOutlineView: UIView' in c
-assert 'CTFontCreatePathForGlyph(font, glyphs[index], nil)' in c
-assert 'CTFontGetGlyphsForCharacters(font, characters, &glyphs, characters.count)' in c
-assert 'context.setLineJoin(.round)' in c
-assert 'weight: .black' in c
-assert 'CGAffineTransform(a: 0.91, b: 0,' in c
-assert 'c: 0.18, d: 1,' in c
-assert 'context.setLineCap(.round)' in c
-assert 'context.drawPath(using: .stroke)' in c
-assert '.strokeWidth: 2.4' not in c
-assert 'UILabel disegna veramente il contorno' not in c
-assert c.count('HollowSpeedNumber(text: String(Int(speed.rounded()))') == 1
-assert '.blur(radius: d * 0.018)' not in c[c.index('private struct OpenSpeedCluster: View {'):c.index('// Calcola la posizione più a sinistra possibile')]
-assert '.foregroundStyle(.white)' in c[c.index('if let navigationArrow {'):c.index('// UNA SOLA istanza')]
-assert '.frame(width: d * 0.205, height: d * 0.142)' in c
-assert 'y: d * 0.241' in c
-assert 'size: d * 0.184' not in c
-assert 'y: d * 0.214' not in c
-assert 'size: d * 0.275' in c
-assert 'y: d * 0.495' in c
+# Build 39: velocità leggibile in SwiftUI e senza disegno vettoriale.
+assert 'Text(String(Int(speed.rounded())))' in c
+assert '.font(.system(size: d * 0.275, weight: .bold, design: .rounded))' in c
+assert '.foregroundStyle(Color(red: 1.0, green: 0.43, blue: 0.04))' in c
+assert '.monospacedDigit()' in c
+assert 'SpeedGlyphOutlineView' not in c
+assert 'HollowSpeedNumber' not in c
+assert 'import CoreText' not in c
 assert 'Text("km/h")' in c
-assert 'size: d * 0.047' in c
-assert 'y: d * 0.682' not in c
 assert 'y: d * 0.755' in c
-assert 'Text("km/h")' in c
-assert 'Linea sopra l' not in c
+assert 'if let navigationArrow {' in c
+assert 'Image(systemName: navigationArrow)' in c
+assert '.symbolRenderingMode(.monochrome)' in c
+assert 'GPSAngularManeuverArrow' not in c
+assert 'size: d * 0.124, weight: .semibold' in c
+assert 'y: d * 0.241' in c
+assert 'arrow.turn.up.left' in c and 'arrow.turn.up.right' in c
 assert 'enum EcoAppearanceMode: String, CaseIterable, Identifiable' in u
 assert 'case dark = "Scuro", light = "Chiaro", automatic = "Automatico"' in u
 assert '@AppStorage("ecojumbo.appearanceMode")' in u
@@ -402,7 +391,18 @@ assert 'guard age < 12 else { return nil }' in g
 assert 'guard age < 30, currentCoordinate(at: date) != nil else { return nil }' in g
 assert 'fix.horizontalAccuracy <= 35' in g and 'fix.speedAccuracy <= 5' in g
 assert 'if phase == .active { gps.retryLocation() }' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
-assert 'Text(gps.speedStatus(at: now))' in c
-assert 'if liveSpeed == nil {' in c
-assert 'if gps.currentCoordinate() == nil || gps.currentSpeed() == nil {' in c
-print('OK — 38: GPS foreground, tachimetro indipendente dal trip, stato e retry Home/Mappe')
+assert 'Text(gps.speedStatus(at: now))' not in c
+assert 'gps.speedStatus()' not in c
+assert 'if liveSpeed == nil {' not in c
+assert 'if gps.currentCoordinate() == nil || gps.currentSpeed() == nil {' not in c
+assert 'func speedStatus(at date: Date = Date()) -> String' in g
+assert 'CGPoint(x: 0, y: h * 0.099)' in c
+assert 'CGPoint(x: w, y: h * 0.099)' in c
+assert 'CGPoint(x: w * 0.54, y: h * 0.099)' in c
+assert 'CGPoint(x: w * 0.745, y: h * 0.099)' in c
+assert 'CGPoint(x: w * 0.355, y: h * 0.252)' in c
+assert 'CGPoint(x: w * 0.25, y: h * 0.244)' in c
+assert 'fullH * 0.099 - mapTop' in c
+assert 'fullH * 0.244 - mapTop' in c
+assert '.padding(.top, h * 0.061)' in c
+print('OK — 39: speed arancione semplice, niente popup GPS, top bar spostata in Home/GPS')

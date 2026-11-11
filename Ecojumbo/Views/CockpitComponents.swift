@@ -2,7 +2,6 @@ import SwiftUI
 import MapKit
 import Combine
 import UIKit
-import CoreText
 import Darwin
 
 
@@ -400,12 +399,12 @@ private struct ContinuousHorizonLine: View {
             // Due raccordi della top bar con lo stesso raggio circolare della downbar.
             // Il centro rimane dietro al quadrante grazie alla maschera esistente.
             let line = CockpitContourGeometry.roundedPath(points: [
-                CGPoint(x: 0, y: h * 0.085),
-                CGPoint(x: w * 0.255, y: h * 0.085),
-                CGPoint(x: w * 0.355, y: h * 0.238),
-                CGPoint(x: w * 0.645, y: h * 0.238),
-                CGPoint(x: w * 0.745, y: h * 0.085),
-                CGPoint(x: w, y: h * 0.085)
+                CGPoint(x: 0, y: h * 0.099),
+                CGPoint(x: w * 0.255, y: h * 0.099),
+                CGPoint(x: w * 0.355, y: h * 0.252),
+                CGPoint(x: w * 0.645, y: h * 0.252),
+                CGPoint(x: w * 0.745, y: h * 0.099),
+                CGPoint(x: w, y: h * 0.099)
             ], corners: [1, 4], radius: CockpitContourGeometry.cornerRadius(in: geometry.size))
             // Il contorno della top bar scompare dietro il tachimetro.
             // Maschera a foro centrale con bordo oltre il LED esterno: nessuna
@@ -701,37 +700,6 @@ struct CockpitDashboard:View {
                               y: h * 0.158)
                     .zIndex(41)
 
-                // Diagnostica e comando GPS visibili anche nella Home.
-                if liveSpeed == nil {
-                    let noticeWidth = min(w * 0.185, 270)
-                    Button {
-                        if gps.isPermissionDenied,
-                           let url = URL(string: UIApplication.openSettingsURLString) {
-                            UIApplication.shared.open(url)
-                        } else {
-                            gps.retryLocation()
-                        }
-                    } label: {
-                        HStack(spacing: 5) {
-                            Image(systemName: "location.slash").foregroundStyle(theme.accent)
-                            Text(gps.speedStatus(at: now))
-                                .lineLimit(2)
-                                .multilineTextAlignment(.leading)
-                        }
-                        .font(.system(size: max(10, h * 0.021), weight: .semibold))
-                        .foregroundStyle(colorScheme == .light ? Color(white: 0.22) : .white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 5)
-                        .frame(width: noticeWidth, alignment: .leading)
-                        .background(colorScheme == .light
-                                    ? Color.white.opacity(0.72) : Color.black.opacity(0.55),
-                                    in: RoundedRectangle(cornerRadius: 7))
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Stato GPS: \(gps.speedStatus(at: now)). Tocca per riprovare.")
-                    .position(x: max(12, w * 0.016) + noticeWidth / 2, y: h * 0.258)
-                    .zIndex(41)
-                }
             }
             .frame(width:w,height:h)
             .clipped()
@@ -958,88 +926,9 @@ private struct SegmentedGaugeBar: View {
     }
 }
 
-// Cifre SPORTIVE: disegno vettoriale racing inclinato, peso Black,
-// contorno neon con giunzioni rotonde, senza punte o artefatti interni.
-// Il tracciato resta uno solo per tutte le cifre, come nella build 36.
-private final class SpeedGlyphOutlineView: UIView {
-    var digits = "" { didSet { setNeedsDisplay() } }
-    var pointSize: CGFloat = 80 { didSet { setNeedsDisplay() } }
-    var strokeColor: UIColor = .orange { didSet { setNeedsDisplay() } }
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        isOpaque = false
-        backgroundColor = .clear
-        contentMode = .redraw
-        isUserInteractionEnabled = false
-    }
-    required init?(coder: NSCoder) { fatalError("Storyboard non supportato") }
-
-    override func draw(_ rect: CGRect) {
-        guard let context = UIGraphicsGetCurrentContext(), !digits.isEmpty else { return }
-        // Il peso Black dà alle cifre un profilo da strumentazione sportiva;
-        // l'inclinazione è applicata al percorso, non tramite font esterni.
-        let uiFont = UIFont.monospacedDigitSystemFont(ofSize: pointSize, weight: .black)
-        let font = CTFontCreateWithName(uiFont.fontName as CFString, pointSize, nil)
-        let characters = Array(digits.utf16)
-        var glyphs = [CGGlyph](repeating: 0, count: characters.count)
-        guard CTFontGetGlyphsForCharacters(font, characters, &glyphs, characters.count) else { return }
-        var advances = [CGSize](repeating: .zero, count: glyphs.count)
-        CTFontGetAdvancesForGlyphs(font, .horizontal, glyphs, &advances, glyphs.count)
-
-        let path = CGMutablePath()
-        var penX: CGFloat = 0
-        for index in glyphs.indices {
-            if let outline = CTFontCreatePathForGlyph(font, glyphs[index], nil) {
-                // Compressione orizzontale + inclinazione racing in avanti.
-                // I glifi restano leggibili e il fit viene ricalcolato sul path.
-                let transform = CGAffineTransform(a: 0.91, b: 0,
-                                                  c: 0.18, d: 1,
-                                                  tx: penX * 0.91, ty: 0)
-                path.addPath(outline, transform: transform)
-            }
-            penX += advances[index].width
-        }
-        let glyphBounds = path.boundingBoxOfPath
-        guard !glyphBounds.isEmpty else { return }
-        let fit = min(1, rect.width * 0.93 / glyphBounds.width,
-                     rect.height * 0.91 / glyphBounds.height)
-
-        context.saveGState()
-        context.translateBy(x: rect.midX, y: rect.midY)
-        context.scaleBy(x: fit, y: -fit)
-        context.translateBy(x: -glyphBounds.midX, y: -glyphBounds.midY)
-        context.addPath(path)
-        context.setFillColor(UIColor.clear.cgColor)
-        context.setStrokeColor(strokeColor.cgColor)
-        context.setLineWidth(max(1.9, pointSize * 0.024))
-        // ROUND join elimina gli spigoli acuti prodotti dai miter dei glifi.
-        context.setLineJoin(.round)
-        context.setLineCap(.round)
-        context.setShadow(offset: .zero, blur: max(2, pointSize * 0.028),
-                          color: strokeColor.withAlphaComponent(0.70).cgColor)
-        context.drawPath(using: .stroke)
-        context.restoreGState()
-    }
-}
-
-private struct HollowSpeedNumber: UIViewRepresentable {
-    let text: String
-    let size: CGFloat
-    let accent: UIColor
-
-    func makeUIView(context: Context) -> SpeedGlyphOutlineView {
-        SpeedGlyphOutlineView(frame: .zero)
-    }
-    func updateUIView(_ view: SpeedGlyphOutlineView, context: Context) {
-        view.digits = text
-        view.pointSize = size
-        view.strokeColor = accent
-    }
-}
-
+// Cifre velocità disegnate con Text SwiftUI standard, piene e arancioni.
 // Scala strumentazione e corona a elementi discreti, non una immagine fissa.
-// Il numero di velocità è disegnato a contorno; la lettura proviene solo dal GPS.
+// La lettura numerica arancione proviene esclusivamente da velocità GPS reale.
 private struct OpenSpeedCluster: View {
     @Environment(\.colorScheme) private var colorScheme
     let speed: Double?
@@ -1131,13 +1020,15 @@ private struct OpenSpeedCluster: View {
                         .accessibilityLabel(navigationInstruction ?? "Prossima manovra")
                 }
 
-                // UNA SOLA istanza di UILabel a tracciato: niente sovrapposizione
-                // di contorni, niente stella o artefatto nelle cifre neon.
+                // Cifre arancioni semplici senza contorno, ombre o artifici tipografici.
                 Group {
                     if let speed {
-                        HollowSpeedNumber(text: String(Int(speed.rounded())),
-                                          size: d * 0.275,
-                                          accent: UIColor(theme.accent))
+                        Text(String(Int(speed.rounded())))
+                            .font(.system(size: d * 0.275, weight: .bold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(Color(red: 1.0, green: 0.43, blue: 0.04))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.65)
                             .frame(width: d * 0.60, height: d * 0.285)
                             .accessibilityLabel("Velocità GPS: \(Int(speed.rounded())) chilometri orari")
                     } else {
@@ -1439,15 +1330,15 @@ private struct GPSHorizonLine: View {
             let h = geo.size.height
             let radius = CockpitContourGeometry.cornerRadius(in: geo.size)
             let left = CockpitContourGeometry.roundedPath(points: [
-                CGPoint(x: 0, y: h * 0.085),
-                CGPoint(x: w * 0.16, y: h * 0.085),
-                CGPoint(x: w * 0.25, y: h * 0.23),
-                CGPoint(x: w * 0.32, y: h * 0.23)
+                CGPoint(x: 0, y: h * 0.099),
+                CGPoint(x: w * 0.16, y: h * 0.099),
+                CGPoint(x: w * 0.25, y: h * 0.244),
+                CGPoint(x: w * 0.32, y: h * 0.244)
             ], corners: [1], radius: radius)
             let right = CockpitContourGeometry.roundedPath(points: [
-                CGPoint(x: w * 0.45, y: h * 0.23),
-                CGPoint(x: w * 0.54, y: h * 0.085),
-                CGPoint(x: w, y: h * 0.085)
+                CGPoint(x: w * 0.45, y: h * 0.244),
+                CGPoint(x: w * 0.54, y: h * 0.099),
+                CGPoint(x: w, y: h * 0.099)
             ], corners: [1], radius: radius)
             let line = Path { path in
                 path.addPath(left)
@@ -1553,9 +1444,9 @@ private struct GPSSearchTopBand: Shape {
         let fullW = w / 0.64, fullH = h / 0.89
         let mapLeft = fullW * 0.36, mapTop = fullH * 0.045
         let left = CGPoint(x: fullW * 0.45 - mapLeft,
-                           y: fullH * 0.23 - mapTop)
+                           y: fullH * 0.244 - mapTop)
         let knee = CGPoint(x: fullW * 0.54 - mapLeft,
-                           y: fullH * 0.085 - mapTop)
+                           y: fullH * 0.099 - mapTop)
         let right = CGPoint(x: w, y: knee.y)
         let rowHeight = max(43, min(60, h * 0.089))
         // Solo il BORDO SUPERIORE segue la diagonale e il ginocchio.
@@ -1585,8 +1476,8 @@ private struct GPSSearchBottomFade: View {
             let h = geometry.size.height
             let fullH = h / 0.89
             let mapTop = fullH * 0.045
-            let leftY = fullH * 0.23 - mapTop
-            let kneeY = fullH * 0.085 - mapTop
+            let leftY = fullH * 0.244 - mapTop
+            let kneeY = fullH * 0.099 - mapTop
             let rowHeight = max(43, min(60, h * 0.089))
             let bottomY = max(leftY + max(2, h * 0.008),
                               kneeY + rowHeight + 3)
@@ -1735,37 +1626,6 @@ private struct GPSCockpitMap: View {
                     .padding(.leading, w * 0.285)
                     .padding(.trailing, max(10, w * 0.022))
 
-                    // In assenza di posizione non nascondere la causa dietro
-                    // al trattino del tachimetro: permessi, precisione e retry.
-                    if gps.currentCoordinate() == nil || gps.currentSpeed() == nil {
-                        HStack(spacing: 7) {
-                            Image(systemName: "location.slash")
-                                .foregroundStyle(.orange)
-                            Text(gps.currentCoordinate() == nil
-                                 ? gps.state : gps.speedStatus())
-                                .font(.system(size: max(11, h * 0.023), weight: .medium))
-                                .lineLimit(2)
-                                .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
-                            Spacer(minLength: 3)
-                            Button(gps.isPermissionDenied ? "Impostazioni" : "Riprova") {
-                                if gps.isPermissionDenied,
-                                   let url = URL(string: UIApplication.openSettingsURLString) {
-                                    UIApplication.shared.open(url)
-                                } else {
-                                    gps.retryLocation()
-                                }
-                            }
-                            .font(.system(size: max(11, h * 0.024), weight: .bold))
-                            .foregroundStyle(theme.accent)
-                        }
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 7)
-                        .background(colorScheme == .light ? Color.white.opacity(0.91) : Color.black.opacity(0.83),
-                                    in: RoundedRectangle(cornerRadius: 9))
-                        .padding(.leading, w * 0.285)
-                        .padding(.trailing, max(10, w * 0.022))
-                    }
-
                     // Nessun pannello manovra sopra la mappa:
                     // solo il simbolo dentro il tachimetro.
                     if navigation.isLoading {
@@ -1788,7 +1648,7 @@ private struct GPSCockpitMap: View {
                     Spacer(minLength: 0)
                 }
                 // Il bordo superiore si allinea alla top bar della Home GPS.
-                .padding(.top, h * 0.045)
+                .padding(.top, h * 0.061)
                 .frame(width: w, height: h, alignment: .topLeading)
 
                 // Sei letture leggermente più grandi, ma raccolte nel bordo destro;
