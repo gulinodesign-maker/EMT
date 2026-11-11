@@ -1683,7 +1683,7 @@ private struct GPSCockpitMap: View {
                     Spacer(minLength: 0)
                 }
                 // Il bordo superiore si allinea alla top bar della Home GPS.
-                .padding(.top, h * 0.061)
+                .padding(.top, h * 0.0565)
                 .frame(width: w, height: h, alignment: .topLeading)
 
                 // Sei letture leggermente più grandi, ma raccolte nel bordo destro;
