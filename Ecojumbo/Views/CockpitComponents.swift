@@ -72,6 +72,7 @@ final class EcoOutsideWeather: ObservableObject {
 
 @MainActor
 private struct EcoOutsideTemperature: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps: GPSRideManager
     @StateObject private var weather = EcoOutsideWeather.shared
     let now: Date
@@ -87,15 +88,15 @@ private struct EcoOutsideTemperature: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: "thermometer.medium")
-                .foregroundStyle(Color.white.opacity(0.82))
+                .foregroundStyle(colorScheme == .light ? Color(white: 0.22) : Color.white.opacity(0.82))
             Text(currentTemperature.map { String(format: "%.0f°C", $0) } ?? "—°C")
                 .monospacedDigit()
-                .foregroundStyle(.white)
+                .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
         }
         .font(.system(size: 15, weight: .semibold))
         .padding(.horizontal, 5)
         .padding(.vertical, 3)
-        .background(.black.opacity(0.58),
+        .background(colorScheme == .light ? Color.white.opacity(0.85) : Color.black.opacity(0.58),
                     in: RoundedRectangle(cornerRadius: 7, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(currentTemperature.map {
@@ -284,6 +285,7 @@ private struct MetricGlowBar: View {
 // Sei schede indipendenti, come nel cockpit finale approvato.
 // Le tre letture in chilometri NON hanno barre, neppure quando il GPS è attivo.
 private struct PremiumWing: View {
+    @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps: GPSRideManager
     let readings: [WingReading]
     let theme: CockpitTheme
@@ -333,7 +335,7 @@ private struct PremiumWing: View {
             if reading.icon == "voltage" {
                 Text("V")
                     .font(.system(size: iconSide * 0.54, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
             } else {
                 Image(systemName: reading.icon)
                     .resizable()
@@ -346,8 +348,10 @@ private struct PremiumWing: View {
 
         return ZStack {
             RoundedRectangle(cornerRadius: height * 0.28, style: .continuous)
-                .fill(LinearGradient(colors: [Color(white: 0.105), Color(white: 0.045)],
-                                     startPoint: .top, endPoint: .bottom))
+                .fill(LinearGradient(colors: colorScheme == .light
+                    ? [Color.white, Color(red: 0.86, green: 0.89, blue: 0.94)]
+                    : [Color(white: 0.105), Color(white: 0.045)],
+                    startPoint: .top, endPoint: .bottom))
                 .overlay {
                     RoundedRectangle(cornerRadius: height * 0.28, style: .continuous)
                         .stroke(LinearGradient(colors: [.white.opacity(0.52), .white.opacity(0.09),
@@ -365,8 +369,8 @@ private struct PremiumWing: View {
                         .monospacedDigit()
                         .lineLimit(1)
                         .minimumScaleFactor(0.48)
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.85), radius: 2, y: 2)
+                        .foregroundStyle(colorScheme == .light ? Color(white: 0.15) : .white)
+                        .shadow(color: .black.opacity(colorScheme == .light ? 0.08 : 0.85), radius: 2, y: 2)
                     if left { icon }
                     if !left { Spacer(minLength: 0) }
                 }
@@ -737,6 +741,7 @@ private struct GaugeArc: Shape {
 // Tacche della velocità: nessun numero predefinito da 0 a 120.
 // Il LED rosso sottostante indica la quota della scala già percorsa.
 private struct SpeedScaleTicks: View {
+    @Environment(\.colorScheme) private var colorScheme
     let d: CGFloat
 
     var body: some View {
@@ -764,7 +769,9 @@ private struct SpeedScaleTicks: View {
             var tick = Path()
             tick.move(to: from)
             tick.addLine(to: to)
-            let color = Color.white.opacity(isMajor ? 1.0 : 0.77)
+            let color = colorScheme == .light
+                ? Color(white: 0.22).opacity(isMajor ? 1.0 : 0.72)
+                : Color.white.opacity(isMajor ? 1.0 : 0.77)
             let thickness: CGFloat = isMajor ? d * 0.005 : d * 0.0022
             context.stroke(tick, with: .color(color),
                            style: StrokeStyle(lineWidth: thickness, lineCap: .round))
@@ -923,17 +930,18 @@ private struct OpenSpeedCluster: View {
             ZStack {
                 // Il carbonio chiude completamente il quadrante sopra le ali sottostanti.
                 Circle()
-                    .fill(Color(red: 0.016, green: 0.015, blue: 0.017))
+                    .fill(colorScheme == .light ? Color(red: 0.975, green: 0.982, blue: 0.993) : Color(red: 0.016, green: 0.015, blue: 0.017))
                     .frame(width: d * 0.986, height: d * 0.986)
                     .shadow(color: .black.opacity(0.88), radius: d * 0.025)
                 Image("CarbonWeave")
                     .resizable(resizingMode: .tile)
-                    .opacity(0.74)
+                    .opacity(colorScheme == .light ? 0.07 : 0.74)
                     .frame(width: d * 0.982, height: d * 0.982)
                     .clipShape(Circle())
                 Circle()
-                    .fill(RadialGradient(colors: [.black.opacity(0.36), .clear,
-                                                  .black.opacity(0.55)], center: .center,
+                    .fill(RadialGradient(colors: colorScheme == .light
+                        ? [Color(white: 0.85).opacity(0.20), .clear, Color(white: 0.72).opacity(0.11)]
+                        : [.black.opacity(0.36), .clear, .black.opacity(0.55)], center: .center,
                                          startRadius: d * 0.06, endRadius: d * 0.49))
                     .frame(width: d * 0.98, height: d * 0.98)
 
@@ -987,14 +995,14 @@ private struct OpenSpeedCluster: View {
                     } else {
                         Text("—")
                             .font(.system(size: d * 0.19, weight: .light))
-                            .foregroundStyle(.white.opacity(0.90))
+                            .foregroundStyle(colorScheme == .light ? Color(white: 0.25) : .white.opacity(0.90))
                             .frame(height: d * 0.245)
                             .accessibilityLabel("GPS non disponibile")
                     }
                     Text("km/h")
                         .font(.system(size: d * 0.070, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.81))
-                    Rectangle().fill(.white)
+                        .foregroundStyle(colorScheme == .light ? Color(white: 0.22) : .white.opacity(0.81))
+                    Rectangle().fill(colorScheme == .light ? Color(white: 0.30) : .white)
                         .frame(width: d * 0.215, height: max(1.2, d * 0.006))
                         .padding(.top, d * 0.017)
                     if showsGPSBadge {
@@ -1024,7 +1032,7 @@ private struct OpenSpeedCluster: View {
                         .foregroundStyle(CockpitTheme.regenAccent)
                         .frame(maxWidth: .infinity)
                         .accessibilityLabel("Potenza in ingresso alla batteria")
-                    Rectangle().fill(.white.opacity(0.70))
+                    Rectangle().fill(colorScheme == .light ? Color(white: 0.34) : .white.opacity(0.70))
                         .frame(width: 1, height: d * 0.086)
                     Text(outgoingPower.map { String(format: "%.2f kW", $0 / 1000) } ?? "— kW")
                         .foregroundStyle(CockpitTheme.dischargeAccent)
