@@ -248,7 +248,7 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     gps_y=h*.765
     assert gps_x-side/2>0 and gps_y+side/2<h*.83
     assert gps_x+side/2<w*.10
-assert 'weight: .black' not in c
+assert 'SpeedGlyphOutlineView' not in c  # il font velocita resta SwiftUI semplice
 assert 'Text(String(Int(speed.rounded())))' in c
 assert 'CGPoint(x: w * 0.255, y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.16, y: h * 0.099)' in c
