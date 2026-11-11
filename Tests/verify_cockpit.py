@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 48;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 49;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -385,7 +385,7 @@ assert 'Color(white: 0.88).opacity(0.10)' in c
 assert 'Color(white: 0.92).opacity(0.035)' in c
 assert '.init(color: .clear, location: 0.62)' in c
 expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
-assert expanded.count('showsBar: true') == 2
+assert expanded.count('showsBar: true') == 3
 assert 'expandedTile("Corrente batteria"' not in expanded
 assert 'expandedTile("Potenza istantanea"' not in expanded
 assert expanded.count('expandedTile("') == 5
@@ -484,4 +484,4 @@ assert 'func locationManager(_ manager: CLLocationManager, didUpdateHeading head
 assert 'func currentHeading(at date: Date = Date())' in g
 assert 'func locationManagerDidPauseLocationUpdates(_ manager: CLLocationManager)' in g
 assert 'heading.headingAccuracy <= 45' in g
-print('OK — 48: mappa e layout invariati, GPS nativo ripristinato dalla build 33')
+print('OK — 49: mappa e layout invariati, GPS nativo ripristinato dalla build 33')
