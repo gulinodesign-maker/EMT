@@ -272,7 +272,7 @@ final class EcoNavigationStore: ObservableObject {
 // EcoNavigationStore resta condiviso e mantiene la rotta quando si cambia modalità.
 
 
-// Build 68: 17 colori; gli ultimi due governano la sfumatura condivisa dei contorni GPS.
+// Build 69: 17 colori; gli ultimi due governano il RIEMPIMENTO delle due aree, non le linee GPS.
 struct EcoThemePalette: Codable, Equatable {
     var name: String
     var colors: [String]
@@ -313,8 +313,8 @@ struct EcoThemePalette: Codable, Equatable {
         "Freccia e distanza della prossima svolta verso destra.",
         "Freccia e distanza della prossima svolta verso sinistra.",
         "Arco GPS quando la velocità sta diminuendo: non è una misura del freno fisico.",
-        "Tonalità iniziale della sfumatura orizzontale, identica sulla top bar GPS e sul ponte kW.",
-        "Tonalità finale della stessa sfumatura; il colore centrale è l'accent principale del tema."
+        "Colore a sinistra del RIEMPIMENTO tra bordo alto e linea top bar e dell'area sotto il ponte kW; non cambia i contorni luminosi.",
+        "Colore a destra degli stessi RIEMPIMENTI; al centro la sfumatura usa il colore principale del tema."
     ]
     static let groups: [(title: String, range: Range<Int>)] = [
         ("Aspetto generale", 0..<4),
@@ -566,15 +566,15 @@ private struct EcoThemePreview: View {
         VStack(spacing: 10) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12).fill(Color(themeHex: palette.colors[0]))
-                // La miniatura mostra esattamente il gradiente che verrà
-                // usato in entrambe le linee GPS (start → accent → end).
-                Capsule()
+                // Anteprima della fascia RIEMPITA, non un bordo sfumato.
+                RoundedRectangle(cornerRadius: 3)
                     .fill(LinearGradient(colors: [
                         Color(themeHex: palette.colors[15]),
                         Color(themeHex: palette.colors[1]),
                         Color(themeHex: palette.colors[16])
                     ], startPoint: .leading, endPoint: .trailing))
-                    .frame(height: 5)
+                    .opacity(0.40)
+                    .frame(height: 13)
                     .padding(.horizontal, 10)
                     .frame(maxHeight: .infinity, alignment: .top)
                     .padding(.top, 6)

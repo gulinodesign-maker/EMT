@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 68;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 69;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Existing 3 slots retain old shades. Both old 8- and 15-colour palettes migrate.
@@ -48,8 +48,13 @@ horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
     "@MainActor", 1)[0]
 lower = cockpit.split("private struct GPSLowerGlow: View {", 1)[1].split(
     "// EJ 1.22", 1)[0]
-assert horizon.count("line.stroke(theme.contourGradient") == 3
-assert lower.count(".stroke(theme.contourGradient,") == 3
+# 69 regression: the 68 stroke-gradient error must NEVER return.
+assert horizon.count("line.stroke(theme.contourGradient") == 0
+assert lower.count(".stroke(theme.contourGradient,") == 0
+assert "GPSTopBandShade()" in horizon
+assert ".fill(theme.contourGradient)" in horizon
+assert "GPSLowerAreaGradient(theme: theme)" in cockpit
+assert "GPSOuterProfileReinforcement()" in cockpit
 assert "visibleOutsideRing.fill(style: FillStyle(eoFill: true))" in horizon
 assert ".mask(RadialGradient" not in horizon
 assert ".mask(GPSLowerTerminalFade())" in lower

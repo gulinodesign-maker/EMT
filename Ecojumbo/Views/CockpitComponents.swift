@@ -1282,6 +1282,18 @@ private struct OpenSpeedCluster: View {
 
 // Calcola la posizione più a sinistra possibile senza tagliare il
 // quadrante e conservando una zona di rispetto per orario/Dynamic Island.
+// Build 69: uno stesso spessore misurabile per le linee top bar e ponte.
+private enum GPSContourStroke {
+    static func width(height h: CGFloat) -> CGFloat { max(1.4, h * 0.003) }
+}
+
+// Le due fasce di colore sono SUPERFICI, non pennellate sui contorni.
+// Riutilizzano le due estremità editabili della palette (ruoli 15 e 16)
+// e l'accent centrale; il riempimento non interferisce con gli indicatori.
+private enum GPSAreaGradientStyle {
+    static let opacity = 0.40
+}
+
 private enum GPSDialLayout {
     static func size(width: CGFloat, height: CGFloat) -> CGFloat {
         min(height * 0.965, width * 0.55)
@@ -1435,6 +1447,19 @@ private struct GPSLowerTerminalFade: View {
     }
 }
 
+// Riempimento dell'area sotto il ponte: disegnato DIETRO numeri kW,
+// ODO e tachimetro, mentre la linea luminosa rimane sul livello attuale.
+private struct GPSLowerAreaGradient: View {
+    let theme: CockpitTheme
+    var body: some View {
+        GPSLowerShade()
+            .fill(theme.contourGradient)
+            .opacity(GPSAreaGradientStyle.opacity)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+}
+
 private struct GPSLowerGlow: View {
     @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
@@ -1462,21 +1487,21 @@ private struct GPSLowerGlow: View {
                     ], startPoint: UnitPoint(x: 0.5, y: 0.78),
                        endPoint: UnitPoint(x: 0.5, y: 0.985)))
                 ZStack {
-                    // Identica sfumatura orizzontale della top bar, anche nel
-                    // bagliore al di sotto del ponte kW. Fade terminale invariato.
+                    // Build 69: contorno mono-colore, nessuna sfumatura sul
+                    // tratto luminoso. La stessa sfumatura dell'area TOP
+                    // è resa da GPSLowerAreaGradient sotto il ponte.
                     GPSLowerContour()
-                        .stroke(theme.contourGradient,
+                        .stroke(theme.accent.opacity(0.30),
                                 style: StrokeStyle(lineWidth: max(4, h * 0.018), lineCap: .round))
-                        .opacity(0.30)
                         .blur(radius: max(3, h * 0.015))
                     GPSLowerContour()
-                        .stroke(theme.contourGradient,
+                        .stroke(theme.accent.opacity(0.79),
                                 style: StrokeStyle(lineWidth: max(2.3, h * 0.006), lineCap: .round))
-                        .opacity(0.79)
                         .blur(radius: max(1.2, h * 0.004))
                     GPSLowerContour()
-                        .stroke(theme.contourGradient,
-                                style: StrokeStyle(lineWidth: max(1.4, h * 0.003), lineCap: .round))
+                        .stroke(theme.accent,
+                                style: StrokeStyle(lineWidth: GPSContourStroke.width(height: h),
+                                                   lineCap: .round))
                 }
                 .mask(GPSLowerTerminalFade())
             }
@@ -1568,9 +1593,28 @@ struct GPSCockpitDashboard: View {
                         .zIndex(6)
                 }
 
+                // La sfumatura del ponte resta sotto tutte le misure e
+                // usa esattamente gli stessi colori del riempimento superiore.
+                GPSLowerAreaGradient(theme: theme)
+                    .frame(width: w, height: h)
+                    .zIndex(7)
+
                 GPSHorizonLine(theme: theme)
                     .frame(width: w, height: h)
                     .zIndex(8)
+
+                // Profilo di rinforzo sulle fiancate indicate in verde:
+                // spessore esattamente 3 volte entrambe le linee principali.
+                GPSOuterProfileReinforcement()
+                    .stroke(theme.accent,
+                            style: StrokeStyle(
+                                lineWidth: GPSContourStroke.width(height: h) * 3,
+                                lineCap: .round, lineJoin: .round))
+                    .shadow(color: theme.accent.opacity(0.40), radius: h * 0.004)
+                    .frame(width: w, height: h)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+                    .zIndex(12)
 
                 OpenSpeedCluster(speed: gps.currentSpeed(at: now),
                                  incomingPower: live.map { Swift.max(0, $0.power) },
@@ -1704,6 +1748,87 @@ private enum GPSHorizonSymmetry {
     }
 }
 
+// Area racchiusa dal bordo SUPERIORE del display e dal profilo top bar.
+// Il ponte virtuale fra i contatti viene sottratto dal foro circolare già
+// usato dal contorno: nessuna campitura entra nel quadrante GPS.
+private struct GPSTopBandShade: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width
+        let h = rect.height
+        let corners = GPSHorizonSymmetry.corners(width: w, height: h)
+        var area = CockpitContourGeometry.roundedPath(points: [
+            CGPoint(x: 0, y: h * 0.099),
+            corners.leftKnee,
+            corners.leftContact,
+            corners.rightContact,
+            corners.rightKnee,
+            CGPoint(x: w, y: h * 0.099)
+        ], corners: [1, 4],
+           radius: CockpitContourGeometry.cornerRadius(in: rect.size))
+        area.addLine(to: CGPoint(x: w, y: 0))
+        area.addLine(to: CGPoint(x: 0, y: 0))
+        area.closeSubpath()
+        return area
+    }
+}
+
+// Nuovo profilo esterno parallelo alle fiancate del tachimetro, sul
+// tracciato indicato in verde dall'utente. Due sezioni indipendenti e
+// speculari attorno al quadrante: la linea non invade la telemetria.
+private struct GPSOuterProfileReinforcement: Shape {
+    private func point(_ degrees: CGFloat, center: CGPoint, radius: CGFloat) -> CGPoint {
+        let angle = degrees * .pi / 180
+        return CGPoint(x: center.x + cos(angle) * radius,
+                       y: center.y + sin(angle) * radius)
+    }
+
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width
+        let h = rect.height
+        let dialSize = GPSDialLayout.size(width: w, height: h)
+        let center = CGPoint(x: GPSDialLayout.centerX(width: w, height: h),
+                             y: h * 0.494)
+        // Raggio esterno al LED 0.496d, ma lontano dalle card
+        // (il loro lato sinistro è a 0.508d + rightInset).
+        let radius = dialSize * 0.535
+        let corners = GPSHorizonSymmetry.corners(width: w, height: h)
+        let topY = h * 0.144
+        let leftStart = point(218, center: center, radius: radius)
+        let rightStart = point(322, center: center, radius: radius)
+        let leftShoulder = CGPoint(x: max(12, corners.leftKnee.x - w * 0.04),
+                                   y: topY)
+        let rightShoulder = CGPoint(
+            x: min(w - max(12, w * 0.03),
+                   max(corners.rightKnee.x + w * 0.04,
+                       rightStart.x + max(24, w * 0.04))),
+            y: topY)
+
+        var line = Path()
+        line.move(to: CGPoint(x: 0, y: topY))
+        line.addLine(to: leftShoulder)
+        line.addQuadCurve(to: leftStart,
+                          control: CGPoint(x: leftStart.x - max(14, w * 0.016),
+                                           y: topY))
+        // Sinistra: 218°→142°, esterno al cerchio senza attraversarlo.
+        for step in 1...36 {
+            let angle = 218 - CGFloat(step) * (76.0 / 36.0)
+            line.addLine(to: point(angle, center: center, radius: radius))
+        }
+
+        line.move(to: CGPoint(x: w, y: topY))
+        line.addLine(to: rightShoulder)
+        line.addQuadCurve(to: rightStart,
+                          control: CGPoint(x: rightStart.x + max(14, w * 0.016),
+                                           y: topY))
+        // Destra speculare: 322°→398°, da sopra a sotto il quadrante.
+        for step in 1...36 {
+            let angle = 322 + CGFloat(step) * (76.0 / 36.0)
+            line.addLine(to: point(angle, center: center, radius: radius))
+        }
+        return line
+    }
+}
+
 private struct GPSHorizonLine: View {
     let theme: CockpitTheme
 
@@ -1737,16 +1862,18 @@ private struct GPSHorizonLine: View {
                                         height: dialSize * 1.016))
             }
             ZStack {
-                // La stessa interpolazione cromatica percorre entrambi i contorni.
-                // Intensità e raggi di glow invariati; nessuna sfumatura ai
-                // contatti con il quadrante (maschera geometrica build 67).
-                line.stroke(theme.contourGradient, lineWidth: max(5, h * 0.011))
-                    .opacity(0.30)
+                // Build 69: la sfumatura RIEMPIE solo la fascia sopra il
+                // profilo della top bar, non viene applicata allo stroke.
+                GPSTopBandShade()
+                    .fill(theme.contourGradient)
+                    .opacity(GPSAreaGradientStyle.opacity)
+                // Il bordo rimane luminoso, con il colore principale del tema.
+                // Mantieni i raccordi netti e il foro circolare della build 67.
+                line.stroke(theme.accent.opacity(0.30), lineWidth: max(5, h * 0.011))
                     .blur(radius: max(3, h * 0.012))
-                line.stroke(theme.contourGradient, lineWidth: max(2.0, h * 0.004))
-                    .opacity(0.83)
+                line.stroke(theme.accent.opacity(0.83), lineWidth: max(2.0, h * 0.004))
                     .blur(radius: max(1, h * 0.004))
-                line.stroke(theme.contourGradient, lineWidth: max(1.2, h * 0.0023))
+                line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))
             }
             .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
             // I raccordi GPS terminano netti al bordo del quadrante:
