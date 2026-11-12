@@ -21,11 +21,12 @@ assert "CI_STATUS_START" in state
 spec = importlib.util.spec_from_file_location("emt_history", modpath)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
+# Synthetic timestamp must be newer than all real CI history markers.
 run = {
     "id": 1234567, "run_number": 171, "run_attempt": 1,
     "event": "push", "head_branch": "main", "head_sha": "a" * 40,
     "status": "completed", "conclusion": "success",
-    "run_started_at": "2026-11-12T19:00:00Z",
+    "run_started_at": "2099-01-01T12:00:00Z",
     "updated_at": "2026-11-12T19:05:00Z",
 }
 steps = [{"name": name, "conclusion": "success"}
@@ -57,7 +58,7 @@ assert "FAILURE" in module.make_entry(failed_run, failed_jobs, "1.0", "67",
 pr_run = dict(run, event="pull_request", head_branch="feature/fix")
 assert module.update_status(state, pr_run, "1.0", "68", "gulinodesign-maker/EMT") == state
 new_state = module.update_status(state, run, "1.0", "67", "gulinodesign-maker/EMT")
-assert "CI_SOURCE_STARTED:2026-11-12T19:00:00Z" in new_state
-older = dict(run, run_started_at="2026-11-12T18:00:00Z")
+assert "CI_SOURCE_STARTED:2099-01-01T12:00:00Z" in new_state
+older = dict(run, run_started_at="2099-01-01T11:00:00Z")
 assert module.update_status(new_state, older, "1.0", "67", "gulinodesign-maker/EMT") == new_state
 print("OK — history workflow success/failure, idempotency, version and main guard")

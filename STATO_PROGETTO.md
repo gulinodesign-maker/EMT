@@ -48,6 +48,8 @@ Cockpit tachimetro GPS, mappe Apple MapKit e itinerari, indicazioni svolta, prof
 
 - **Build 70 (richiesta 12/11/2026, ore 21:48 CET; in preparazione sul ramo `build-70-no-colored-gradients-telemetry-tangent`):** l'utente ha confermato di procedere con la 70 **senza applicare le sfumature**. Rimossi esclusivamente i due riempimenti colorati a gradiente aggiunti nelle build 68/69 (fascia sopra la top bar GPS e zona sotto il ponte kW); restano i contorni luminosi monocromatici, i raccordi netti, il profilo esterno rinforzato 3× e i tradizionali effetti neutri del cockpit. Il centraggio esatto delle quattro card e del DISL insieme ai cinque tasti, tra tangente destra del quadrante GPS e bordo destro display, è stato già introdotto con la 68 e viene mantenuto e controllato numericamente. I 17 valori salvati nei temi sono conservati senza perdita, ma i ruoli 15/16 non sono più proposti nell'editor perché non hanno effetti visivi. Numero Xcode Debug/Release portato a **70**; da confermare mediante CI simulatore, merge, upload Apple e TestFlight. Nessuna modifica a GPS, JK BMS, mappa, trip o firma Apple.
 
+- **Build 70 — verifica in corso:** prima CI PR [43305267533](https://github.com/gulinodesign-maker/EMT/actions/runs/43305267533) conclusa `failure` prima della compilazione a causa di un test del diario con data sintetica 19:00 UTC, precedente all'ultima CI reale delle 19:43 UTC. Corretto il test `Tests/verify_build_history.py` con data sintetica futura e verifica dell'ordine cronologico; nuova CI richiesta. Non dichiarare superata la compilazione del primo tentativo.
+
 ## Ultima compilazione verificata e telemetria CI
 
 <!-- CI_STATUS_START -->
