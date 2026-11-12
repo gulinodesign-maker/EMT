@@ -57,7 +57,7 @@ Per tutti i run successivi, riusciti o falliti, consultare **[BUILD_HISTORY.md](
 
 ## Stato operativo e richieste aperte
 
-**Attività corrente:** **build 69 integrata su `main`**, test e compilazione PR riusciti, con i riempimenti (non gli stroke) editabili e il profilo parallelo 3× ai fianchi. CI main 43293155559 terminata con successo; workflow TestFlight 43293155367 **queued** e non ancora completato. La 68 resta l'ultimo upload Apple verificato finché il workflow 69 non termina.
+**Attività corrente:** **build 69 integrata su `main`**, CI main 43293155559 e compilazione iOS riuscite. Il workflow TestFlight 43293155367 è terminato **failure** al tentativo 1 senza iniziare l'upload (job cancellato mentre era in coda, nessuna prova di invio ad Apple). È stato rilanciato **soltanto il job di pubblicazione**, tentativo 2, attualmente **queued** all'ultima verifica. Attendere il runner e controllare i log prima di dichiarare la 69 caricata. La 68 resta l'ultimo upload Apple verificato finché il workflow 69 non termina.
 
 **Richieste utente ancora da completare / da verificare:**
 1. **TestFlight 69 (priorità):** verificare il workflow di invio 43293155367; dopo `Upload succeeded`, controllare App Store Connect `1.0 (69)`, processing e associazione al gruppo **TE**; solo allora confermare disponibilità su iPhone. La 68 era stata caricata con successo, senza prova in questa chat della distribuzione. Non dichiarare la 69 distribuita senza conferma ASC.
@@ -66,7 +66,7 @@ Per tutti i run successivi, riusciti o falliti, consultare **[BUILD_HISTORY.md](
 
 **Verifiche tecniche completate:** PR #54 / CI verde, workflow di registrazione realmente eseguito con esito `success`, entry nel registro su `main`, aggiornamento automatico del riquadro CI e assenza di loop. La gestione degli esiti negativi è stata testata con casi automatici simulati, ma il ramo fallback per permessi negati non è stato esercitato in ambiente reale.
 
-**Prossima operazione:** attendere/controllare workflow TestFlight 43293155367 (ancora queued); in caso di fallimento senza upload, diagnosticare e ritentare il job, senza creare una build 70. Richiedere nei log `ARCHIVE SUCCEEDED` ed `Upload succeeded` per il numero **69**. Poi verificare elaborazione Apple/assegnazione gruppo **TE**, disponibilità in TestFlight e fotografia reale dell'effetto delle due superfici con sfumatura e della doppia linea di spessore 3×. Non inventare lo stato Apple dai workflow.
+**Prossima operazione:** controllare lo **stesso workflow 43293155367, tentativo 2**, avviato con `rerun_workflow_job` dopo il fallimento da mancata assegnazione runner del tentativo 1. Verificare `ARCHIVE SUCCEEDED`, `Upload succeeded` ed `EXPORT SUCCEEDED` per build **69** prima di parlare di upload Apple. Non avviare un workflow parallelo e non aumentare il numero build. Dopo upload confermato, verificare elaborazione e gruppo TE su App Store Connect. Poi verificare elaborazione Apple/assegnazione gruppo **TE**, disponibilità in TestFlight e fotografia reale dell'effetto delle due superfici con sfumatura e della doppia linea di spessore 3×. Non inventare lo stato Apple dai workflow.
 
 ## Procedura di handoff
 
