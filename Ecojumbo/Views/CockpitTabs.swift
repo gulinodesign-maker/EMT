@@ -272,17 +272,19 @@ final class EcoNavigationStore: ObservableObject {
 // EcoNavigationStore resta condiviso e mantiene la rotta quando si cambia modalità.
 
 struct ThemePickerView: View {
+    var portrait: Bool = false
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("ecojumbo.theme") private var selection = CockpitTheme.copper.rawValue
     // Sempre tre a tre: sei temi disposti in due righe da tre.
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)
+    private let portraitColumns = Array(repeating: GridItem(.flexible(), spacing: 13), count: 2)
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 Text("Ogni anteprima mostra i colori reali del tema: fondo, luce, ombra, acciaio, tre colori della barra e rigenerazione.")
                     .font(.subheadline).foregroundStyle(.secondary)
-                LazyVGrid(columns: columns, spacing: 13) {
+                LazyVGrid(columns: portrait ? portraitColumns : columns, spacing: 13) {
                     ForEach(CockpitTheme.allCases) { theme in
                         Button { selection = theme.rawValue } label: {
                             VStack(spacing: 8) {
