@@ -35,7 +35,7 @@ final class EcoOutsideWeather: ObservableObject {
         let approximate = CLLocation(latitude: (coordinate.latitude * 100).rounded() / 100,
                                      longitude: (coordinate.longitude * 100).rounded() / 100)
         if let lastRequestAt, let lastRequestedPosition,
-           date.timeIntervalSince(lastRequestAt) < 15 * 60,
+           date.timeIntervalSince(lastRequestAt) < (temperatureC == nil ? 60 : 15 * 60),
            approximate.distance(from: lastRequestedPosition) < 5_000 { return }
 
         isLoading = true
@@ -78,8 +78,7 @@ private struct EcoOutsideTemperature: View {
     let now: Date
 
     private var currentTemperature: Double? {
-        guard gps.currentCoordinate(at: now) != nil,
-              let updatedAt = weather.updatedAt,
+        guard let updatedAt = weather.updatedAt,
               now.timeIntervalSince(updatedAt) >= 0,
               now.timeIntervalSince(updatedAt) < 60 * 60 else { return nil }
         return weather.temperatureC
@@ -87,8 +86,6 @@ private struct EcoOutsideTemperature: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            Image(systemName: "thermometer.medium")
-                .foregroundStyle(colorScheme == .light ? Color(white: 0.22) : Color.white.opacity(0.82))
             Text(currentTemperature.map { String(format: "%.0f°C", $0) } ?? "—°C")
                 .monospacedDigit()
                 .lineLimit(1)
@@ -107,8 +104,14 @@ private struct EcoOutsideTemperature: View {
         .onAppear {
             weather.refreshIfNeeded(at: gps.currentCoordinate(at: now))
         }
-        .onReceive(gps.$lastGPSCoordinate) { _ in
-            weather.refreshIfNeeded(at: gps.currentCoordinate())
+        .onReceive(gps.$lastGPSCoordinate) { coordinate in
+            // Usa direttamente il fix valido emesso: il timestamp interno GPS
+            // potrebbe non essere ancora aggiornato alla prima emissione.
+            weather.refreshIfNeeded(at: coordinate)
+        }
+        .onChange(of: now) { _, newDate in
+            // Riprova quando Internet torna disponibile, senza richieste continue.
+            weather.refreshIfNeeded(at: gps.currentCoordinate(at: newDate))
         }
     }
 }
@@ -833,20 +836,48 @@ struct CockpitDashboard:View {
     }
 }
 
-private struct PhoneChargeMeter:View {
-    @State private var batteryLevel:Float = -1
-    var body:some View {
-        HStack(spacing:6) {
-            Image(systemName:"battery.100percent")
-            Text(batteryLevel < 0 ? "—%" : "\(Int((batteryLevel*100).rounded()))%")
+private struct PhoneChargeMeter: View {
+    @Environment(\.scenePhase) private var scenePhase
+    @State private var batteryLevel: Float = -1
+
+    private var chargePercent: Int? {
+        guard batteryLevel.isFinite, (0...1).contains(batteryLevel) else { return nil }
+        return Int((batteryLevel * 100).rounded())
+    }
+
+    private var batterySymbol: String {
+        guard let percent = chargePercent else { return "battery.0percent" }
+        switch percent {
+        case ..<13: return "battery.0percent"
+        case ..<38: return "battery.25percent"
+        case ..<63: return "battery.50percent"
+        case ..<88: return "battery.75percent"
+        default: return "battery.100percent"
+        }
+    }
+
+    private func refreshBatteryLevel() {
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        batteryLevel = UIDevice.current.batteryLevel
+    }
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: batterySymbol)
+            Text(chargePercent.map { "\($0)%" } ?? "—%")
                 .monospacedDigit()
         }
-        .onAppear {
-            UIDevice.current.isBatteryMonitoringEnabled=true
-            batteryLevel=UIDevice.current.batteryLevel
+        .onAppear(perform: refreshBatteryLevel)
+        .onReceive(NotificationCenter.default.publisher(
+            for: UIDevice.batteryLevelDidChangeNotification)) { _ in
+                refreshBatteryLevel()
         }
-        .onReceive(NotificationCenter.default.publisher(for:UIDevice.batteryLevelDidChangeNotification)) {_ in
-            batteryLevel=UIDevice.current.batteryLevel
+        .onReceive(NotificationCenter.default.publisher(
+            for: UIDevice.batteryStateDidChangeNotification)) { _ in
+                refreshBatteryLevel()
+        }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { refreshBatteryLevel() }
         }
     }
 }
@@ -1695,13 +1726,8 @@ private struct GPSHorizonLine: View {
                 line.stroke(theme.accent, lineWidth: max(1.2, h * 0.0023))
             }
             .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
-            // Stessa sfumatura radiale per i terminali delle diagonali GPS.
-            .mask(RadialGradient(stops: [
-                .init(color: .clear, location: 0),
-                .init(color: .white, location: 1)
-            ], center: UnitPoint(x: dialCenterX / w, y: 0.494),
-               startRadius: dialSize * 0.508,
-               endRadius: dialSize * 0.508 + max(18, h * 0.070)))
+            // I raccordi GPS terminano netti al bordo del quadrante:
+            // nessuna dissolvenza radiale nei due punti di contatto.
         }
         .allowsHitTesting(false)
     }
