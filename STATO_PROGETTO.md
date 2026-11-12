@@ -40,7 +40,7 @@ Cockpit tachimetro GPS, mappe Apple MapKit e itinerari, indicazioni svolta, prof
 - **Build 66, 12/11/2026:** simmetria raccordi al quadrante GPS e anello metallico concentrico; CI `main` riuscita: [esecuzione](https://github.com/gulinodesign-maker/EMT/actions/runs/43254110364); upload Apple riuscito: [workflow](https://github.com/gulinodesign-maker/EMT/actions/runs/43254110459).
 - **Build 67, 12/11/2026:** PR [#53](https://github.com/gulinodesign-maker/EMT/pull/53), merge su `main` (`b48ce3b493923e8e4d785d654fe8a7dcd18c5751`). Rimosso fade nei due raccordi superiori GPS, tolto termometro dall'etichetta °C, migliorate ricezione/ritentativi meteo e rappresentazione della batteria iPhone. CI simulator `main` riuscita: [esecuzione](https://github.com/gulinodesign-maker/EMT/actions/runs/43267365428). Upload TestFlight riuscito: [workflow](https://github.com/gulinodesign-maker/EMT/actions/runs/43267365446); log `Upload succeeded`.
 - **App Store Connect 67:** screenshot fornito dall'utente mostra `1.0 (67)` **Completo** fra i caricamenti. Nella tabella `Versione 1.0` la build 67 era senza gruppo; 66 e 65 risultavano assegnate al gruppo **TE**. Non abbiamo conferma successiva che TE abbia ricevuto la 67. Lo screenshot rappresenta uno stato osservato, non un controllo corrente via API.
-- **Continuità cross-chat:** aggiunta la documentazione di handoff e predisposta la registrazione dei risultati GitHub Actions nel repository. Verificare l'effettiva automazione dopo l'attivazione del workflow: non considerare attiva fino a una prova su run concluso.
+- **Continuità cross-chat, 12/11/2026:** implementazione [PR #54](https://github.com/gulinodesign-maker/EMT/pull/54) integrata su `main` al commit `1e306497498e838715aac03dac3cb12a2c6637f5`. CI main [#170](https://github.com/gulinodesign-maker/EMT/actions/runs/43276540175) con test e compilazione simulatore riusciti; workflow di registrazione [43276877533](https://github.com/gulinodesign-maker/EMT/actions/runs/43276877533) riuscito. Il bot ha effettivamente committato `BUILD_HISTORY.md` e aggiornato il riquadro CI in questo file su `main` (commit `c94f3e16f6ecf93aae04e104c2b1b104e30d1880`), senza lanciare altre CI. Sono stati verificati davvero il percorso positivo e la persistenza; esiti falliti/cancellati e fallback scrittura sono coperti da test, ma NON ancora provati con un fallimento reale dopo l'attivazione.
 
 ## Ultima compilazione verificata e telemetria CI
 
@@ -53,15 +53,16 @@ Per tutti i run successivi, riusciti o falliti, consultare **[BUILD_HISTORY.md](
 
 ## Stato operativo e richieste aperte
 
-**Attività corrente:** implementazione della continuità permanente su GitHub (questo documento, `BUILD_HISTORY.md`, `AGENTS.md`, workflow di monitoraggio); provare esito del workflow registratore dopo merge.
+**Attività corrente:** infrastruttura di continuità completata, integrata e verificata su `main`. Restano da controllare la distribuzione della build 67 al gruppo TestFlight TE e la verifica della stessa app su un iPhone reale; la documentazione del Progetto ChatGPT richiede ancora l'impostazione manuale una tantum.
 
 **Richieste utente ancora da completare / da verificare:**
 1. **TestFlight 67:** associare la build `1.0 (67)` al gruppo **TE** in App Store Connect e verificare che compaia «Aggiorna» su iPhone. A ultimo screenshot il caricamento era **Completo**, ma il gruppo della build 67 era vuoto. Non dichiarare distribuita senza conferma.
 2. **Controllo su dispositivo reale della build 67:** verificare visivamente raccordi, temperatura con GPS+Internet e valore batteria iPhone; test automatici non equivalgono a verifica su hardware.
-3. **Continuità GitHub Actions:** verificare almeno un run automatico concluso con inserimento effettivo nel registro dopo il merge; se l'account GitHub limita le scritture, leggere l'errore e il ramo fallback.
-4. **ChatGPT Progetto:** inserire una volta il testo di `docs/ISTRUZIONI_PROGETTO_CHATGPT.md` nelle istruzioni del Progetto; non configurabile automaticamente da questo repository.
+3. **ChatGPT Progetto:** inserire una volta il testo di `docs/ISTRUZIONI_PROGETTO_CHATGPT.md` nelle istruzioni del Progetto; non configurabile automaticamente da questo repository.
 
-**Prossima operazione:** controllare il nuovo run `Compila Ecojumbo (iOS)` e il successivo `Registra esiti build EMT`; accertare che `BUILD_HISTORY.md` si aggiorni con SHA, test ed esito anche quando il job fallisce. Dopodiché verificare assegnazione TestFlight gruppo TE senza generare nuove build inutili.
+**Verifiche tecniche completate:** PR #54 / CI verde, workflow di registrazione realmente eseguito con esito `success`, entry nel registro su `main`, aggiornamento automatico del riquadro CI e assenza di loop. La gestione degli esiti negativi è stata testata con casi automatici simulati, ma il ramo fallback per permessi negati non è stato esercitato in ambiente reale.
+
+**Prossima operazione:** in App Store Connect associare `1.0 (67)` al gruppo TestFlight **TE** e verificare che l'app TestFlight su iPhone mostri «Aggiorna». Poi controllare su hardware i tre fix della build 67 (raccordi, Celsius, batteria iPhone). Non creare una build 68 senza nuove modifiche richieste e senza verificare lo stato effettivo del repository.
 
 ## Procedura di handoff
 
