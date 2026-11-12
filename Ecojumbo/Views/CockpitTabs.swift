@@ -638,6 +638,7 @@ private struct EcoThemeEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var draft: EcoThemePalette
     @State private var colorID: EcoThemeColorID?
+    @State private var selectedGroup: Int?
     @State private var chooseSlot = false
     @State private var overwriteSlot: Int?
     let initialSlot: Int?
@@ -681,45 +682,50 @@ private struct EcoThemeEditorView: View {
                         colorID = EcoThemeColorID(id: index)
                     })
 
-                    // Ogni riquadro dichiara sia il nome sia la parte fisica che cambia.
-                    // Il popup modifica un solo colore alla volta, senza toccare gli altri.
-                    ForEach(0..<EcoThemePalette.groups.count, id: \.self) { groupIndex in
-                        let group = EcoThemePalette.groups[groupIndex]
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(group.title)
-                                .font(.headline)
-                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())],
-                                      spacing: 10) {
-                                ForEach(group.range, id: \.self) { index in
-                                    VStack(alignment: .leading, spacing: 8) {
-                                        HStack(alignment: .center, spacing: 9) {
-                                            RoundedRectangle(cornerRadius: 6)
-                                                .fill(Color(themeHex: draft.colors[index]))
-                                                .frame(width: 32, height: 32)
-                                                .overlay(RoundedRectangle(cornerRadius: 6)
-                                                    .strokeBorder(.white.opacity(0.25), lineWidth: 1))
-                                            Text(EcoThemePalette.labels[index])
-                                                .font(.system(size: 12, weight: .semibold))
-                                                .fixedSize(horizontal: false, vertical: true)
-                                                .multilineTextAlignment(.leading)
-                                        }
-                                        Text(EcoThemePalette.details[index])
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
-                                            .fixedSize(horizontal: false, vertical: true)
+                    // Le quattro macro-categorie sono ora una griglia iconografica 2×2.
+                    // I 15 ruoli colore restano definiti e persistiti come nella build 64.
+                    if let selectedGroup {
+                        let group = EcoThemePalette.groups[selectedGroup]
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.20)) {
+                                self.selectedGroup = nil
+                            }
+                        } label: {
+                            Label("Tutte le categorie", systemImage: "chevron.left")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.vertical, 6)
+
+                        Label(group.title, systemImage: categorySymbol(selectedGroup))
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)],
+                                  spacing: 10) {
+                            ForEach(group.range, id: \.self) { index in
+                                colorRoleTile(index)
+                            }
+                        }
+                    } else {
+                        Text("Scegli una categoria per modificare i suoi colori.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12),
+                                            GridItem(.flexible(), spacing: 12)],
+                                  spacing: 12) {
+                            ForEach(0..<EcoThemePalette.groups.count, id: \.self) { groupIndex in
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.20)) {
+                                        selectedGroup = groupIndex
                                     }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(10)
-                                    .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 10))
-                                    .contentShape(Rectangle())
-                                    .onLongPressGesture(minimumDuration: 0.45) {
-                                        colorID = EcoThemeColorID(id: index)
-                                    }
-                                    .accessibilityElement(children: .combine)
-                                    .accessibilityLabel(EcoThemePalette.labels[index])
-                                    .accessibilityHint(EcoThemePalette.details[index] + " Tieni premuto per cambiare colore.")
-                                    .accessibilityAction { colorID = EcoThemeColorID(id: index) }
+                                } label: {
+                                    categoryTile(groupIndex)
                                 }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(EcoThemePalette.groups[groupIndex].title)
+                                .accessibilityHint("Apri i colori di questa categoria")
                             }
                         }
                     }
@@ -778,6 +784,85 @@ private struct EcoThemeEditorView: View {
                 Text("Il tema già salvato in questo slot verrà sovrascritto.")
             }
         }
+    }
+
+
+    // Anteprima compatta per le 4 card, con colori effettivi della bozza.
+    private func categorySymbol(_ index: Int) -> String {
+        switch index {
+        case 0: "paintpalette"
+        case 1: "chart.bar.fill"
+        case 2: "speedometer"
+        default: "arrow.triangle.turn.up.right.diamond"
+        }
+    }
+
+    private func categoryTile(_ index: Int) -> some View {
+        let group = EcoThemePalette.groups[index]
+        return VStack(spacing: 10) {
+            Image(systemName: categorySymbol(index))
+                .font(.system(size: 28, weight: .regular))
+                .foregroundStyle(Color(themeHex: draft.colors[1]))
+                .frame(height: 36)
+
+            Text(group.title)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .frame(minHeight: 36)
+
+            HStack(spacing: 5) {
+                ForEach(group.range, id: \.self) { colorIndex in
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color(themeHex: draft.colors[colorIndex]))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 12)
+                        .overlay(RoundedRectangle(cornerRadius: 3)
+                            .strokeBorder(.white.opacity(0.16), lineWidth: 0.5))
+                }
+            }
+            Text("\(group.range.count) colori")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 134)
+        .padding(12)
+        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 14))
+        .contentShape(RoundedRectangle(cornerRadius: 14))
+    }
+
+    // I colori del gruppo hanno etichette esplicite e long press come nella 64.
+    private func colorRoleTile(_ index: Int) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .center, spacing: 9) {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color(themeHex: draft.colors[index]))
+                    .frame(width: 36, height: 36)
+                    .overlay(RoundedRectangle(cornerRadius: 6)
+                        .strokeBorder(.white.opacity(0.25), lineWidth: 1))
+                Text(EcoThemePalette.labels[index])
+                    .font(.system(size: 13, weight: .semibold))
+                    .fixedSize(horizontal: false, vertical: true)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: 0)
+            }
+            Text(EcoThemePalette.details[index])
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(12)
+        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 11))
+        .contentShape(RoundedRectangle(cornerRadius: 11))
+        .onLongPressGesture(minimumDuration: 0.45) {
+            colorID = EcoThemeColorID(id: index)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(EcoThemePalette.labels[index])
+        .accessibilityHint(EcoThemePalette.details[index] + " Tieni premuto per cambiare colore.")
+        .accessibilityAction { colorID = EcoThemeColorID(id: index) }
     }
 
     private func save(slot: Int) {
