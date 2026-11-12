@@ -20,7 +20,7 @@ assert '.padding(.leading, left ? width * 0.035 : inset)' in c
 assert 'var previewPalette: [Color]' in c
 assert 'ForEach(theme.previewPalette.indices' in t
 assert 'LazyVGrid(columns: columns, spacing: 13)' in t
-assert 'count: 3' in t
+assert 'GridItem(.adaptive(minimum: 145), spacing: 13)' in t
 assert 'let dialSize = min(h * 0.982, w * 0.57)' in c
 assert 'ringRadius = min(h * 0.982, w * 0.57) * 0.506' in c
 assert 'FillStyle(eoFill: true)' in c
