@@ -185,7 +185,11 @@ assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 # Nuovo dock GPS 7 a destra; classico 4+3 invariato.
 assert 'if mapEnabled && selected == .gps {' in u
 assert 'selected == .gps' in u and '? max(4, h * 0.006)' in u
-assert 'ForEach(EcoTab.allCases) { tab in' not in u
+# Il dock approvato del cockpit resta invariato, mentre solo il dock
+# separato dei menù portrait mostra tutte e sei le sezioni.
+landscape_dock = u.split('// Build 41: un solo cockpit,', 1)[1]
+assert 'ForEach(EcoTab.allCases) { tab in' not in landscape_dock
+assert 'ForEach(EcoTab.allCases) { tab in' in u
 assert 'gpsButton("map.fill", active: mapEnabled' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
 assert 'gpsButton("play.fill"' in u
