@@ -78,9 +78,14 @@ enum EcoCockpitDockGeometry {
         return min(idealSide, max(20, available / 7))
     }
 
+    // Build 68: la tangente destra al profilo reale del tachimetro
+    // (stesso raggio 0.508 usato dal ritaglio della mappa) definisce il
+    // limite sinistro. Inset simmetrico destra/sinistra: il CENTRO delle
+    // schede e dei cinque tasti coincide con quello dello spazio libero.
     static func standardLeft(width: CGFloat, height: CGFloat) -> CGFloat {
-        width - rightInset(width: width) - 7 * standardSide(width: width, height: height)
-            - 6 * gap(width: width)
+        let dial = min(height * 0.965, width * 0.55)
+        let dialX = max(dial * 0.51 + width * 0.010, width * 0.168 + dial * 0.30)
+        return dialX + dial * 0.508 + rightInset(width: width)
     }
 }
 
@@ -346,8 +351,9 @@ private struct CockpitCornerControls: View {
                 ? min(buttonSide, width * 0.052)
                 : EcoCockpitDockGeometry.standardSide(width: width, height: screenHeight)
             let gpsGap = width * 0.008
-            // Stessa larghezza e margini della telemetria del cockpit GPS.
-            // Con mappa nascosta i cinque tasti sono giustificati sui due bordi;
+            // Stesso intervallo centrato tra tangente destra al tachimetro
+            // e bordo destro del display. I cinque tasti occupano
+            // esattamente la stessa larghezza della telemetria;
             // gli otto comandi della mappa e i menù mantengono il layout esistente.
             let telemetryDock = selected == .gps && !mapEnabled
             let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)

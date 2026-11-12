@@ -272,7 +272,7 @@ final class EcoNavigationStore: ObservableObject {
 // EcoNavigationStore resta condiviso e mantiene la rotta quando si cambia modalità.
 
 
-// Build 64: 15 colori espliciti per tutte le luci del cockpit; conserva i 3 slot della build 63.
+// Build 68: 17 colori; gli ultimi due governano la sfumatura condivisa dei contorni GPS.
 struct EcoThemePalette: Codable, Equatable {
     var name: String
     var colors: [String]
@@ -293,7 +293,9 @@ struct EcoThemePalette: Codable, Equatable {
         "Numeri del tachimetro · km/h",
         "Navigatore · svolta a destra",
         "Navigatore · svolta a sinistra",
-        "Decelerazione GPS · non sensore freno"
+        "Decelerazione GPS · non sensore freno",
+        "Top bar + ponte kW · sfumatura sinistra",
+        "Top bar + ponte kW · sfumatura destra"
     ]
     static let details = [
         "Fondo scuro dietro gli strumenti.",
@@ -310,15 +312,18 @@ struct EcoThemePalette: Codable, Equatable {
         "Cifre grandi della velocità GPS al centro.",
         "Freccia e distanza della prossima svolta verso destra.",
         "Freccia e distanza della prossima svolta verso sinistra.",
-        "Arco GPS quando la velocità sta diminuendo: non è una misura del freno fisico."
+        "Arco GPS quando la velocità sta diminuendo: non è una misura del freno fisico.",
+        "Tonalità iniziale della sfumatura orizzontale, identica sulla top bar GPS e sul ponte kW.",
+        "Tonalità finale della stessa sfumatura; il colore centrale è l'accent principale del tema."
     ]
     static let groups: [(title: String, range: Range<Int>)] = [
         ("Aspetto generale", 0..<4),
         ("Barre telemetria e potenza", 4..<8),
         ("Anelli e numeri del tachimetro", 8..<12),
-        ("Navigatore e decelerazione", 12..<15)
+        ("Navigatore e decelerazione", 12..<15),
+        ("Sfumatura top bar e ponte kW", 15..<17)
     ]
-    static let colorCount = 15
+    static let colorCount = 17
     static let extraDefaults = [
         "#FA2B2E", "#2BBAFF", "#FF7008", "#FA2B2E",
         "#FFFFFF", "#FFFFFF", "#FFB224"
@@ -344,7 +349,7 @@ struct EcoThemePalette: Codable, Equatable {
         return EcoThemePalette(
             name: "Il mio tema",
             colors: ["#040405", foreground.0, foreground.1, "#D9DEE3"]
-                + standardBarColors + extraDefaults
+                + standardBarColors + extraDefaults + [foreground.1, foreground.1]
         )
     }
 
@@ -352,7 +357,8 @@ struct EcoThemePalette: Codable, Equatable {
         guard (1...3).contains(slot),
               let data = UserDefaults.standard.data(forKey: storagePrefix + String(slot)),
               let decoded = try? JSONDecoder().decode(EcoThemePalette.self, from: data),
-              (decoded.colors.count == 8 || decoded.colors.count == colorCount),
+              (decoded.colors.count == 8 || decoded.colors.count == 15 ||
+               decoded.colors.count == colorCount),
               decoded.colors.allSatisfy({ validHex($0) }) else { return nil }
         // Migrazione non distruttiva: gli 8 colori delle build 63 restano identici.
         var migrated = decoded
@@ -360,6 +366,11 @@ struct EcoThemePalette: Codable, Equatable {
             migrated.colors.append(contentsOf: extraDefaults)
             // La corona in ingresso eredita il colore già scelto per il recupero.
             migrated.colors[9] = decoded.colors[7]
+        }
+        // Migrazione 8→15→17 e 15→17 senza modificare i colori già salvati.
+        if migrated.colors.count == 15 {
+            let edge = migrated.colors[2]
+            migrated.colors.append(contentsOf: [edge, edge])
         }
         return migrated
     }
@@ -555,6 +566,18 @@ private struct EcoThemePreview: View {
         VStack(spacing: 10) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12).fill(Color(themeHex: palette.colors[0]))
+                // La miniatura mostra esattamente il gradiente che verrà
+                // usato in entrambe le linee GPS (start → accent → end).
+                Capsule()
+                    .fill(LinearGradient(colors: [
+                        Color(themeHex: palette.colors[15]),
+                        Color(themeHex: palette.colors[1]),
+                        Color(themeHex: palette.colors[16])
+                    ], startPoint: .leading, endPoint: .trailing))
+                    .frame(height: 5)
+                    .padding(.horizontal, 10)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 6)
                 // Tre corone separate: potenza in uscita, ingresso e arco GPS.
                 Circle()
                     .stroke(Color(themeHex: palette.colors[8]).opacity(0.88), lineWidth: 5)
@@ -682,8 +705,8 @@ private struct EcoThemeEditorView: View {
                         colorID = EcoThemeColorID(id: index)
                     })
 
-                    // Le quattro macro-categorie sono ora una griglia iconografica 2×2.
-                    // I 15 ruoli colore restano definiti e persistiti come nella build 64.
+                    // Le categorie sono una griglia a due colonne; la quinta
+                    // espone i due estremi editabili della sfumatura condivisa.
                     if let selectedGroup {
                         let group = EcoThemePalette.groups[selectedGroup]
                         Button {
@@ -787,13 +810,15 @@ private struct EcoThemeEditorView: View {
     }
 
 
-    // Anteprima compatta per le 4 card, con colori effettivi della bozza.
+    // La quinta categoria permette di modificare entrambe le estremità
+    // della sfumatura e le conserva negli stessi tre slot storici.
     private func categorySymbol(_ index: Int) -> String {
         switch index {
         case 0: "paintpalette"
         case 1: "chart.bar.fill"
         case 2: "speedometer"
-        default: "arrow.triangle.turn.up.right.diamond"
+        case 3: "arrow.triangle.turn.up.right.diamond"
+        default: "paintbrush.pointed"
         }
     }
 
