@@ -40,6 +40,6 @@ assert "requestGeometryUpdate(.iOS(interfaceOrientations: mask))" in app
 assert "if selected != .gps && w < h {" in home
 
 # Never modify established GPS dial/map geometry or hardware integration.
-blob = b"blob " + str(len(cockpit)).encode() + b"\\0" + cockpit
+blob = b"blob " + str(len(cockpit)).encode() + b"\0" + cockpit
 assert hashlib.sha1(blob).hexdigest() == "369d6997d058d239bd19ae09144adb01824f3e1f"
 print("OK — build 59: flat navigation, centered landscape menus, portrait goes to Settings")
