@@ -555,16 +555,33 @@ private struct EcoThemePreview: View {
         VStack(spacing: 10) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12).fill(Color(themeHex: palette.colors[0]))
+                // Tre corone separate: potenza in uscita, ingresso e arco GPS.
                 Circle()
-                    .stroke(Color(themeHex: palette.colors[2]), lineWidth: 3)
-                    .frame(width: 64, height: 64)
+                    .stroke(Color(themeHex: palette.colors[8]).opacity(0.88), lineWidth: 5)
+                    .frame(width: 78, height: 78)
                 Circle()
-                    .trim(from: 0.1, to: 0.84)
-                    .stroke(Color(themeHex: palette.colors[1]),
-                            style: StrokeStyle(lineWidth: 6, lineCap: .round))
-                    .rotationEffect(.degrees(85))
-                    .frame(width: 55, height: 55)
-                Text("—").font(.title2.bold()).foregroundStyle(Color(themeHex: palette.colors[3]))
+                    .stroke(Color(themeHex: palette.colors[9]).opacity(0.88), lineWidth: 5)
+                    .frame(width: 66, height: 66)
+                Circle()
+                    .trim(from: 0.10, to: 0.77)
+                    .stroke(Color(themeHex: palette.colors[10]),
+                            style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .rotationEffect(.degrees(75))
+                    .frame(width: 53, height: 53)
+                Text("88")
+                    .font(.system(size: 19, weight: .bold))
+                    .foregroundStyle(Color(themeHex: palette.colors[11]))
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.turn.up.left")
+                        .foregroundStyle(Color(themeHex: palette.colors[13]))
+                    Image(systemName: "arrow.turn.up.right")
+                        .foregroundStyle(Color(themeHex: palette.colors[12]))
+                    Circle()
+                        .fill(Color(themeHex: palette.colors[14]))
+                        .frame(width: 6, height: 6)
+                }
+                .font(.system(size: 10, weight: .bold))
+                .offset(y: 40)
                 HStack(spacing: 0) {
                     ForEach(4..<7, id: \.self) { i in
                         Color(themeHex: palette.colors[i])
