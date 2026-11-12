@@ -7,7 +7,7 @@ source=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 64;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 65;") == 2
 dashboard=source.split("struct GPSCockpitDashboard: View {",1)[1].split(
     "private struct GPSHorizonLine: View {",1)[0]
 speed=source.split("private struct OpenSpeedCluster: View {",1)[1].split(
@@ -17,24 +17,20 @@ reset=source.split("private struct GPSTripResetControl: View {",1)[1].split(
 telemetry=source.split("private struct GPSExpandedReadings: View {",1)[1].split(
     "// Progressi sottili e luminosi",1)[0]
 
-# The common background IS the app backdrop. Telemetry may not paint
-# a large opaque/smoked panel or border over it.
-panel=telemetry.split("private func telemetryDivider",1)[0]
-for forbidden in (
-    ".background {", ".overlay {", ".shadow(color:", "RoundedRectangle(",
-    "Color.white.opacity(0.985)", "Color(white: 0.095).opacity(0.98)",
-):
-    assert forbidden not in panel, forbidden
-assert "VStack(spacing: 0)" in panel
-assert "Text(\"TELEMETRIA\")" in panel
-assert telemetry.count('telemetryRow("') == 5
-assert telemetry.count("telemetryDivider(height: dividerHeight)") == 4
+# Build 65: individual minimal cards in a 2×2 grid, DISL double-height.
+# The shared CarbonBackdrop remains visible through subtle translucent tiles.
+assert "VStack(spacing: tileGap)" in telemetry
+assert 'Text("TELEMETRIA")' in telemetry
+assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in telemetry
+assert telemetry.count('telemetryTile("') == 4
 assert telemetry.count("showsBar: true") == 3
+assert "let dislHeight = 2 * cardHeight" in telemetry
+assert "dislevelCard(height: dislHeight)" in telemetry
 assert "TelemetrySlimBar(fraction: fraction, theme: theme)" in telemetry
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in telemetry
+assert "Color.white.opacity(0.038)" in telemetry
 assert "minimumDuration: resettable" not in telemetry
 assert "gps.resetTrip()" not in telemetry
-assert "resettable: true" not in telemetry
 
 # ODO is in the common dial only when enabled by the GPS cockpit.
 assert "var showsOdometer: Bool = false" in speed

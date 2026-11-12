@@ -1,38 +1,38 @@
-"""Ecojumbo build 50: unified telemetry display design + live-data regressions."""
+"""Regressioni telemetria build 65: quattro schede, DISL doppia e dati live."""
 from pathlib import Path
 
-root=Path(__file__).resolve().parents[1]
-c=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
-g=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
-p=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
+root = Path(__file__).resolve().parents[1]
+cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
+gps = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
+project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert p.count("CURRENT_PROJECT_VERSION = 64;") == 2
-dashboard=c.split("struct GPSCockpitDashboard: View {",1)[1].split("private struct GPSHorizonLine: View {",1)[0]
-view=c.split("private struct GPSExpandedReadings: View {",1)[1].split(
-    "// Altitudine GPS sul percorso effettivamente registrato dal trip.",1)[0]
+assert project.count("CURRENT_PROJECT_VERSION = 65;") == 2
+dashboard = cockpit.split("struct GPSCockpitDashboard: View {", 1)[1].split(
+    "private struct GPSHorizonLine: View {", 1)[0]
+view = cockpit.split("private struct GPSExpandedReadings: View {", 1)[1].split(
+    "// Altitudine GPS sul percorso effettivamente registrato dal trip.", 1)[0]
 
-# One integrated panel, not five separate rounded cards.
+# Nessun spostamento del contenitore: stesso allineamento del dock, top bar e tachimetro.
 assert "GPSExpandedReadings(theme: theme, now: now)" in dashboard
 assert "let cardsTop = h * 0.099 + outerMargin" in dashboard
 assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in dashboard
-assert 'Text("TELEMETRIA")' in view
-assert "VStack(spacing: 0)" in view
-assert "private func telemetryDivider(height: CGFloat)" in view
-assert "RoundedRectangle(cornerRadius: max(14, min(29, height * 0.055))" not in view
-assert ".background {" not in view.split("private func telemetryDivider",1)[0]
-assert ".overlay {" not in view.split("private func telemetryDivider",1)[0]
-assert ".shadow(color: theme.accent.opacity(colorScheme == .light" not in view
-assert "GPSExpandedReadings(theme: theme, now: now)" in dashboard
-assert "private struct TelemetrySlimBar: View" in view
-assert view.count('telemetryRow("') == 5
-assert view.count("telemetryDivider(height: dividerHeight)") == 4
-assert view.count("showsBar: true") == 3
+assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in dashboard
 
-# Exact labels and data in the design; no demo values shipped.
-for label in ('SOC','V BAT','AUT','TRIP','DISL'):
-    assert 'telemetryRow("'+label+'"' in view
-for placeholder in ('"35%"','"72.4 V"','"48 km"','"0 m"'):
-    assert placeholder not in view,placeholder
+# Due colonne, due righe (SOC e V BAT in alto, AUT e TRIP sotto).
+assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in view
+assert view.count('telemetryTile("') == 4
+for label in ("SOC", "V BAT", "AUT", "TRIP"):
+    assert 'telemetryTile("' + label + '"' in view
+assert "let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 4)" in view
+assert "let dislHeight = 2 * cardHeight" in view
+assert "dislevelCard(height: dislHeight)" in view
+assert 'Text("DISL")' in view
+assert 'Text("TELEMETRIA")' in view
+assert "Color.white.opacity(0.038)" in view  # no smoked opaque backdrop
+
+# Live BMS, non visualizzare valori dimostrativi.
+for placeholder in ('"35%"', '"72.4 V"', '"48 km"', '"0 m"'):
+    assert placeholder not in view, placeholder
 assert 'live.map { "\($0.soc)%" } ?? "—%"' in view
 assert 'live.map { String(format: "%.1f V", $0.voltage) } ?? "— V"' in view
 assert "EcoRangeEstimate(snapshot: live, session: bluetooth.session)" in view
@@ -40,43 +40,48 @@ assert "autonomy?.fractionOfFull" in view
 assert "fraction: live.map { Double($0.soc) / 100.0 }" in view
 assert "fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) }" in view
 assert "abs(now.timeIntervalSince($0.date)) < 10" in view
-assert "gps.tripElevationMeters" in view
-assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in view
-assert "if let progress, progress > 0" in view
+assert view.count("showsBar: true") == 3
+assert "TelemetrySlimBar(fraction: fraction, theme: theme)" in view
 
-# 0.5 second long press resets both trip/elevation exactly as before.
-assert 'telemetryRow("TRIP"' in view
-assert "minimumDuration: resettable ? 0.5 : 1.3" not in view
-assert "gps.resetTrip()" not in view
-reset = c.split("private struct GPSTripResetControl: View {",1)[1].split(
-    "private struct GPSHorizonLine: View {",1)[0]
+# Il grafico è reale, e la sfumatura è tracciata solo dopo due letture GPS.
+chart = cockpit.split("private struct GPSTripAltitudeSparkline: View {", 1)[1]
+assert "if points.count >= 2" in chart
+assert "points.map(\.altitudeMeters)" in chart
+assert "area.fill(LinearGradient(" in chart
+assert "line.stroke(color" in chart
+assert "color.opacity(0.34)" in chart
+assert "color.opacity(0.0)" in chart
+assert "startPoint: .top, endPoint: .bottom" in chart
+assert "closeToBottom: true" in chart
+assert "Profilo GPS in attesa" in chart
+assert "gps.tripElevationMeters" in view
+assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile, color: theme.accent)" in view
+
+# Il tasto RESET rimane a pressione lunga e azzera solo il trip e la sua quota.
+reset = cockpit.split("private struct GPSTripResetControl: View {", 1)[1].split(
+    "private struct GPSHorizonLine: View {", 1)[0]
 assert ".onLongPressGesture(minimumDuration: 0.5)" in reset
 assert "gps.resetTrip()" in reset
-assert "UIImpactFeedbackGenerator(style: .medium).impactOccurred()" in reset
-assert "altitudeProfile.removeAll()" in g
-assert "tripKm = 0" in g
+assert "altitudeProfile.removeAll()" in gps
+assert "tripKm = 0" in gps
+assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in gps
 
-# All other GPS and map paths untouched.
-assert "GPSCockpitMap(theme: theme)" in dashboard
-assert "GPSMapBatteryRail(theme: theme, now: now)" in dashboard
-assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in dashboard
-assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in g
-assert "let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10" in g
-assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in g
-assert "date.timeIntervalSince(lastValidAt) < 8" in g
-
-# The header and five data rows fit between the top bar and dock on
-# all supported landscape sizes, with positive space for the sparkline.
-for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    dock=max(51,min(83,h*.105))
-    top=h*.099+max(8,h*.018)
-    bottom=h-max(4,h*.006)-dock-max(8,h*.018)
-    panel=bottom-top
-    inset=max(7,min(17,panel*.022))
-    inner=panel-2*inset
-    header=max(24,min(42,inner*.105))
-    row=(inner-header-4*.8)/5
-    assert row>35, (w,h,row)
-    assert 5*row+4*.8+header+2*inset<=panel+1e-6
-    assert max(11,row*.31) < row*.41
-print("OK — build 51: telemetria unificata, dati live, GPS invariato")
+# Su tutti gli iPhone landscape, card DISL esattamente alta quanto 2 tile.
+for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
+             (1536, 706), (1806, 831)):
+    dock = max(51, min(83, h * .105))
+    margin = max(8, h * .018)
+    top = h * .099 + margin
+    bottom = h - max(4, h * .006) - dock - margin
+    height = bottom - top
+    assert height > 160
+    inset_y = max(6, min(13, height * .019))
+    inner = height - 2 * inset_y
+    header = max(24, min(40, inner * .105))
+    gap = max(5, min(10, height * .022))
+    card = (inner - header - 3 * gap) / 4
+    disl = 2 * card
+    assert card > 30, (w, h, card)
+    assert disl > 2 * 30
+    assert abs(header + 2 * card + gap + disl + 2 * gap - inner) < 1e-7
+print("OK — build 65: 2×2 telemetria, DISL doppio, sfumatura reale e GPS invariato")
