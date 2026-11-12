@@ -180,6 +180,19 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     }
     var shadowAccent: Color { secondary.opacity(0.68) }
 
+    // Build 68 — unica sfumatura condivisa da top bar GPS e ponte kW.
+    // Gli estremi sono editabili (ruoli 15 e 16); l'accent originale è la
+    // luce centrale. I kit storici ereditano automaticamente secondary.
+    var contourGradient: LinearGradient {
+        let left = savedPalette.map { Color(themeHex: $0.colors[15]) } ?? secondary
+        let right = savedPalette.map { Color(themeHex: $0.colors[16]) } ?? secondary
+        return LinearGradient(stops: [
+            .init(color: left, location: 0),
+            .init(color: accent, location: 0.5),
+            .init(color: right, location: 1)
+        ], startPoint: .leading, endPoint: .trailing)
+    }
+
     // Barre e recupero energia usano la palette attiva, non soltanto la preview.
     static var barDark: Color {
         Color(themeHex: EcoThemePalette.active?.colors[4] ?? "#8C051F")
@@ -1449,16 +1462,20 @@ private struct GPSLowerGlow: View {
                     ], startPoint: UnitPoint(x: 0.5, y: 0.78),
                        endPoint: UnitPoint(x: 0.5, y: 0.985)))
                 ZStack {
+                    // Identica sfumatura orizzontale della top bar, anche nel
+                    // bagliore al di sotto del ponte kW. Fade terminale invariato.
                     GPSLowerContour()
-                        .stroke(theme.accent.opacity(0.30),
+                        .stroke(theme.contourGradient,
                                 style: StrokeStyle(lineWidth: max(4, h * 0.018), lineCap: .round))
+                        .opacity(0.30)
                         .blur(radius: max(3, h * 0.015))
                     GPSLowerContour()
-                        .stroke(theme.accent.opacity(0.79),
+                        .stroke(theme.contourGradient,
                                 style: StrokeStyle(lineWidth: max(2.3, h * 0.006), lineCap: .round))
+                        .opacity(0.79)
                         .blur(radius: max(1.2, h * 0.004))
                     GPSLowerContour()
-                        .stroke(theme.accent,
+                        .stroke(theme.contourGradient,
                                 style: StrokeStyle(lineWidth: max(1.4, h * 0.003), lineCap: .round))
                 }
                 .mask(GPSLowerTerminalFade())
@@ -1500,8 +1517,9 @@ struct GPSCockpitDashboard: View {
             let resetX = max(resetSide / 2 + max(10, w * 0.008),
                              dialCenterX - dialSize * 0.56)
             let resetY = min(h - resetSide * 0.58, h * 0.840)
-            // Nessun pannello può entrare nella circonferenza del tachimetro,
-            // neppure su iPhone stretti: bordo calcolato sul quadrante reale.
+            // Telemetria centrata esattamente tra la tangente destra del
+            // quadrante GPS e il bordo destro dello schermo. Stesso inset su
+            // entrambe le estremità; le card rimangono fuori dal quadrante.
             let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)
             let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) - panelLeft)
             // Le card occupano il centro dello spazio tra la top bar e il dock.
@@ -1719,11 +1737,16 @@ private struct GPSHorizonLine: View {
                                         height: dialSize * 1.016))
             }
             ZStack {
-                line.stroke(theme.accent.opacity(0.30), lineWidth: max(5, h * 0.011))
+                // La stessa interpolazione cromatica percorre entrambi i contorni.
+                // Intensità e raggi di glow invariati; nessuna sfumatura ai
+                // contatti con il quadrante (maschera geometrica build 67).
+                line.stroke(theme.contourGradient, lineWidth: max(5, h * 0.011))
+                    .opacity(0.30)
                     .blur(radius: max(3, h * 0.012))
-                line.stroke(theme.accent.opacity(0.83), lineWidth: max(2.0, h * 0.004))
+                line.stroke(theme.contourGradient, lineWidth: max(2.0, h * 0.004))
+                    .opacity(0.83)
                     .blur(radius: max(1, h * 0.004))
-                line.stroke(theme.accent, lineWidth: max(1.2, h * 0.0023))
+                line.stroke(theme.contourGradient, lineWidth: max(1.2, h * 0.0023))
             }
             .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
             // I raccordi GPS terminano netti al bordo del quadrante:

@@ -9,7 +9,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 source = cockpit.decode("utf-8")
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 67;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 68;") == 2
 
 # Preserve telemetry, dial and map source from the approved landscape cockpit.
 blob = b"blob " + str(len(cockpit)).encode() + b"\0" + cockpit
@@ -47,7 +47,8 @@ for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),
     side_ideal = min(max(51, min(83, h * 0.105)) * 0.96, w * 0.052)
     available = w - right - safe_left - 6 * gap
     side = min(side_ideal, max(20, available / 7))
-    panel_left = w - right - 7 * side - 6 * gap
+    # Build 68: tangente al bordo reale del tachimetro e inset simmetrici.
+    panel_left = dial_x + dial * 0.508 + right
     panel_width = w - right - panel_left
     justified_gap = max(0, (panel_width - 5 * side) / 4)
     button_left = panel_left
@@ -56,4 +57,8 @@ for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),
     assert isclose(button_left, panel_left, abs_tol=1e-7)
     assert isclose(button_right, w - right, abs_tol=1e-7)
     assert panel_left > safe_left - 5, (w, h, panel_left, safe_left)
+    dial_tangent = dial_x + dial * 0.508
+    assert isclose(panel_left - dial_tangent, right, abs_tol=1e-7)
+    assert isclose((button_left + button_right) / 2,
+                   (dial_tangent + w) / 2, abs_tol=1e-7)
 print("OK — build 62: five GPS buttons justified to telemetry left/right edges")

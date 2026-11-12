@@ -4,7 +4,7 @@
 
 ## Identità e obiettivo
 
-**Ecojumbo** è un'app nativa iPhone, SwiftUI/iOS, destinata al cockpit e alla telemetria di uno scooter elettrico. Repository: [gulinodesign-maker/EMT](https://github.com/gulinodesign-maker/EMT), ramo di produzione `main`. Bundle ID `it.ecojumbo.battery`, marketing version `1.0`, deployment target iOS **17.0**. Build del progetto verificata durante questa ricostruzione: **67**, sia Debug che Release. La versione reale, più recente, va letta in `Ecojumbo.xcodeproj/project.pbxproj` (NON dal README storico).
+**Ecojumbo** è un'app nativa iPhone, SwiftUI/iOS, destinata al cockpit e alla telemetria di uno scooter elettrico. Repository: [gulinodesign-maker/EMT](https://github.com/gulinodesign-maker/EMT), ramo di produzione `main`. Bundle ID `it.ecojumbo.battery`, marketing version `1.0`, deployment target iOS **17.0**. Build verificata su `main` prima della presente lavorazione: **67**. **Build 68 in sviluppo** nel ramo `build-68-shared-gradient-centered-telemetry` (Debug e Release impostati a 68, non ancora compilata né caricata Apple al momento di questo commit). La versione reale, più recente, va letta in `Ecojumbo.xcodeproj/project.pbxproj` (NON dal README storico).
 
 ## Architettura verificata
 
@@ -42,6 +42,8 @@ Cockpit tachimetro GPS, mappe Apple MapKit e itinerari, indicazioni svolta, prof
 - **App Store Connect 67:** screenshot fornito dall'utente mostra `1.0 (67)` **Completo** fra i caricamenti. Nella tabella `Versione 1.0` la build 67 era senza gruppo; 66 e 65 risultavano assegnate al gruppo **TE**. Non abbiamo conferma successiva che TE abbia ricevuto la 67. Lo screenshot rappresenta uno stato osservato, non un controllo corrente via API.
 - **Continuità cross-chat, 12/11/2026:** implementazione [PR #54](https://github.com/gulinodesign-maker/EMT/pull/54) integrata su `main` al commit `1e306497498e838715aac03dac3cb12a2c6637f5`. CI main [#170](https://github.com/gulinodesign-maker/EMT/actions/runs/43276540175) con test e compilazione simulatore riusciti; workflow di registrazione [43276877533](https://github.com/gulinodesign-maker/EMT/actions/runs/43276877533) riuscito. Il bot ha effettivamente committato `BUILD_HISTORY.md` e aggiornato il riquadro CI in questo file su `main` (commit `c94f3e16f6ecf93aae04e104c2b1b104e30d1880`), senza lanciare altre CI. Sono stati verificati davvero il percorso positivo e la persistenza; esiti falliti/cancellati e fallback scrittura sono coperti da test, ma NON ancora provati con un fallimento reale dopo l'attivazione.
 
+- **Build 68 (in sviluppo, richiesta utente 12/11/2026):** sfumatura condivisa e personalizzabile per top bar GPS e ponte inferiore kW tramite due ruoli colore aggiuntivi (17 totali) nell'editor; migrazione conservativa degli slot 8→17 e 15→17. Allargamento telemetria + dock dei cinque tasti sull'intervallo centrato fra la tangente destra del quadrante GPS e il confine destro del display, con margini simmetrici. Non alterati dati JK, GPS, trip, mappa o firmware. **Da verificare:** test, CI, compilazione iOS, upload Apple, elaborazione ASC, disponibilità tester e resa visiva iPhone. La 67 resta l'ultima build pubblicata verificata finché il rilascio 68 non termina.
+
 ## Ultima compilazione verificata e telemetria CI
 
 <!-- CI_STATUS_START -->
@@ -53,7 +55,7 @@ Per tutti i run successivi, riusciti o falliti, consultare **[BUILD_HISTORY.md](
 
 ## Stato operativo e richieste aperte
 
-**Attività corrente:** infrastruttura di continuità completata, integrata e verificata su `main`. Restano da controllare la distribuzione della build 67 al gruppo TestFlight TE e la verifica della stessa app su un iPhone reale; la documentazione del Progetto ChatGPT richiede ancora l'impostazione manuale una tantum.
+**Attività corrente:** implementazione build 68 richiesta dall'utente; due estremità cromatiche editabili e un solo gradiente orizzontale per le linee GPS top/ponte, geometria telemetria-dock centrata rispetto alla tangente destra del quadrante. In questo ramo compilazione e rilascio non sono ancora verificati. La continuità su `main` resta operativa.
 
 **Richieste utente ancora da completare / da verificare:**
 1. **TestFlight 67:** associare la build `1.0 (67)` al gruppo **TE** in App Store Connect e verificare che compaia «Aggiorna» su iPhone. A ultimo screenshot il caricamento era **Completo**, ma il gruppo della build 67 era vuoto. Non dichiarare distribuita senza conferma.
@@ -62,7 +64,7 @@ Per tutti i run successivi, riusciti o falliti, consultare **[BUILD_HISTORY.md](
 
 **Verifiche tecniche completate:** PR #54 / CI verde, workflow di registrazione realmente eseguito con esito `success`, entry nel registro su `main`, aggiornamento automatico del riquadro CI e assenza di loop. La gestione degli esiti negativi è stata testata con casi automatici simulati, ma il ramo fallback per permessi negati non è stato esercitato in ambiente reale.
 
-**Prossima operazione:** in App Store Connect associare `1.0 (67)` al gruppo TestFlight **TE** e verificare che l'app TestFlight su iPhone mostri «Aggiorna». Poi controllare su hardware i tre fix della build 67 (raccordi, Celsius, batteria iPhone). Non creare una build 68 senza nuove modifiche richieste e senza verificare lo stato effettivo del repository.
+**Prossima operazione:** completare test/regressioni della build 68, far passare la CI sulla PR, integrare su `main` e verificare separatamente CI main, archive/upload Apple e stato App Store Connect. Associare la 68 al gruppo TestFlight TE se non automatico; controllare dal vivo gradienti, layout e tre correzioni della build 67. Nessuna conferma di disponibilità tester finché ASC non lo dimostra.
 
 ## Procedura di handoff
 
