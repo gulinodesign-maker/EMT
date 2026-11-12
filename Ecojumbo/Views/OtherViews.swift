@@ -66,19 +66,6 @@ private struct TrendChart: View {
 struct BluetoothView: View {
     @EnvironmentObject private var bluetooth: JKBluetoothManager
 
-    @ViewBuilder private var connectionButtons: some View {
-        if bluetooth.isConnected {
-            Button("Scollega", role: .destructive) { bluetooth.disconnect() }.buttonStyle(.bordered)
-            Button("Richiedi lettura") { bluetooth.requestRead() }
-                .buttonStyle(.borderedProminent).tint(Color.ecoGreen)
-        } else if bluetooth.isScanning {
-            Button("Ferma ricerca") { bluetooth.stopScan() }.buttonStyle(.bordered)
-        } else {
-            Button("Cerca dispositivi") { bluetooth.scan() }
-                .buttonStyle(.borderedProminent).tint(Color.ecoGreen)
-        }
-    }
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
@@ -92,9 +79,19 @@ struct BluetoothView: View {
                             if !device.hardware.isEmpty { Text("Hardware: \(device.hardware)").font(.footnote) }
                             if !device.firmware.isEmpty { Text("Firmware: \(device.firmware)").font(.footnote) }
                         }
-                        ViewThatFits(in: .horizontal) {
-                            HStack { connectionButtons }
-                            VStack(alignment: .leading, spacing: 10) { connectionButtons }
+                        HStack {
+                            if bluetooth.isConnected {
+                                Button("Scollega", role: .destructive) { bluetooth.disconnect() }
+                                    .buttonStyle(.bordered)
+                                Button("Richiedi lettura") { bluetooth.requestRead() }
+                                    .buttonStyle(.borderedProminent).tint(Color.ecoGreen)
+                            } else if bluetooth.isScanning {
+                                Button("Ferma ricerca") { bluetooth.stopScan() }
+                                    .buttonStyle(.bordered)
+                            } else {
+                                Button("Cerca dispositivi") { bluetooth.scan() }
+                                    .buttonStyle(.borderedProminent).tint(Color.ecoGreen)
+                            }
                         }
                     }
                 }

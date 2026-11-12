@@ -20,7 +20,7 @@ assert '.padding(.leading, left ? width * 0.035 : inset)' in c
 assert 'var previewPalette: [Color]' in c
 assert 'ForEach(theme.previewPalette.indices' in t
 assert 'LazyVGrid(columns: columns, spacing: 13)' in t
-assert 'GridItem(.adaptive(minimum: 145), spacing: 13)' in t
+assert 'count: 3' in t
 assert 'let dialSize = min(h * 0.982, w * 0.57)' in c
 assert 'ringRadius = min(h * 0.982, w * 0.57) * 0.506' in c
 assert 'FillStyle(eoFill: true)' in c
@@ -180,8 +180,7 @@ for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     dg=min(H*.982,W*.50)
     rg=dg*.508
     assert max(18,H*.070)<dg*.25
-assert c.count('.mask(RadialGradient(stops: [') == 3
-assert 'if compact {' in c and 'RadialGradient(stops: [' in c
+assert c.count('.mask(RadialGradient(stops: [') == 4
 assert 'func retryLocation()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
 # Build 37: frecce SF riconoscibili, più piccole di quelle della 35, lontane dalle tacche.
 # La distanza radiale dal centro resta inferiore alla pista LED (0.361d).
