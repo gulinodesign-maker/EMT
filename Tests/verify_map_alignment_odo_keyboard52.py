@@ -59,7 +59,7 @@ assert "mapViewportSize = geo.size" in m
 assert ".onChange(of: geo.size)" in m
 assert "let targetX = (dialRightX + batteryLeftX) / 2 - fullWidth * 0.36" in m
 assert "let horizontalPixels = max(-mapWidth * 0.25," in m
-assert "let cameraLateralMeters = mapHeight > 1" in m
+assert "let cameraLateralMeters = (!compact && mapHeight > 1)" in m
 assert "let northMeters = lookAhead * cos(bearing) + cameraLateralMeters * sin(bearing)" in m
 assert "let eastMeters = lookAhead * sin(bearing) - cameraLateralMeters * cos(bearing)" in m
 assert "MapCamera(centerCoordinate: center" in m
