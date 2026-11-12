@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 62;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 63;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -171,15 +171,15 @@ assert '.position(x: d * 0.50, y: d * 0.889)' in c
 assert 'if left { icon }' in c and 'if !left { icon }' in c
 assert 'if left { Spacer(minLength: 0) }' in c
 assert 'var previewPalette: [Color]' in c
-assert 'Self.barDark, Self.barMid, Self.barBright, Self.regenAccent]' in c
-assert 'ForEach(theme.previewPalette.indices' in t
+assert 'EcoThemePalette.standardBarColors.map' in c
+assert 'ForEach(0..<8, id:' in t
 
 # Sei temi, griglia visibile con 3 colonne e 2 righe in landscape.
 for tag in ['case copper = "Rame"','case glacier = "Ghiaccio"','case green = "Verde"','case aquamarine = "Acquamarina"','case brown = "Marrone"','case racing = "Racing"']:
     assert tag in c
-assert 'LazyVGrid(columns: portrait ? portraitColumns : columns, spacing: 13)' in t
+assert 'LazyVGrid(columns: portrait ? portraitColumns : landscapeColumns, spacing: 13)' in t
 assert 'Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)' in t
-assert 'ForEach(CockpitTheme.allCases)' in t
+assert 'ForEach(CockpitTheme.allCases.filter { $0.slotIndex == nil })' in t
 assert 'Scale delle barre luminose' in o and 'Nessuna barra nelle tre schede chilometriche' in o
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 # Nuovo dock GPS 7 a destra; classico 4+3 invariato.

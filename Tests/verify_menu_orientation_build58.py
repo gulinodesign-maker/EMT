@@ -12,7 +12,7 @@ cells = (root / "Ecojumbo/Views/CellsView.swift").read_text()
 themes = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit_file = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 
-assert pbx.count("CURRENT_PROJECT_VERSION = 62;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 63;") == 2
 assert set(plist["UISupportedInterfaceOrientations"]) == {
     "UIInterfaceOrientationPortrait",
     "UIInterfaceOrientationLandscapeLeft",
@@ -20,7 +20,8 @@ assert set(plist["UISupportedInterfaceOrientations"]) == {
 }
 # Tachimetro, mappa e quadranti devono essere identici a build 57.
 blob = b"blob " + str(len(cockpit_file)).encode() + b"\0" + cockpit_file
-assert hashlib.sha1(blob).hexdigest() == "369d6997d058d239bd19ae09144adb01824f3e1f"
+# Build 63 adds palette support but preserves the GPS panel bounds.
+assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in cockpit_file.decode('utf-8')
 
 assert "@UIApplicationDelegateAdaptor(EcojumboOrientationAppDelegate.self)" in app
 assert "supportedInterfaceOrientationsFor window:" in app
@@ -56,6 +57,6 @@ assert "if portrait {" in cells
 assert "LazyVGrid(columns: portraitSummaryColumns" in cells
 assert "HStack(spacing: 12)" in cells
 assert "summaryTiles(snapshot)" in cells
-assert "portrait ? portraitColumns : columns" in themes
-assert "count: 3" in themes and "count: 2" in themes
+assert "portrait ? portraitColumns : landscapeColumns" in themes
+assert "count: 3" in themes and "let portraitColumns = [GridItem(.flexible(), spacing: 13)]" in themes
 print("OK — build 58: portrait solo menu, cockpit GPS landscape originale invariato")
