@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 69;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 70;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Existing 3 slots retain old shades. Both old 8- and 15-colour palettes migrate.
@@ -22,7 +22,7 @@ assert "if migrated.colors.count == 15 {" in tabs
 assert "let edge = migrated.colors[2]" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
 assert "+ standardBarColors + extraDefaults + [foreground.1, foreground.1]" in tabs
-assert '("Sfumatura top bar e ponte kW", 15..<17)' in tabs
+assert '("Sfumatura top bar e ponte kW", 15..<17)' not in tabs
 assert '"Top bar + ponte kW · sfumatura sinistra"' in tabs
 assert '"Top bar + ponte kW · sfumatura destra"' in tabs
 assert 'ForEach(0..<EcoThemePalette.groups.count, id:' in tabs
@@ -35,15 +35,12 @@ details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
 assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 17
 assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 17
 
-# A single source-of-truth for the interpolation, colour 1 in the middle.
-gradient = cockpit.split("var contourGradient: LinearGradient {", 1)[1].split(
-    "// Barre e recupero energia", 1)[0]
-assert "$0.colors[15]" in gradient
-assert "$0.colors[16]" in gradient
-assert "let left =" in gradient and "let right =" in gradient
-assert ".init(color: accent, location: 0.5)" in gradient
-assert "startPoint: .leading, endPoint: .trailing" in gradient
-
+# Build 70 intentionally retires the extra colored area fills, while
+# preserving the 17 stored palette values for backwards compatibility.
+assert "var contourGradient: LinearGradient {" not in cockpit
+assert "GPSAreaGradientStyle" not in cockpit
+assert "GPSTopBandShade" not in cockpit
+assert "GPSLowerAreaGradient" not in cockpit
 horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
     "@MainActor", 1)[0]
 lower = cockpit.split("private struct GPSLowerGlow: View {", 1)[1].split(
@@ -51,9 +48,9 @@ lower = cockpit.split("private struct GPSLowerGlow: View {", 1)[1].split(
 # 69 regression: the 68 stroke-gradient error must NEVER return.
 assert horizon.count("line.stroke(theme.contourGradient") == 0
 assert lower.count(".stroke(theme.contourGradient,") == 0
-assert "GPSTopBandShade()" in horizon
-assert ".fill(theme.contourGradient)" in horizon
-assert "GPSLowerAreaGradient(theme: theme)" in cockpit
+assert "GPSTopBandShade()" not in horizon
+assert ".fill(theme.contourGradient)" not in horizon
+assert "GPSLowerAreaGradient(theme: theme)" not in cockpit
 assert "GPSOuterProfileReinforcement()" in cockpit
 assert "visibleOutsideRing.fill(style: FillStyle(eoFill: true))" in horizon
 assert ".mask(RadialGradient" not in horizon
@@ -94,4 +91,4 @@ for width, height in ((736, 414), (844, 390), (932, 430), (956, 440),
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in cockpit
 assert "let live = bluetooth.snapshot" in cockpit
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in cockpit
-print("OK — build 68: editable shared contour colour, lossless palette migration, tangent-centered panels and dock")
+print("OK — build 68/70: lossless palette migration and tangent-centered panels and dock without colored gradients")
