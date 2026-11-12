@@ -263,7 +263,7 @@ assert 'UIApplication.shared.isIdleTimerDisabled = false' in (r/'Ecojumbo/Ecojum
 # Valore meteo reale da coordinate GPS approssimate; niente termometro iPhone.
 assert 'final class EcoOutsideWeather: ObservableObject' in c
 assert 'private struct EcoOutsideTemperature: View' in c
-assert c.count('EcoOutsideTemperature(now: now)') == 2
+assert c.count('EcoOutsideTemperature(now: now)') == 3  # incl. portrait
 assert 'api.open-meteo.com/v1/forecast' in c
 assert 'URLQueryItem(name: "current", value: "temperature_2m")' in c
 assert 'URLQueryItem(name: "temperature_unit", value: "celsius")' in c
@@ -422,7 +422,7 @@ assert 'Color(red: 0.94, green: 0.96, blue: 0.985)' in c
 assert 'Color(white: 0.32) : Color(white: 0.68)' in c
 assert '@Environment(\.colorScheme) private var colorScheme' in t
 assert 'private enum GPSManeuverIcon' in c
-assert c.count('OpenSpeedCluster(speed: ') == 2
+assert c.count('OpenSpeedCluster(speed: ') == 3  # incl. portrait
 assert 'GPSManeuverIcon.symbol(for: navigation.guidanceInstruction)' in c
 assert '@StateObject private var navigation = EcoNavigationStore.shared' in c
 assert 'navigationArrow: maneuverSymbol' in c
