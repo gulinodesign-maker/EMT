@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 65;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 66;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -467,7 +467,9 @@ assert 'CGPoint(x: w, y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.54, y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.745, y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.355, y: h * 0.252)' in c
-assert 'CGPoint(x: w * 0.25, y: h * 0.244)' in c
+assert 'let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)' in c
+assert 'let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)' in c
+assert 'GPSMetalInnerRing()' in c
 assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
 assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
 assert '.padding(.top, h * 0.0565)' in c
