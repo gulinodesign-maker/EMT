@@ -89,6 +89,7 @@ struct EcojumboRootView: View {
     @EnvironmentObject private var gps: GPSRideManager
     @EnvironmentObject private var bluetooth: JKBluetoothManager
     @AppStorage("ecojumbo.theme") private var themeName = "Rame"
+    @AppStorage("ecojumbo.themeRevision") private var themeRevision = 0
     @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
     @State private var selected: EcoTab = .gps
     @State private var lastMenu: EcoTab = .trips
@@ -96,7 +97,10 @@ struct EcojumboRootView: View {
     @State private var tick = Date()
     // Il movimento fisico in portrait apre Impostazioni, anche con GPS bloccato landscape.
 
-    private var theme: CockpitTheme { CockpitTheme(rawValue: themeName) ?? .copper }
+    private var theme: CockpitTheme {
+        _ = themeRevision // invalida la palette anche salvando sullo slot già attivo
+        return CockpitTheme(rawValue: themeName) ?? .copper
+    }
     private var selectedAppearance: EcoAppearanceMode {
         EcoAppearanceMode(rawValue: appearanceMode) ?? .dark
     }
