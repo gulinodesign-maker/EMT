@@ -31,13 +31,15 @@ assert 'Text(snapshot.map { "\($0.soc)%" } ?? "—%")' in rail
 assert "if let charge {" in rail
 assert "Double($0.soc) / 100.0" in rail
 
-# Same five telemetry cards, but replacing total odometer with trip
-# and former trip slot with energy-based estimated range with its own bar.
-assert standard.count('telemetryRow("') == 5
-assert 'telemetryRow("AUT"' in standard
-assert 'telemetryRow("TRIP"' in standard
-assert 'telemetryRow("Chilometraggio"' not in standard
-assert 'telemetryRow("Trip parziale"' not in standard
+# Build 65: four tiles in 2×2 and a full-width, double-height altitude card.
+# BMS still gates live values and range estimates; map-only SOC rail is unchanged.
+assert standard.count('telemetryTile("') == 4
+assert 'telemetryTile("SOC"' in standard
+assert 'telemetryTile("V BAT"' in standard
+assert 'telemetryTile("AUT"' in standard
+assert 'telemetryTile("TRIP"' in standard
+assert 'dislevelCard(height: dislHeight)' in standard
+assert 'let dislHeight = 2 * cardHeight' in standard
 assert standard.count("showsBar: true") == 3
 assert "resettable: true" not in standard
 assert "GPSTripResetControl(theme: theme)" in dashboard
