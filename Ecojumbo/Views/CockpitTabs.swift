@@ -275,7 +275,7 @@ struct ThemePickerView: View {
     @Environment(\.colorScheme) private var colorScheme
     @AppStorage("ecojumbo.theme") private var selection = CockpitTheme.copper.rawValue
     // Sempre tre a tre: sei temi disposti in due righe da tre.
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)
+    private let columns = [GridItem(.adaptive(minimum: 145), spacing: 13)]
 
     var body: some View {
         ScrollView {
@@ -308,7 +308,7 @@ struct ThemePickerView: View {
                                                                       CockpitTheme.barBright],
                                                              startPoint: .leading, endPoint: .trailing))
                                         .frame(width: 61, height: 4)
-                                        .offset(x: 56, y: 19)
+                                        .offset(x: 28, y: 19)
                                     if selection == theme.rawValue {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundStyle(theme.accent)
