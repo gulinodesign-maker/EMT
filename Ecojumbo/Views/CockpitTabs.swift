@@ -320,8 +320,9 @@ struct EcoThemePalette: Codable, Equatable {
         ("Aspetto generale", 0..<4),
         ("Barre telemetria e potenza", 4..<8),
         ("Anelli e numeri del tachimetro", 8..<12),
-        ("Navigatore e decelerazione", 12..<15),
-        ("Sfumatura top bar e ponte kW", 15..<17)
+        ("Navigatore e decelerazione", 12..<15)
+        // Build 70: i ruoli 15/16 rimangono salvati per compatibilità,
+        // ma non sono esposti perché le sfumature non vengono applicate.
     ]
     static let colorCount = 17
     static let extraDefaults = [
