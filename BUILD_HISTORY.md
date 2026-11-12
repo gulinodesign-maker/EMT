@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43309262488:ATTEMPT:1 -->
+### 2026-11-12T21:20:20Z — CI #179 · build-71-remove-duplicate-gps-top-profile · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43309262488](https://github.com/gulinodesign-maker/EMT/actions/runs/43309262488); avvio 2026-11-12T21:20:20Z UTC; aggiornamento finale 2026-11-12T21:22:28Z UTC; registrazione 2026-11-12T21:22:39+00:00 UTC; evento pull_request.
+- **Commit:** [fa918fccb9e6](https://github.com/gulinodesign-maker/EMT/commit/fa918fccb9e66c052118c7306240cfeccffefed2); versione **1.0**; build **71**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** STATO_PROGETTO.md.
+
 <!-- EMT_RUN:43306056548:ATTEMPT:1 -->
 ### 2026-11-12T21:01:23Z — CI #178 · main · tentativo 1
 
