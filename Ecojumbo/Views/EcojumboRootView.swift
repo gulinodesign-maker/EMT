@@ -405,7 +405,7 @@ private struct CockpitCornerControls: View {
                 active: selected == tab,
                 theme: theme,
                 iconSize: min(20, side * 0.43),
-                captionSize: min(10, side * 0.20)
+                captionSize: max(9, min(10, side * 0.20))
             )
             .frame(width: side, height: side)
             .contentShape(Rectangle())
@@ -427,7 +427,7 @@ private struct CockpitCornerControls: View {
                 active: active,
                 theme: theme,
                 iconSize: min(20, side * 0.43),
-                captionSize: min(10, side * 0.20)
+                captionSize: max(9, min(10, side * 0.20))
             )
             .frame(width: side, height: side)
             .contentShape(Rectangle())
