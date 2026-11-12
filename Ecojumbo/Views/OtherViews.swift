@@ -140,9 +140,51 @@ struct BluetoothView: View {
     }
 }
 
+private enum EcoSetupSection: String, CaseIterable, Identifiable {
+    case battery, bms, appearance, scooter, bluetooth, charging
+    case odometer, bars, gps, weather, privacy, version
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .battery: "Batteria"
+        case .bms: "BMS"
+        case .appearance: "Aspetto"
+        case .scooter: "Scooter"
+        case .bluetooth: "Bluetooth JK"
+        case .charging: "Ricarica"
+        case .odometer: "Chilometri"
+        case .bars: "Barre luminose"
+        case .gps: "GPS e viaggi"
+        case .weather: "Meteo"
+        case .privacy: "Sicurezza"
+        case .version: "Versione"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .battery: "battery.100percent"
+        case .bms: "waveform.path.ecg"
+        case .appearance: "circle.lefthalf.filled"
+        case .scooter: "bicycle"
+        case .bluetooth: "antenna.radiowaves.left.and.right"
+        case .charging: "bolt.circle"
+        case .odometer: "road.lanes"
+        case .bars: "chart.bar.fill"
+        case .gps: "location.north.line"
+        case .weather: "cloud.sun"
+        case .privacy: "lock.shield"
+        case .version: "info.circle"
+        }
+    }
+}
+
 struct EcoSettingsView: View {
     @EnvironmentObject private var gps: GPSRideManager
     @EnvironmentObject private var bluetooth: JKBluetoothManager
+    @State private var activeSection: EcoSetupSection?
     @State private var odometerText = ""
     @State private var odometerStatus: String?
     @FocusState private var odometerFieldFocused: Bool
@@ -154,22 +196,94 @@ struct EcoSettingsView: View {
     @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
 
     var body: some View {
-        Form {
-            // Dati tecnici e diagnostica sono funzioni di setup, non di guida.
-            Section("Batteria e BMS") {
-                NavigationLink {
-                    GeometryReader { area in
-                        CellsView(portrait: area.size.height > area.size.width)
+        GeometryReader { area in
+            let landscape = area.size.width > area.size.height
+            let tileHeight = landscape
+                ? max(54, min(78, area.size.height * 0.25))
+                : max(80, min(118, area.size.height * 0.14))
+            ScrollView {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 3),
+                          spacing: 10) {
+                    ForEach(EcoSetupSection.allCases) { section in
+                        Button {
+                            activeSection = section
+                        } label: {
+                            VStack(spacing: landscape ? 4 : 8) {
+                                Image(systemName: section.symbol)
+                                    .font(.system(size: landscape ? 20 : 27, weight: .regular))
+                                    .foregroundStyle(Color.ecoGreen)
+                                Text(section.title)
+                                    .font(landscape ? .caption2 : .footnote)
+                                    .foregroundStyle(.primary)
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.75)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: tileHeight)
+                            .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Apri \(section.title)")
                     }
-                } label: {
-                    Label("Batteria", systemImage: "battery.100percent")
                 }
-                NavigationLink {
+                .padding(.horizontal, landscape ? 16 : 18)
+                .padding(.vertical, landscape ? 8 : 16)
+            }
+            .scrollIndicators(.hidden)
+            .background(Color.ecoBackground)
+        }
+        .navigationTitle("Impostazioni")
+        .sheet(item: $activeSection) { section in
+            setupSheet(for: section)
+                .presentationDragIndicator(.visible)
+        }
+        .onAppear {
+            bluetooth.applyFormat(JKFrameFormat(rawValue: rawFormat) ?? .automatic, cells: cellCount)
+            odometerText = gps.hasOdometer ? String(format: "%.1f", gps.totalKm) : ""
+        }
+    }
+
+    // I controlli esistenti restano invariati nei rispettivi fogli modali.
+    @ViewBuilder private func setupSheet(for section: EcoSetupSection) -> some View {
+        NavigationStack {
+            Group {
+                switch section {
+                case .battery:
+                    GeometryReader { space in
+                        CellsView(portrait: space.size.height > space.size.width)
+                    }
+                case .bms:
                     BluetoothView()
-                } label: {
-                    Label("BMS", systemImage: "bluetooth")
+                default:
+                    Form {
+                        setupFields(for: section)
+                    }
+                    .scrollContentBackground(.hidden)
+                    .background(Color.ecoBackground)
                 }
             }
+            .navigationTitle(section.title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Chiudi") { activeSection = nil }
+                }
+                // Il tastierino decimale iOS non offre il tasto Invio in landscape.
+                ToolbarItemGroup(placement: .keyboard) {
+                    Spacer()
+                    Button("Conferma e salva", action: saveOdometer)
+                        .fontWeight(.semibold)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder private func setupFields(for section: EcoSetupSection) -> some View {
+        switch section {
+        case .battery, .bms:
+            EmptyView()
+        case .appearance:
             Section("Aspetto dell'app") {
                 Picker("Modalità schermo", selection: $appearanceMode) {
                     ForEach(EcoAppearanceMode.allCases) { mode in
@@ -181,6 +295,7 @@ struct EcoSettingsView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
+        case .scooter:
             Section("Il mio Ecojumbo") {
                 LabeledContent("Batteria", value: "EVE LF206 · LiFePO4")
                 Stepper("Celle in serie: \(cellCount)", value: $cellCount, in: 1...24)
@@ -189,6 +304,7 @@ struct EcoSettingsView: View {
                 Text("Questi sono dati di progetto. Non modificano la configurazione del BMS.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
+        case .bluetooth:
             Section("Bluetooth JK") {
                 Picker("Formato frame", selection: $rawFormat) {
                     ForEach(JKFrameFormat.allCases) { variant in
@@ -201,11 +317,13 @@ struct EcoSettingsView: View {
                     bluetooth.applyFormat(JKFrameFormat(rawValue: rawFormat) ?? .automatic, cells: cellCount)
                 }
             }
+        case .charging:
             Section("Ricarica") {
                 Stepper("Avviso: \(chargeAlert)%", value: $chargeAlert, in: 50...100, step: 5)
                 Text("Avviso visuale soltanto con app aperta, BMS collegato e SOC ricevuto. Non interrompe la carica.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
+        case .odometer:
             Section("Chilometri totali dello scooter") {
                 Text("Per uno scooter già usato inserisci il valore mostrato dal contachilometri originale. Ecojumbo aggiungerà i chilometri GPS registrati in seguito, senza azzerare il totale.")
                     .font(.footnote).foregroundStyle(.secondary)
@@ -222,6 +340,7 @@ struct EcoSettingsView: View {
                 }
                 if let odometerStatus { Text(odometerStatus).font(.caption).foregroundStyle(.secondary) }
             }
+        case .bars:
             Section("Scale delle barre luminose") {
                 Text("Tre barre reali per carica batteria, tensione e potenza istantanea. Nessuna barra nelle tre schede chilometriche. Le scale sono solo grafiche, non limiti di sicurezza.")
                     .font(.footnote).foregroundStyle(.secondary)
@@ -230,16 +349,19 @@ struct EcoSettingsView: View {
                 Stepper("Potenza istantanea: 0–\(Int(averagePowerMaxKW)) kW",
                         value: $averagePowerMaxKW, in: 1...20, step: 1)
             }
+        case .gps:
             Section("GPS e viaggi") {
                 Text("Il tachimetro usa soltanto Core Location e mostra — quando il segnale GPS non è disponibile. I chilometri vengono accumulati solo con posizioni valide e l’app attiva. Non sostituisce il tachimetro omologato del veicolo.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
+        case .weather:
             Section("Temperatura esterna") {
                 Text("È una stima meteorologica a 2 metri dal suolo, non la misura di un termometro dell’iPhone. Richiede GPS e Internet; aggiornata al massimo ogni 15 minuti, senza inviare la posizione precisa.")
                     .font(.footnote).foregroundStyle(.secondary)
                 Link("Fonte dati: Open-Meteo", destination: URL(string: "https://open-meteo.com")!)
                 Link("Licenza dati (CC BY 4.0)", destination: URL(string: "https://creativecommons.org/licenses/by/4.0/")!)
             }
+        case .privacy:
             Section("Sicurezza e privacy") {
                 Label("Sola lettura dei dati BMS", systemImage: "lock.shield")
                 Label("Nessuna simulazione", systemImage: "checkmark.seal")
@@ -247,28 +369,13 @@ struct EcoSettingsView: View {
                 Text("I grafici non sono registrati durante la chiusura dell'app. Non utilizzare Ecojumbo come unico indicatore di sicurezza durante la guida.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
+        case .version:
             Section("Versione") {
                 LabeledContent("Ecojumbo", value: EcojumboBuildStamp.display)
                 LabeledContent("Numero build", value: EcojumboBuildStamp.buildNumber)
                 Text("App iPhone dedicata esclusivamente allo scooter Ecojumbo e al suo BMS.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
-        }
-        .scrollContentBackground(.hidden)
-        .background(Color.ecoBackground)
-        .navigationTitle("Scooter")
-        // .decimalPad non offre il tasto Invio su iPhone in landscape:
-        // il pulsante sopra la tastiera permette di SALVARE e chiuderla.
-        .toolbar {
-            ToolbarItemGroup(placement: .keyboard) {
-                Spacer()
-                Button("Conferma e salva", action: saveOdometer)
-                    .fontWeight(.semibold)
-            }
-        }
-        .onAppear {
-            bluetooth.applyFormat(JKFrameFormat(rawValue: rawFormat) ?? .automatic, cells: cellCount)
-            odometerText = gps.hasOdometer ? String(format: "%.1f", gps.totalKm) : ""
         }
     }
 
