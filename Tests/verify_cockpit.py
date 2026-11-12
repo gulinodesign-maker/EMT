@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 64;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 65;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -392,13 +392,15 @@ assert 'Color(white: 0.88).opacity(0.10)' in c
 assert 'Color(white: 0.92).opacity(0.035)' in c
 assert '.init(color: .clear, location: 0.62)' in c
 expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
+assert 'LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap),' in expanded
+assert expanded.count('telemetryTile("') == 4
 assert expanded.count('showsBar: true') == 3
-assert 'telemetryRow("Corrente batteria"' not in expanded
-assert 'telemetryRow("Potenza istantanea"' not in expanded
-assert expanded.count('telemetryRow("') == 5
-assert 'let rowHeight = max(1, (innerHeight - headerHeight - 4 * dividerHeight) / 5)' in expanded
+assert 'telemetryTile("SOC"' in expanded and 'telemetryTile("V BAT"' in expanded
+assert 'telemetryTile("AUT"' in expanded and 'telemetryTile("TRIP"' in expanded
+assert 'let dislHeight = 2 * cardHeight' in expanded
+assert 'dislevelCard(height: dislHeight)' in expanded
+assert 'Text("DISL")' in expanded
 assert 'Text("TELEMETRIA")' in expanded
-assert 'telemetryRow("DISL"' in expanded
 assert 'GPSTripAltitudeSparkline(points: gps.altitudeProfile' in expanded
 assert 'onLongPressGesture(minimumDuration: resettable ? 0.5 : 1.3)' not in expanded
 assert 'onLongPressGesture(minimumDuration: 0.5)' in c
