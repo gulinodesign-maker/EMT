@@ -233,9 +233,11 @@ assert 'visibleCamera = context.camera' in c
 assert 'recenterOnUser()' in c
 assert 'zoom(inward: true)' in c and 'zoom(inward: false)' in c
 assert 'camera = .camera(MapCamera(' in c
-assert 'mapAction("scope"' not in c
-assert 'mapAction("plus.magnifyingglass"' not in c
-assert 'mapAction("minus.magnifyingglass"' not in c
+# I vecchi bottoni non sono nel cockpit landscape; quelli portrait sono dedicati.
+landscape_code = c.split('// MARK: - Portrait cockpit')[0]
+assert 'mapAction("scope"' not in landscape_code
+assert 'mapAction("plus.magnifyingglass"' not in landscape_code
+assert 'mapAction("minus.magnifyingglass"' not in landscape_code
 assert '.onReceive(mapControls.commands)' in c
 assert 'GPSMapControlStore.shared' in c
 assert 'width: w * 0.64' in c
