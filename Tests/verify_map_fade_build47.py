@@ -13,7 +13,7 @@ assert "let mapLocalDialX = dialCenterX - fullWidth * 0.36" in map_section
 assert "let mapLocalDialY = fullHeight * (0.494 - 0.045)" in map_section
 assert "let dialMaskRadius = dialSize * 0.508" in map_section
 assert "let dialMaskFeather = max(12, min(28, fullHeight * 0.032))" in map_section
-assert ".mask(RadialGradient(stops: [" in map_section
+assert "RadialGradient(stops: [" in map_section
 assert "center: UnitPoint(x: mapLocalDialX / w, y: mapLocalDialY / h)" in map_section
 assert "startRadius: dialMaskRadius" in map_section
 assert "endRadius: dialMaskRadius + dialMaskFeather" in map_section
@@ -26,8 +26,8 @@ assert "fadeStart + 0.055" not in map_section
 assert ".background(Color.clear)" in map_section
 
 # I segmenti della top bar e del ponte kW sono limiti di clipping reali.
-assert ".mask(GPSMapTopContourClip())" in map_section
-assert ".mask(GPSMapLowerContourClip())" in map_section
+assert "if compact { Rectangle() } else { GPSMapTopContourClip() }" in map_section
+assert "if compact { Rectangle() } else { GPSMapLowerContourClip() }" in map_section
 assert "private struct GPSMapTopContourClip: Shape" in cockpit
 assert "private struct GPSMapLowerContourClip: Shape" in cockpit
 assert "GPSLowerLineGeometry.points(" in cockpit

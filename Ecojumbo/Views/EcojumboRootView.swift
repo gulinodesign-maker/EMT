@@ -110,9 +110,12 @@ struct EcojumboRootView: View {
                 : max(28, geometry.safeAreaInsets.bottom + 14, h * 0.055)
             let contentHeight = selected == .gps
                 ? h : max(1, h - dockHeight - dockBottom - 10)
-            ZStack(alignment: .topLeading) {
-                Group {
-                    switch selected {
+            if h > w {
+                portraitContent(width: w, height: h, safeArea: geometry.safeAreaInsets)
+            } else {
+                ZStack(alignment: .topLeading) {
+                    Group {
+                        switch selected {
                     case .trips:
                         NavigationStack { TripsPanel() }
                     case .gps:
@@ -139,8 +142,9 @@ struct EcojumboRootView: View {
                     .position(x: w / 2, y: h - dockBottom - dockHeight / 2)
                     .zIndex(50)
             }
-            .frame(width: w, height: h)
-            .background(Color.ecoBackground)
+                .frame(width: w, height: h)
+                .background(Color.ecoBackground)
+            }
         }
         .ignoresSafeArea(.container, edges: .all)
         .background(Color.ecoBackground.ignoresSafeArea())
@@ -159,6 +163,81 @@ struct EcojumboRootView: View {
         }
         .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { newDate in
             tick = newDate
+        }
+    }
+
+    // Il cockpit landscape conserva le sue geometrie; portrait è una
+    // composizione verticale autonoma con dock e safe area visibili.
+    private func portraitContent(width: CGFloat, height: CGFloat,
+                                 safeArea: EdgeInsets) -> some View {
+        let insets = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first(where: { $0.isKeyWindow })?.safeAreaInsets ?? .zero
+
+        return VStack(spacing: 0) {
+            Group {
+                switch selected {
+                case .gps:
+                    PortraitCockpitDashboard(theme: theme, now: tick,
+                                             mapEnabled: $mapEnabled,
+                                             appearanceMode: $appearanceMode)
+                case .trips:
+                    NavigationStack { TripsPanel() }
+                case .battery:
+                    NavigationStack { CellsView() }
+                case .bms:
+                    NavigationStack { BluetoothView() }
+                case .settings:
+                    NavigationStack { EcoSettingsView() }
+                case .themes:
+                    NavigationStack { ThemePickerView() }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            PortraitTabBar(selected: $selected, theme: theme)
+        }
+        .padding(.top, max(16, safeArea.top, insets.top))
+        .padding(.bottom, max(10, safeArea.bottom, insets.bottom))
+        .frame(width: width, height: height)
+        .background(Color.ecoBackground)
+    }
+
+}
+
+
+// Sezioni portrait sempre accessibili, senza sovrapporre la mappa.
+private struct PortraitTabBar: View {
+    @Binding var selected: EcoTab
+    let theme: CockpitTheme
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(EcoTab.allCases) { tab in
+                Button { selected = tab } label: {
+                    VStack(spacing: 5) {
+                        Image(systemName: tab.symbol)
+                            .font(.system(size: 20, weight: .semibold))
+                        Text(tab == .settings ? "Setup" : (tab == .themes ? "Temi" : tab.label))
+                            .font(.system(size: 10, weight: .semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    }
+                    .foregroundStyle(selected == tab ? theme.accent : .secondary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 58)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(tab.label)
+                .accessibilityAddTraits(selected == tab ? .isSelected : [])
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.top, 8)
+        .background(Color.ecoCard)
+        .overlay(alignment: .top) {
+            Rectangle().fill(theme.accent.opacity(0.35)).frame(height: 1)
         }
     }
 }

@@ -1746,6 +1746,7 @@ private struct GPSCockpitMap: View {
     @StateObject private var mapControls = GPSMapControlStore.shared
     @State private var lastKnownHeading: CLLocationDirection?
     let theme: CockpitTheme
+    var compact: Bool = false
 
     var body: some View {
         GeometryReader { geo in
@@ -1753,8 +1754,8 @@ private struct GPSCockpitMap: View {
             let h = geo.size.height
             // Stesso quadrante e centro di GPSHorizonLine. Il bordo della
             // cartografia sfuma RADIALMENTE seguendo l'anello del tachimetro.
-            let fullWidth = w / 0.64
-            let fullHeight = h / 0.955
+            let fullWidth = compact ? w : w / 0.64
+            let fullHeight = compact ? h : h / 0.955
             let dialSize = GPSDialLayout.size(width: fullWidth, height: fullHeight)
             let dialCenterX = GPSDialLayout.centerX(width: fullWidth, height: fullHeight)
             let mapLocalDialX = dialCenterX - fullWidth * 0.36
@@ -1770,8 +1771,7 @@ private struct GPSCockpitMap: View {
                         Annotation("", coordinate: coordinate, anchor: .center) {
                             Image(systemName: "location.north.fill")
                                 .font(.system(size: 29, weight: .black))
-                                // Il puntatore GPS dello scooter è sempre azzurro neon,
-                                // indipendentemente dal tema scelto per il cockpit.
+                                // Cursore scooter azzurro neon, indipendente dal tema.
                                 .foregroundStyle(Color(red: 0.0, green: 0.82, blue: 1.0))
                                 .shadow(color: colorScheme == .light
                                         ? .white.opacity(0.96) : .black.opacity(0.92),
@@ -1807,24 +1807,37 @@ private struct GPSCockpitMap: View {
                 }
                 // Maschera circolare solo su MapKit: dentro il tachimetro
                 // trasparente, sfumatura breve oltre l'anello, poi mappa piena.
-                .mask(RadialGradient(stops: [
-                    .init(color: .clear, location: 0),
-                    .init(color: .white, location: 1)
-                ], center: UnitPoint(x: mapLocalDialX / w, y: mapLocalDialY / h),
-                   startRadius: dialMaskRadius,
-                   endRadius: dialMaskRadius + dialMaskFeather))
-                // I segmenti arancioni sono veri bordi di clipping, anche
-                // nei raccordi obliqui e nei due triangoli di confine.
-                .mask(GPSMapTopContourClip())
-                .mask(GPSMapLowerContourClip())
-                // Full bleed fino al bordo inferiore del display; il margine
-                // basso si fonde nel cockpit senza banda rettangolare.
-                .mask(LinearGradient(stops: [
-                    .init(color: .white, location: 0),
-                    .init(color: .white, location: 0.82),
-                    .init(color: .white.opacity(0.70), location: 0.91),
-                    .init(color: .clear, location: 1)
-                ], startPoint: .top, endPoint: .bottom))
+                .mask {
+                    if compact {
+                        Rectangle()
+                    } else {
+                        RadialGradient(stops: [
+                            .init(color: .clear, location: 0),
+                            .init(color: .white, location: 1)
+                        ], center: UnitPoint(x: mapLocalDialX / w, y: mapLocalDialY / h),
+                           startRadius: dialMaskRadius,
+                           endRadius: dialMaskRadius + dialMaskFeather)
+                    }
+                }
+                // Le maschere dell'anello e dei ponti appartengono solo a landscape.
+                .mask {
+                    if compact { Rectangle() } else { GPSMapTopContourClip() }
+                }
+                .mask {
+                    if compact { Rectangle() } else { GPSMapLowerContourClip() }
+                }
+                .mask {
+                    if compact {
+                        Rectangle()
+                    } else {
+                        LinearGradient(stops: [
+                            .init(color: .white, location: 0),
+                            .init(color: .white, location: 0.82),
+                            .init(color: .white.opacity(0.70), location: 0.91),
+                            .init(color: .clear, location: 1)
+                        ], startPoint: .top, endPoint: .bottom)
+                    }
+                }
                 // Nessuna fascia o ombra tra testo GPS/indirizzo e cartografia.
 
                 VStack(alignment: .leading, spacing: 7) {
@@ -1879,8 +1892,8 @@ private struct GPSCockpitMap: View {
                     .background(Color.clear)
                     // La mappa parte dietro al quadrante; la ricerca rimane
                     // a destra del bordo del tachimetro, sempre cliccabile.
-                    .padding(.leading, w * 0.285)
-                    .padding(.trailing, max(10, w * 0.022))
+                    .padding(.leading, compact ? 0 : w * 0.285)
+                    .padding(.trailing, compact ? 8 : max(10, w * 0.022))
 
                     // Nessun pannello manovra sopra la mappa:
                     // solo il simbolo dentro il tachimetro.
@@ -1890,7 +1903,7 @@ private struct GPSCockpitMap: View {
                             .padding(8)
                             .background(colorScheme == .light ? Color.white.opacity(0.88) : .black.opacity(0.78),
                                         in: RoundedRectangle(cornerRadius: 8))
-                            .padding(.leading, w * 0.255)
+                            .padding(.leading, compact ? 8 : w * 0.255)
                     } else if let errorMessage = navigation.errorMessage {
                         Text(errorMessage)
                             .font(.footnote)
@@ -1899,12 +1912,12 @@ private struct GPSCockpitMap: View {
                             .padding(8)
                             .background(colorScheme == .light ? Color.white.opacity(0.88) : .black.opacity(0.78),
                                         in: RoundedRectangle(cornerRadius: 8))
-                            .padding(.leading, w * 0.255)
+                            .padding(.leading, compact ? 8 : w * 0.255)
                     }
                     Spacer(minLength: 0)
                 }
                 // Il bordo superiore si allinea alla top bar della Home GPS.
-                .padding(.top, h * 0.0565)
+                .padding(.top, compact ? 8 : h * 0.0565)
                 .frame(width: w, height: h, alignment: .topLeading)
 
                 // Build 43: nessuna card BMS sopra la cartografia.
@@ -2023,7 +2036,7 @@ private struct GPSCockpitMap: View {
                                    min(mapWidth * 0.25, targetX - mapWidth / 2))
         // Distanza metrica proporzionale all'altezza della viewport, con
         // orientamento coerente a heading-up e zoom. Non tocca il GPS.
-        let cameraLateralMeters = mapHeight > 1
+        let cameraLateralMeters = (!compact && mapHeight > 1)
             ? Double(horizontalPixels / mapHeight) * followDistance
                 * (mapControls.is3D ? 0.82 : 0.95) : 0
         let northMeters = lookAhead * cos(bearing) + cameraLateralMeters * sin(bearing)
@@ -2411,5 +2424,228 @@ private struct GPSTripAltitudeSparkline: View {
             }
         }
         .accessibilityLabel("Profilo altimetrico reale del viaggio")
+    }
+}
+
+
+// MARK: - Portrait cockpit
+// La strumentazione landscape mantiene la propria geometria. Il portrait
+// condivide GPS, MapKit, dati BMS e strumenti ma usa una struttura verticale.
+@MainActor
+struct PortraitCockpitDashboard: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var gps: GPSRideManager
+    @EnvironmentObject private var bluetooth: JKBluetoothManager
+    @StateObject private var navigation = EcoNavigationStore.shared
+    @StateObject private var mapControls = GPSMapControlStore.shared
+    let theme: CockpitTheme
+    let now: Date
+    @Binding var mapEnabled: Bool
+    @Binding var appearanceMode: String
+
+    private var live: JKSnapshot? {
+        guard bluetooth.isConnected, let snapshot = bluetooth.snapshot,
+              abs(now.timeIntervalSince(snapshot.date)) < 10 else { return nil }
+        return snapshot
+    }
+    private var speed: Double? { gps.currentSpeed(at: now) }
+    private var isDay: Bool {
+        let preference = EcoAppearanceMode(rawValue: appearanceMode)?.preferredScheme
+        return (preference ?? colorScheme) == .light
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            let width = geo.size.width
+            let dial = min(296, max(190, width * 0.74))
+            let snapshot = live
+            ScrollView {
+                VStack(spacing: 14) {
+                    GPSHeader(theme: theme, now: now,
+                              positionAvailable: gps.currentCoordinate(at: now) != nil,
+                              speedAvailable: speed != nil,
+                              bmsAvailable: snapshot != nil)
+                        .frame(height: 52)
+                    HStack(alignment: .center) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text("ECOJUMBO")
+                                .font(.system(size: 12, weight: .bold))
+                                .tracking(2)
+                                .foregroundStyle(theme.accent)
+                            Text("Cruscotto")
+                                .font(.system(size: 25, weight: .bold, design: .rounded))
+                        }
+                        Spacer()
+                        Button {
+                            appearanceMode = isDay
+                                ? EcoAppearanceMode.dark.rawValue
+                                : EcoAppearanceMode.light.rawValue
+                        } label: {
+                            Image(systemName: isDay ? "moon.stars.fill" : "sun.max.fill")
+                                .font(.system(size: 19, weight: .semibold))
+                                .frame(width: 44, height: 44)
+                                .background(Color.ecoCard, in: Circle())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(isDay ? "Attiva modalità scura" : "Attiva modalità chiara")
+                    }
+                    ZStack(alignment: .bottomTrailing) {
+                        OpenSpeedCluster(speed: speed,
+                                         incomingPower: snapshot.map { Swift.max(0, $0.power) },
+                                         outgoingPower: snapshot.map { Swift.max(0, -$0.power) },
+                                         theme: theme,
+                                         showsOdometer: true,
+                                         odometerKm: gps.hasOdometer ? gps.totalKm : nil,
+                                         navigationArrow: navigation.isNavigating
+                                             ? GPSManeuverIcon.symbol(for: navigation.guidanceInstruction)
+                                             : nil,
+                                         navigationInstruction: navigation.guidanceInstruction)
+                            .frame(width: dial, height: dial)
+                        GPSGaugeHalo(theme: theme)
+                            .frame(width: dial, height: dial)
+                        GPSTripResetControl(theme: theme)
+                            .frame(width: 50, height: 50)
+                            .offset(x: 5, y: -8)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(height: dial + 8)
+                    .accessibilityElement(children: .contain)
+                    HStack {
+                        EcoOutsideTemperature(now: now)
+                        Spacer()
+                        HStack(spacing: 5) {
+                            Circle().fill(speed == nil ? Color.gray : theme.accent)
+                                .frame(width: 7, height: 7)
+                            Text(speed == nil ? "GPS in attesa" : "GPS attivo")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.horizontal, 6)
+                    HStack {
+                        Text(mapEnabled ? "NAVIGAZIONE" : "DATI DI GUIDA")
+                            .font(.system(size: 12, weight: .bold))
+                            .tracking(1.6)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button { mapEnabled.toggle() } label: {
+                            Label(mapEnabled ? "Nascondi mappa" : "Mostra mappa",
+                                  systemImage: mapEnabled ? "map.fill" : "map")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .buttonStyle(.bordered)
+                        .tint(theme.accent)
+                    }
+                    if mapEnabled {
+                        GPSCockpitMap(theme: theme, compact: true)
+                            .frame(height: max(245, min(350, width * 0.79)))
+                            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                                    .stroke(theme.accent.opacity(0.30), lineWidth: 1)
+                            }
+                            .accessibilityLabel("Mappa e ricerca destinazione GPS")
+                        mapToolbar
+                    }
+                    HStack {
+                        Text("TELEMETRIA")
+                            .font(.system(size: 12, weight: .bold))
+                            .tracking(1.6)
+                        Spacer()
+                        Text(snapshot == nil ? "BMS non collegato" : "Dati BMS in diretta")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.top, 4)
+                    let readings: [(title: String, value: String, symbol: String)] = [
+                        ("Carica", snapshot.map { "\($0.soc)%" } ?? "—", "battery.100percent"),
+                        ("Tensione", snapshot.map { String(format: "%.1f V", $0.voltage) } ?? "— V", "bolt.fill"),
+                        ("Potenza", snapshot.map { String(format: "%.2f kW", -$0.power / 1000) } ?? "— kW", "bolt.circle"),
+                        ("Trip GPS", String(format: "%.1f km", gps.tripKm), "location"),
+                        ("Totale", gps.hasOdometer ? String(format: "%.0f km", gps.totalKm) : "— km", "speedometer"),
+                        ("Stato GPS", speed.map { String(format: "%.0f km/h", $0) } ?? "—", "location.north.fill")
+                    ]
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 10),
+                                        GridItem(.flexible(), spacing: 10)], spacing: 10) {
+                        ForEach(readings.indices, id: \.self) { index in
+                            metricTile(readings[index].title, value: readings[index].value,
+                                       symbol: readings[index].symbol)
+                        }
+                    }
+                    Text("I valori GPS e BMS sono mostrati solo quando disponibili. Il tachimetro non sostituisce lo strumento omologato.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.horizontal, 15)
+                .padding(.bottom, 24)
+            }
+            .scrollIndicators(.hidden)
+            .background(Color.ecoBackground)
+        }
+    }
+
+    private var mapToolbar: some View {
+        ScrollView(.horizontal) {
+            HStack(spacing: 9) {
+                mapAction(navigation.isNavigating ? "stop.fill" : "play.fill",
+                          label: navigation.isNavigating ? "Ferma navigazione" : "Avvia navigazione",
+                          enabled: navigation.isNavigating ||
+                              (navigation.route != nil && gps.currentCoordinate() != nil)) {
+                    mapControls.send(.toggleNavigation)
+                }
+                mapAction("square.3.layers.3d", label: mapControls.is3D ? "Mappa 2D" : "Mappa 3D") {
+                    mapControls.send(.toggleProjection)
+                }
+                mapAction("location.north.line.fill", label: "Vista dal muso") {
+                    mapControls.send(.noseView)
+                }
+                mapAction("scope", label: "Ricentra mappa") {
+                    mapControls.send(.recenter)
+                }
+                mapAction("plus.magnifyingglass", label: "Ingrandisci mappa") {
+                    mapControls.send(.zoomIn)
+                }
+                mapAction("minus.magnifyingglass", label: "Riduci zoom mappa") {
+                    mapControls.send(.zoomOut)
+                }
+            }
+            .padding(.vertical, 2)
+        }
+        .scrollIndicators(.hidden)
+        .accessibilityLabel("Comandi navigazione")
+    }
+
+    private func mapAction(_ symbol: String, label: String, enabled: Bool = true,
+                           action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+                .font(.system(size: 19, weight: .semibold))
+                .foregroundStyle(theme.accent)
+                .frame(width: 48, height: 44)
+                .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.45)
+        .accessibilityLabel(label)
+    }
+
+    private func metricTile(_ title: String, value: String, symbol: String) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(title, systemImage: symbol)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+            Text(value)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+                .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 15))
     }
 }
