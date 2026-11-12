@@ -188,8 +188,30 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     static var regenAccent: Color {
         Color(themeHex: EcoThemePalette.active?.colors[7] ?? "#2BBAFF")
     }
-    // La velocità rossa rimane un indicatore funzionale, non un preset decorativo.
-    static let dischargeAccent = Color(red: 0.98, green: 0.17, blue: 0.18)
+    // Le corone sono indipendenti dai testi e dai numeri.
+    static var dischargeAccent: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[8] ?? "#FA2B2E")
+    }
+    static var recoveryRingAccent: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[9] ?? "#2BBAFF")
+    }
+    static var speedLEDAccent: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[10] ?? "#FF7008")
+    }
+    static var speedDigitsAccent: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[11] ?? "#FA2B2E")
+    }
+    static var turnRightAccent: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[12] ?? "#FFFFFF")
+    }
+    static var turnLeftAccent: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[13] ?? "#FFFFFF")
+    }
+    // Il colore di decelerazione è ricavato dal calo della velocità GPS,
+    // non da un sensore sul freno meccanico (non disponibile).
+    static var decelerationAccent: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[14] ?? "#FFB224")
+    }
 
     var previewPalette: [Color] {
         if let savedPalette {
@@ -721,7 +743,10 @@ struct CockpitDashboard:View {
                                  navigationArrow: navigation.isNavigating
                                      ? GPSManeuverIcon.symbol(for: navigation.guidanceInstruction)
                                      : nil,
-                                 navigationInstruction: navigation.guidanceInstruction)
+                                 navigationInstruction: navigation.guidanceInstruction,
+                                 navigationDistance: navigation.isNavigating &&
+                                     navigation.guidanceDistanceMeters != nil
+                                     ? navigation.guidanceDistanceLabel : nil)
                     .frame(width: dialSize, height: dialSize)
                     .position(x: w / 2, y: h * 0.507)
                     .zIndex(30)
@@ -894,7 +919,12 @@ private struct SpeedScaleTicks: View {
 private struct SpeedLEDStream: View {
     let d: CGFloat
     let speed: Double?
-    private let ledOrange = Color(red: 1.00, green: 0.44, blue: 0.03)
+    @State private var previousSpeed: Double?
+    @State private var previousUpdateAt = Date.distantPast
+    @State private var isDecelerating = false
+    private var ledOrange: Color {
+        isDecelerating ? CockpitTheme.decelerationAccent : CockpitTheme.speedLEDAccent
+    }
 
     private var progress: Double? {
         guard let speed, speed.isFinite, speed >= 0 else { return nil }
@@ -936,6 +966,21 @@ private struct SpeedLEDStream: View {
         }
         .frame(width: d, height: d)
         .animation(.easeInOut(duration: 0.38), value: progress)
+        .onChange(of: speed) { _, current in
+            let now = Date()
+            guard let current, current.isFinite else {
+                isDecelerating = false
+                previousSpeed = nil
+                previousUpdateAt = .distantPast
+                return
+            }
+            let age = now.timeIntervalSince(previousUpdateAt)
+            isDecelerating = previousSpeed.map {
+                age >= 0.2 && age <= 5 && ($0 - current) >= 2.5
+            } ?? false
+            previousSpeed = current
+            previousUpdateAt = now
+        }
         .accessibilityLabel(progress.map { "Indicatore LED velocità: \(Int(($0 * 100).rounded()))% della scala" }
                             ?? "GPS non disponibile")
     }
@@ -1003,6 +1048,14 @@ private struct OpenSpeedCluster: View {
     // Layout unico per Home e GPS. Freccia visibile solo se la rotta è attiva.
     var navigationArrow: String? = nil
     var navigationInstruction: String? = nil
+    var navigationDistance: String? = nil
+
+    private var maneuverColor: Color {
+        guard let navigationArrow else { return .white }
+        if navigationArrow.contains("right") { return CockpitTheme.turnRightAccent }
+        if navigationArrow.contains("left") { return CockpitTheme.turnLeftAccent }
+        return .white
+    }
 
     private func magnitude(_ input: Double, limit: Double) -> Double {
         Swift.max(0, Swift.min(1, abs(input) / limit))
@@ -1058,9 +1111,9 @@ private struct OpenSpeedCluster: View {
                             radius: d * 0.014)
                 SegmentedGaugeBar(d: d, fraction: inputFill,
                                   start: 149, end: 391, count: 64, radiusFactor: 0.427,
-                                  activeColor: CockpitTheme.regenAccent,
-                                  idleColor: CockpitTheme.regenAccent.opacity(0.20))
-                    .shadow(color: CockpitTheme.regenAccent.opacity(inputFill == nil ? 0.02 : 0.48),
+                                  activeColor: CockpitTheme.recoveryRingAccent,
+                                  idleColor: CockpitTheme.recoveryRingAccent.opacity(0.20))
+                    .shadow(color: CockpitTheme.recoveryRingAccent.opacity(inputFill == nil ? 0.02 : 0.48),
                             radius: d * 0.011)
 
                 // La striscia LED arancione della velocità richiede GPS valido.
@@ -1076,13 +1129,24 @@ private struct OpenSpeedCluster: View {
                     Image(systemName: navigationArrow)
                         .symbolRenderingMode(.monochrome)
                         .font(.system(size: d * 0.124, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(maneuverColor)
                         .shadow(color: colorScheme == .light
                                 ? .black.opacity(0.78) : .black.opacity(0.42),
                                 radius: colorScheme == .light ? 2.8 : 1.4)
                         .frame(width: d * 0.205, height: d * 0.142)
                         .position(x: d * 0.5, y: d * 0.241)
                         .accessibilityLabel(navigationInstruction ?? "Prossima manovra")
+                    if let navigationDistance {
+                        Text(navigationDistance)
+                            .font(.system(size: d * 0.030, weight: .semibold))
+                            .monospacedDigit()
+                            .foregroundStyle(maneuverColor)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                            .frame(width: d * 0.25, height: d * 0.036)
+                            .position(x: d * 0.50, y: d * 0.329)
+                            .accessibilityLabel("Distanza alla prossima manovra: \(navigationDistance)")
+                    }
                 }
 
                 // Cifre velocità rosse in Arial Bold, senza contorno o ombre.
@@ -1093,7 +1157,7 @@ private struct OpenSpeedCluster: View {
                             // della velocità; scalatura e colore invariati.
                             .font(.custom("Arial-BoldMT", size: d * 0.275))
                             .monospacedDigit()
-                            .foregroundStyle(CockpitTheme.dischargeAccent)
+                            .foregroundStyle(CockpitTheme.speedDigitsAccent)
                             .lineLimit(1)
                             .minimumScaleFactor(0.65)
                             .frame(width: d * 0.60, height: d * 0.285)
@@ -1421,7 +1485,10 @@ struct GPSCockpitDashboard: View {
                                  showsOdometer: true,
                                  odometerKm: gps.hasOdometer ? gps.totalKm : nil,
                                  navigationArrow: maneuverSymbol,
-                                 navigationInstruction: navigation.guidanceInstruction)
+                                 navigationInstruction: navigation.guidanceInstruction,
+                                 navigationDistance: navigation.isNavigating &&
+                                     navigation.guidanceDistanceMeters != nil
+                                     ? navigation.guidanceDistanceLabel : nil)
                     .frame(width: dialSize, height: dialSize)
                     .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(25)
