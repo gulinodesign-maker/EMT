@@ -29,7 +29,7 @@ for symbol in ("paintpalette", "chart.bar.fill", "speedometer",
 assert "ForEach(group.range, id:" in editor  # swatch previews & detail
 assert "minimumDuration: 0.45" in editor
 assert ".sheet(item: $colorID)" in editor
-assert "draft.colors[index] = hex" in editor
+assert "draft.colors[selected.id] = hex" in editor
 assert "onSave(slot, palette)" in editor
 assert "ForEach(1...3, id:" in tabs
 assert "static let colorCount = 15" in tabs
