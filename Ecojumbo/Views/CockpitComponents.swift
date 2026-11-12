@@ -1770,11 +1770,14 @@ private struct GPSCockpitMap: View {
                         Annotation("", coordinate: coordinate, anchor: .center) {
                             Image(systemName: "location.north.fill")
                                 .font(.system(size: 29, weight: .black))
-                                .foregroundStyle(theme.accent)
+                                // Il puntatore GPS dello scooter è sempre azzurro neon,
+                                // indipendentemente dal tema scelto per il cockpit.
+                                .foregroundStyle(Color(red: 0.0, green: 0.82, blue: 1.0))
                                 .shadow(color: colorScheme == .light
                                         ? .white.opacity(0.96) : .black.opacity(0.92),
                                         radius: 3)
-                                .shadow(color: theme.accent.opacity(0.32), radius: 5)
+                                .shadow(color: Color(red: 0.0, green: 0.82, blue: 1.0).opacity(0.75),
+                                        radius: 5)
                                 .rotationEffect(.degrees(
                                     (gps.currentHeading() ?? 0) - (visibleCamera?.heading ?? 0)
                                 ))
