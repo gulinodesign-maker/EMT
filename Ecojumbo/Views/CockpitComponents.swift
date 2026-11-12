@@ -1567,18 +1567,7 @@ struct GPSCockpitDashboard: View {
                     .frame(width: w, height: h)
                     .zIndex(8)
 
-                // Profilo di rinforzo sulle fiancate indicate in verde:
-                // spessore esattamente 3 volte entrambe le linee principali.
-                GPSOuterProfileReinforcement()
-                    .stroke(theme.accent,
-                            style: StrokeStyle(
-                                lineWidth: GPSContourStroke.width(height: h) * 3,
-                                lineCap: .round, lineJoin: .round))
-                    .shadow(color: theme.accent.opacity(0.40), radius: h * 0.004)
-                    .frame(width: w, height: h)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
-                    .zIndex(12)
+                // Build 71: nessun secondo profilo; disegna unicamente GPSHorizonLine.
 
                 OpenSpeedCluster(speed: gps.currentSpeed(at: now),
                                  incomingPower: live.map { Swift.max(0, $0.power) },
@@ -1712,63 +1701,8 @@ private enum GPSHorizonSymmetry {
     }
 }
 
-// Nuovo profilo esterno parallelo alle fiancate del tachimetro, sul
-// tracciato indicato in verde dall'utente. Due sezioni indipendenti e
-// speculari attorno al quadrante: la linea non invade la telemetria.
-private struct GPSOuterProfileReinforcement: Shape {
-    private func point(_ degrees: CGFloat, center: CGPoint, radius: CGFloat) -> CGPoint {
-        let angle = degrees * .pi / 180
-        return CGPoint(x: center.x + cos(angle) * radius,
-                       y: center.y + sin(angle) * radius)
-    }
-
-    func path(in rect: CGRect) -> Path {
-        let w = rect.width
-        let h = rect.height
-        let dialSize = GPSDialLayout.size(width: w, height: h)
-        let center = CGPoint(x: GPSDialLayout.centerX(width: w, height: h),
-                             y: h * 0.494)
-        // Raggio esterno al LED 0.496d, ma lontano dalle card
-        // (il loro lato sinistro è a 0.508d + rightInset).
-        let radius = dialSize * 0.535
-        let corners = GPSHorizonSymmetry.corners(width: w, height: h)
-        let topY = h * 0.144
-        let leftStart = point(218, center: center, radius: radius)
-        let rightStart = point(322, center: center, radius: radius)
-        let leftShoulder = CGPoint(x: max(12, corners.leftKnee.x - w * 0.04),
-                                   y: topY)
-        let rightShoulder = CGPoint(
-            x: min(w - max(12, w * 0.03),
-                   max(corners.rightKnee.x + w * 0.04,
-                       rightStart.x + max(24, w * 0.04))),
-            y: topY)
-
-        var line = Path()
-        line.move(to: CGPoint(x: 0, y: topY))
-        line.addLine(to: leftShoulder)
-        line.addQuadCurve(to: leftStart,
-                          control: CGPoint(x: leftStart.x - max(14, w * 0.016),
-                                           y: topY))
-        // Sinistra: 218°→142°, esterno al cerchio senza attraversarlo.
-        for step in 1...36 {
-            let angle = 218 - CGFloat(step) * (76.0 / 36.0)
-            line.addLine(to: point(angle, center: center, radius: radius))
-        }
-
-        line.move(to: CGPoint(x: w, y: topY))
-        line.addLine(to: rightShoulder)
-        line.addQuadCurve(to: rightStart,
-                          control: CGPoint(x: rightStart.x + max(14, w * 0.016),
-                                           y: topY))
-        // Destra speculare: 322°→398°, da sopra a sotto il quadrante.
-        for step in 1...36 {
-            let angle = 322 + CGFloat(step) * (76.0 / 36.0)
-            line.addLine(to: point(angle, center: center, radius: radius))
-        }
-        return line
-    }
-}
-
+// Build 71: eliminato il profilo arancione esterno, duplicato sotto la top bar.
+// Resta soltanto GPSHorizonLine con raccordi simmetrici e maschera del quadrante.
 private struct GPSHorizonLine: View {
     let theme: CockpitTheme
 

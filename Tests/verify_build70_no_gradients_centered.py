@@ -8,7 +8,7 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 70;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 71;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -31,8 +31,8 @@ assert ".stroke(theme.accent" in lower
 assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in horizon
 assert ".mask(GPSLowerTerminalFade())" in lower
 assert "GPSLowerShade()" in lower   # older neutral shaded backdrop unchanged
-assert "GPSOuterProfileReinforcement()" in cockpit
-assert "GPSContourStroke.width(height: h) * 3" in cockpit
+assert "GPSOuterProfileReinforcement" not in cockpit
+assert "GPSContourStroke.width(height: h) * 3" not in cockpit
 
 # Same geometry functions for telemetry cards and five no-map controls.
 geometry = home.split("enum EcoCockpitDockGeometry {", 1)[1].split(
@@ -64,13 +64,12 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
     assert width >= 5 * side, (w, h, width, side)
     justified_gap = (width - 5 * side) / 4
     assert isclose(left + 5 * side + 4 * justified_gap, right, abs_tol=1e-8)
-    # No overlap with existing 3x outer reinforcement at the outer dial edge.
-    reinforced_right = cx + d * 0.535 + 3 * max(1.4, h * 0.003) / 2
-    assert reinforced_right < left, (w, h, reinforced_right, left)
+    # The original dial remains outside the aligned telemetry panel.
+    assert cx + d * 0.508 < left
 
 assert "Build 70" in state
 assert "senza applicare le sfumature" in state
 assert "GPSCockpitMap(theme: theme)" in cockpit
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in cockpit
 assert "let live = bluetooth.snapshot" in cockpit
-print("OK — build 70: no colored gradients, 17 saved colors kept, centered telemetry and five dock controls")
+print("OK — build 70/71: no colored gradients, 17 saved colors kept, centered telemetry and five dock controls")

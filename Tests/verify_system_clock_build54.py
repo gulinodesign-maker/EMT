@@ -5,7 +5,7 @@ root = Path(__file__).resolve().parents[1]
 components = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 70;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 71;") == 2
 assert "private struct SystemClockText: View" in components
 assert "TimelineView(.periodic(from: .now, by: 1))" in components
 assert "Text(timeline.date.formatted(" in components

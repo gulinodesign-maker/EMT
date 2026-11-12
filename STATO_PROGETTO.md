@@ -50,6 +50,8 @@ Cockpit tachimetro GPS, mappe Apple MapKit e itinerari, indicazioni svolta, prof
 
 - **Build 70 — prima CI fallita, poi corretta:** [43305267533](https://github.com/gulinodesign-maker/EMT/actions/runs/43305267533) `failure` prima della compilazione a causa di un test della cronologia con data sintetica anteriore alla CI reale; `Tests/verify_build_history.py` corretto e testato nella CI successiva [43305481404](https://github.com/gulinodesign-maker/EMT/actions/runs/43305481404) `success`. Il risultato iniziale non viene cancellato dalla cronologia.
 
+- **Build 71 (richiesta 12/11/2026 — intervento in sviluppo):** l'utente ha mostrato il doppio profilo arancione aggiunto in 69, visibile sotto la top bar e lungo i fianchi esterni del tachimetro. **Causa verificata nei sorgenti:** `GPSOuterProfileReinforcement`, percorso separato a quota `h * 0.144` e stroke 3×, sovrapposto a `GPSHorizonLine`. Eliminati **l'intero Shape e il suo layer `zIndex(12)`**, non semplicemente nascosti; conservati **soltanto** la linea superiore originale `GPSHorizonLine` con raccordi simmetrici, maschera al quadrante, anello GPS e ponte inferiore kW. Nessuna sfumatura colorata introdotta, né cambi a telemetria/dock centrati, MapKit, JK BMS, trip, dati iPhone, firma Apple. Debug e Release portati a **1.0 (71)**; test storici adeguati, nuova regressione 71. **Da confermare:** CI reale, merge, archivio, invio Apple, elaborazione e gruppo TestFlight **TE**.
+
 ## Ultima compilazione verificata e telemetria CI
 
 <!-- CI_STATUS_START -->
@@ -61,16 +63,16 @@ Per tutti i run successivi, riusciti o falliti, consultare **[BUILD_HISTORY.md](
 
 ## Stato operativo e richieste aperte
 
-**Attività corrente:** build **70** integrata su `main`, test Python/Swift e compilazione iOS su `main` verificati `success`; upload Apple **1.0 (70)** confermato dai log GitHub. Attendere esclusivamente elaborazione App Store Connect, eventuale assegnazione gruppo **TE** e disponibilità/controllo visivo su iPhone. Non creare nuove build per ripetere lo stesso upload.
+**Attività corrente:** realizzazione build **71**: eliminazione definitiva del secondo profilo arancione 3× introdotto nella 69. Sorgenti, test e diario da integrare su branch dedicato; verificare CI PR e main, quindi archiviazione/upload Apple e stato TestFlight. Nessun caricamento 71 ancora confermato.
 
 **Richieste utente ancora da completare / da verificare:**
-1. **TestFlight 70 — completamento lato Apple:** upload di `1.0 (70)` **confermato** dal workflow [43306056303](https://github.com/gulinodesign-maker/EMT/actions/runs/43306056303), Apple ha segnalato `Uploaded package is processing`. Verificare in App Store Connect che elaborazione sia **Completo**, associare la build al gruppo **TE** e controllare il pulsante «Aggiorna» su iPhone. Non dichiarare distribuita senza riscontro.
+1. **TestFlight 71:** dopo CI, merge e log `Upload succeeded`, verificare App Store Connect `1.0 (71)` (processing completo), l'assegnazione al gruppo **TE** e il pulsante «Aggiorna» sull'iPhone. La 70 era stata caricata, ma non conferma la disponibilità della 71.
 2. **Controllo su dispositivo reale della build 67:** verificare visivamente raccordi, temperatura con GPS+Internet e valore batteria iPhone; test automatici non equivalgono a verifica su hardware.
 3. **ChatGPT Progetto:** inserire una volta il testo di `docs/ISTRUZIONI_PROGETTO_CHATGPT.md` nelle istruzioni del Progetto; non configurabile automaticamente da questo repository.
 
 **Verifiche tecniche completate:** PR #54 / CI verde, workflow di registrazione realmente eseguito con esito `success`, entry nel registro su `main`, aggiornamento automatico del riquadro CI e assenza di loop. La gestione degli esiti negativi è stata testata con casi automatici simulati, ma il ramo fallback per permessi negati non è stato esercitato in ambiente reale.
 
-**Prossima operazione:** aprire **App Store Connect → Ecojumbo → TestFlight**, verificare che `1.0 (70)` sia elaborata, associarla al gruppo tester **TE**, quindi controllare l'aggiornamento e la resa su iPhone (nessun riempimento colorato sfumato, telemetria/dock centrati). Non ricompilare la 70 se è già stata caricata.
+**Prossima operazione:** testare la PR build 71: niente `GPSOuterProfileReinforcement` né linea arancione secondaria, invariati `GPSHorizonLine`, ponte kW e layout; dopo CI verde, integrare su main e verificare separatamente upload Apple e disponibilità al gruppo **TE**.
 
 ## Procedura di handoff
 
