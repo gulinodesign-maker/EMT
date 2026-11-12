@@ -24,7 +24,7 @@ assert '@State private var selected: EcoTab = .gps' in u
 assert 'case .dashboard:' not in u
 assert 'ForEach([EcoTab.trips, .battery, .bms, .settings, .themes])' in u
 assert 'if mapEnabled && selected == .gps {' in u
-assert 'BluetoothGlyph()' in u and 'CockpitCornerControls' in u
+assert 'EcoMinimalNavigationLabel(' in u and 'CockpitCornerControls' in u
 # GPS è una modalità del cockpit, non una NavigationStack separata.
 assert 'GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)' in u
 assert 'NavigationStack { AppleMapsPanel() }' not in u
@@ -209,7 +209,7 @@ assert 'let contentHeight = selected == .gps' in u
 assert '.frame(width: w, height: contentHeight)' in u
 assert '.position(x: w / 2, y: contentHeight / 2)' in u
 assert '.padding(.bottom, selected == .gps ?' not in u
-assert 'Color(white: 0.96) : Color(white: 0.19)' in u
+assert 'foregroundStyle(active ? theme.accent : Color.secondary)' in u
 assert '.shadow(color: .black.opacity(colorScheme == .light ? 0.10 : 0.90)' not in u
 assert 'let gpsGap = width * 0.008' in u
 # Sfumature neutre su entrambe le modalità.
@@ -482,9 +482,9 @@ assert '(gps.currentHeading() ?? 0) - (visibleCamera?.heading ?? 0)' in c
 assert 'struct BluetoothGlyph:View {' in c
 assert '.stroke(colorScheme == .light ? Color(white: 0.16) : .white,' in c
 assert 'Color.black.opacity(0.33)' in c
-assert 'Text(text)' in u and 'foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)' in u
-assert 'Color(white: 0.96) : Color(white: 0.19)' in u
-assert 'Color(white: 0.92) : Color(white: 0.08)' in u
+assert 'title: text ?? gpsCaption(for: symbol)' in u
+assert 'foregroundStyle(active ? theme.accent : Color.secondary)' in u
+assert 'if selected != .gps {\n                    Spacer(minLength: 0)' in u
 assert 'if selected == .gps { mapEnabled.toggle() }' in u
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBest\n' not in g
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation' in g
