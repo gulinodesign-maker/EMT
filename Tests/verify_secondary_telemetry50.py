@@ -6,7 +6,7 @@ c=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 g=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 p=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert p.count("CURRENT_PROJECT_VERSION = 60;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 61;") == 2
 dashboard=c.split("struct GPSCockpitDashboard: View {",1)[1].split("private struct GPSHorizonLine: View {",1)[0]
 view=c.split("private struct GPSExpandedReadings: View {",1)[1].split(
     "// Altitudine GPS sul percorso effettivamente registrato dal trip.",1)[0]
