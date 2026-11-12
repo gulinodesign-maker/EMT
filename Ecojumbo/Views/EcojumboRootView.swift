@@ -94,6 +94,7 @@ struct EcojumboRootView: View {
     @State private var lastMenu: EcoTab = .trips
     @AppStorage("ecojumbo.mapEnabled") private var mapEnabled = true
     @State private var tick = Date()
+    // Il movimento fisico in portrait apre Impostazioni, anche con GPS bloccato landscape.
 
     private var theme: CockpitTheme { CockpitTheme(rawValue: themeName) ?? .copper }
     private var selectedAppearance: EcoAppearanceMode {
@@ -156,6 +157,7 @@ struct EcojumboRootView: View {
         .statusBarHidden(true)
         .preferredColorScheme(selectedAppearance.preferredScheme)
         .onAppear {
+            UIDevice.current.beginGeneratingDeviceOrientationNotifications()
             EcojumboOrientationPolicy.update(for: selected, force: true)
             gps.start()
             bluetooth.applyFormat(JKFrameFormat(rawValue: UserDefaults.standard.string(forKey: "ecojumbo.frameFormat") ?? "Automatico") ?? .automatic,
@@ -164,6 +166,15 @@ struct EcojumboRootView: View {
         .onChange(of: selected) { _, newTab in
             if newTab != .gps { lastMenu = newTab }
             EcojumboOrientationPolicy.update(for: newTab)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+            // La notifica fisica funziona anche quando UIKit blocca il GPS in landscape.
+            if selected == .gps && UIDevice.current.orientation == .portrait {
+                selected = .settings
+            }
+        }
+        .onDisappear {
+            UIDevice.current.endGeneratingDeviceOrientationNotifications()
         }
         .onReceive(bluetooth.$snapshot) { snapshot in
             if snapshot != nil { bluetooth.session.observeDistance(gps.tripKm) }
@@ -241,6 +252,31 @@ struct EcojumboRootView: View {
 }
 
 
+// Trattamento condiviso: icone piatte, etichette brevi e colore attivo.
+// Nessuna sfumatura, rilievo o bordo lucido.
+private struct EcoMinimalNavigationLabel: View {
+    let symbol: String
+    let title: String
+    let active: Bool
+    let theme: CockpitTheme
+    let iconSize: CGFloat
+    let captionSize: CGFloat
+
+    var body: some View {
+        VStack(spacing: 3) {
+            Image(systemName: symbol)
+                .font(.system(size: iconSize, weight: .semibold))
+                .frame(height: iconSize + 2)
+            Text(title)
+                .font(.system(size: captionSize, weight: .semibold))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .foregroundStyle(active ? theme.accent : Color.secondary)
+        .frame(maxWidth: .infinity)
+    }
+}
+
 // Dock solo per i menu portrait: non compare mai sopra il tachimetro.
 private struct PortraitServiceTabBar: View {
     @Binding var selected: EcoTab
@@ -250,17 +286,16 @@ private struct PortraitServiceTabBar: View {
         HStack(spacing: 2) {
             ForEach(EcoTab.allCases) { tab in
                 Button { selected = tab } label: {
-                    VStack(spacing: 5) {
-                        Image(systemName: tab == .gps ? "speedometer" : tab.symbol)
-                            .font(.system(size: 20, weight: .semibold))
-                        Text(tab == .gps ? "Cockpit" :
-                             (tab == .settings ? "Setup" :
-                              (tab == .themes ? "Temi" : tab.label)))
-                            .font(.system(size: 10, weight: .semibold))
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.75)
-                    }
-                    .foregroundStyle(selected == tab ? theme.accent : .secondary)
+                    EcoMinimalNavigationLabel(
+                        symbol: tab == .gps ? "speedometer" : tab.symbol,
+                        title: tab == .gps ? "Cockpit" :
+                            (tab == .settings ? "Setup" :
+                             (tab == .themes ? "Temi" : tab.label)),
+                        active: selected == tab,
+                        theme: theme,
+                        iconSize: 20,
+                        captionSize: 10
+                    )
                     .frame(maxWidth: .infinity)
                     .frame(height: 58)
                     .contentShape(Rectangle())
@@ -308,6 +343,7 @@ private struct CockpitCornerControls: View {
                 : EcoCockpitDockGeometry.standardSide(width: width, height: screenHeight)
             let gpsGap = width * 0.008
             HStack(alignment: .center, spacing: 0) {
+                // Tachimetro: dock a destra. Altri menu: gruppo centrato.
                 Spacer(minLength: 0)
                 HStack(spacing: gpsGap) {
                     gpsButton("map.fill", active: mapEnabled,
@@ -351,6 +387,9 @@ private struct CockpitCornerControls: View {
                             : EcoAppearanceMode.light.rawValue
                     }
                 }
+                if selected != .gps {
+                    Spacer(minLength: 0)
+                }
             }
             .padding(.horizontal, max(12, width * 0.018))
             .frame(width: width, height: height)
@@ -359,83 +398,58 @@ private struct CockpitCornerControls: View {
 
     private func iconButton(_ tab: EcoTab, side: CGFloat) -> some View {
         Button { selected = selected == tab ? .gps : tab } label: {
-            ZStack {
-                RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
-                    .fill(LinearGradient(stops: [
-                        .init(color: colorScheme == .light ? .white : Color(white: 0.37), location: 0),
-                        .init(color: colorScheme == .light ? Color(white: 0.96) : Color(white: 0.19), location: 0.21),
-                        .init(color: colorScheme == .light ? Color(white: 0.92) : Color(white: 0.08), location: 0.78),
-                        .init(color: colorScheme == .light ? Color(white: 0.84) : Color(white: 0.14), location: 1)
-                    ], startPoint: .top, endPoint: .bottom))
-                RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
-                    .stroke(LinearGradient(colors: [
-                        selected == tab ? theme.accent : (colorScheme == .light ? Color.black.opacity(0.16) : .white.opacity(0.80)),
-                        .white.opacity(0.13),
-                        selected == tab ? theme.accent.opacity(0.80) : (colorScheme == .light ? Color.black.opacity(0.10) : .white.opacity(0.38))
-                    ], startPoint: .top, endPoint: .bottom), lineWidth: selected == tab ? 1.6 : 0.9)
-                if tab == .bms {
-                    BluetoothGlyph()
-                        .frame(width: side * 0.42, height: side * 0.57)
-                } else {
-                    Image(systemName: tab.symbol)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: side * 0.57, height: side * 0.55)
-                        .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
-                }
-            }
+            EcoMinimalNavigationLabel(
+                symbol: tab.symbol,
+                title: tab == .settings ? "Setup" :
+                    (tab == .themes ? "Temi" : tab.label),
+                active: selected == tab,
+                theme: theme,
+                iconSize: min(20, side * 0.43),
+                captionSize: max(9, min(10, side * 0.20))
+            )
             .frame(width: side, height: side)
-
-
-            .contentShape(RoundedRectangle(cornerRadius: side * 0.23))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(tab.label)
         .accessibilityAddTraits(tab == selected ? .isSelected : [])
     }
-    // Stessa finitura, bordo, altezza e ombreggiatura del tasto Home.
+
+    // Stesso design portrait; azioni, dimensioni e ordine GPS invariati.
     private func gpsButton(_ symbol: String, alternate: String? = nil,
                            text: String? = nil, active: Bool = false,
                            enabled: Bool = true, accessibility: String,
                            side: CGFloat, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            ZStack {
-                RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
-                    .fill(LinearGradient(stops: [
-                        .init(color: colorScheme == .light ? .white : Color(white: 0.37), location: 0),
-                        .init(color: colorScheme == .light ? Color(white: 0.96) : Color(white: 0.19), location: 0.21),
-                        .init(color: colorScheme == .light ? Color(white: 0.92) : Color(white: 0.08), location: 0.78),
-                        .init(color: colorScheme == .light ? Color(white: 0.84) : Color(white: 0.14), location: 1)
-                    ], startPoint: .top, endPoint: .bottom))
-                RoundedRectangle(cornerRadius: side * 0.23, style: .continuous)
-                    .stroke(LinearGradient(colors: [
-                        active ? theme.accent : (colorScheme == .light ? Color.black.opacity(0.16) : .white.opacity(0.80)),
-                        .white.opacity(0.13),
-                        active ? theme.accent.opacity(0.80) : (colorScheme == .light ? Color.black.opacity(0.10) : .white.opacity(0.38))
-                    ], startPoint: .top, endPoint: .bottom),
-                            lineWidth: active ? 1.6 : 0.9)
-                if let text {
-                    Text(text)
-                        .font(.system(size: side * 0.28, weight: .heavy, design: .rounded))
-                        .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
-                } else {
-                    Image(systemName: active ? (alternate ?? symbol) : symbol)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: side * 0.55, height: side * 0.55)
-                        .foregroundStyle(colorScheme == .light ? Color(white: 0.16) : .white)
-                }
-            }
+            EcoMinimalNavigationLabel(
+                symbol: active ? (alternate ?? symbol) : symbol,
+                title: text ?? gpsCaption(for: symbol),
+                active: active,
+                theme: theme,
+                iconSize: min(20, side * 0.43),
+                captionSize: max(9, min(10, side * 0.20))
+            )
             .frame(width: side, height: side)
-
-
-            .contentShape(RoundedRectangle(cornerRadius: side * 0.23))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
-        .opacity(enabled ? 1 : 0.68)
+        .opacity(enabled ? 1 : 0.45)
         .accessibilityLabel(accessibility)
         .accessibilityAddTraits(active ? [.isSelected] : [])
+    }
+
+    private func gpsCaption(for symbol: String) -> String {
+        switch symbol {
+        case "map.fill": "Mappa"
+        case "play.fill": "Naviga"
+        case "location.north.line.fill": "Direz."
+        case "scope": "Centra"
+        case "plus.magnifyingglass": "Zoom +"
+        case "minus.magnifyingglass": "Zoom −"
+        case "moon.stars.fill", "sun.max.fill": "Tema"
+        default: ""
+        }
     }
 
 }
