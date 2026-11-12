@@ -7,7 +7,6 @@ struct CellsView: View {
     @AppStorage("ecojumbo.cellCount") private var cellCount = 20
 
     private let columns = [GridItem(.adaptive(minimum: 142, maximum: 230), spacing: 12)]
-    private let summaryColumns = [GridItem(.adaptive(minimum: 142), spacing: 12)]
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 2)) { time in
@@ -26,7 +25,7 @@ struct CellsView: View {
             .scrollContentBackground(.hidden)
             .background(Color.ecoBackground)
         }
-        .navigationTitle("Batteria · \(cellCount) celle")
+        .navigationTitle("Batteria · 20 celle")
     }
 
     private func verifiedSnapshot(at time: Date) -> JKSnapshot? {
@@ -39,7 +38,7 @@ struct CellsView: View {
 
     private func liveContent(_ snapshot: JKSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            LazyVGrid(columns: summaryColumns, spacing: 12) {
+            HStack(spacing: 12) {
                 summaryTile("Carica", value: "\(snapshot.soc)%", icon: "battery.100percent")
                 summaryTile("Tensione", value: String(format: "%.2f V", snapshot.voltage), icon: "bolt.fill")
                 summaryTile("Differenza celle", value: String(format: "%.0f mV", snapshot.deltaCellMillivolts), icon: "arrow.left.and.right")
