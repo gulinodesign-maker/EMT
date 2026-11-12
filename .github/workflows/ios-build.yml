@@ -3,6 +3,12 @@ name: Compila Ecojumbo (iOS)
 on:
   push:
     branches: [ main, master ]
+    # No CI loop on automatic history updates or documentation-only commits.
+    paths-ignore:
+      - 'BUILD_HISTORY.md'
+      - 'STATO_PROGETTO.md'
+      - 'AGENTS.md'
+      - 'docs/**'
   pull_request:
   workflow_dispatch:
 
