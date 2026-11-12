@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 63;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 64;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -172,7 +172,7 @@ assert 'if left { icon }' in c and 'if !left { icon }' in c
 assert 'if left { Spacer(minLength: 0) }' in c
 assert 'var previewPalette: [Color]' in c
 assert 'EcoThemePalette.standardBarColors.map' in c
-assert 'ForEach(0..<8, id:' in t
+assert 'ForEach(0..<EcoThemePalette.colorCount, id:' in t
 
 # Sei temi, griglia visibile con 3 colonne e 2 righe in landscape.
 for tag in ['case copper = "Rame"','case glacier = "Ghiaccio"','case green = "Verde"','case aquamarine = "Acquamarina"','case brown = "Marrone"','case racing = "Racing"']:
@@ -286,7 +286,7 @@ assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 2
 assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2
 assert 'Text(incomingPower.map { String(format: "%.2f kW"' in c
 assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in c
-assert 'private let ledOrange = Color(red: 1.00, green: 0.44, blue: 0.03)' in c
+assert 'private var ledOrange: Color {' in c and 'CockpitTheme.speedLEDAccent' in c
 assert 'let idealRun = standardHorizontalRun * ((footY - topY) / standardVerticalRun)' in c
 assert 'GPSLowerLineGeometry.points(in: rect)' in c
 assert 'LabeledContent("Numero build", value: EcojumboBuildStamp.buildNumber)' in o

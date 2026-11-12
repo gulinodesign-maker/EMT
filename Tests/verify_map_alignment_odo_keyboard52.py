@@ -7,7 +7,7 @@ cockpit=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 settings=(root/"Ecojumbo/Views/OtherViews.swift").read_text()
 gps=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 63;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 64;") == 2
 
 dashboard=cockpit.split("struct GPSCockpitDashboard: View {",1)[1].split(
     "private struct GPSTripResetControl: View {",1)[0]
@@ -85,7 +85,7 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
 
 # Color only: no new artificial GPS speed smoothing or thresholds.
 assert 'Text(String(Int(speed.rounded())))' in speed
-assert ".foregroundStyle(CockpitTheme.dischargeAccent)" in speed
+assert ".foregroundStyle(CockpitTheme.speedDigitsAccent)" in speed
 assert ".foregroundStyle(Color(red: 1.0, green: 0.43, blue: 0.04))" not in speed
 assert 'Text("km/h")' in speed
 assert 'String(format: "ODO %.0f km", $0)' in speed
