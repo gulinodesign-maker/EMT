@@ -44,6 +44,8 @@ Cockpit tachimetro GPS, mappe Apple MapKit e itinerari, indicazioni svolta, prof
 
 - **Build 68 (integrata su `main` con [PR #55](https://github.com/gulinodesign-maker/EMT/pull/55), 12/11/2026):** sfumatura condivisa e personalizzabile per top bar GPS e ponte inferiore kW tramite due ruoli colore aggiuntivi (17 totali) nell'editor; migrazione conservativa degli slot 8→17 e 15→17. Allargamento telemetria + dock dei cinque tasti sull'intervallo centrato fra la tangente destra del quadrante GPS e il confine destro del display, con margini simmetrici. Non alterati dati JK, GPS, trip, mappa o firmware. **Verificato:** test Python/JK/barre e compilazione iOS simulator su PR #55: [CI 43282152539](https://github.com/gulinodesign-maker/EMT/actions/runs/43282152539) `success`, merge SHA `7552aeb5`. **Verificato anche su main:** CI [43282616860](https://github.com/gulinodesign-maker/EMT/actions/runs/43282616860) `success`; primo tentativo di TestFlight [43282616970](https://github.com/gulinodesign-maker/EMT/actions/runs/43282616970) fallito senza assegnazione runner e job `cancelled` dopo attesa. Rilanciato il solo job, il secondo tentativo è riuscito (12/11/2026, 19:06:16 UTC): log `Numero build TestFlight: 68`, `ARCHIVE SUCCEEDED`, `Upload succeeded`, `EXPORT SUCCEEDED`, Apple segnala `Uploaded package is processing`. **Da verificare:** elaborazione ASC conclusa, gruppo tester **TE**, pulsante «Aggiorna» in TestFlight e resa visiva reale iPhone. Nessun aumento build necessario.
 
+- **Build 69 (in sviluppo, richiesta utente con screenshot annotato 12/11/2026):** correggere l'interpretazione della 68. I ruoli editabili 15/16 e l'accent centrale NON colorano più le linee; applicano una sfumatura orizzontale al riempimento dell'area tra bordo superiore e top bar e al riempimento interno sotto il ponte kW. I bordi luminosi restano nel colore principale, senza fade aggiuntivi alle giunzioni del quadrante. Aggiungere un profilo indipendente e parallelo ai due lati del tachimetro che segue i percorsi verdi annotati, con spessore esattamente **3×** rispetto agli stroke principali (top bar e ponte, stesso spessore base). Resta invariato il centraggio della telemetria e dei tasti della 68, come GPS, BMS e trip. La nuova build 69 non è ancora compilata né inviata ad Apple in questo primo commit: CI, rilascio e verifica visiva sono da completare.
+
 ## Ultima compilazione verificata e telemetria CI
 
 <!-- CI_STATUS_START -->
@@ -55,16 +57,16 @@ Per tutti i run successivi, riusciti o falliti, consultare **[BUILD_HISTORY.md](
 
 ## Stato operativo e richieste aperte
 
-**Attività corrente:** build 68 implementata, integrata, compilata su `main` e inviata con successo ad Apple al secondo tentativo. Il primo tentativo era rimasto in coda con job annullato; il retry ha risolto l'ostacolo. Manca conferma di elaborazione App Store Connect e assegnazione della 68 al gruppo TE; poi test visivo iPhone.
+**Attività corrente:** implementazione della **build 69** sul ramo `build-69-area-gradients-double-profile`: i colori editabili devono agire sulle aree piene sopra la top bar e sotto il ponte kW, non sui bordi, con nuovo profilo parallelo 3× indicato in verde. Ancora da confermare i test, la compilazione iOS e l'upload Apple. La 68 resta l'ultima build con upload verificato.
 
 **Richieste utente ancora da completare / da verificare:**
-1. **TestFlight 68 (priorità):** dopo upload Apple riuscito, controllare in App Store Connect `1.0 (68)`, verificare processing completo e associazione al gruppo **TE**; confermare pulsante «Aggiorna» su iPhone. Nell'ultimo screenshot precedente, la 67 risultava **Completo** ma senza gruppo. Non dichiarare la 68 distribuita senza conferma da App Store Connect.
+1. **TestFlight 68/69 (priorità):** dopo upload Apple riuscito, controllare in App Store Connect `1.0 (68)`, verificare processing completo e associazione al gruppo **TE**; confermare pulsante «Aggiorna» su iPhone. Nell'ultimo screenshot precedente, la 67 risultava **Completo** ma senza gruppo. Non dichiarare la 68 distribuita senza conferma da App Store Connect.
 2. **Controllo su dispositivo reale della build 67:** verificare visivamente raccordi, temperatura con GPS+Internet e valore batteria iPhone; test automatici non equivalgono a verifica su hardware.
 3. **ChatGPT Progetto:** inserire una volta il testo di `docs/ISTRUZIONI_PROGETTO_CHATGPT.md` nelle istruzioni del Progetto; non configurabile automaticamente da questo repository.
 
 **Verifiche tecniche completate:** PR #54 / CI verde, workflow di registrazione realmente eseguito con esito `success`, entry nel registro su `main`, aggiornamento automatico del riquadro CI e assenza di loop. La gestione degli esiti negativi è stata testata con casi automatici simulati, ma il ramo fallback per permessi negati non è stato esercitato in ambiente reale.
 
-**Prossima operazione:** aprire App Store Connect → Ecojumbo → TestFlight e verificare lo stato `1.0 (68)`. Quando elaborata, assegnarla al gruppo **TE** se assente. Verificare che su iPhone compaia «Aggiorna», quindi controllare gradiente comune top bar/ponte kW, centraggio telemetria e dock, temperatura e batteria iPhone. Il workflow GitHub conferma soltanto l'upload, non la distribuzione.
+**Prossima operazione:** eseguire test/regressioni build 69 e compilazione reale iOS nella PR; dopo CI verde integrare su `main` e verificare CI main, archive, export e upload Apple. Controllare successivamente elaborazione App Store Connect e associazione al gruppo **TE** (senza dedurla dall'upload), e ottenere verifica visiva su iPhone di entrambi i RIEMPIMENTI sfumati, della nuova linea 3× e dei comandi telemetria.
 
 ## Procedura di handoff
 
