@@ -6,7 +6,9 @@ struct CellsView: View {
     @EnvironmentObject private var bluetooth: JKBluetoothManager
     @AppStorage("ecojumbo.cellCount") private var cellCount = 20
 
+    var portrait: Bool = false
     private let columns = [GridItem(.adaptive(minimum: 142, maximum: 230), spacing: 12)]
+    private let portraitSummaryColumns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 2)) { time in
@@ -38,13 +40,17 @@ struct CellsView: View {
 
     private func liveContent(_ snapshot: JKSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 12) {
-                summaryTile("Carica", value: "\(snapshot.soc)%", icon: "battery.100percent")
-                summaryTile("Tensione", value: String(format: "%.2f V", snapshot.voltage), icon: "bolt.fill")
-                summaryTile("Differenza celle", value: String(format: "%.0f mV", snapshot.deltaCellMillivolts), icon: "arrow.left.and.right")
-                summaryTile("Celle ricevute", value: "\(snapshot.cells.count)", icon: "square.grid.3x3")
+            if portrait {
+                LazyVGrid(columns: portraitSummaryColumns, spacing: 12) {
+                    summaryTiles(snapshot)
+                }
+            } else {
+                // Identico HStack della build 57 in landscape.
+                HStack(spacing: 12) {
+                    summaryTiles(snapshot)
+                }
+                .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity)
 
             if snapshot.errorBits != 0 {
                 Label("Il BMS segnala allarmi. Consulta l'app JK ufficiale per i dettagli.", systemImage: "exclamationmark.triangle.fill")
@@ -63,6 +69,14 @@ struct CellsView: View {
                 .foregroundStyle(.secondary)
         }
         .padding(16)
+    }
+
+
+    @ViewBuilder private func summaryTiles(_ snapshot: JKSnapshot) -> some View {
+        summaryTile("Carica", value: "\(snapshot.soc)%", icon: "battery.100percent")
+        summaryTile("Tensione", value: String(format: "%.2f V", snapshot.voltage), icon: "bolt.fill")
+        summaryTile("Differenza celle", value: String(format: "%.0f mV", snapshot.deltaCellMillivolts), icon: "arrow.left.and.right")
+        summaryTile("Celle ricevute", value: "\(snapshot.cells.count)", icon: "square.grid.3x3")
     }
 
     private func summaryTile(_ title: String, value: String, icon: String) -> some View {

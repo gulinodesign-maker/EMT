@@ -91,6 +91,7 @@ struct EcojumboRootView: View {
     @AppStorage("ecojumbo.theme") private var themeName = "Rame"
     @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
     @State private var selected: EcoTab = .gps
+    @State private var lastMenu: EcoTab = .trips
     @AppStorage("ecojumbo.mapEnabled") private var mapEnabled = true
     @State private var tick = Date()
 
@@ -110,9 +111,16 @@ struct EcojumboRootView: View {
                 : max(28, geometry.safeAreaInsets.bottom + 14, h * 0.055)
             let contentHeight = selected == .gps
                 ? h : max(1, h - dockHeight - dockBottom - 10)
-            ZStack(alignment: .topLeading) {
-                Group {
-                    switch selected {
+            // Non si disegna mai il tachimetro in un rettangolo verticale.
+            // Il blocco landscape qui sotto mantiene invariata la build 57.
+            if selected != .gps && w < h {
+                portraitMenus(in: geometry)
+            } else if selected == .gps && w < h {
+                landscapeDashboardGuard(width: w, height: h)
+            } else {
+                ZStack(alignment: .topLeading) {
+                    Group {
+                        switch selected {
                     case .trips:
                         NavigationStack { TripsPanel() }
                     case .gps:
@@ -138,18 +146,24 @@ struct EcojumboRootView: View {
                     .frame(width: w, height: dockHeight)
                     .position(x: w / 2, y: h - dockBottom - dockHeight / 2)
                     .zIndex(50)
+                }
+                .frame(width: w, height: h)
+                .background(Color.ecoBackground)
             }
-            .frame(width: w, height: h)
-            .background(Color.ecoBackground)
         }
         .ignoresSafeArea(.container, edges: .all)
         .background(Color.ecoBackground.ignoresSafeArea())
         .statusBarHidden(true)
         .preferredColorScheme(selectedAppearance.preferredScheme)
         .onAppear {
+            EcojumboOrientationPolicy.update(for: selected, force: true)
             gps.start()
             bluetooth.applyFormat(JKFrameFormat(rawValue: UserDefaults.standard.string(forKey: "ecojumbo.frameFormat") ?? "Automatico") ?? .automatic,
                                   cells: UserDefaults.standard.integer(forKey: "ecojumbo.cellCount") == 0 ? 20 : UserDefaults.standard.integer(forKey: "ecojumbo.cellCount"))
+        }
+        .onChange(of: selected) { _, newTab in
+            if newTab != .gps { lastMenu = newTab }
+            EcojumboOrientationPolicy.update(for: newTab)
         }
         .onReceive(bluetooth.$snapshot) { snapshot in
             if snapshot != nil { bluetooth.session.observeDistance(gps.tripKm) }
@@ -159,6 +173,108 @@ struct EcojumboRootView: View {
         }
         .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { newDate in
             tick = newDate
+        }
+    }
+
+    // Le pagine di servizio usano NavigationStack e scorrono normalmente.
+    // Il dock portrait è separato dal cockpit landscape originale.
+    private func portraitMenus(in geometry: GeometryProxy) -> some View {
+        let insets = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first(where: { $0.isKeyWindow })?.safeAreaInsets ?? .zero
+
+        return VStack(spacing: 0) {
+            portraitMenuPage
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            PortraitServiceTabBar(selected: $selected, theme: theme)
+        }
+        .padding(.top, max(16, geometry.safeAreaInsets.top, insets.top))
+        .padding(.bottom, max(8, geometry.safeAreaInsets.bottom, insets.bottom))
+        .frame(width: geometry.size.width, height: geometry.size.height)
+        .background(Color.ecoBackground)
+    }
+
+    @ViewBuilder private var portraitMenuPage: some View {
+        switch selected {
+        case .gps:
+            EmptyView()
+        case .trips:
+            NavigationStack { TripsPanel() }
+        case .battery:
+            NavigationStack { CellsView(portrait: true) }
+        case .bms:
+            NavigationStack { BluetoothView() }
+        case .settings:
+            NavigationStack { EcoSettingsView() }
+        case .themes:
+            NavigationStack { ThemePickerView(portrait: true) }
+        }
+    }
+
+    // Se UIKit non può ruotare immediatamente, nessun quadrante viene
+    // deformato: questo stato temporaneo resta navigabile.
+    private func landscapeDashboardGuard(width: CGFloat, height: CGFloat) -> some View {
+        VStack(spacing: 18) {
+            Image(systemName: "iphone.landscape")
+                .font(.system(size: 54, weight: .light))
+                .foregroundStyle(theme.accent)
+            Text("Tachimetro in orizzontale")
+                .font(.title2.bold())
+            Text("Ruota l'iPhone per aprire il cruscotto GPS.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Button {
+                selected = lastMenu
+            } label: {
+                Label("Torna ai menù", systemImage: "arrow.left")
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(theme.accent)
+        }
+        .padding(24)
+        .frame(width: width, height: height)
+        .background(Color.ecoBackground)
+    }
+
+}
+
+
+// Dock solo per i menu portrait: non compare mai sopra il tachimetro.
+private struct PortraitServiceTabBar: View {
+    @Binding var selected: EcoTab
+    let theme: CockpitTheme
+
+    var body: some View {
+        HStack(spacing: 2) {
+            ForEach(EcoTab.allCases) { tab in
+                Button { selected = tab } label: {
+                    VStack(spacing: 5) {
+                        Image(systemName: tab == .gps ? "speedometer" : tab.symbol)
+                            .font(.system(size: 20, weight: .semibold))
+                        Text(tab == .gps ? "Cockpit" :
+                             (tab == .settings ? "Setup" :
+                              (tab == .themes ? "Temi" : tab.label)))
+                            .font(.system(size: 10, weight: .semibold))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.75)
+                    }
+                    .foregroundStyle(selected == tab ? theme.accent : .secondary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 58)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(tab == .gps ? "Tachimetro GPS" : tab.label)
+                .accessibilityAddTraits(selected == tab ? .isSelected : [])
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.top, 8)
+        .background(Color.ecoCard)
+        .overlay(alignment: .top) {
+            Rectangle().fill(theme.accent.opacity(0.35)).frame(height: 1)
         }
     }
 }
