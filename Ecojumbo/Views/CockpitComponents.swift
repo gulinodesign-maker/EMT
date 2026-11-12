@@ -981,6 +981,13 @@ private struct SpeedLEDStream: View {
             previousSpeed = current
             previousUpdateAt = now
         }
+        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { now in
+            // Una riduzione GPS non significa freno azionato: il colore dura
+            // soltanto durante il calo osservato, non resta acceso a velocità fissa.
+            if isDecelerating && now.timeIntervalSince(previousUpdateAt) > 2 {
+                isDecelerating = false
+            }
+        }
         .accessibilityLabel(progress.map { "Indicatore LED velocità: \(Int(($0 * 100).rounded()))% della scala" }
                             ?? "GPS non disponibile")
     }
