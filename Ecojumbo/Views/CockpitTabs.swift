@@ -272,14 +272,56 @@ final class EcoNavigationStore: ObservableObject {
 // EcoNavigationStore resta condiviso e mantiene la rotta quando si cambia modalità.
 
 
-// Build 63: otto colori individuali, persistiti localmente in tre slot.
+// Build 64: 15 colori espliciti per tutte le luci del cockpit; conserva i 3 slot della build 63.
 struct EcoThemePalette: Codable, Equatable {
     var name: String
     var colors: [String]
 
+    // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
     static let labels = [
-        "Fondo", "Luce", "Ombra", "Acciaio",
-        "Barra scura", "Barra media", "Barra luminosa", "Rigenerazione"
+        "Sfondo del cockpit",
+        "Colore principale · top bar e icone Setup",
+        "Ombra delle linee luminose",
+        "Dettagli metallici del quadrante",
+        "Barre telemetria · colore scuro",
+        "Barre telemetria · colore intermedio",
+        "Barre telemetria · colore luminoso",
+        "Numeri kW · energia in ingresso",
+        "Anello esterno · potenza erogata",
+        "Anello interno · recupero energia",
+        "Arco LED · velocità GPS",
+        "Numeri del tachimetro · km/h",
+        "Navigatore · svolta a destra",
+        "Navigatore · svolta a sinistra",
+        "Decelerazione GPS · non sensore freno"
+    ]
+    static let details = [
+        "Fondo scuro dietro gli strumenti.",
+        "Stesso colore per linee della top bar, contorni e tutte le icone della griglia 3×4 in Impostazioni.",
+        "Luminosità secondaria e ombre colorate dei contorni.",
+        "Colore dei dettagli effetto acciaio.",
+        "Prima tonalità delle barre di telemetria.",
+        "Tonalità centrale delle barre di telemetria.",
+        "Tonalità brillante delle barre di telemetria.",
+        "Numero della potenza che entra nella batteria (kW); non dimostra da sola che si sta frenando.",
+        "Corona segmentata esterna: potenza in uscita dal BMS.",
+        "Corona segmentata interna: energia in ingresso alla batteria, da carica o recupero.",
+        "Arco progressivo della velocità GPS, normalmente illuminato con questo colore.",
+        "Cifre grandi della velocità GPS al centro.",
+        "Freccia e distanza della prossima svolta verso destra.",
+        "Freccia e distanza della prossima svolta verso sinistra.",
+        "Arco GPS quando la velocità sta diminuendo: non è una misura del freno fisico."
+    ]
+    static let groups: [(title: String, range: Range<Int>)] = [
+        ("Aspetto generale", 0..<4),
+        ("Barre telemetria e potenza", 4..<8),
+        ("Anelli e numeri del tachimetro", 8..<12),
+        ("Navigatore e decelerazione", 12..<15)
+    ]
+    static let colorCount = 15
+    static let extraDefaults = [
+        "#FA2B2E", "#2BBAFF", "#FF7008", "#FA2B2E",
+        "#FFFFFF", "#FFFFFF", "#FFB224"
     ]
     static let standardBarColors = ["#8C0521", "#E90F3B", "#FC3352", "#2BBAFF"]
     static let storagePrefix = "ecojumbo.customTheme."
@@ -301,7 +343,8 @@ struct EcoThemePalette: Codable, Equatable {
         }
         return EcoThemePalette(
             name: "Il mio tema",
-            colors: ["#040405", foreground.0, foreground.1, "#D9DEE3"] + standardBarColors
+            colors: ["#040405", foreground.0, foreground.1, "#D9DEE3"]
+                + standardBarColors + extraDefaults
         )
     }
 
@@ -309,14 +352,21 @@ struct EcoThemePalette: Codable, Equatable {
         guard (1...3).contains(slot),
               let data = UserDefaults.standard.data(forKey: storagePrefix + String(slot)),
               let decoded = try? JSONDecoder().decode(EcoThemePalette.self, from: data),
-              decoded.colors.count == 8,
+              (decoded.colors.count == 8 || decoded.colors.count == colorCount),
               decoded.colors.allSatisfy({ validHex($0) }) else { return nil }
-        return decoded
+        // Migrazione non distruttiva: gli 8 colori delle build 63 restano identici.
+        var migrated = decoded
+        if migrated.colors.count == 8 {
+            migrated.colors.append(contentsOf: extraDefaults)
+            // La corona in ingresso eredita il colore già scelto per il recupero.
+            migrated.colors[9] = decoded.colors[7]
+        }
+        return migrated
     }
 
     @discardableResult
     static func save(_ palette: EcoThemePalette, slot: Int) -> Bool {
-        guard (1...3).contains(slot), palette.colors.count == 8,
+        guard (1...3).contains(slot), palette.colors.count == colorCount,
               palette.colors.allSatisfy({ validHex($0) }),
               let data = try? JSONEncoder().encode(palette) else { return false }
         UserDefaults.standard.set(data, forKey: storagePrefix + String(slot))
@@ -533,8 +583,9 @@ private struct EcoThemePreview: View {
             }
             .frame(height: 100)
 
-            HStack(spacing: 5) {
-                ForEach(0..<8, id: \.self) { index in
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 5),
+                      spacing: 5) {
+                ForEach(0..<EcoThemePalette.colorCount, id: \.self) { index in
                     swatch(index)
                 }
             }
@@ -613,23 +664,46 @@ private struct EcoThemeEditorView: View {
                         colorID = EcoThemeColorID(id: index)
                     })
 
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                        ForEach(0..<8, id: \.self) { index in
-                            HStack(spacing: 8) {
-                                RoundedRectangle(cornerRadius: 5)
-                                    .fill(Color(themeHex: draft.colors[index]))
-                                    .frame(width: 20, height: 20)
-                                Text(EcoThemePalette.labels[index]).font(.caption)
-                                    .lineLimit(1)
-                                Spacer(minLength: 0)
+                    // Ogni riquadro dichiara sia il nome sia la parte fisica che cambia.
+                    // Il popup modifica un solo colore alla volta, senza toccare gli altri.
+                    ForEach(0..<EcoThemePalette.groups.count, id: \.self) { groupIndex in
+                        let group = EcoThemePalette.groups[groupIndex]
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text(group.title)
+                                .font(.headline)
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())],
+                                      spacing: 10) {
+                                ForEach(group.range, id: \.self) { index in
+                                    VStack(alignment: .leading, spacing: 8) {
+                                        HStack(alignment: .center, spacing: 9) {
+                                            RoundedRectangle(cornerRadius: 6)
+                                                .fill(Color(themeHex: draft.colors[index]))
+                                                .frame(width: 32, height: 32)
+                                                .overlay(RoundedRectangle(cornerRadius: 6)
+                                                    .strokeBorder(.white.opacity(0.25), lineWidth: 1))
+                                            Text(EcoThemePalette.labels[index])
+                                                .font(.system(size: 12, weight: .semibold))
+                                                .fixedSize(horizontal: false, vertical: true)
+                                                .multilineTextAlignment(.leading)
+                                        }
+                                        Text(EcoThemePalette.details[index])
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(10)
+                                    .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 10))
+                                    .contentShape(Rectangle())
+                                    .onLongPressGesture(minimumDuration: 0.45) {
+                                        colorID = EcoThemeColorID(id: index)
+                                    }
+                                    .accessibilityElement(children: .combine)
+                                    .accessibilityLabel(EcoThemePalette.labels[index])
+                                    .accessibilityHint(EcoThemePalette.details[index] + " Tieni premuto per cambiare colore.")
+                                    .accessibilityAction { colorID = EcoThemeColorID(id: index) }
+                                }
                             }
-                            .padding(10)
-                            .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 8))
-                            .contentShape(Rectangle())
-                            .onLongPressGesture(minimumDuration: 0.45) {
-                                colorID = EcoThemeColorID(id: index)
-                            }
-                            .accessibilityAction { colorID = EcoThemeColorID(id: index) }
                         }
                     }
 
@@ -640,7 +714,8 @@ private struct EcoThemeEditorView: View {
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(!draft.colors.allSatisfy({ EcoThemePalette.validHex($0) }))
+                    .disabled(draft.colors.count != EcoThemePalette.colorCount ||
+                              !draft.colors.allSatisfy({ EcoThemePalette.validHex($0) }))
                 }
                 .padding(16)
             }
