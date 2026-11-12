@@ -91,6 +91,8 @@ private struct EcoOutsideTemperature: View {
                 .foregroundStyle(colorScheme == .light ? Color(white: 0.22) : Color.white.opacity(0.82))
             Text(currentTemperature.map { String(format: "%.0f°C", $0) } ?? "—°C")
                 .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.68)
                 .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
         }
         .font(.system(size: 15, weight: .semibold))
@@ -1461,6 +1463,7 @@ struct GPSCockpitDashboard: View {
             let h = geo.size.height
             let dialSize = GPSDialLayout.size(width: w, height: h)
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
+            let temperatureLayout = GPSHorizonSymmetry.temperatureFrame(width: w, height: h)
             // Pulsante sotto/sinistra del quadrante: fuori dalla scala e dal ponte kW.
             let resetSide = max(42, min(58, h * 0.08))
             let resetX = max(resetSide / 2 + max(10, w * 0.008),
@@ -1566,8 +1569,8 @@ struct GPSCockpitDashboard: View {
                     .position(x: w * 0.5, y: h * 0.0625)
                     .zIndex(40)
                 EcoOutsideTemperature(now: now)
-                    .frame(width: GPSHorizonSymmetry.temperatureFrame(width: w, height: h).width)
-                    .position(x: GPSHorizonSymmetry.temperatureFrame(width: w, height: h).centerX,
+                    .frame(width: temperatureLayout.width)
+                    .position(x: temperatureLayout.centerX,
                               y: h * 0.158)
                     .zIndex(41)
             }
