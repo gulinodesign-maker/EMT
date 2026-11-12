@@ -1,4 +1,4 @@
-"""Build 60: technical pages live in Setup; cockpit telemetry and dock geometry stay fixed."""
+"""Build 61: technical pages live in Setup; cockpit telemetry and dock geometry stay fixed."""
 from pathlib import Path
 import hashlib
 
@@ -8,7 +8,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 cockpit_text = cockpit.decode("utf-8")
-assert project.count("CURRENT_PROJECT_VERSION = 60;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 61;") == 2
 
 # Only driving-relevant navigation is shown: technical screens are still accessible via Setup.
 portrait = home.split("private struct PortraitServiceTabBar: View", 1)[1].split(
@@ -22,11 +22,14 @@ assert "ForEach([EcoTab.trips, .settings, .themes])" in dock
 for region in (portrait, dock):
     assert "ForEach(EcoTab.allCases)" not in region
     assert "ForEach([EcoTab.trips, .battery" not in region
-assert 'Section("Batteria e BMS")' in settings
-assert 'NavigationLink {\n                    GeometryReader { area in\n                        CellsView(portrait: area.size.height > area.size.width)' in settings
-assert 'NavigationLink {\n                    BluetoothView()' in settings
-assert 'Label("Batteria", systemImage: "battery.100percent")' in settings
-assert 'Label("BMS", systemImage: "bluetooth")' in settings
+# Build 61: access to both technical pages is modal inside the 3x4 grid.
+assert "ForEach(EcoSetupSection.allCases)" in settings
+assert "LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 3)" in settings
+assert ".sheet(item: $activeSection)" in settings
+assert "CellsView(portrait: space.size.height > space.size.width)" in settings
+assert "BluetoothView()" in settings
+assert "case battery, bms, appearance, scooter, bluetooth, charging" in settings
+assert "case odometer, bars, gps, weather, privacy, version" in settings
 
 # The GPS map, dial, telemetry, horizontal dock placement and vertical bounds
 # must not be changed when moving service navigation out of the cockpit.
@@ -56,4 +59,4 @@ for width, height in ((736, 414), (844, 390), (932, 430), (956, 440), (1536, 706
 assert "if selected == .gps && UIDevice.current.orientation == .portrait" in home
 assert "selected = .settings" in home
 assert "GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)" in home
-print("OK — build 60: Batteria/BMS only in Setup, GPS dock and telemetry vertically aligned")
+print("OK — build 61: Batteria/BMS only in Setup, GPS dock and telemetry vertically aligned")
