@@ -342,10 +342,18 @@ private struct CockpitCornerControls: View {
                 ? min(buttonSide, width * 0.052)
                 : EcoCockpitDockGeometry.standardSide(width: width, height: screenHeight)
             let gpsGap = width * 0.008
+            // Stessa larghezza e margini della telemetria del cockpit GPS.
+            // Con mappa nascosta i cinque tasti sono giustificati sui due bordi;
+            // gli otto comandi della mappa e i menù mantengono il layout esistente.
+            let telemetryDock = selected == .gps && !mapEnabled
+            let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)
+            let telemetryPanelWidth = max(1, width - EcoCockpitDockGeometry.rightInset(width: width)
+                                               - telemetryPanelLeft)
+            let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)
             HStack(alignment: .center, spacing: 0) {
                 // Tachimetro: dock a destra. Altri menu: gruppo centrato.
                 Spacer(minLength: 0)
-                HStack(spacing: gpsGap) {
+                HStack(spacing: telemetryDock ? justifiedGap : gpsGap) {
                     gpsButton("map.fill", active: mapEnabled,
                               accessibility: mapEnabled ? "Disattiva la mappa" : "Attiva la mappa",
                               side: gpsSide) {
@@ -387,6 +395,7 @@ private struct CockpitCornerControls: View {
                             : EcoAppearanceMode.light.rawValue
                     }
                 }
+                .frame(width: telemetryDock ? telemetryPanelWidth : nil, alignment: .leading)
                 if selected != .gps {
                     Spacer(minLength: 0)
                 }
