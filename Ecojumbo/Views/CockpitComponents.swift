@@ -565,6 +565,20 @@ private struct DayWingOutsideDial: Shape {
     }
 }
 
+
+// Orologio locale dell'iPhone: data corrente indipendente dal tick della telemetria,
+ // aggiornamento periodico e impostazioni di lingua/fuso sempre aggiornate da iOS.
+private struct SystemClockText: View {
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { timeline in
+            Text(timeline.date.formatted(
+                Date.FormatStyle(date: .omitted, time: .shortened,
+                                 locale: .autoupdatingCurrent,
+                                 timeZone: .autoupdatingCurrent)))
+        }
+    }
+}
+
 struct CockpitDashboard:View {
     @StateObject private var navigation = EcoNavigationStore.shared
     @Environment(\.colorScheme) private var colorScheme
@@ -719,7 +733,7 @@ struct CockpitDashboard:View {
             Rectangle().fill(colorScheme == .light
                                  ? Color.black.opacity(0.33) : .white.opacity(0.55))
                 .frame(width: 1, height: height * 0.40)
-            Text(now.formatted(date: .omitted, time: .shortened))
+            SystemClockText()
                 .font(.system(size: height * 0.44, weight: .bold))
                 .monospacedDigit()
                 .lineLimit(1)
@@ -1528,7 +1542,7 @@ private struct GPSHeader: View {
                 Rectangle().fill(colorScheme == .light
                                  ? Color.black.opacity(0.33) : .white.opacity(0.55))
                     .frame(width: 1, height: h * 0.40)
-                Text(now.formatted(date: .omitted, time: .shortened))
+                SystemClockText()
                     .font(.system(size: h * 0.44, weight: .bold))
                     .monospacedDigit()
                 Spacer(minLength: 0)
