@@ -4,13 +4,13 @@ root=Path(__file__).resolve().parents[1]
 c=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 g=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 p=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 63;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 64;") == 2
 speed=c.split("private struct OpenSpeedCluster: View {",1)[1].split(
     "// Calcola la posizione più a sinistra possibile",1)[0]
 speed_number=speed.split("Text(String(Int(speed.rounded())))",1)[1].split(
     ".accessibilityLabel(",1)[0]
 assert '.font(.custom("Arial-BoldMT", size: d * 0.275))' in speed_number
-assert ".foregroundStyle(CockpitTheme.dischargeAccent)" in speed_number
+assert ".foregroundStyle(CockpitTheme.speedDigitsAccent)" in speed_number
 assert ".monospacedDigit()" in speed_number
 assert ".frame(width: d * 0.60, height: d * 0.285)" in speed_number
 assert ".font(.system(size: d * 0.275, weight: .bold, design: .rounded))" not in speed

@@ -5,12 +5,14 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 63;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 64;") == 2
 assert "struct EcoThemePalette: Codable, Equatable" in tabs
 assert 'static let storagePrefix = "ecojumbo.customTheme."' in tabs
 assert "let data = try? JSONEncoder().encode(palette)" in tabs
 assert "JSONDecoder().decode(EcoThemePalette.self, from: data)" in tabs
-assert "decoded.colors.count == 8" in tabs
+assert "decoded.colors.count == 8" in tabs  # Legacy build 63 slots migrate forward
+assert "migrated.colors.append(contentsOf: extraDefaults)" in tabs
+assert "palette.colors.count == colorCount" in tabs
 assert "decoded.colors.allSatisfy({ validHex($0) })" in tabs
 assert 'UserDefaults.standard.set(data, forKey: storagePrefix + String(slot))' in tabs
 assert "guard (1...3).contains(slot)" in tabs
@@ -55,4 +57,4 @@ assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
 assert "let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)" in home
 assert "UIDevice.current.orientation == .portrait" in home
-print("OK — build 63: 3 slots, 8 editable cockpit colors and unchanged GPS layout")
+print("OK — build 63 compatibility: 3 saved slots migrate 8 -> 15 colors")
