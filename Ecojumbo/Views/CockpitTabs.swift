@@ -733,7 +733,10 @@ private struct EcoThemeColorPicker: View {
     private var displayedColors: [String] {
         switch filter {
         case 1: Self.spectrum.filter { hex in
-            UIColor(Color(themeHex: hex)).cgColor.components?.first ?? 0 > 0.7
+            let color = UIColor(Color(themeHex: hex))
+            var h: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
+            return color.getHue(&h, saturation: &saturation, brightness: &brightness, alpha: &alpha)
+                && brightness > 0.92
         }
         case 2: Self.spectrum.filter { hex in
             let color = UIColor(Color(themeHex: hex))
