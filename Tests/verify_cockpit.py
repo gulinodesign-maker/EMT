@@ -253,8 +253,8 @@ assert 'onLongPressGesture(minimumDuration: 1.3)' in c
 assert 'GPSCompactReadings' not in c
 assert 'GPSCompactReadings(theme: theme)' not in c
 assert 'glassReading(' not in c
-assert '.padding(.top, h * 0.0565)' in c
-assert '.padding(.leading, w * 0.285)' in c
+assert '.padding(.top, compact ? 8 : h * 0.0565)' in c
+assert '.padding(.leading, compact ? 0 : w * 0.285)' in c
 assert 'if reading.title == "Trip parziale"' in c
 assert 'gps.resetTrip()' in c
 assert 'UIApplication.shared.isIdleTimerDisabled = true' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
@@ -467,7 +467,7 @@ assert 'CGPoint(x: w * 0.355, y: h * 0.252)' in c
 assert 'CGPoint(x: w * 0.25, y: h * 0.244)' in c
 assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
 assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
-assert '.padding(.top, h * 0.0565)' in c
+assert '.padding(.top, compact ? 8 : h * 0.0565)' in c
 # Build 40: estensione della mappa, freccia GPS, contrasto daylight,
 # controlli minimal e avvio Core Location più rapido.
 assert '.frame(width: w * 0.64, height: h * 0.955)' in c
