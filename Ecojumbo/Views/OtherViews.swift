@@ -194,6 +194,13 @@ struct EcoSettingsView: View {
     @AppStorage("ecojumbo.frameFormat") private var rawFormat = JKFrameFormat.automatic.rawValue
     @AppStorage("ecojumbo.bars.averagePowerMaxKW") private var averagePowerMaxKW = 5.0
     @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
+    @AppStorage("ecojumbo.theme") private var themeName = CockpitTheme.copper.rawValue
+    @AppStorage("ecojumbo.themeRevision") private var themeRevision = 0
+
+    private var setupIconColor: Color {
+        _ = themeRevision // aggiornamento anche quando si risalva lo slot già attivo
+        return (CockpitTheme(rawValue: themeName) ?? .copper).accent
+    }
 
     var body: some View {
         GeometryReader { area in
@@ -211,7 +218,7 @@ struct EcoSettingsView: View {
                             VStack(spacing: landscape ? 4 : 8) {
                                 Image(systemName: section.symbol)
                                     .font(.system(size: landscape ? 20 : 27, weight: .regular))
-                                    .foregroundStyle(Color.ecoGreen)
+                                    .foregroundStyle(setupIconColor)
                                 Text(section.title)
                                     .font(landscape ? .caption2 : .footnote)
                                     .foregroundStyle(.primary)
