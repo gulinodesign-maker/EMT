@@ -8,7 +8,7 @@ app = (root / "Ecojumbo/EcojumboApp.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 
-assert pbx.count("CURRENT_PROJECT_VERSION = 61;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 62;") == 2
 
 # Same shared flat treatment drives portrait tabs and landscape menu/GPS controls.
 assert "private struct EcoMinimalNavigationLabel: View" in home
