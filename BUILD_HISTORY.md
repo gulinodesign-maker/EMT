@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43305481404:ATTEMPT:1 -->
+### 2026-11-12T20:57:55Z — CI #177 · build-70-no-colored-gradients-telemetry-tangent · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43305481404](https://github.com/gulinodesign-maker/EMT/actions/runs/43305481404); avvio 2026-11-12T20:57:55Z UTC; aggiornamento finale 2026-11-12T21:00:49Z UTC; registrazione 2026-11-12T21:01:00+00:00 UTC; evento pull_request.
+- **Commit:** [1cc8f6b8c797](https://github.com/gulinodesign-maker/EMT/commit/1cc8f6b8c79778f17e93f99b63075db106f103a3); versione **1.0**; build **70**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** STATO_PROGETTO.md, Tests/verify_build_history.py.
+
 <!-- EMT_RUN:43305267533:ATTEMPT:1 -->
 ### 2026-11-12T20:56:35Z — CI #176 · build-70-no-colored-gradients-telemetry-tangent · tentativo 1
 
