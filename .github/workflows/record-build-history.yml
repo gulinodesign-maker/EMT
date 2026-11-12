@@ -1,0 +1,69 @@
+name: Registra esiti build EMT
+
+# Ogni conclusione della CI, anche fallita o annullata, viene documentata.
+# Il codice eseguito viene sempre da main, mai dalla branch della PR.
+on:
+  workflow_run:
+    workflows: ["Compila Ecojumbo (iOS)"]
+    types: [completed]
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: ecojumbo-ci-history
+  cancel-in-progress: false
+
+jobs:
+  save-history:
+    if: github.event.workflow_run.head_repository.full_name == github.repository
+    name: Salva esito CI nel repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Scarica solo main attendibile
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+          fetch-depth: 1
+
+      - name: Aggiorna registro e stato
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+          SOURCE_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          # Rileggi main a ogni retry: non sovrascrivere commit concorrenti.
+          for retry in 1 2 3 4 5; do
+            git fetch --quiet origin main
+            git reset --hard origin/main
+            python3 .github/scripts/record_build_history.py --run-id "$SOURCE_RUN_ID"
+            if git diff --quiet -- BUILD_HISTORY.md STATO_PROGETTO.md; then
+              echo "Registro gia' aggiornato: nessun commit."
+              exit 0
+            fi
+            git add -- BUILD_HISTORY.md STATO_PROGETTO.md
+            git commit -m "ci(history): run $SOURCE_RUN_ID attempt $SOURCE_ATTEMPT [skip ci]"
+            if git push origin HEAD:refs/heads/main; then
+              echo "Registro permanente salvato su main."
+              exit 0
+            fi
+            echo "::warning::Push main non riuscito (tentativo $retry/5)."
+            sleep 2
+          done
+          # In caso di ramo main protetto o permessi insufficenti,
+          # conserva i dati in un ramo dedicato, senza dichiarare main aggiornato.
+          fallback="ci/history-fallback-$SOURCE_RUN_ID-$SOURCE_ATTEMPT"
+          if git push origin "HEAD:refs/heads/$fallback"; then
+            echo "::warning::Salvato su $fallback, ma NON su main."
+          else
+            echo "::warning::Nemmeno il ramo fallback e' scrivibile."
+          fi
+          echo "::error::Scrittura di BUILD_HISTORY.md su main negata: controllare permessi GitHub Actions/ruleset."
+          exit 1
