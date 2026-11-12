@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 69;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 70;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert "static let colorCount = 17" in tabs
 assert "decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
@@ -16,12 +16,13 @@ assert "draft.colors[selected.id] = hex" in tabs
 assert "onSave(slot, palette)" in tabs
 assert "RIEMPIMENTO" in tabs
 
-upper_shape = cockpit.split("private struct GPSTopBandShade: Shape {", 1)[1].split(
-    "private struct GPSOuterProfileReinforcement: Shape {", 1)[0]
+# 70 removes only the colored fill layers; the historical 3x profile remains.
+assert "GPSTopBandShade" not in cockpit
+assert "GPSLowerAreaGradient" not in cockpit
+assert "GPSAreaGradientStyle" not in cockpit
+assert "contourGradient" not in cockpit
 horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
     "@MainActor", 1)[0]
-lower_area = cockpit.split("private struct GPSLowerAreaGradient: View {", 1)[1].split(
-    "private struct GPSLowerGlow: View {", 1)[0]
 lower_line = cockpit.split("private struct GPSLowerGlow: View {", 1)[1].split(
     "// EJ 1.22", 1)[0]
 dashboard = cockpit.split("struct GPSCockpitDashboard: View {", 1)[1].split(
@@ -31,33 +32,16 @@ style = cockpit.split("private enum GPSContourStroke {", 1)[1].split(
 outer = cockpit.split("private struct GPSOuterProfileReinforcement: Shape {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 
-# Top band closes against the TOP SCREEN BORDER, follows rounded top bar
-# and uses the same dial cutout as the luminous contour.
-assert "GPSHorizonSymmetry.corners(width: w, height: h)" in upper_shape
-assert "corners.leftKnee" in upper_shape and "corners.rightKnee" in upper_shape
-assert "corners.leftContact" in upper_shape and "corners.rightContact" in upper_shape
-assert "CGPoint(x: w, y: 0)" in upper_shape
-assert "CGPoint(x: 0, y: 0)" in upper_shape
-assert "area.closeSubpath()" in upper_shape
-assert "GPSTopBandShade()" in horizon
-assert ".fill(theme.contourGradient)" in horizon
-assert "visibleOutsideRing.fill(style: FillStyle(eoFill: true))" in horizon
-assert ".mask(RadialGradient" not in horizon
-
-# Identical editable interpolation in BOTH areas, no colour gradient on strokes.
-assert ".fill(theme.contourGradient)" in lower_area
-assert "GPSLowerShade()" in lower_area
-assert "GPSAreaGradientStyle.opacity" in lower_area
-assert "GPSAreaGradientStyle.opacity" in horizon
-assert ".stroke(theme.contourGradient" not in horizon
-assert ".stroke(theme.contourGradient" not in lower_line
+# Build 70: no colored gradient area at top or underneath kW bridge.
 assert "line.stroke(theme.accent" in horizon
 assert ".stroke(theme.accent" in lower_line
+assert "visibleOutsideRing.fill(style: FillStyle(eoFill: true))" in horizon
+assert ".mask(RadialGradient" not in horizon
+assert "GPSLowerShade()" in lower_line  # longstanding neutral charcoal veil
 assert "GPSLowerTerminalFade()" in lower_line
-assert "GPSLowerAreaGradient(theme: theme)" in dashboard
-assert ".zIndex(7)" in dashboard
+assert "GPSOuterProfileReinforcement()" in dashboard
+assert ".zIndex(12)" in dashboard
 assert ".zIndex(28)" in dashboard
-
 # Separate reinforced shape at precisely THREE TIMES the common base width.
 assert "max(1.4, h * 0.003)" in style
 assert "GPSContourStroke.width(height: h)" in horizon
@@ -105,4 +89,4 @@ assert "GPSCockpitMap(theme: theme)" in cockpit
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in cockpit
 assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)" in cockpit
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
-print("OK — build 69: editable area fills, monochrome outlines, mirrored 3× reinforcement, GPS/BMS preserved")
+print("OK — build 69/70: no colored fills, mono outlines, mirrored 3x reinforcement and GPS/BMS preserved")
