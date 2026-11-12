@@ -91,6 +91,8 @@ private struct EcoOutsideTemperature: View {
                 .foregroundStyle(colorScheme == .light ? Color(white: 0.22) : Color.white.opacity(0.82))
             Text(currentTemperature.map { String(format: "%.0f°C", $0) } ?? "—°C")
                 .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.68)
                 .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
         }
         .font(.system(size: 15, weight: .semibold))
@@ -1248,6 +1250,41 @@ private enum GPSDialLayout {
 
 // Anello esterno luminoso del tachimetro GPS. Il segmento inferiore
 // scompare progressivamente prima dei raccordi A/kW: nessun incrocio.
+// Build 66: anello grigio metallico, concentrico e più piccolo dell'arancio.
+// La sfumatura inferiore lo fa terminare prima della sezione kW.
+private struct GPSMetalInnerRing: View {
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        GeometryReader { geo in
+            let d = min(geo.size.width, geo.size.height)
+            Circle()
+                .stroke(
+                    LinearGradient(stops: [
+                        .init(color: Color(white: colorScheme == .light ? 0.40 : 0.89),
+                              location: 0),
+                        .init(color: Color(white: colorScheme == .light ? 0.51 : 0.73),
+                              location: 0.42),
+                        .init(color: Color(white: colorScheme == .light ? 0.58 : 0.55),
+                              location: 0.72),
+                        .init(color: Color(white: 0.40), location: 1)
+                    ], startPoint: .top, endPoint: .bottom),
+                    style: StrokeStyle(lineWidth: max(1.5, d * 0.0035))
+                )
+                .frame(width: d * 0.965, height: d * 0.965)
+                .frame(width: d, height: d)
+                .mask(LinearGradient(stops: [
+                    .init(color: .white, location: 0),
+                    .init(color: .white, location: 0.63),
+                    .init(color: .white.opacity(0.73), location: 0.70),
+                    .init(color: .clear, location: 0.80)
+                ], startPoint: .top, endPoint: .bottom))
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
 private struct GPSGaugeHalo: View {
     let theme: CockpitTheme
     var body: some View {
@@ -1426,6 +1463,7 @@ struct GPSCockpitDashboard: View {
             let h = geo.size.height
             let dialSize = GPSDialLayout.size(width: w, height: h)
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
+            let temperatureLayout = GPSHorizonSymmetry.temperatureFrame(width: w, height: h)
             // Pulsante sotto/sinistra del quadrante: fuori dalla scala e dal ponte kW.
             let resetSide = max(42, min(58, h * 0.08))
             let resetX = max(resetSide / 2 + max(10, w * 0.008),
@@ -1500,6 +1538,11 @@ struct GPSCockpitDashboard: View {
                     .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(25)
 
+                GPSMetalInnerRing()
+                    .frame(width: dialSize, height: dialSize)
+                    .position(x: dialCenterX, y: h * 0.494)
+                    .zIndex(26)
+
                 GPSGaugeHalo(theme: theme)
                     .frame(width: dialSize, height: dialSize)
                     .position(x: dialCenterX, y: h * 0.494)
@@ -1526,8 +1569,8 @@ struct GPSCockpitDashboard: View {
                     .position(x: w * 0.5, y: h * 0.0625)
                     .zIndex(40)
                 EcoOutsideTemperature(now: now)
-                    .frame(width: min(136, w * 0.108))
-                    .position(x: max(12, w * 0.016) + min(136, w * 0.108) / 2,
+                    .frame(width: temperatureLayout.width)
+                    .position(x: temperatureLayout.centerX,
                               y: h * 0.158)
                     .zIndex(41)
             }
@@ -1585,6 +1628,33 @@ private struct GPSTripResetControl: View {
     }
 }
 
+// Build 66: i due ginocchi sono speculari rispetto al centro GPS effettivo.
+private enum GPSHorizonSymmetry {
+    static func corners(width w: CGFloat, height h: CGFloat)
+        -> (leftKnee: CGPoint, leftContact: CGPoint,
+            rightContact: CGPoint, rightKnee: CGPoint) {
+        let axis = GPSDialLayout.centerX(width: w, height: h)
+        let rightKnee = CGPoint(x: w * 0.54, y: h * 0.099)
+        let rightContact = CGPoint(x: w * 0.45, y: h * 0.244)
+        let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)
+        let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)
+        return (leftKnee, leftContact, rightContact, rightKnee)
+    }
+
+    static func temperatureFrame(width w: CGFloat, height h: CGFloat)
+        -> (centerX: CGFloat, width: CGFloat) {
+        let points = corners(width: w, height: h)
+        let fraction: CGFloat = (0.158 - 0.099) / (0.244 - 0.099)
+        let lineX = points.leftKnee.x
+            + (points.leftContact.x - points.leftKnee.x) * fraction
+        let leftInset = max(4, w * 0.007)
+        let rightLimit = lineX - max(8, w * 0.012)
+        let availableWidth = max(52, rightLimit - leftInset)
+        let temperatureWidth = min(136, w * 0.108, availableWidth)
+        return (leftInset + temperatureWidth / 2, temperatureWidth)
+    }
+}
+
 private struct GPSHorizonLine: View {
     let theme: CockpitTheme
 
@@ -1593,15 +1663,15 @@ private struct GPSHorizonLine: View {
             let w = geo.size.width
             let h = geo.size.height
             let radius = CockpitContourGeometry.cornerRadius(in: geo.size)
+            let corners = GPSHorizonSymmetry.corners(width: w, height: h)
             let left = CockpitContourGeometry.roundedPath(points: [
                 CGPoint(x: 0, y: h * 0.099),
-                CGPoint(x: w * 0.16, y: h * 0.099),
-                CGPoint(x: w * 0.25, y: h * 0.244),
-                CGPoint(x: w * 0.32, y: h * 0.244)
+                corners.leftKnee,
+                corners.leftContact
             ], corners: [1], radius: radius)
             let right = CockpitContourGeometry.roundedPath(points: [
-                CGPoint(x: w * 0.45, y: h * 0.244),
-                CGPoint(x: w * 0.54, y: h * 0.099),
+                corners.rightContact,
+                corners.rightKnee,
                 CGPoint(x: w, y: h * 0.099)
             ], corners: [1], radius: radius)
             let line = Path { path in

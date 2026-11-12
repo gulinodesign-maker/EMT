@@ -286,7 +286,9 @@ assert 'TelemetrySlimBar(fraction: fraction, theme: theme)' in expanded
 assert 'SpeedGlyphOutlineView' not in c  # il font velocita resta SwiftUI semplice
 assert 'Text(String(Int(speed.rounded())))' in c
 assert 'CGPoint(x: w * 0.255, y: h * 0.099)' in c
-assert 'CGPoint(x: w * 0.16, y: h * 0.099)' in c
+assert 'let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)' in c
+assert 'let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)' in c
+assert 'GPSMetalInnerRing()' in c
 assert 'CGPoint(x: w * 0.54, y: h * 0.099)' in c
 assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
 # La mappa occupa fino al bordo inferiore prima del fade, con la ricerca
