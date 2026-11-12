@@ -39,7 +39,8 @@ assert 'Button("Annulla", role: .cancel)' in tabs
 assert "EcoThemePalette.colorCount" in tabs
 
 # Do not wipe existing custom palettes: old 8-color slots become 15 colors.
-assert "(decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs\nassert "decoded.colors.count == colorCount)" in tabs
+assert "(decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
+assert "decoded.colors.count == colorCount)" in tabs
 assert "migrated.colors.append(contentsOf: extraDefaults)" in tabs
 assert "migrated.colors[9] = decoded.colors[7]" in tabs
 assert "guard (1...3).contains(slot)" in tabs

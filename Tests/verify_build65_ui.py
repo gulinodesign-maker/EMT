@@ -33,7 +33,8 @@ assert "draft.colors[selected.id] = hex" in editor
 assert "onSave(slot, palette)" in editor
 assert "ForEach(1...3, id:" in tabs
 assert "static let colorCount = 17" in tabs
-assert "decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs\nassert "decoded.colors.count == colorCount" in tabs
+assert "decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
+assert "decoded.colors.count == colorCount" in tabs
 
 panel = cockpit.split("private struct GPSExpandedReadings: View {", 1)[1].split(
     "// Progressi sottili e luminosi, soltanto per SOC", 1)[0]
