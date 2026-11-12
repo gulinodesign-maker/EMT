@@ -144,25 +144,25 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     var accent: Color {
         if let savedPalette { return Color(themeHex: savedPalette.colors[1]) }
         switch self {
-        case .copper: Color(red: 1.00, green: 0.44, blue: 0.03)
-        case .glacier: Color(red: 0.69, green: 0.88, blue: 0.98)
-        case .green: Color(red: 0.26, green: 0.86, blue: 0.41)
-        case .aquamarine: Color(red: 0.28, green: 0.88, blue: 0.81)
-        case .brown: Color(red: 0.73, green: 0.43, blue: 0.22)
-        case .racing: Color(red: 0.97, green: 0.23, blue: 0.22)
-        case .slot1, .slot2, .slot3: Color(red: 1.00, green: 0.44, blue: 0.03)
+        case .copper: return Color(red: 1.00, green: 0.44, blue: 0.03)
+        case .glacier: return Color(red: 0.69, green: 0.88, blue: 0.98)
+        case .green: return Color(red: 0.26, green: 0.86, blue: 0.41)
+        case .aquamarine: return Color(red: 0.28, green: 0.88, blue: 0.81)
+        case .brown: return Color(red: 0.73, green: 0.43, blue: 0.22)
+        case .racing: return Color(red: 0.97, green: 0.23, blue: 0.22)
+        case .slot1, .slot2, .slot3: return Color(red: 1.00, green: 0.44, blue: 0.03)
         }
     }
     var secondary: Color {
         if let savedPalette { return Color(themeHex: savedPalette.colors[2]) }
         switch self {
-        case .copper: Color(red: 0.75, green: 0.24, blue: 0.09)
-        case .glacier: Color(red: 0.19, green: 0.51, blue: 0.73)
-        case .green: Color(red: 0.10, green: 0.48, blue: 0.26)
-        case .aquamarine: Color(red: 0.10, green: 0.47, blue: 0.49)
-        case .brown: Color(red: 0.37, green: 0.19, blue: 0.12)
-        case .racing: Color(red: 0.63, green: 0.09, blue: 0.15)
-        case .slot1, .slot2, .slot3: Color(red: 0.75, green: 0.24, blue: 0.09)
+        case .copper: return Color(red: 0.75, green: 0.24, blue: 0.09)
+        case .glacier: return Color(red: 0.19, green: 0.51, blue: 0.73)
+        case .green: return Color(red: 0.10, green: 0.48, blue: 0.26)
+        case .aquamarine: return Color(red: 0.10, green: 0.47, blue: 0.49)
+        case .brown: return Color(red: 0.37, green: 0.19, blue: 0.12)
+        case .racing: return Color(red: 0.63, green: 0.09, blue: 0.15)
+        case .slot1, .slot2, .slot3: return Color(red: 0.75, green: 0.24, blue: 0.09)
         }
     }
     var backdrop: Color {
