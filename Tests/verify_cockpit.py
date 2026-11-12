@@ -187,7 +187,7 @@ assert 'if mapEnabled && selected == .gps {' in u
 assert 'selected == .gps' in u and '? max(4, h * 0.006)' in u
 # Il dock approvato del cockpit resta invariato, mentre solo il dock
 # separato dei menù portrait mostra tutte e sei le sezioni.
-landscape_dock = u.split('// Build 41: un solo cockpit,', 1)[1]
+landscape_dock = u.split('private struct CockpitCornerControls: View', 1)[1]
 assert 'ForEach(EcoTab.allCases) { tab in' not in landscape_dock
 assert 'ForEach([EcoTab.gps, .trips, .settings, .themes]) { tab in' in u
 assert 'gpsButton("map.fill", active: mapEnabled' in u
