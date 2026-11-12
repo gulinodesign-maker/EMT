@@ -146,7 +146,8 @@ assert 'p.addLine(to: pt(' not in u
 assert 'CornerDockGlow' not in u and 'FooterLightContour' not in c
 assert 'private struct ContinuousHorizonLine: View' in c
 # Top bar sfumata alle intersezioni con il cerchio in Home e GPS.
-assert c.count('.mask(RadialGradient(stops: [') == 4
+assert c.count('.mask(RadialGradient(stops: [') == 3
+assert 'if compact {' in c and 'RadialGradient(stops: [' in c
 assert 'startRadius: ringRadius, endRadius: ringRadius + max(18, h * 0.070)' in c
 assert 'startRadius: dialSize * 0.508,' in c
 assert 'endRadius: dialSize * 0.508 + max(18, h * 0.070)' in c
@@ -374,14 +375,14 @@ assert 'let cardsTop = h * 0.099 + outerMargin' in c
 assert 'let cardsBottom = h - dockBottom - dockHeight - outerMargin' in c
 assert 'let mapLocalDialX = dialCenterX - fullWidth * 0.36' in c
 assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
-assert '.mask(RadialGradient(stops: [' in c
+assert 'RadialGradient(stops: [' in c
 assert 'center: UnitPoint(x: mapLocalDialX / w, y: mapLocalDialY / h)' in c
 assert 'startRadius: dialMaskRadius' in c
 assert 'endRadius: dialMaskRadius + dialMaskFeather' in c
 assert 'private struct GPSMapTopContourClip: Shape' in c
 assert 'private struct GPSMapLowerContourClip: Shape' in c
-assert '.mask(GPSMapTopContourClip())' in c
-assert '.mask(GPSMapLowerContourClip())' in c
+assert 'if compact { Rectangle() } else { GPSMapTopContourClip() }' in c
+assert 'if compact { Rectangle() } else { GPSMapLowerContourClip() }' in c
 assert 'GPSLowerLineGeometry.points(' in c
 assert 'GPSMapContourSpace.local(points[3], cockpit: cockpit)' in c
 assert 'Color(white: 0.88).opacity(0.10)' in c
@@ -425,7 +426,7 @@ assert '@StateObject private var navigation = EcoNavigationStore.shared' in c
 assert 'navigationArrow: maneuverSymbol' in c
 assert 'GPSSearchTopBand()' not in c
 assert 'VStack(alignment: .leading, spacing: 7)' in c
-assert '.mask(RadialGradient(stops: [' in c
+assert 'RadialGradient(stops: [' in c
 assert '.init(color: .white.opacity(0.58), location: 0.91)' in c
 assert '.shadow(color: .black.opacity(0.88), radius: d * 0.025)' in c
 assert 'if colorScheme == .light {' in c
@@ -469,8 +470,8 @@ assert '.padding(.top, h * 0.0565)' in c
 # controlli minimal e avvio Core Location più rapido.
 assert '.frame(width: w * 0.64, height: h * 0.955)' in c
 assert '.position(x: w * 0.68, y: h * 0.5225)' in c
-assert 'let fullWidth = w / 0.64' in c
-assert 'let fullHeight = h / 0.955' in c
+assert 'let fullWidth = compact ? w : w / 0.64' in c
+assert 'let fullHeight = compact ? h : h / 0.955' in c
 assert '.init(color: .white.opacity(0.70), location: 0.91)' in c
 assert 'UserAnnotation()' not in c
 assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
