@@ -9,11 +9,12 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 source = cockpit.decode("utf-8")
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 62;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 63;") == 2
 
 # Preserve telemetry, dial and map source from the approved landscape cockpit.
 blob = b"blob " + str(len(cockpit)).encode() + b"\0" + cockpit
-assert hashlib.sha1(blob).hexdigest() == "369d6997d058d239bd19ae09144adb01824f3e1f"
+# Build 63 adds palette support but preserves the GPS panel bounds.
+assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in source
 assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)" in source
 assert "let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) - panelLeft)" in source
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in source

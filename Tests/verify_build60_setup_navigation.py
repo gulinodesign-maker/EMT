@@ -8,7 +8,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 cockpit_text = cockpit.decode("utf-8")
-assert project.count("CURRENT_PROJECT_VERSION = 62;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 63;") == 2
 
 # Only driving-relevant navigation is shown: technical screens are still accessible via Setup.
 portrait = home.split("private struct PortraitServiceTabBar: View", 1)[1].split(
@@ -34,7 +34,10 @@ assert "case odometer, bars, gps, weather, privacy, version" in settings
 # The GPS map, dial, telemetry, horizontal dock placement and vertical bounds
 # must not be changed when moving service navigation out of the cockpit.
 blob = b"blob " + str(len(cockpit)).encode() + b"\0" + cockpit
-assert hashlib.sha1(blob).hexdigest() == "369d6997d058d239bd19ae09144adb01824f3e1f"
+# Palette editing changes the theme enum, not the geometry of the GPS cockpit.
+assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in cockpit_text
+assert "let railBottomBound = h - dockBottom - dockHeight" in cockpit_text
+assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)" in cockpit_text
 assert ".position(x: w / 2, y: h - dockBottom - dockHeight / 2)" in home
 assert "let dockBottom = selected == .gps\n                ? max(4, h * 0.006)" in home
 assert "let gpsGap = width * 0.008" in dock

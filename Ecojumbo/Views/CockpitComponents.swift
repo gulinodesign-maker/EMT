@@ -115,46 +115,88 @@ private struct EcoOutsideTemperature: View {
 // Geometry, rings, numerals and panels are real SwiftUI controls (no reference bitmap as UI).
 // Misure esclusivamente da Core Location / JK BLE, senza campioni sintetici.
 enum CockpitTheme: String, CaseIterable, Identifiable {
-    // Sei kit colore persistenti: due righe per tre colonne nel menu.
+    // I sei colori storici rimangono esclusivamente modelli di partenza.
+    // I tre slot sono i soli preset persistenti visibili in Kit colori.
     case copper = "Rame"
     case glacier = "Ghiaccio"
     case green = "Verde"
     case aquamarine = "Acquamarina"
     case brown = "Marrone"
     case racing = "Racing"
+    case slot1 = "Slot 1"
+    case slot2 = "Slot 2"
+    case slot3 = "Slot 3"
 
     var id: String { rawValue }
-    var accent: Color {
+    var slotIndex: Int? {
         switch self {
-        case .copper: Color(red: 1.00, green: 0.44, blue: 0.03)
-        case .glacier: Color(red: 0.69, green: 0.88, blue: 0.98)
-        case .green: Color(red: 0.26, green: 0.86, blue: 0.41)
-        case .aquamarine: Color(red: 0.28, green: 0.88, blue: 0.81)
-        case .brown: Color(red: 0.73, green: 0.43, blue: 0.22)
-        case .racing: Color(red: 0.97, green: 0.23, blue: 0.22)
+        case .slot1: 1
+        case .slot2: 2
+        case .slot3: 3
+        default: nil
+        }
+    }
+
+    private var savedPalette: EcoThemePalette? {
+        slotIndex.flatMap { EcoThemePalette.load(slot: $0) }
+    }
+
+    var accent: Color {
+        if let savedPalette { return Color(themeHex: savedPalette.colors[1]) }
+        switch self {
+        case .copper: return Color(red: 1.00, green: 0.44, blue: 0.03)
+        case .glacier: return Color(red: 0.69, green: 0.88, blue: 0.98)
+        case .green: return Color(red: 0.26, green: 0.86, blue: 0.41)
+        case .aquamarine: return Color(red: 0.28, green: 0.88, blue: 0.81)
+        case .brown: return Color(red: 0.73, green: 0.43, blue: 0.22)
+        case .racing: return Color(red: 0.97, green: 0.23, blue: 0.22)
+        case .slot1, .slot2, .slot3: return Color(red: 1.00, green: 0.44, blue: 0.03)
         }
     }
     var secondary: Color {
+        if let savedPalette { return Color(themeHex: savedPalette.colors[2]) }
         switch self {
-        case .copper: Color(red: 0.75, green: 0.24, blue: 0.09)
-        case .glacier: Color(red: 0.19, green: 0.51, blue: 0.73)
-        case .green: Color(red: 0.10, green: 0.48, blue: 0.26)
-        case .aquamarine: Color(red: 0.10, green: 0.47, blue: 0.49)
-        case .brown: Color(red: 0.37, green: 0.19, blue: 0.12)
-        case .racing: Color(red: 0.63, green: 0.09, blue: 0.15)
+        case .copper: return Color(red: 0.75, green: 0.24, blue: 0.09)
+        case .glacier: return Color(red: 0.19, green: 0.51, blue: 0.73)
+        case .green: return Color(red: 0.10, green: 0.48, blue: 0.26)
+        case .aquamarine: return Color(red: 0.10, green: 0.47, blue: 0.49)
+        case .brown: return Color(red: 0.37, green: 0.19, blue: 0.12)
+        case .racing: return Color(red: 0.63, green: 0.09, blue: 0.15)
+        case .slot1, .slot2, .slot3: return Color(red: 0.75, green: 0.24, blue: 0.09)
         }
     }
-    var steel: Color { Color(red: 0.85, green: 0.87, blue: 0.89) }
-    var shadowAccent: Color { accent.opacity(0.68) }
-    static let barDark = Color(red: 0.55, green: 0.02, blue: 0.13)
-    static let barMid = Color(red: 0.91, green: 0.06, blue: 0.23)
-    static let barBright = Color(red: 0.99, green: 0.20, blue: 0.32)
-    static let regenAccent = Color(red: 0.17, green: 0.73, blue: 1.00)
+    var backdrop: Color {
+        if let savedPalette { return Color(themeHex: savedPalette.colors[0]) }
+        return Color(red: 0.015, green: 0.016, blue: 0.019)
+    }
+    var steel: Color {
+        if let savedPalette { return Color(themeHex: savedPalette.colors[3]) }
+        return Color(red: 0.85, green: 0.87, blue: 0.89)
+    }
+    var shadowAccent: Color { secondary.opacity(0.68) }
+
+    // Barre e recupero energia usano la palette attiva, non soltanto la preview.
+    static var barDark: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[4] ?? "#8C051F")
+    }
+    static var barMid: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[5] ?? "#E90F3B")
+    }
+    static var barBright: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[6] ?? "#FC3352")
+    }
+    static var regenAccent: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[7] ?? "#2BBAFF")
+    }
+    // La velocità rossa rimane un indicatore funzionale, non un preset decorativo.
     static let dischargeAccent = Color(red: 0.98, green: 0.17, blue: 0.18)
+
     var previewPalette: [Color] {
-        // Fondo carbonio, luce, ombra, acciaio e tutte e tre le tinte della barra più la rigenerazione.
-        [Color(red: 0.015, green: 0.016, blue: 0.019),
-         accent, secondary, steel, Self.barDark, Self.barMid, Self.barBright, Self.regenAccent]
+        if let savedPalette {
+            return savedPalette.colors.map { Color(themeHex: $0) }
+        }
+        return [backdrop, accent, secondary, steel] +
+            EcoThemePalette.standardBarColors.map { Color(themeHex: $0) }
     }
 }
 
@@ -190,7 +232,7 @@ private struct CarbonBackdrop: View {
             ZStack {
                 colorScheme == .light
                     ? Color(red: 0.94, green: 0.96, blue: 0.985)
-                    : Color(red: 0.015, green: 0.016, blue: 0.019)
+                    : theme.backdrop
                 Image("CarbonWeave")
                     .resizable(resizingMode: .tile)
                     .opacity(colorScheme == .light ? 0.08 : 0.52)
@@ -989,7 +1031,7 @@ private struct OpenSpeedCluster: View {
                         ], center: .center, startRadius: 0, endRadius: d * 0.493))
                 } else {
                     Circle()
-                        .fill(Color(red: 0.016, green: 0.015, blue: 0.017))
+                        .fill(theme.backdrop)
                         .frame(width: d * 0.986, height: d * 0.986)
                         .shadow(color: .black.opacity(0.88), radius: d * 0.025)
                 }

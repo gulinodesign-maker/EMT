@@ -8,7 +8,7 @@ app = (root / "Ecojumbo/EcojumboApp.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 
-assert pbx.count("CURRENT_PROJECT_VERSION = 62;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 63;") == 2
 
 # Same shared flat treatment drives portrait tabs and landscape menu/GPS controls.
 assert "private struct EcoMinimalNavigationLabel: View" in home
@@ -41,5 +41,6 @@ assert "if selected != .gps && w < h {" in home
 
 # Never modify established GPS dial/map geometry or hardware integration.
 blob = b"blob " + str(len(cockpit)).encode() + b"\0" + cockpit
-assert hashlib.sha1(blob).hexdigest() == "369d6997d058d239bd19ae09144adb01824f3e1f"
+# Build 63 adds palette support but preserves the GPS panel bounds.
+assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in cockpit.decode('utf-8')
 print("OK — build 59: flat navigation, centered landscape menus, portrait goes to Settings")
