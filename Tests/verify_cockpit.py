@@ -179,14 +179,14 @@ assert 'ForEach(theme.previewPalette.indices' in t
 for tag in ['case copper = "Rame"','case glacier = "Ghiaccio"','case green = "Verde"','case aquamarine = "Acquamarina"','case brown = "Marrone"','case racing = "Racing"']:
     assert tag in c
 assert 'LazyVGrid(columns: columns, spacing: 13)' in t
-assert 'Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)' in t
+assert 'GridItem(.adaptive(minimum: 145), spacing: 13)' in t
 assert 'ForEach(CockpitTheme.allCases)' in t
 assert 'Scale delle barre luminose' in o and 'Nessuna barra nelle tre schede chilometriche' in o
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 # Nuovo dock GPS 7 a destra; classico 4+3 invariato.
 assert 'if mapEnabled && selected == .gps {' in u
 assert 'selected == .gps' in u and '? max(4, h * 0.006)' in u
-assert 'ForEach(EcoTab.allCases) { tab in' not in u
+assert 'ForEach(EcoTab.allCases) { tab in' in u  # solo nel dock portrait
 assert 'gpsButton("map.fill", active: mapEnabled' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
 assert 'gpsButton("play.fill"' in u
