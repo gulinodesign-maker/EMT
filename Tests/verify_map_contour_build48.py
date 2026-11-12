@@ -16,9 +16,9 @@ assert "CockpitContourGeometry.cornerRadius(in: cockpit)" in c
 assert "GPSLowerLineGeometry.points(" in c
 assert "path.addArc(tangent1End: elbow, tangent2End: start, radius: corner)" in c
 assert "path.addArc(tangent1End: safeTopRight, tangent2End: safeTopLeft," in c
-assert ".mask(GPSMapTopContourClip())" in map_source
-assert ".mask(GPSMapLowerContourClip())" in map_source
-assert ".mask(RadialGradient(stops: [" in map_source  # circular fade remains
+assert "if compact { Rectangle() } else { GPSMapTopContourClip() }" in map_source
+assert "if compact { Rectangle() } else { GPSMapLowerContourClip() }" in map_source
+assert "RadialGradient(stops: [" in map_source  # circular fade remains
 assert "GPSMapTopContourClip()" not in c.split("private struct GPSCockpitMap: View {")[0]
 
 # Exact conversion: global cockpit pixel coordinates -> local MapKit frame.
