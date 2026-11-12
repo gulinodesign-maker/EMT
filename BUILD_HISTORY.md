@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43282152539:ATTEMPT:1 -->
+### 2026-11-12T18:39:42Z — CI #172 · build-68-shared-gradient-centered-telemetry · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43282152539](https://github.com/gulinodesign-maker/EMT/actions/runs/43282152539); avvio 2026-11-12T18:39:42Z UTC; aggiornamento finale 2026-11-12T18:41:59Z UTC; registrazione 2026-11-12T18:42:15+00:00 UTC; evento pull_request.
+- **Commit:** [c4472ed4064f](https://github.com/gulinodesign-maker/EMT/commit/c4472ed4064ff4d3a1eaba12fd1c99daa2d01c5a); versione **1.0**; build **68**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build68_gradient_layout.py.
+
 <!-- EMT_RUN:43281981908:ATTEMPT:1 -->
 ### 2026-11-12T18:38:42Z — CI #171 · build-68-shared-gradient-centered-telemetry · tentativo 1
 
