@@ -34,14 +34,17 @@ for statement in (
 assert "totalKm = 0" not in reset
 assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in reset
 
-# Cinque schede e grafico basato su misure, non punti dimostrativi.
+# Quattro schede nella griglia e DISL doppia altezza con grafico GPS reale.
 expanded = cockpit[cockpit.index("private struct GPSExpandedReadings: View {"):]
-assert expanded.count('telemetryRow("') == 5
-assert 'telemetryRow("DISL"' in expanded
+assert expanded.count('telemetryTile("') == 4
+assert 'dislevelCard(height: dislHeight)' in expanded
 assert 'GPSTripAltitudeSparkline(points: gps.altitudeProfile' in expanded
 assert "if points.count >= 2" in expanded
 assert "points.map(\\.altitudeMeters)" in expanded
-assert "showAltitudeGraph: true" in expanded
+assert "closeToBottom: true" in expanded
+assert "area.fill(LinearGradient(" in expanded
+assert "line.stroke(color" in expanded
+assert "Profilo GPS in attesa" in expanded
 assert "minimumDuration: resettable ? 0.5 : 1.3" not in expanded
 assert "private struct GPSTripResetControl: View" in cockpit
 assert ".onLongPressGesture(minimumDuration: 0.5)" in cockpit

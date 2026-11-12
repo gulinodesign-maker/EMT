@@ -276,11 +276,11 @@ for w,h in [(736,414),(844,390),(852,393),(932,430),(956,440),(1536,706),(1536,8
     assert map_top+mask_cutoff*map_h==top_bar_y or abs(map_top+mask_cutoff*map_h-top_bar_y)<1e-8
 expanded=c[c.index('private struct GPSExpandedReadings: View {'):]
 assert expanded.count('showsBar: true')==3
-assert expanded.count('telemetryRow("')==5
-assert 'telemetryRow("DISL"' in expanded
-assert 'telemetryRow("Corrente batteria"' not in expanded
-assert 'telemetryRow("Potenza istantanea"' not in expanded
-assert 'let rowHeight = max(1, (innerHeight - headerHeight - 4 * dividerHeight) / 5)' in expanded
+assert expanded.count('telemetryTile("')==4
+assert 'telemetryTile("SOC"' in expanded and 'telemetryTile("V BAT"' in expanded
+assert 'telemetryTile("AUT"' in expanded and 'telemetryTile("TRIP"' in expanded
+assert 'let dislHeight = 2 * cardHeight' in expanded
+assert 'dislevelCard(height: dislHeight)' in expanded
 assert 'if showsBar {' in expanded
 assert 'TelemetrySlimBar(fraction: fraction, theme: theme)' in expanded
 assert 'SpeedGlyphOutlineView' not in c  # il font velocita resta SwiftUI semplice

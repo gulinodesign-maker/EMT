@@ -12,7 +12,7 @@ permissions:
 jobs:
   test-and-build:
     name: Test sorgenti + build simulatore
-    runs-on: macos-15
+    runs-on: macos-15-intel
     timeout-minutes: 25
     steps:
       - name: Scarica i sorgenti del repository

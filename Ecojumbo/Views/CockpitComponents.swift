@@ -2333,24 +2333,27 @@ private struct GPSExpandedReadings: View {
         GeometryReader { geo in
             let width = geo.size.width
             let height = geo.size.height
-            let insetX = max(10, min(23, width * 0.036))
-            let insetY = max(7, min(17, height * 0.022))
+            let insetX = max(8, min(18, width * 0.024))
+            let insetY = max(6, min(13, height * 0.019))
             let innerHeight = max(1, height - 2 * insetY)
-            let headerHeight = max(24, min(42, innerHeight * 0.105))
-            let dividerHeight: CGFloat = 0.8
-            let rowHeight = max(1, (innerHeight - headerHeight - 4 * dividerHeight) / 5)
+            let headerHeight = max(24, min(40, innerHeight * 0.105))
+            let tileGap = max(5, min(10, height * 0.022))
+            // Due righe di card quadranti + DISL alta quanto due card.
+            // Il totale occupa esattamente lo spazio tra top bar e dock.
+            let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 4)
+            let dislHeight = 2 * cardHeight
             let snapshot = bluetooth.snapshot
             let live = bluetooth.isConnected && snapshot.map({
                 abs(now.timeIntervalSince($0.date)) < 10
             }) == true ? snapshot : nil
             let autonomy = EcoRangeEstimate(snapshot: live, session: bluetooth.session)
 
-            VStack(spacing: 0) {
+            VStack(spacing: tileGap) {
                 HStack(spacing: max(7, width * 0.015)) {
                     Rectangle().fill(theme.accent.opacity(0.75))
                         .frame(width: max(15, width * 0.052), height: 1)
                     Text("TELEMETRIA")
-                        .font(.system(size: max(11, min(17, rowHeight * 0.225)),
+                        .font(.system(size: max(11, min(17, headerHeight * 0.40)),
                                       weight: .semibold, design: .rounded))
                         .tracking(2.0)
                         .foregroundStyle(colorScheme == .light
@@ -2361,96 +2364,124 @@ private struct GPSExpandedReadings: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: headerHeight)
 
-                telemetryRow("SOC",
-                             value: live.map { "\($0.soc)%" } ?? "—%",
-                             fraction: live.map { Double($0.soc) / 100.0 },
-                             showsBar: true, height: rowHeight)
-                telemetryDivider(height: dividerHeight)
+                // SOC | V BAT
+                // AUT | TRIP
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap),
+                                    GridItem(.flexible(), spacing: tileGap)],
+                          spacing: tileGap) {
+                    telemetryTile("SOC",
+                                  value: live.map { "\($0.soc)%" } ?? "—%",
+                                  fraction: live.map { Double($0.soc) / 100.0 },
+                                  showsBar: true, height: cardHeight)
 
-                telemetryRow("V BAT",
-                             value: live.map { String(format: "%.1f V", $0.voltage) } ?? "— V",
-                             fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) },
-                             showsBar: true, height: rowHeight)
-                telemetryDivider(height: dividerHeight)
+                    telemetryTile("V BAT",
+                                  value: live.map { String(format: "%.1f V", $0.voltage) } ?? "— V",
+                                  fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) },
+                                  showsBar: true, height: cardHeight)
 
-                telemetryRow("AUT",
-                             value: autonomy.map { String(format: "%.0f km", $0.kilometers) } ?? "— km",
-                             fraction: autonomy?.fractionOfFull,
-                             showsBar: true, height: rowHeight)
-                telemetryDivider(height: dividerHeight)
+                    telemetryTile("AUT",
+                                  value: autonomy.map {
+                                      String(format: "%.0f km", $0.kilometers)
+                                  } ?? "— km",
+                                  fraction: autonomy?.fractionOfFull,
+                                  showsBar: true, height: cardHeight)
 
-                telemetryRow("TRIP",
-                             value: String(format: "%.1f km", gps.tripKm),
-                             fraction: nil, height: rowHeight)
-                telemetryDivider(height: dividerHeight)
+                    telemetryTile("TRIP",
+                                  value: String(format: "%.1f km", gps.tripKm),
+                                  fraction: nil, height: cardHeight)
+                }
+                .frame(maxWidth: .infinity)
 
-                telemetryRow("DISL",
-                             value: gps.tripElevationMeters.map {
-                                 String(format: "%+.0f m", $0)
-                             } ?? "— m",
-                             fraction: nil, showAltitudeGraph: true,
-                             height: rowHeight)
+                // Grafico dislivello a tutta larghezza e doppia altezza.
+                dislevelCard(height: dislHeight)
             }
             .frame(width: max(1, width - 2 * insetX), height: innerHeight)
             .padding(.horizontal, insetX)
             .padding(.vertical, insetY)
-            // Nessun .background, .overlay o .shadow: la Telemetria posa
-            // direttamente sul CarbonBackdrop della modalità standard.
             .frame(width: width, height: height)
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Telemetria")
     }
 
-    private func telemetryDivider(height: CGFloat) -> some View {
-        Rectangle()
-            .fill(colorScheme == .light
-                  ? Color.black.opacity(0.12) : Color.white.opacity(0.17))
-            .frame(height: height)
+    private var tileBackground: Color {
+        colorScheme == .light ? Color.white.opacity(0.36) : Color.white.opacity(0.038)
     }
 
-    private func telemetryRow(_ label: String, value: String,
-                              fraction: Double?, showsBar: Bool = false,
-                              showAltitudeGraph: Bool = false,
-                              height: CGFloat) -> some View {
-        VStack(spacing: 0) {
-            HStack(spacing: max(6, height * 0.1)) {
+    private func telemetryTile(_ label: String, value: String,
+                               fraction: Double?, showsBar: Bool = false,
+                               height: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 5) {
                 Text(label)
-                    .font(.system(size: max(11, min(23, height * 0.245)),
+                    .font(.system(size: max(10, min(13, height * 0.205)),
                                   weight: .medium, design: .rounded))
                     .tracking(0.6)
                     .foregroundStyle(colorScheme == .light
                                      ? Color(white: 0.32) : Color(white: 0.68))
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
+                Spacer(minLength: 0)
+            }
+            Spacer(minLength: 0)
+            Text(value)
+                .font(.system(size: max(13, min(23, height * 0.30)),
+                              weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(colorScheme == .light ? Color(white: 0.10) : .white)
+                .lineLimit(1)
+                .minimumScaleFactor(0.58)
+            if showsBar {
+                // A dato BMS mancante la barra resta vuota, senza valori simulati.
+                TelemetrySlimBar(fraction: fraction, theme: theme)
+                    .frame(height: max(3, min(6, height * 0.075)))
+                    .padding(.top, 2)
+            }
+        }
+        .padding(.horizontal, max(7, height * 0.14))
+        .padding(.vertical, max(5, height * 0.10))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(height: height)
+        .background(tileBackground, in: RoundedRectangle(cornerRadius: 10))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(label): \(value)")
+    }
 
-                Spacer(minLength: 4)
-
-                Text(value)
-                    .font(.system(size: max(15, min(34, height * 0.36)),
+    private func dislevelCard(height: CGFloat) -> some View {
+        VStack(spacing: 2) {
+            HStack(spacing: 6) {
+                Text("DISL")
+                    .font(.system(size: max(11, min(15, height * 0.12)),
+                                  weight: .semibold, design: .rounded))
+                    .tracking(0.6)
+                    .foregroundStyle(colorScheme == .light
+                                     ? Color(white: 0.32) : Color(white: 0.68))
+                Spacer(minLength: 0)
+                Text(gps.tripElevationMeters.map {
+                    String(format: "%+.0f m", $0)
+                } ?? "— m")
+                    .font(.system(size: max(15, min(27, height * 0.22)),
                                   weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(colorScheme == .light ? Color(white: 0.10) : .white)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.60)
+                    .minimumScaleFactor(0.6)
             }
-            .frame(height: showsBar || showAltitudeGraph
-                   ? height * 0.59 : height, alignment: .center)
+            .frame(height: height * 0.29)
 
-            if showsBar {
-                // Frazione nil: sfondo visibile e nessun riempimento simulato.
-                TelemetrySlimBar(fraction: fraction, theme: theme)
-                    .frame(height: max(4, min(8, height * 0.090)))
-                    .padding(.top, max(1, height * 0.028))
-            } else if showAltitudeGraph {
-                GPSTripAltitudeSparkline(points: gps.altitudeProfile, color: theme.accent)
-                    .frame(height: max(11, height * 0.31))
-            }
+            GPSTripAltitudeSparkline(points: gps.altitudeProfile, color: theme.accent)
+                .frame(maxWidth: .infinity)
+                .frame(height: max(12, height * 0.62))
         }
+        .padding(.horizontal, 11)
+        .padding(.vertical, 4)
         .frame(maxWidth: .infinity)
         .frame(height: height)
+        .background(tileBackground, in: RoundedRectangle(cornerRadius: 10))
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(label): \(value)")
+        .accessibilityLabel("DISL: " + (gps.tripElevationMeters.map {
+            String(format: "%+.0f m", $0)
+        } ?? "— m"))
     }
 }
 
@@ -2502,30 +2533,60 @@ private struct GPSTripAltitudeSparkline: View {
                 let highest = heights.max() ?? last.altitudeMeters
                 let verticalSpan = max(2.0, highest - lowest)
                 let horizontalSpan = max(0.001, last.distanceKm - first.distanceKm)
-                Path { path in
-                    for (index, point) in points.enumerated() {
-                        let x = CGFloat((point.distanceKm - first.distanceKm) / horizontalSpan)
-                            * geo.size.width
-                        let y = geo.size.height * CGFloat(
-                            1.0 - (point.altitudeMeters - lowest) / verticalSpan
-                        )
-                        if index == 0 {
-                            path.move(to: CGPoint(x: x, y: y))
-                        } else {
-                            path.addLine(to: CGPoint(x: x, y: y))
-                        }
-                    }
+                let line = altitudePath(in: geo.size, lowest: lowest,
+                                        verticalSpan: verticalSpan,
+                                        horizontalSpan: horizontalSpan,
+                                        closeToBottom: false)
+                let area = altitudePath(in: geo.size, lowest: lowest,
+                                        verticalSpan: verticalSpan,
+                                        horizontalSpan: horizontalSpan,
+                                        closeToBottom: true)
+                ZStack {
+                    // La sfumatura è sotto al tracciato GPS reale, e segue
+                    // sempre il colore scelto per la linea DISL.
+                    area.fill(LinearGradient(
+                        colors: [color.opacity(0.34), color.opacity(0.16), color.opacity(0.0)],
+                        startPoint: .top, endPoint: .bottom
+                    ))
+                    line.stroke(color, style: StrokeStyle(lineWidth: 2,
+                                                          lineCap: .round,
+                                                          lineJoin: .round))
                 }
-                .stroke(color, style: StrokeStyle(lineWidth: 1.8,
-                                                 lineCap: .round, lineJoin: .round))
             } else {
+                // Nessun profilo o ombra inventati prima di 2 misure GPS.
                 Text("Profilo GPS in attesa")
-                    .font(.system(size: max(9, geo.size.height * 0.60), weight: .medium))
+                    .font(.system(size: max(9, geo.size.height * 0.22), weight: .medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .accessibilityLabel("Profilo altimetrico reale del viaggio")
+    }
+
+    private func altitudePath(in size: CGSize,
+                              lowest: Double,
+                              verticalSpan: Double,
+                              horizontalSpan: Double,
+                              closeToBottom: Bool) -> Path {
+        Path { path in
+            for (index, point) in points.enumerated() {
+                let x = CGFloat((point.distanceKm - (points.first?.distanceKm ?? 0))
+                                / horizontalSpan) * size.width
+                let y = size.height * CGFloat(
+                    1.0 - (point.altitudeMeters - lowest) / verticalSpan
+                )
+                if index == 0 {
+                    path.move(to: CGPoint(x: x, y: y))
+                } else {
+                    path.addLine(to: CGPoint(x: x, y: y))
+                }
+            }
+            if closeToBottom {
+                path.addLine(to: CGPoint(x: size.width, y: size.height))
+                path.addLine(to: CGPoint(x: 0, y: size.height))
+                path.closeSubpath()
+            }
+        }
     }
 }
