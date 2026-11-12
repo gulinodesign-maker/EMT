@@ -38,8 +38,8 @@ assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 17
 # A single source-of-truth for the interpolation, colour 1 in the middle.
 gradient = cockpit.split("var contourGradient: LinearGradient {", 1)[1].split(
     "// Barre e recupero energia", 1)[0]
-assert "savedPalette.colors[15]" in gradient
-assert "savedPalette.colors[16]" in gradient
+assert "$0.colors[15]" in gradient
+assert "$0.colors[16]" in gradient
 assert "let left =" in gradient and "let right =" in gradient
 assert ".init(color: accent, location: 0.5)" in gradient
 assert "startPoint: .leading, endPoint: .trailing" in gradient
