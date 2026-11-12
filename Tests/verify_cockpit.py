@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 66;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 67;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -145,11 +145,12 @@ assert 'corners: [1, 4]' in c and 'corners: [1, 2]' in u
 assert 'p.addLine(to: pt(' not in u
 assert 'CornerDockGlow' not in u and 'FooterLightContour' not in c
 assert 'private struct ContinuousHorizonLine: View' in c
-# Top bar sfumata alle intersezioni con il cerchio in Home e GPS.
-assert c.count('.mask(RadialGradient(stops: [') == 4
+# Home conserva la sfumatura; nel GPS i due raccordi sono senza dissolvenza.
+assert c.count('.mask(RadialGradient(stops: [') == 3
 assert 'startRadius: ringRadius, endRadius: ringRadius + max(18, h * 0.070)' in c
-assert 'startRadius: dialSize * 0.508,' in c
-assert 'endRadius: dialSize * 0.508 + max(18, h * 0.070)' in c
+gps_horizon = c.split('private struct GPSHorizonLine: View {', 1)[1].split('@MainActor', 1)[0]
+assert '.mask(RadialGradient(stops: [' not in gps_horizon
+assert '.mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))' in gps_horizon
 assert c.count('Circle()\n                        .stroke(theme.accent.opacity(') == 2
 assert c.count('.frame(width: dialSize * 0.985, height: dialSize * 0.985)') == 2
 assert 'private struct HomeRingBridgeMask: Shape' in c
@@ -277,7 +278,7 @@ assert '15 * 60' in c
 assert '60 * 60' in c
 assert 'String(format: "%.0f°C", $0)' in c
 assert '"—°C"' in c
-assert 'Image(systemName: "thermometer.medium")' in c
+assert 'Image(systemName: "thermometer.medium")' not in c
 assert 'Link("Meteo · Open-Meteo"' not in c
 assert 'Temperatura meteo esterna stimata' not in c
 assert 'Licenza dati (CC BY 4.0)' in o
