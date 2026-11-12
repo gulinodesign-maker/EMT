@@ -155,6 +155,21 @@ struct EcoSettingsView: View {
 
     var body: some View {
         Form {
+            // Dati tecnici e diagnostica sono funzioni di setup, non di guida.
+            Section("Batteria e BMS") {
+                NavigationLink {
+                    GeometryReader { area in
+                        CellsView(portrait: area.size.height > area.size.width)
+                    }
+                } label: {
+                    Label("Batteria", systemImage: "battery.100percent")
+                }
+                NavigationLink {
+                    BluetoothView()
+                } label: {
+                    Label("BMS", systemImage: "bluetooth")
+                }
+            }
             Section("Aspetto dell'app") {
                 Picker("Modalità schermo", selection: $appearanceMode) {
                     ForEach(EcoAppearanceMode.allCases) { mode in

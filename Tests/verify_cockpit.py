@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 59;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 60;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -22,7 +22,7 @@ assert 'case gps, trips, battery, bms, settings, themes' in u
 assert '@AppStorage("ecojumbo.mapEnabled") private var mapEnabled = true' in u
 assert '@State private var selected: EcoTab = .gps' in u
 assert 'case .dashboard:' not in u
-assert 'ForEach([EcoTab.trips, .battery, .bms, .settings, .themes])' in u
+assert 'ForEach([EcoTab.trips, .settings, .themes])' in u
 assert 'if mapEnabled && selected == .gps {' in u
 assert 'EcoMinimalNavigationLabel(' in u and 'CockpitCornerControls' in u
 # GPS è una modalità del cockpit, non una NavigationStack separata.
@@ -109,7 +109,7 @@ assert 'SegmentedGaugeBar(d:' in c
 assert 'ContinuousLowerLine: Shape' in u and 'struct ContinuousLowerGlow' in u
 assert 'private struct ContinuousLowerTerminalFade: View' in u
 assert '.mask(ContinuousLowerTerminalFade())' in u
-assert 'ForEach([EcoTab.trips, .battery, .bms, .settings, .themes])' in u
+assert 'ForEach([EcoTab.trips, .settings, .themes])' in u
 assert 'private struct GPSLowerContour: Shape' in c
 assert 'private struct GPSLowerShade: Shape' in c
 assert 'private struct GPSLowerGlow: View' in c
@@ -187,9 +187,9 @@ assert 'if mapEnabled && selected == .gps {' in u
 assert 'selected == .gps' in u and '? max(4, h * 0.006)' in u
 # Il dock approvato del cockpit resta invariato, mentre solo il dock
 # separato dei menù portrait mostra tutte e sei le sezioni.
-landscape_dock = u.split('// Build 41: un solo cockpit,', 1)[1]
+landscape_dock = u.split('private struct CockpitCornerControls: View', 1)[1]
 assert 'ForEach(EcoTab.allCases) { tab in' not in landscape_dock
-assert 'ForEach(EcoTab.allCases) { tab in' in u
+assert 'ForEach([EcoTab.gps, .trips, .settings, .themes]) { tab in' in u
 assert 'gpsButton("map.fill", active: mapEnabled' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
 assert 'gpsButton("play.fill"' in u

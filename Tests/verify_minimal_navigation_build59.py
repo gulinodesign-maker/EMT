@@ -8,7 +8,7 @@ app = (root / "Ecojumbo/EcojumboApp.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 
-assert pbx.count("CURRENT_PROJECT_VERSION = 59;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 60;") == 2
 
 # Same shared flat treatment drives portrait tabs and landscape menu/GPS controls.
 assert "private struct EcoMinimalNavigationLabel: View" in home
@@ -19,7 +19,7 @@ controls = home.split("    private func iconButton(_ tab: EcoTab, side: CGFloat)
 for forbidden in ("LinearGradient(", ".shadow(", ".stroke(", "BluetoothGlyph()"):
     assert forbidden not in controls, forbidden
 assert "gpsButton(\"map.fill\", active: mapEnabled" in home
-assert "ForEach([EcoTab.trips, .battery, .bms, .settings, .themes])" in home
+assert "ForEach([EcoTab.trips, .settings, .themes])" in home
 assert "mapControls.send(.toggleNavigation)" in home
 assert "mapControls.send(.recenter)" in home
 

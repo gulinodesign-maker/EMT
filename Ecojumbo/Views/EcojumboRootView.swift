@@ -284,7 +284,7 @@ private struct PortraitServiceTabBar: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            ForEach(EcoTab.allCases) { tab in
+            ForEach([EcoTab.gps, .trips, .settings, .themes]) { tab in
                 Button { selected = tab } label: {
                     EcoMinimalNavigationLabel(
                         symbol: tab == .gps ? "speedometer" : tab.symbol,
@@ -314,8 +314,8 @@ private struct PortraitServiceTabBar: View {
     }
 }
 
-// Build 41: un solo cockpit, con mappa attivabile e comandi sempre a destra.
-// Quando la mappa è nascosta tornano i cinque pulsanti delle sezioni tecniche.
+// Cockpit di guida con comandi essenziali a destra.
+// Batteria e BMS sono disponibili sotto Setup, non nel dock del tachimetro.
 @MainActor
 private struct CockpitCornerControls: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -375,7 +375,7 @@ private struct CockpitCornerControls: View {
                         gpsButton("minus.magnifyingglass", accessibility: "Riduci zoom mappa",
                                   side: gpsSide) { mapControls.send(.zoomOut) }
                     } else {
-                        ForEach([EcoTab.trips, .battery, .bms, .settings, .themes]) { tab in
+                        ForEach([EcoTab.trips, .settings, .themes]) { tab in
                             iconButton(tab, side: gpsSide)
                         }
                     }

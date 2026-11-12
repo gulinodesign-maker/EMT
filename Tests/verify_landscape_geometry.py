@@ -53,7 +53,7 @@ assert '.frame(width: w * 0.64, height: h * 0.955)' in c
 assert '.position(x: w * 0.68, y: h * 0.5225)' in c
 assert 'GPSHorizonLine(theme: theme)' in c
 assert 'GPSLowerGlow(theme: theme)' in c
-assert 'ForEach([EcoTab.trips, .battery, .bms, .settings, .themes])' in u
+assert 'ForEach([EcoTab.trips, .settings, .themes])' in u
 assert '@State private var selected: EcoTab = .gps' in u
 assert '? max(4, h * 0.006)' in u
 assert 'textTop - max(12, h * 0.014)' in c
