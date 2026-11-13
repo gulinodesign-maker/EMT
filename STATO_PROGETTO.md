@@ -1,13 +1,13 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
-## Build 73 — modifiche richieste 13 novembre 2026 (in verifica)
+## Build 73 — integrata su main e caricata ad Apple (13 novembre 2026)
 
 - **Luce GPS:** ripristinato un bagliore esterno discretamente visibile sul contorno top bar, corona arancione e ponte kW, con nucleo LED interno immutato. La forza esterna usa `theme.glowIntensity` (0–100%) configurabile nel tema, default 60%; non viene riprodotto il secondo profilo eliminato nella build 71, restano la maschera del quadrante, anello grigio e dissolvenze.
 - **Temi:** introdotti la proprietà persistente `glowIntensity` con `decodeIfPresent` retrocompatibile e un diciottesimo colore `Velocità · colore oltre soglia`. Migrazione senza perdite degli slot storici 8, 15 e 17 colori; gli stessi slot 1–3 continuano a funzionare e tutti gli indici precedenti sono preservati.
 - **Impostazioni:** tolte le destinazioni ridondanti `GPS e viaggi`, `Sicurezza`, `Versione`. Restano **nove celle in griglia 3×3**; stringa versione/build da `Bundle.main` riportata in basso al centro, prima del dock dei comandi.
 - **Barra velocità GPS:** la scala passa dal 120 km/h fisso a `vehicleSpeedMaxKmh` configurabile (30–240 km/h) e cambio colore da `speedColorThresholdKmh` (10 km/h fino al massimo). Al raggiungimento della soglia il LED GPS usa il nuovo colore del tema e prevale sul colore di decelerazione; la velocità resta esclusivamente quella letta da Core Location, senza alcuna limitazione dell'andatura del veicolo.
 - **Versione:** incrementare sempre Debug e Release a **1.0 (73)**, aggiornare i test e aggiungere regressioni; nessun cambiamento a mappa, telemetria JK, trip, pairing, firma Apple o layout del dock.
-- **Stato:** modifica in preparazione su branch `build-73-setup-3x3-led-glow-speed-limits`; **non ancora verificati** CI, merge, archivio iPhone e upload Apple. Procedere fino al vero `Upload succeeded`, poi controllare separatamente elaborazione e assegnazione al gruppo TestFlight **TE**.
+- **Stato verificato:** [PR #60](https://github.com/gulinodesign-maker/EMT/pull/60) integrata su `main`, merge commit `f03fcab59e02835c43d41af35a98811dd70d23f1`; progetto **1.0 (73)** Debug/Release. Primo e secondo run PR [43411419517](https://github.com/gulinodesign-maker/EMT/actions/runs/43411419517) e [43411561824](https://github.com/gulinodesign-maker/EMT/actions/runs/43411561824) falliti soltanto per asserzioni obsolete di test sulle vecchie voci/barre/versione; regole aggiornate, **CI PR [43411682537](https://github.com/gulinodesign-maker/EMT/actions/runs/43411682537) `success`** (Python, Swift JK, barre e Xcode simulator) e **CI main [43412198661](https://github.com/gulinodesign-maker/EMT/actions/runs/43412198661) `success`**, registrata automaticamente in `BUILD_HISTORY.md`. **Upload Apple [43412198659](https://github.com/gulinodesign-maker/EMT/actions/runs/43412198659) `success`:** `Numero build TestFlight: 73`, `ARCHIVE SUCCEEDED`, `Upload succeeded`, `EXPORT SUCCEEDED` alle **10:53 UTC del 13/11/2026**. Apple ha comunicato `Uploaded package is processing`: **elaborazione completa, disponibilità TestFlight e gruppo tester TE non verificati**. Controllare visivamente su iPhone effetti e disposizione, che CI non può certificare.
 
 
 
@@ -82,16 +82,16 @@ Per tutti i run successivi, riusciti o falliti, consultare **[BUILD_HISTORY.md](
 
 ## Stato operativo e richieste aperte
 
-**Attività corrente:** build **72** completata nel codice, integrata su `main`, CI PR e main superate, archivio e upload Apple riusciti. Resta la verifica di elaborazione App Store Connect, associazione della build 72 al gruppo **TE**, installabilità e controllo visivo dell'effetto LED interno su iPhone.
+**Attività corrente:** build **73** completata, integrata su `main`, test automatici riusciti e caricamento Apple confermato. Rimane da verificare in App Store Connect l'elaborazione di **1.0 (73)**, associazione al gruppo tester **TE** e installabilità; controllare su iPhone la nuova griglia 3×3, footer build, bagliore regolabile e LED velocità oltre soglia.
 
 **Richieste utente ancora da completare / da verificare:**
-1. **TestFlight 72 — disponibilità da verificare:** caricamento `1.0 (72)` **confermato** da [43396081695](https://github.com/gulinodesign-maker/EMT/actions/runs/43396081695), ma Apple ha comunicato `Uploaded package is processing`. In App Store Connect verificare stato **Completo**, associare se necessario al gruppo **TE**, quindi controllare che TestFlight su iPhone mostri **Aggiorna**. Nessuna evidenza attuale di distribuzione.
+1. **TestFlight 73 — processing e gruppo tester da verificare:** upload di `1.0 (73)` confermato con log Apple nel workflow [43412198659](https://github.com/gulinodesign-maker/EMT/actions/runs/43412198659), risposta `Uploaded package is processing`. In **App Store Connect → Ecojumbo → TestFlight** attendere **Completo**, associare la build **73** al gruppo **TE** se non assegnata e verificare «Aggiorna» sull'iPhone. Non dedurre la distribuzione dal solo upload.
 2. **Controllo su dispositivo reale della build 67:** verificare visivamente raccordi, temperatura con GPS+Internet e valore batteria iPhone; test automatici non equivalgono a verifica su hardware.
 3. **ChatGPT Progetto:** inserire una volta il testo di `docs/ISTRUZIONI_PROGETTO_CHATGPT.md` nelle istruzioni del Progetto; non configurabile automaticamente da questo repository.
 
 **Verifiche tecniche completate:** PR #54 / CI verde, workflow di registrazione realmente eseguito con esito `success`, entry nel registro su `main`, aggiornamento automatico del riquadro CI e assenza di loop. La gestione degli esiti negativi è stata testata con casi automatici simulati, ma il ramo fallback per permessi negati non è stato esercitato in ambiente reale.
 
-**Prossima operazione:** in **App Store Connect → Ecojumbo → TestFlight** controllare l'elaborazione della `1.0 (72)`, l'assegnazione al gruppo tester **TE** e l'aggiornamento su iPhone. Provare visivamente i tre profili LED (top bar, corona arancione, ponte kW) e verificare che l'alone resti interno senza doppie linee. **Non creare una 73** solo per ripetere l'upload già riuscito.
+**Prossima operazione:** verificare App Store Connect `1.0 (73)` elaborata e gruppo tester `TE` associato, quindi testare su iPhone i tre bagliori esterni regolabili nei temi, la griglia Impostazioni **3×3**, il numero build a piè pagina e il cambio colore della barra velocità al superamento della soglia configurata. **Non rilanciare l'upload 73**: è già riuscito.
 
 ## Procedura di handoff
 
