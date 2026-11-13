@@ -7,7 +7,7 @@ source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 75;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 76;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -41,7 +41,7 @@ assert "GPSHorizonSymmetry.corners(width: w, height: h)" in horizon
 # No new gradients, no alteration to the original kW bridge shading.
 lower = source.split("private struct GPSLowerGlow: View {", 1)[1].split(
     "// EJ 1.22", 1)[0]
-assert "GPSLowerContour()" in lower and "GPSLowerShade()" in lower
+assert "GPSLowerContour()" in lower and "GPSLowerShade()" not in lower
 assert ".mask(GPSLowerTerminalFade())" in lower
 assert "GPSTopBandShade" not in source and "GPSLowerAreaGradient" not in source
 
