@@ -390,9 +390,11 @@ assert '.mask(GPSMapTopContourClip())' in c
 assert '.mask(GPSMapLowerContourClip())' in c
 assert 'GPSLowerLineGeometry.points(' in c
 assert 'GPSMapContourSpace.local(points[3], cockpit: cockpit)' in c
-assert 'Color(white: 0.88).opacity(0.10)' in c
-assert 'Color(white: 0.92).opacity(0.035)' in c
-assert '.init(color: .clear, location: 0.62)' in c
+# Build 76: the below-bridge neutral veil has been removed intentionally.
+assert 'GPSBridgeUpperMask()' in c
+assert 'Color(white: 0.88).opacity(0.10)' not in c
+assert 'Color(white: 0.92).opacity(0.035)' not in c
+assert '.init(color: .clear, location: 0.62)' not in c
 expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
 assert 'LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap),' in expanded
 assert expanded.count('telemetryTile("') == 4
