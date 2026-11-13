@@ -1,13 +1,13 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
-## Build 74 — intervento del 13/11/2026 (in sviluppo)
+## Build 74 — compilata e caricata su TestFlight (13 novembre 2026)
 
 Richiesta esplicita dell'utente: **produrre e pubblicare TestFlight 1.0 (74)** dopo i test. Interventi:
 - Temi, categoria «Velocità oltre soglia»: **4 pulsanti indipendenti** per fase decelerazione (colore preesistente n. 14), fase normale (preesistente n. 10), fase accelerazione (nuovo colore n. 18), e colore oltre il limite (preesistente n. 17). Migrazione degli slot salvati 8/15/17/18→19 colori **senza cambiare i colori già scelti**. Gli indici storici restano preservati, i colori velocità sono riuniti senza duplicazioni negli altri gruppi.
 - Barra velocità: confronto delle misure GPS attuali con il valore iniziale in una **finestra mobile di 4 secondi**; a delta **> +5 km/h** accelerazione, **< -5 km/h** decelerazione, in tolleranza **±5 km/h** fase normale. Reset in assenza di aggiornamenti GPS; **non** si tratta del freno o dell'acceleratore fisico. Quando il limite configurato è attivo, il suo colore ha precedenza.
 - Setup → Barre luminose: aggiunto interruttore persistente per attivare/disattivare **solo l'avviso cromatico oltre limite**, lasciando salvati velocità massima e valore soglia; tre colori di movimento restano attivi anche quando l'avviso è spento.
 - Neon top bar GPS, cerchio arancione GPS e ponte kW: **riferimento esclusivo** all'**arco LED di velocità del tachimetro** (non alle barre BMS/potenza/recupero). Stessi rapporti di larghezza sfocatura 0.034/0.027, nucleo luminoso 0.015, ombra 0.010 e riflesso bianco 0.003. Il bagliore esterno continua a dipendere dal regolatore nel tema. Conservare percorsi e raccordi originali, maschera sul quadrante, anello interno metallico e dissolvenze della corona e del ponte; non introdurre profili duplicati, dati fittizi o campiture colorate.
-- Debug/Release incrementati a 1.0 (74); test e diario da aggiornare. **Non dichiarare** che build, merge, upload o gruppo TE siano riusciti senza relativa verifica.
+- **Verificato:** Debug e Release `CURRENT_PROJECT_VERSION = 74`, marketing `1.0`. Sorgenti e nuovi test nella [PR #61](https://github.com/gulinodesign-maker/EMT/pull/61), merge su main `eb8b92644ec4d4c64bfbc63059fa669ff4f902f9`. **CI PR [43419845447](https://github.com/gulinodesign-maker/EMT/actions/runs/43419845447) `success`**, con test Python, protocollo JK Bluetooth, barre dinamiche e Xcode simulatore; **CI main [43420451910](https://github.com/gulinodesign-maker/EMT/actions/runs/43420451910) `success`** e registrazione automatica in `BUILD_HISTORY.md`. **Upload Apple [43420451851](https://github.com/gulinodesign-maker/EMT/actions/runs/43420451851) `success`:** `Numero build TestFlight: 74`, `ARCHIVE SUCCEEDED`, `Upload succeeded`, `EXPORT SUCCEEDED` (13/11/2026 ore 11:54 UTC). Apple risponde `Uploaded package is processing`. **Non verificati** processing completo, assegnazione gruppo tester **TE**, installabilità, né resa estetica sul dispositivo reale.
 
 
 
@@ -93,16 +93,16 @@ Per tutti i run successivi, riusciti o falliti, consultare **[BUILD_HISTORY.md](
 
 ## Stato operativo e richieste aperte
 
-**Attività corrente:** build **73** completata, integrata su `main`, test automatici riusciti e caricamento Apple confermato. Rimane da verificare in App Store Connect l'elaborazione di **1.0 (73)**, associazione al gruppo tester **TE** e installabilità; controllare su iPhone la nuova griglia 3×3, footer build, bagliore regolabile e LED velocità oltre soglia.
+**Attività corrente:** build **74** completata e integrata su `main`; CI PR/main verde, archivio iPhone e upload Apple riusciti. Restano verifica dello stato App Store Connect **1.0 (74)**, gruppo **TE**, disponibilità in TestFlight e test visivo sul dispositivo dei tre neon con stile identico all'arco GPS, quattro colori di movimento/limite, tolleranza ±5 km/h, interruttore del colore oltre limite.
 
 **Richieste utente ancora da completare / da verificare:**
-1. **TestFlight 73 — processing e gruppo tester da verificare:** upload di `1.0 (73)` confermato con log Apple nel workflow [43412198659](https://github.com/gulinodesign-maker/EMT/actions/runs/43412198659), risposta `Uploaded package is processing`. In **App Store Connect → Ecojumbo → TestFlight** attendere **Completo**, associare la build **73** al gruppo **TE** se non assegnata e verificare «Aggiorna» sull'iPhone. Non dedurre la distribuzione dal solo upload.
+1. **TestFlight 74 — elaborazione e gruppo tester da verificare:** pacchetto `1.0 (74)` inviato ad Apple con [workflow 43420451851](https://github.com/gulinodesign-maker/EMT/actions/runs/43420451851) `success` e `Upload succeeded`. Apple comunica `Uploaded package is processing`. Attendere **Completo** in App Store Connect, assegnare al gruppo **TE** se necessario e verificare «Aggiorna» sull'iPhone; upload riuscito **non** equivale a distribuzione ai tester.
 2. **Controllo su dispositivo reale della build 67:** verificare visivamente raccordi, temperatura con GPS+Internet e valore batteria iPhone; test automatici non equivalgono a verifica su hardware.
 3. **ChatGPT Progetto:** inserire una volta il testo di `docs/ISTRUZIONI_PROGETTO_CHATGPT.md` nelle istruzioni del Progetto; non configurabile automaticamente da questo repository.
 
 **Verifiche tecniche completate:** PR #54 / CI verde, workflow di registrazione realmente eseguito con esito `success`, entry nel registro su `main`, aggiornamento automatico del riquadro CI e assenza di loop. La gestione degli esiti negativi è stata testata con casi automatici simulati, ma il ramo fallback per permessi negati non è stato esercitato in ambiente reale.
 
-**Prossima operazione:** verificare App Store Connect `1.0 (73)` elaborata e gruppo tester `TE` associato, quindi testare su iPhone i tre bagliori esterni regolabili nei temi, la griglia Impostazioni **3×3**, il numero build a piè pagina e il cambio colore della barra velocità al superamento della soglia configurata. **Non rilanciare l'upload 73**: è già riuscito.
+**Prossima operazione:** in **App Store Connect → Ecojumbo → TestFlight** controllare `1.0 (74)` elaborata e gruppo **TE** associato. Installare su iPhone, provare velocità GPS in condizioni normale ±5 km/h / aumento >5 / diminuzione >5 e attivazione/disattivazione avviso limite; ispezionare il neon di top bar, anello arancione e ponte kW confrontandolo con l'arco velocità. **Non rilanciare l'upload della 74**: è già confermato riuscito.
 
 ## Procedura di handoff
 
