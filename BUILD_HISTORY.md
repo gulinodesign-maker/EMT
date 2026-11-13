@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43411561824:ATTEMPT:1 -->
+### 2026-11-13T10:45:35Z — CI #184 · build-73-setup-3x3-led-glow-speed-limits · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43411561824](https://github.com/gulinodesign-maker/EMT/actions/runs/43411561824); avvio 2026-11-13T10:45:35Z UTC; aggiornamento finale 2026-11-13T10:46:07Z UTC; registrazione 2026-11-13T10:46:17+00:00 UTC; evento pull_request.
+- **Commit:** [57124ae0ccb1](https://github.com/gulinodesign-maker/EMT/commit/57124ae0ccb16f8c2506f01ba3fc2e566fc46d06); versione **1.0**; build **73**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_cockpit.py.
+
 <!-- EMT_RUN:43411419517:ATTEMPT:1 -->
 ### 2026-11-13T10:44:32Z — CI #183 · build-73-setup-3x3-led-glow-speed-limits · tentativo 1
 
