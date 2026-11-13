@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43430860789:ATTEMPT:1 -->
+### 2026-11-13T13:06:59Z — CI #189 · build-75-metal-topbar-speed-shadow · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43430860789](https://github.com/gulinodesign-maker/EMT/actions/runs/43430860789); avvio 2026-11-13T13:06:59Z UTC; aggiornamento finale 2026-11-13T13:09:36Z UTC; registrazione 2026-11-13T13:09:45+00:00 UTC; evento pull_request.
+- **Commit:** [ef91c5346cea](https://github.com/gulinodesign-maker/EMT/commit/ef91c5346cea5803bf18600060da99f5f6ba9b8f); versione **1.0**; build **75**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py.
+
 <!-- EMT_RUN:43420451910:ATTEMPT:1 -->
 ### 2026-11-13T11:52:01Z — CI #188 · main · tentativo 1
 
