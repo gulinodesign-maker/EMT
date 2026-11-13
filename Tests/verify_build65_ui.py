@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 71;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 72;") == 2
 
 editor = tabs.split("private struct EcoThemeEditorView: View {", 1)[1].split(
     "private struct EcoThemeColorPicker: View {", 1)[0]
