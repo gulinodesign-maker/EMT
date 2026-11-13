@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43447573123:ATTEMPT:1 -->
+### 2026-11-13T14:56:35Z — CI #194 · build-76-gps-bridge-clean-cutoff · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43447573123](https://github.com/gulinodesign-maker/EMT/actions/runs/43447573123); avvio 2026-11-13T14:56:35Z UTC; aggiornamento finale 2026-11-13T14:57:03Z UTC; registrazione 2026-11-13T14:57:14+00:00 UTC; evento pull_request.
+- **Commit:** [931b2908532b](https://github.com/gulinodesign-maker/EMT/commit/931b2908532b3a65844814509a70ceedb972040a); versione **1.0**; build **76**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_cockpit.py, Tests/verify_map_contour_build48.py.
+
 <!-- EMT_RUN:43447292257:ATTEMPT:1 -->
 ### 2026-11-13T14:54:53Z — CI #193 · build-76-gps-bridge-clean-cutoff · tentativo 1
 
