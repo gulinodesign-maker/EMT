@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43411682537:ATTEMPT:1 -->
+### 2026-11-13T10:46:30Z — CI #185 · build-73-setup-3x3-led-glow-speed-limits · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43411682537](https://github.com/gulinodesign-maker/EMT/actions/runs/43411682537); avvio 2026-11-13T10:46:30Z UTC; aggiornamento finale 2026-11-13T10:49:25Z UTC; registrazione 2026-11-13T10:49:38+00:00 UTC; evento pull_request.
+- **Commit:** [22234ab055d2](https://github.com/gulinodesign-maker/EMT/commit/22234ab055d269b781a7f8351eaccf2d09f1773a); versione **1.0**; build **73**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_version.py.
+
 <!-- EMT_RUN:43411561824:ATTEMPT:1 -->
 ### 2026-11-13T10:45:35Z — CI #184 · build-73-setup-3x3-led-glow-speed-limits · tentativo 1
 
