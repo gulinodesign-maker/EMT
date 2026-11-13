@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 75;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 76;") == 2
 symmetry = cockpit.split("private enum GPSHorizonSymmetry {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(

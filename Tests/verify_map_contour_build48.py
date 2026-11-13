@@ -66,14 +66,16 @@ for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),
     # The lower bleed region lies to the LEFT of the descending line.
     assert right_top_x < edge_x < foot_x
 
-# Day: near-transparent soft veil. Dark: previous shading unchanged.
+# Build 76 removes under-bridge colored/neutral veils for day and dark;
+# only the existing GPS lower neon contour remains over CarbonBackdrop.
 light = c.split("private struct GPSLowerGlow: View {", 1)[1].split(
     "// EJ 1.22 — modalità GPS", 1)[0]
-assert "colorScheme == .light ? [" in light
-assert "Color(white: 0.88).opacity(0.10)" in light
-assert "Color(white: 0.92).opacity(0.035)" in light
-assert ".init(color: .clear, location: 0.62)" in light
-assert "Color(white: 0.42).opacity(0.36)" in light
+assert "GPSLowerContour()" in light
+assert "GPSLowerShade()" not in light
+assert "colorScheme == .light ? [" not in light
+assert "Color(white: 0.88).opacity(0.10)" not in light
+assert "Color(white: 0.42).opacity(0.36)" not in light
+assert ".mask(GPSLowerTerminalFade())" in light
 
 # Zero changes to speed sensing or speed-display data flow.
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in g
@@ -81,4 +83,4 @@ assert "let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10" in g
 assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in g
 assert "date.timeIntervalSince(lastValidAt) < 8" in g
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in c
-print("OK — build 48: contour-safe map, subtle daylight kW fade, GPS preserved")
+print("OK — build 48: contour-safe map, plain background below kW bridge, GPS preserved")

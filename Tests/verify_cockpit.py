@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 75;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 76;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -284,8 +284,8 @@ assert 'Link("Meteo · Open-Meteo"' not in c
 assert 'Temperatura meteo esterna stimata' not in c
 assert 'Licenza dati (CC BY 4.0)' in o
 assert 'coordinate geografiche approssimate' in info['NSLocationWhenInUseUsageDescription']
-assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 2
-assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2
+assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 3  # kW duplicate outside GPS mask
+assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 3  # kW duplicate outside GPS mask
 assert 'Text(incomingPower.map { String(format: "%.2f kW"' in c
 assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in c
 assert 'private var ledOrange: Color {' in c and 'CockpitTheme.speedLEDAccent' in c
@@ -390,9 +390,9 @@ assert '.mask(GPSMapTopContourClip())' in c
 assert '.mask(GPSMapLowerContourClip())' in c
 assert 'GPSLowerLineGeometry.points(' in c
 assert 'GPSMapContourSpace.local(points[3], cockpit: cockpit)' in c
-assert 'Color(white: 0.88).opacity(0.10)' in c
-assert 'Color(white: 0.92).opacity(0.035)' in c
-assert '.init(color: .clear, location: 0.62)' in c
+assert 'Color(white: 0.88).opacity(0.10)' not in c  # removed grey veil
+assert 'Color(white: 0.92).opacity(0.035)' not in c
+assert '.init(color: .clear, location: 0.62)' not in c
 expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
 assert 'LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap),' in expanded
 assert expanded.count('telemetryTile("') == 4

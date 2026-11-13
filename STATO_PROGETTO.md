@@ -1,5 +1,14 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 76 — ritaglio completo del tachimetro sotto il ponte kW (13 novembre 2026)
+
+**Richiesta utente:** nella zona inferiore indicata sullo screenshot, sotto la linea del ponte kW non devono comparire cerchio arancione, anello grigio, texture o sagoma circolare del tachimetro. Mantenere invariati profilo e neon del ponte, posizioni/valori/colori delle letture kW, top bar, telemetria, tema day/night, dati GPS e JK BMS. Nessun esempio grafico: correzione ai sorgenti SwiftUI, build **1.0 (76)** e upload TestFlight richiesti.
+
+**Soluzione:** nuovo `GPSBridgeUpperMask` con taglio reale che segue `GPSLowerContour` e si estende orizzontalmente oltre i piedi del ponte, applicato all'intero gruppo GPS (disco, tacche, trama, anello metallico e anello arancione) prima del rendering del ponte kW. I valori di potenza sono estratti nel componente condiviso `CockpitPowerReadings`, disegnato sopra il ponte e fuori dalla maschera, sempre con font, dimensioni e posizione preesistenti; la Home conserva il rendering ordinario. Rimossa la velatura `GPSLowerShade` che ricopriva lo sfondo sotto il ponte: nell'area inferiore rimane solo `CarbonBackdrop`. Non si modifica la geometria del ponte né quella del cerchio sovrastante.
+
+**Stato iniziale:** codice e test preparati per PR build 76, versione Xcode Debug/Release `CURRENT_PROJECT_VERSION = 76`. **Da verificare dopo commit:** regressioni Python (incluso nuovo test di clipping), test protocollo JK/barre, compilazione simulator sulla PR e su `main`, archivio e conferma Apple `Upload succeeded`. Elaborazione App Store Connect, assegnazione gruppo tester **TE** e verifica visiva sull'iPhone restano stati distinti.
+
+
 ## Build 75 — pista metallica sotto top bar e velocità più leggibile (13 novembre 2026)
 
 Richiesta da due screenshot dell'iPhone (dark/day mode). L'anello grigio concentrico del quadrante GPS ha ora **una linea gemella sotto la top bar**, ottenuta dal medesimo percorso dei due fianchi e raccordi, con traslazione verticale uguale alla differenza di raggio tra anello arancione (diametro 0,992 × quadrante) e anello grigio (0,965 × quadrante). Colore a gradiente e spessore metallico sono condivisi con `GPSMetalInnerRing` e adattati a day/night mode; il tracciato grigio è mascherato sul proprio anello, senza invadere il quadrante. Il contorno LED arancione, le sue maschere, l'anello e il ponte kW restano invariati.

@@ -8,7 +8,7 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 75;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 76;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -30,7 +30,7 @@ assert "line.stroke(theme.accent" in horizon
 assert ".stroke(theme.accent" in lower
 assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in horizon
 assert ".mask(GPSLowerTerminalFade())" in lower
-assert "GPSLowerShade()" in lower   # older neutral shaded backdrop unchanged
+assert "GPSLowerShade()" not in lower   # build 76: no under-bridge veil
 assert "GPSOuterProfileReinforcement" not in cockpit
 assert "GPSContourStroke.width(height: h) * 3" not in cockpit
 
