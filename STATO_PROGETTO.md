@@ -1,5 +1,14 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 75 — pista metallica sotto top bar e velocità più leggibile (13 novembre 2026)
+
+Richiesta da due screenshot dell'iPhone (dark/day mode). L'anello grigio concentrico del quadrante GPS ha ora **una linea gemella sotto la top bar**, ottenuta dal medesimo percorso dei due fianchi e raccordi, con traslazione verticale uguale alla differenza di raggio tra anello arancione (diametro 0,992 × quadrante) e anello grigio (0,965 × quadrante). Colore a gradiente e spessore metallico sono condivisi con `GPSMetalInnerRing` e adattati a day/night mode; il tracciato grigio è mascherato sul proprio anello, senza invadere il quadrante. Il contorno LED arancione, le sue maschere, l'anello e il ponte kW restano invariati.
+
+I numeri della velocità GPS in Arial Bold mantengono **il colore selezionato nel tema** ma ricevono due ombre scure inferiori **solo in day mode** per migliorarne il contrasto su fondo chiaro; nessuna nuova ombra in dark mode. Nessuna modifica a GPS, Bluetooth JK, mappa, trip, palette, o dati misurati.
+
+**Sviluppo:** versione prevista `1.0 (75)` in Debug/Release, nuovo test strutturale per profilo grigio e ombre, aggiornati i controlli di versione preesistenti. **Verifiche ancora da effettuare:** test Python e compilazione iOS simulator in CI della PR, integrazione su `main`, effettivo upload Apple e disponibilità TestFlight/gruppo TE. La resa visiva su iPhone va verificata dall'utente.
+
+
 ## Build 74 — compilata e caricata su TestFlight (13 novembre 2026)
 
 Richiesta esplicita dell'utente: **produrre e pubblicare TestFlight 1.0 (74)** dopo i test. Interventi:

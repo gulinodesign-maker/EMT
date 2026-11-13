@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 74;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 75;") == 2
 symmetry = cockpit.split("private enum GPSHorizonSymmetry {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
@@ -31,9 +31,12 @@ assert "GPSMapTopContourClip()" in cockpit
 
 # Metal ring concentric with the orange GPS halo and physically inside it.
 assert ".frame(width: d * 0.965, height: d * 0.965)" in ring
-assert "StrokeStyle(lineWidth: max(1.5, d * 0.0035))" in ring
-assert "Color(white:" in ring
-assert "LinearGradient(stops:" in ring
+assert "StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: d))" in ring
+assert "GPSMetalContourStyle.gradient(for: colorScheme)" in ring
+style = cockpit.split("private enum GPSMetalContourStyle {", 1)[1].split(
+    "private struct GPSMetalInnerRing: View {", 1)[0]
+assert "max(1.5, dialSize * 0.0035)" in style
+assert "Color(white:" in style and "LinearGradient(stops:" in style
 assert "location: 0.80" in ring
 assert "accessibilityHidden(true)" in ring
 assert "GPSMetalInnerRing()" in dashboard
