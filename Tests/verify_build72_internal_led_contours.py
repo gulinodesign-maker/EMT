@@ -3,7 +3,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 74;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 75;") == 2
 
 led = source.split("private enum GPSInnerLED {", 1)[1].split("private enum GPSDialLayout", 1)[0]
 for name in ("haloWidth", "haloBlur", "coreWidth", "coreBlur"):
