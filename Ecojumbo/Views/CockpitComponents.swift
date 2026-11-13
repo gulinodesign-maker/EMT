@@ -1275,6 +1275,14 @@ private enum GPSContourStroke {
     static func width(height h: CGFloat) -> CGFloat { max(1.4, h * 0.003) }
 }
 
+// Build 72: la stessa scala LED stretta sui tre contorni, solo verso l'interno.
+private enum GPSInnerLED {
+    static func haloWidth(_ size: CGFloat) -> CGFloat { max(3, size * 0.012) }
+    static func haloBlur(_ size: CGFloat) -> CGFloat { max(1.2, size * 0.005) }
+    static func coreWidth(_ size: CGFloat) -> CGFloat { max(2.1, size * 0.006) }
+    static func coreBlur(_ size: CGFloat) -> CGFloat { max(0.7, size * 0.002) }
+}
+
 // Build 70: nessuna superficie a sfumatura colorata sopra la top bar o sotto il ponte.
 private enum GPSDialLayout {
     static func size(width: CGFloat, height: CGFloat) -> CGFloat {
@@ -1328,18 +1336,35 @@ private struct GPSGaugeHalo: View {
     var body: some View {
         GeometryReader { geo in
             let d = min(geo.size.width, geo.size.height)
-            Circle()
-                .stroke(theme.accent,
-                        style: StrokeStyle(lineWidth: max(1.8, d * 0.0038)))
-                .frame(width: d * 0.992, height: d * 0.992)
-                .shadow(color: theme.accent.opacity(0.78), radius: d * 0.012)
-                .frame(width: d, height: d)
-                .mask(LinearGradient(stops: [
-                    .init(color: .white, location: 0.0),
-                    .init(color: .white, location: 0.65),
-                    .init(color: .white.opacity(0.65), location: 0.72),
-                    .init(color: .clear, location: 0.80)
-                ], startPoint: .top, endPoint: .bottom))
+            ZStack {
+                // Bagliore interno al cerchio: nessuna ombra che si allarghi fuori.
+                Circle()
+                    .stroke(theme.accent.opacity(0.36),
+                            style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(d)))
+                    .frame(width: d * 0.992, height: d * 0.992)
+                    .blur(radius: GPSInnerLED.haloBlur(d))
+                    .mask(Circle().fill(Color.white)
+                            .frame(width: d * 0.992, height: d * 0.992))
+                Circle()
+                    .stroke(theme.accent.opacity(0.88),
+                            style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d)))
+                    .frame(width: d * 0.992, height: d * 0.992)
+                    .blur(radius: GPSInnerLED.coreBlur(d))
+                    .mask(Circle().fill(Color.white)
+                            .frame(width: d * 0.992, height: d * 0.992))
+                Circle()
+                    .stroke(theme.accent,
+                            style: StrokeStyle(lineWidth: max(1.8, d * 0.0038)))
+                    .frame(width: d * 0.992, height: d * 0.992)
+            }
+            .frame(width: d, height: d)
+            // Dissolvenza inferiore identica alla build 71: il ponte resta libero.
+            .mask(LinearGradient(stops: [
+                .init(color: .white, location: 0.0),
+                .init(color: .white, location: 0.65),
+                .init(color: .white.opacity(0.65), location: 0.72),
+                .init(color: .clear, location: 0.80)
+            ], startPoint: .top, endPoint: .bottom))
         }
         .allowsHitTesting(false)
     }
@@ -1429,6 +1454,16 @@ private struct GPSLowerTerminalFade: View {
     }
 }
 
+// Maschera per confinare il bagliore del ponte verso il testo A/kW.
+private struct GPSLowerInteriorMask: Shape {
+    func path(in rect: CGRect) -> Path {
+        var inside = Path()
+        inside.addRect(rect)
+        inside.addPath(GPSLowerShade().path(in: rect))
+        return inside
+    }
+}
+
 private struct GPSLowerGlow: View {
     @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
@@ -1459,13 +1494,15 @@ private struct GPSLowerGlow: View {
                     // Build 70: contorno mono-colore; nessuna campitura
                     // colorata sotto il ponte kW.
                     GPSLowerContour()
-                        .stroke(theme.accent.opacity(0.30),
-                                style: StrokeStyle(lineWidth: max(4, h * 0.018), lineCap: .round))
-                        .blur(radius: max(3, h * 0.015))
+                        .stroke(theme.accent.opacity(0.36),
+                                style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(h), lineCap: .round))
+                        .blur(radius: GPSInnerLED.haloBlur(h))
+                        .mask(GPSLowerInteriorMask().fill(style: FillStyle(eoFill: true)))
                     GPSLowerContour()
-                        .stroke(theme.accent.opacity(0.79),
-                                style: StrokeStyle(lineWidth: max(2.3, h * 0.006), lineCap: .round))
-                        .blur(radius: max(1.2, h * 0.004))
+                        .stroke(theme.accent.opacity(0.88),
+                                style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(h), lineCap: .round))
+                        .blur(radius: GPSInnerLED.coreBlur(h))
+                        .mask(GPSLowerInteriorMask().fill(style: FillStyle(eoFill: true)))
                     GPSLowerContour()
                         .stroke(theme.accent,
                                 style: StrokeStyle(lineWidth: GPSContourStroke.width(height: h),
@@ -1703,6 +1740,35 @@ private enum GPSHorizonSymmetry {
 
 // Build 71: eliminato il profilo arancione esterno, duplicato sotto la top bar.
 // Resta soltanto GPSHorizonLine con raccordi simmetrici e maschera del quadrante.
+// La top bar illumina soltanto lo spazio interno al cockpit (sotto il bordo).
+// Disegnata con gli stessi raccordi e asse della linea GPS originale.
+private struct GPSTopInteriorMask: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width
+        let h = rect.height
+        let radius = CockpitContourGeometry.cornerRadius(in: rect.size)
+        let corners = GPSHorizonSymmetry.corners(width: w, height: h)
+        var left = CockpitContourGeometry.roundedPath(points: [
+            CGPoint(x: 0, y: h * 0.099),
+            corners.leftKnee,
+            corners.leftContact
+        ], corners: [1], radius: radius)
+        left.addLine(to: CGPoint(x: corners.leftContact.x, y: h))
+        left.addLine(to: CGPoint(x: 0, y: h))
+        left.closeSubpath()
+        var right = CockpitContourGeometry.roundedPath(points: [
+            corners.rightContact,
+            corners.rightKnee,
+            CGPoint(x: w, y: h * 0.099)
+        ], corners: [1], radius: radius)
+        right.addLine(to: CGPoint(x: w, y: h))
+        right.addLine(to: CGPoint(x: corners.rightContact.x, y: h))
+        right.closeSubpath()
+        left.addPath(right)
+        return left
+    }
+}
+
 private struct GPSHorizonLine: View {
     let theme: CockpitTheme
 
@@ -1738,10 +1804,12 @@ private struct GPSHorizonLine: View {
             ZStack {
                 // Build 70: top bar senza fascia colorata a sfumatura.
                 // Contorni luminosi monocromatici, raccordi netti e foro GPS.
-                line.stroke(theme.accent.opacity(0.30), lineWidth: max(5, h * 0.011))
-                    .blur(radius: max(3, h * 0.012))
-                line.stroke(theme.accent.opacity(0.83), lineWidth: max(2.0, h * 0.004))
-                    .blur(radius: max(1, h * 0.004))
+                line.stroke(theme.accent.opacity(0.36), lineWidth: GPSInnerLED.haloWidth(h))
+                    .blur(radius: GPSInnerLED.haloBlur(h))
+                    .mask(GPSTopInteriorMask().fill(Color.white))
+                line.stroke(theme.accent.opacity(0.88), lineWidth: GPSInnerLED.coreWidth(h))
+                    .blur(radius: GPSInnerLED.coreBlur(h))
+                    .mask(GPSTopInteriorMask().fill(Color.white))
                 line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))
             }
             .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))

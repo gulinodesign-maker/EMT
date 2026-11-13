@@ -1,5 +1,10 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 72 — ramo in sviluppo (13 novembre 2026)
+
+Ramo `build-72-internal-led-contours` derivato da `main` 1.0 (71). Lo stesso bagliore LED stretto è confinato sul lato interno della top bar GPS, dell'anello arancione attorno al tachimetro e del ponte sopra i valori A/kW. Restano invariati il tratto principale nitido, i raccordi speculari, la maschera attorno al quadrante, l'anello grigio metallico e le dissolvenze sotto la corona e alle estremità del ponte. Nessun nuovo riempimento sfumato né secondo profilo arancione. La build 72 è una **candidata in sviluppo**; compilazione, merge, upload Apple, elaborazione e distribuzione ai tester devono essere verificati separatamente.
+
+
 > Fonte di continuità per nuove sessioni. Ultima ricostruzione manuale: **12 novembre 2026**. Verificare sempre GitHub prima di utilizzare questi dati: le sezioni descrittive non si aggiornano da sole. Il riquadro CI viene aggiornato automaticamente dal workflow di registrazione. In caso di incoerenza prevalgono sorgenti e risultati GitHub Actions verificati.
 
 ## Identità e obiettivo
