@@ -6,7 +6,7 @@ assert project.count('MARKETING_VERSION = 1.0;') == 2
 assert project.count('CURRENT_PROJECT_VERSION = 73;') == 2
 assert project.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;') == 2
 other=(root/'Ecojumbo/Views/OtherViews.swift').read_text()
-assert 'LabeledContent("Ecojumbo", value: EcojumboBuildStamp.display)' in other
+assert 'Text("Ecojumbo \\(EcojumboBuildStamp.display) · build \\(EcojumboBuildStamp.buildNumber)")' in other
 assert 'CFBundleShortVersionString' in other and 'CFBundleVersion' in other
 assert 'String(format: "%02d", build)' in other
 with (root/'Ecojumbo/Info.plist').open('rb') as f:
