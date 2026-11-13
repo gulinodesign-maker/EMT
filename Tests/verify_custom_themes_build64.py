@@ -9,25 +9,25 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 73;") == 2
-assert "static let colorCount = 18" in tabs
+assert project.count("CURRENT_PROJECT_VERSION = 74;") == 2
+assert "static let colorCount = 19" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 18
-assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 18
+assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 19
+assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 19
 for label in (
     "Sfondo del cockpit", "Colore principale · top bar e icone Setup",
     "Barre telemetria · colore scuro", "Numeri kW · energia in ingresso",
     "Anello esterno · potenza erogata", "Anello interno · recupero energia",
-    "Arco LED · velocità GPS", "Numeri del tachimetro · km/h",
+    "Velocità GPS · fase normale", "Numeri del tachimetro · km/h",
     "Navigatore · svolta a destra", "Navigatore · svolta a sinistra",
-    "Decelerazione GPS · non sensore freno",
+    "Velocità GPS · fase decelerazione",
 ):
     assert f'"{label}"' in labels, label
 
 # Five named groups and long-press on each color; color picker keeps cancel/confirm.
 for group in ("Aspetto generale", "Barre telemetria e potenza",
-              "Anelli e numeri del tachimetro", "Navigatore e decelerazione"):
+              "Anelli e numeri del tachimetro", "Navigatore"):
     assert f'"{group}"' in tabs
 assert "ForEach(group.range, id:" in tabs
 assert "EcoThemePalette.labels[index]" in tabs
@@ -74,12 +74,12 @@ assert "navigation.guidanceDistanceLabel" in cockpit
 
 # A reduction of actual GPS speed is not the brake signal; never claim it is.
 assert ".onChange(of: speed)" in cockpit
-assert "previousSpeed.map" in cockpit
-assert "($0 - current) >= 2.5" in cockpit
-assert "non da un sensore sul freno meccanico" in cockpit
-assert "isDecelerating = false" in cockpit
-assert "now.timeIntervalSince(previousUpdateAt) > 2" in cockpit
-assert "Decelerazione GPS · non sensore freno" in tabs
+assert "GPSSpeedMovement.classify(deltaKmh: current - reference.value)" in cockpit
+assert "if deltaKmh > 5" in cockpit
+assert "if deltaKmh < -5" in cockpit
+assert "speedHistory.removeAll()" in cockpit
+assert "Una variazione GPS non è la lettura di un accelerometro/freno." in cockpit
+assert "Velocità GPS · fase decelerazione" in tabs
 
 # Critical GPS and telemetry measurements and geometry remain unchanged.
 assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in cockpit

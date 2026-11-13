@@ -8,7 +8,7 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 73;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 74;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -18,7 +18,7 @@ assert "GPSLowerAreaGradient" not in cockpit
 assert "GPSAreaGradientStyle" not in cockpit
 assert "contourGradient" not in cockpit
 assert '("Sfumatura top bar e ponte kW", 15..<17)' not in tabs
-assert "static let colorCount = 18" in tabs  # existing saved slots are never erased
+assert "static let colorCount = 19" in tabs  # existing saved slots are never erased
 assert "decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
 

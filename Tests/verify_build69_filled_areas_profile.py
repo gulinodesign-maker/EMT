@@ -7,9 +7,9 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 73;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 74;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
-assert "static let colorCount = 18" in tabs
+assert "static let colorCount = 19" in tabs
 assert "decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
 assert "draft.colors[selected.id] = hex" in tabs

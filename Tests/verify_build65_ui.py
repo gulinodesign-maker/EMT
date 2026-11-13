@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 73;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 74;") == 2
 
 editor = tabs.split("private struct EcoThemeEditorView: View {", 1)[1].split(
     "private struct EcoThemeColorPicker: View {", 1)[0]
@@ -32,7 +32,7 @@ assert ".sheet(item: $colorID)" in editor
 assert "draft.colors[selected.id] = hex" in editor
 assert "onSave(slot, palette)" in editor
 assert "ForEach(1...3, id:" in tabs
-assert "static let colorCount = 18" in tabs
+assert "static let colorCount = 19" in tabs
 assert "decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
 assert "decoded.colors.count == colorCount" in tabs
 
