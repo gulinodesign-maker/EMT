@@ -1,5 +1,16 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 74 — intervento del 13/11/2026 (in sviluppo)
+
+Richiesta esplicita dell'utente: **produrre e pubblicare TestFlight 1.0 (74)** dopo i test. Interventi:
+- Temi, categoria «Velocità oltre soglia»: **4 pulsanti indipendenti** per fase decelerazione (colore preesistente n. 14), fase normale (preesistente n. 10), fase accelerazione (nuovo colore n. 18), e colore oltre il limite (preesistente n. 17). Migrazione degli slot salvati 8/15/17/18→19 colori **senza cambiare i colori già scelti**. Gli indici storici restano preservati, i colori velocità sono riuniti senza duplicazioni negli altri gruppi.
+- Barra velocità: confronto delle misure GPS attuali con il valore iniziale in una **finestra mobile di 4 secondi**; a delta **> +5 km/h** accelerazione, **< -5 km/h** decelerazione, in tolleranza **±5 km/h** fase normale. Reset in assenza di aggiornamenti GPS; **non** si tratta del freno o dell'acceleratore fisico. Quando il limite configurato è attivo, il suo colore ha precedenza.
+- Setup → Barre luminose: aggiunto interruttore persistente per attivare/disattivare **solo l'avviso cromatico oltre limite**, lasciando salvati velocità massima e valore soglia; tre colori di movimento restano attivi anche quando l'avviso è spento.
+- Neon top bar GPS, cerchio arancione GPS e ponte kW: **riferimento esclusivo** all'**arco LED di velocità del tachimetro** (non alle barre BMS/potenza/recupero). Stessi rapporti di larghezza sfocatura 0.034/0.027, nucleo luminoso 0.015, ombra 0.010 e riflesso bianco 0.003. Il bagliore esterno continua a dipendere dal regolatore nel tema. Conservare percorsi e raccordi originali, maschera sul quadrante, anello interno metallico e dissolvenze della corona e del ponte; non introdurre profili duplicati, dati fittizi o campiture colorate.
+- Debug/Release incrementati a 1.0 (74); test e diario da aggiornare. **Non dichiarare** che build, merge, upload o gruppo TE siano riusciti senza relativa verifica.
+
+
+
 ## Build 73 — integrata su main e caricata ad Apple (13 novembre 2026)
 
 - **Luce GPS:** ripristinato un bagliore esterno discretamente visibile sul contorno top bar, corona arancione e ponte kW, con nucleo LED interno immutato. La forza esterna usa `theme.glowIntensity` (0–100%) configurabile nel tema, default 60%; non viene riprodotto il secondo profilo eliminato nella build 71, restano la maschera del quadrante, anello grigio e dissolvenze.

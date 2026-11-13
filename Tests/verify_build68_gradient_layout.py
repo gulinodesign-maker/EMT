@@ -8,11 +8,11 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 73;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 74;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Existing 3 slots retain old shades. Both old 8- and 15-colour palettes migrate.
-assert "static let colorCount = 18" in tabs
+assert "static let colorCount = 19" in tabs
 assert "decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
 assert "decoded.colors.count == colorCount" in tabs
 assert "if migrated.colors.count == 8 {" in tabs
@@ -32,8 +32,8 @@ assert "onSave(slot, palette)" in tabs
 assert "EcoThemePalette.save(palette, slot: slot)" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 18
-assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 18
+assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 19
+assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 19
 
 # Build 70 intentionally retires the extra colored area fills, while
 # preserving the 17 stored palette values for backwards compatibility.

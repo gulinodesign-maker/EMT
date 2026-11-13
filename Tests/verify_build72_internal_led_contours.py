@@ -3,7 +3,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 73;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 74;") == 2
 
 led = source.split("private enum GPSInnerLED {", 1)[1].split("private enum GPSDialLayout", 1)[0]
 for name in ("haloWidth", "haloBlur", "coreWidth", "coreBlur"):
@@ -14,15 +14,19 @@ lower = source.split("private struct GPSLowerGlow: View {", 1)[1].split("// EJ 1
 for section in (top, ring, lower):
     for method in ("haloWidth", "haloBlur", "coreWidth", "coreBlur"):
         assert "GPSInnerLED." + method + "(" in section
-assert top.count(".mask(GPSTopInteriorMask().fill(Color.white))") == 2
+assert "GPSInnerLED.haloWidth(h)" in top
+assert "GPSInnerLED.highlightWidth(h)" in top
+assert "GPSInnerLED.outerOpacity(theme.glowIntensity)" in top
 assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in top
 assert "GPSHorizonSymmetry.corners(width: w, height: h)" in source
-assert ring.count(".mask(Circle().fill(Color.white)") == 2
+assert ring.count("GPSInnerLED.haloWidth(d)") == 1
+assert "GPSInnerLED.highlightWidth(d)" in ring
 assert ".shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity))" in ring
 assert ".frame(width: d * 0.992, height: d * 0.992)" in ring
 for fade in ("location: 0.65", "location: 0.72", "location: 0.80"):
     assert fade in ring
-assert lower.count(".mask(GPSLowerInteriorMask().fill(style: FillStyle(eoFill: true)))") == 2
+assert "GPSInnerLED.haloWidth(h)" in lower
+assert "GPSInnerLED.highlightWidth(h)" in lower
 assert ".mask(GPSLowerTerminalFade())" in lower
 assert "GPSLowerShade()" in lower
 assert "GPSLowerShade().path(in: rect)" in source

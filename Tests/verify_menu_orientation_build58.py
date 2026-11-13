@@ -12,7 +12,7 @@ cells = (root / "Ecojumbo/Views/CellsView.swift").read_text()
 themes = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit_file = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 
-assert pbx.count("CURRENT_PROJECT_VERSION = 73;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 74;") == 2
 assert set(plist["UISupportedInterfaceOrientations"]) == {
     "UIInterfaceOrientationPortrait",
     "UIInterfaceOrientationLandscapeLeft",

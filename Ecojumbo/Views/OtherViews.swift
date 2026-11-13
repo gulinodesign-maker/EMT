@@ -189,6 +189,7 @@ struct EcoSettingsView: View {
     @AppStorage("ecojumbo.bars.averagePowerMaxKW") private var averagePowerMaxKW = 5.0
     @AppStorage("ecojumbo.bars.vehicleSpeedMaxKmh") private var vehicleSpeedMaxKmh = 120.0
     @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
+    @AppStorage("ecojumbo.bars.speedLimitColorEnabled") private var speedLimitColorEnabled = true
     @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
     @AppStorage("ecojumbo.theme") private var themeName = CockpitTheme.copper.rawValue
     @AppStorage("ecojumbo.themeRevision") private var themeRevision = 0
@@ -367,10 +368,14 @@ struct EcoSettingsView: View {
                         value: $averagePowerMaxKW, in: 1...20, step: 1)
                 Stepper("Velocità massima veicolo: \(Int(vehicleSpeedMaxKmh)) km/h",
                         value: $vehicleSpeedMaxKmh, in: 30...240, step: 5)
+                Toggle("Colore speciale oltre il limite", isOn: $speedLimitColorEnabled)
                 Stepper("Cambio colore da: \(Int(speedColorThresholdKmh)) km/h",
                         value: $speedColorThresholdKmh,
                         in: 10...vehicleSpeedMaxKmh, step: 5)
-                Text("Da questa soglia la barra LED della velocità usa il colore oltre soglia scelto nel tema. Non è un limitatore di velocità.")
+                    .disabled(!speedLimitColorEnabled)
+                Text(speedLimitColorEnabled
+                     ? "Al raggiungimento del limite prevale il colore scelto nel tema. È solo un avviso grafico, non un limitatore."
+                     : "Avviso limite spento: la barra usa soltanto i colori normale, accelerazione e decelerazione. Il limite resta memorizzato.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
         case .weather:

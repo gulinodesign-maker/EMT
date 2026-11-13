@@ -210,6 +210,9 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     static var speedLimitAccent: Color {
         Color(themeHex: EcoThemePalette.active?.colors[17] ?? "#FF3B30")
     }
+    static var accelerationAccent: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[18] ?? "#FF3B30")
+    }
     static var speedDigitsAccent: Color {
         Color(themeHex: EcoThemePalette.active?.colors[11] ?? "#FA2B2E")
     }
@@ -956,20 +959,43 @@ private struct SpeedScaleTicks: View {
 /// Stream LED ARANCIONE progressivo: accesa solo quando esiste una misura GPS valida.
 /// L'arco è posto all'interno delle tacche bianche, sotto le due corone segmentate.
 /// Il punto luminoso segue la punta effettiva dell'arco; a 0 km/h resta spento.
+// Fasi determinate dalla sola variazione della velocità GPS reale.
+private enum GPSSpeedMovement {
+    case normal, accelerating, decelerating
+
+    static func classify(deltaKmh: Double) -> Self {
+        guard deltaKmh.isFinite else { return .normal }
+        if deltaKmh > 5 { return .accelerating }
+        if deltaKmh < -5 { return .decelerating }
+        return .normal
+    }
+}
+
+private struct GPSSpeedObservation {
+    let value: Double
+    let time: Date
+}
+
 private struct SpeedLEDStream: View {
     let d: CGFloat
     let speed: Double?
     @AppStorage("ecojumbo.bars.vehicleSpeedMaxKmh") private var vehicleSpeedMaxKmh = 120.0
     @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
-    @State private var previousSpeed: Double?
-    @State private var previousUpdateAt = Date.distantPast
-    @State private var isDecelerating = false
+    @AppStorage("ecojumbo.bars.speedLimitColorEnabled") private var speedLimitColorEnabled = true
+    @State private var speedHistory: [GPSSpeedObservation] = []
+    @State private var lastSpeedUpdate = Date.distantPast
+    @State private var movement: GPSSpeedMovement = .normal
+
     private var ledOrange: Color {
-        if let speed, speed.isFinite,
+        if speedLimitColorEnabled, let speed, speed.isFinite,
            speed >= min(max(30, vehicleSpeedMaxKmh), max(10, speedColorThresholdKmh)) {
             return CockpitTheme.speedLimitAccent
         }
-        return isDecelerating ? CockpitTheme.decelerationAccent : CockpitTheme.speedLEDAccent
+        switch movement {
+        case .accelerating: return CockpitTheme.accelerationAccent
+        case .decelerating: return CockpitTheme.decelerationAccent
+        case .normal: return CockpitTheme.speedLEDAccent
+        }
     }
 
     private var progress: Double? {
@@ -987,16 +1013,16 @@ private struct SpeedLEDStream: View {
             if let progress, progress > 0 {
                 GaugeArc(start: 146, end: 394, fraction: progress)
                     .stroke(ledOrange.opacity(0.80),
-                            style: StrokeStyle(lineWidth: d * 0.034, lineCap: .round))
-                    .blur(radius: d * 0.027)
+                            style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(d), lineCap: .round))
+                    .blur(radius: GPSInnerLED.haloBlur(d))
                     .frame(width: d * 0.722, height: d * 0.722)
                 GaugeArc(start: 146, end: 394, fraction: progress)
-                    .stroke(ledOrange, style: StrokeStyle(lineWidth: d * 0.015, lineCap: .round))
-                    .shadow(color: ledOrange.opacity(0.94), radius: d * 0.010)
+                    .stroke(ledOrange, style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d), lineCap: .round))
+                    .shadow(color: ledOrange.opacity(0.94), radius: GPSInnerLED.outerBlur(d))
                     .frame(width: d * 0.722, height: d * 0.722)
                 GaugeArc(start: 146, end: 394, fraction: progress)
                     .stroke(Color.white.opacity(0.65),
-                            style: StrokeStyle(lineWidth: d * 0.003, lineCap: .round))
+                            style: StrokeStyle(lineWidth: GPSInnerLED.highlightWidth(d), lineCap: .round))
                     .frame(width: d * 0.722, height: d * 0.722)
                 let angle = (146 + 248 * progress) * Double.pi / 180
                 let radius = d * 0.361
@@ -1014,24 +1040,33 @@ private struct SpeedLEDStream: View {
         .animation(.easeInOut(duration: 0.38), value: progress)
         .onChange(of: speed) { _, current in
             let now = Date()
-            guard let current, current.isFinite else {
-                isDecelerating = false
-                previousSpeed = nil
-                previousUpdateAt = .distantPast
+            guard let current, current.isFinite, current >= 0 else {
+                speedHistory.removeAll()
+                movement = .normal
+                lastSpeedUpdate = .distantPast
                 return
             }
-            let age = now.timeIntervalSince(previousUpdateAt)
-            isDecelerating = previousSpeed.map {
-                age >= 0.2 && age <= 5 && ($0 - current) >= 2.5
-            } ?? false
-            previousSpeed = current
-            previousUpdateAt = now
+            // Finestra GPS mobile di 4 secondi: cambio fase solo per una variazione
+            // rigorosamente > 5 km/h. Oscillazioni fino a ±5 restano normali.
+            if now.timeIntervalSince(lastSpeedUpdate) > 5 {
+                speedHistory.removeAll()
+            }
+            speedHistory.removeAll { now.timeIntervalSince($0.time) > 4 }
+            speedHistory.append(GPSSpeedObservation(value: current, time: now))
+            if let reference = speedHistory.first,
+               now.timeIntervalSince(reference.time) >= 0.2 {
+                movement = GPSSpeedMovement.classify(deltaKmh: current - reference.value)
+            } else {
+                movement = .normal
+            }
+            lastSpeedUpdate = now
         }
         .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { now in
-            // Una riduzione GPS non significa freno azionato: il colore dura
-            // soltanto durante il calo osservato, non resta acceso a velocità fissa.
-            if isDecelerating && now.timeIntervalSince(previousUpdateAt) > 2 {
-                isDecelerating = false
+            // Una variazione GPS non è la lettura di un accelerometro/freno.
+            // Senza aggiornamenti recenti si torna al colore normale.
+            if now.timeIntervalSince(lastSpeedUpdate) > 4 {
+                movement = .normal
+                speedHistory.removeAll()
             }
         }
         .accessibilityLabel(progress.map {
@@ -1290,13 +1325,16 @@ private enum GPSContourStroke {
 
 // Build 72: la stessa scala LED stretta sui tre contorni, solo verso l'interno.
 private enum GPSInnerLED {
-    static func haloWidth(_ size: CGFloat) -> CGFloat { max(3, size * 0.012) }
-    static func haloBlur(_ size: CGFloat) -> CGFloat { max(1.2, size * 0.005) }
-    static func coreWidth(_ size: CGFloat) -> CGFloat { max(2.1, size * 0.006) }
-    static func coreBlur(_ size: CGFloat) -> CGFloat { max(0.7, size * 0.002) }
-    static func outerBlur(_ size: CGFloat) -> CGFloat { max(2.5, size * 0.010) }
+    // Stesse proporzioni dell'arco SpeedLEDStream: 0.034, 0.027,
+    // 0.015, 0.010, riflesso bianco 0.003 (non le barre BMS).
+    static func haloWidth(_ size: CGFloat) -> CGFloat { size * 0.034 }
+    static func haloBlur(_ size: CGFloat) -> CGFloat { size * 0.027 }
+    static func coreWidth(_ size: CGFloat) -> CGFloat { size * 0.015 }
+    static func coreBlur(_ size: CGFloat) -> CGFloat { max(0.5, size * 0.002) }
+    static func highlightWidth(_ size: CGFloat) -> CGFloat { size * 0.003 }
+    static func outerBlur(_ size: CGFloat) -> CGFloat { size * 0.010 }
     static func outerOpacity(_ intensity: Double) -> Double {
-        min(1, max(0, intensity)) * 0.78
+        min(1, max(0, intensity)) * 0.94
     }
 }
 
@@ -1354,27 +1392,28 @@ private struct GPSGaugeHalo: View {
         GeometryReader { geo in
             let d = min(geo.size.width, geo.size.height)
             ZStack {
-                // Bagliore interno al cerchio: nessuna ombra che si allarghi fuori.
+                // Stesso neon dell'arco velocità, non delle corone di recupero:
+                // halo 0.034/0.027, core 0.015/ombra 0.010, luce bianca 0.003.
                 Circle()
-                    .stroke(theme.accent.opacity(0.36),
+                    .stroke(theme.accent.opacity(0.80 * theme.glowIntensity),
                             style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(d)))
                     .frame(width: d * 0.992, height: d * 0.992)
                     .blur(radius: GPSInnerLED.haloBlur(d))
-                    .mask(Circle().fill(Color.white)
-                            .frame(width: d * 0.992, height: d * 0.992))
                 Circle()
-                    .stroke(theme.accent.opacity(0.88),
+                    .stroke(theme.accent.opacity(0.96),
                             style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d)))
                     .frame(width: d * 0.992, height: d * 0.992)
                     .blur(radius: GPSInnerLED.coreBlur(d))
-                    .mask(Circle().fill(Color.white)
-                            .frame(width: d * 0.992, height: d * 0.992))
+                    .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
+                            radius: GPSInnerLED.outerBlur(d))
                 Circle()
                     .stroke(theme.accent,
                             style: StrokeStyle(lineWidth: max(1.8, d * 0.0038)))
                     .frame(width: d * 0.992, height: d * 0.992)
-                    .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
-                            radius: GPSInnerLED.outerBlur(d))
+                Circle()
+                    .stroke(Color.white.opacity(0.65),
+                            style: StrokeStyle(lineWidth: GPSInnerLED.highlightWidth(d)))
+                    .frame(width: d * 0.992, height: d * 0.992)
             }
             .frame(width: d, height: d)
             // Dissolvenza inferiore identica alla build 71: il ponte resta libero.
@@ -1513,21 +1552,22 @@ private struct GPSLowerGlow: View {
                     // Build 70: contorno mono-colore; nessuna campitura
                     // colorata sotto il ponte kW.
                     GPSLowerContour()
-                        .stroke(theme.accent.opacity(0.36),
+                        .stroke(theme.accent.opacity(0.80 * theme.glowIntensity),
                                 style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(h), lineCap: .round))
                         .blur(radius: GPSInnerLED.haloBlur(h))
-                        .mask(GPSLowerInteriorMask().fill(style: FillStyle(eoFill: true)))
                     GPSLowerContour()
-                        .stroke(theme.accent.opacity(0.88),
+                        .stroke(theme.accent.opacity(0.96),
                                 style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(h), lineCap: .round))
                         .blur(radius: GPSInnerLED.coreBlur(h))
-                        .mask(GPSLowerInteriorMask().fill(style: FillStyle(eoFill: true)))
+                        .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
+                                radius: GPSInnerLED.outerBlur(h))
                     GPSLowerContour()
                         .stroke(theme.accent,
                                 style: StrokeStyle(lineWidth: GPSContourStroke.width(height: h),
                                                    lineCap: .round))
-                        .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
-                                radius: GPSInnerLED.outerBlur(h))
+                    GPSLowerContour()
+                        .stroke(Color.white.opacity(0.65),
+                                style: StrokeStyle(lineWidth: GPSInnerLED.highlightWidth(h), lineCap: .round))
                 }
                 .mask(GPSLowerTerminalFade())
             }
@@ -1825,15 +1865,15 @@ private struct GPSHorizonLine: View {
             ZStack {
                 // Build 70: top bar senza fascia colorata a sfumatura.
                 // Contorni luminosi monocromatici, raccordi netti e foro GPS.
-                line.stroke(theme.accent.opacity(0.36), lineWidth: GPSInnerLED.haloWidth(h))
+                line.stroke(theme.accent.opacity(0.80 * theme.glowIntensity),
+                            lineWidth: GPSInnerLED.haloWidth(h))
                     .blur(radius: GPSInnerLED.haloBlur(h))
-                    .mask(GPSTopInteriorMask().fill(Color.white))
-                line.stroke(theme.accent.opacity(0.88), lineWidth: GPSInnerLED.coreWidth(h))
+                line.stroke(theme.accent.opacity(0.96), lineWidth: GPSInnerLED.coreWidth(h))
                     .blur(radius: GPSInnerLED.coreBlur(h))
-                    .mask(GPSTopInteriorMask().fill(Color.white))
-                line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))
                     .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
                             radius: GPSInnerLED.outerBlur(h))
+                line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))
+                line.stroke(Color.white.opacity(0.65), lineWidth: GPSInnerLED.highlightWidth(h))
             }
             .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
             // I raccordi GPS terminano netti al bordo del quadrante:
