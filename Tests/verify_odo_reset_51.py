@@ -7,7 +7,7 @@ source=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 75;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 76;") == 2
 dashboard=source.split("struct GPSCockpitDashboard: View {",1)[1].split(
     "private struct GPSHorizonLine: View {",1)[0]
 speed=source.split("private struct OpenSpeedCluster: View {",1)[1].split(
