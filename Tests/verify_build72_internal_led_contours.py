@@ -3,7 +3,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 72;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 73;") == 2
 
 led = source.split("private enum GPSInnerLED {", 1)[1].split("private enum GPSDialLayout", 1)[0]
 for name in ("haloWidth", "haloBlur", "coreWidth", "coreBlur"):
@@ -18,7 +18,7 @@ assert top.count(".mask(GPSTopInteriorMask().fill(Color.white))") == 2
 assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in top
 assert "GPSHorizonSymmetry.corners(width: w, height: h)" in source
 assert ring.count(".mask(Circle().fill(Color.white)") == 2
-assert ".shadow(color: theme.accent" not in ring
+assert ".shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity))" in ring
 assert ".frame(width: d * 0.992, height: d * 0.992)" in ring
 for fade in ("location: 0.65", "location: 0.72", "location: 0.80"):
     assert fade in ring
