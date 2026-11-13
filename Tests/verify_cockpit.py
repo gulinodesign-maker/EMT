@@ -284,8 +284,8 @@ assert 'Link("Meteo · Open-Meteo"' not in c
 assert 'Temperatura meteo esterna stimata' not in c
 assert 'Licenza dati (CC BY 4.0)' in o
 assert 'coordinate geografiche approssimate' in info['NSLocationWhenInUseUsageDescription']
-assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 3  # build 76: GPS labels separately over clipped dial
-assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 3  # build 76: GPS labels separately over clipped dial
+assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 2
+assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2
 assert 'Text(incomingPower.map { String(format: "%.2f kW"' in c
 assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in c
 assert 'private var ledOrange: Color {' in c and 'CockpitTheme.speedLEDAccent' in c
@@ -390,11 +390,9 @@ assert '.mask(GPSMapTopContourClip())' in c
 assert '.mask(GPSMapLowerContourClip())' in c
 assert 'GPSLowerLineGeometry.points(' in c
 assert 'GPSMapContourSpace.local(points[3], cockpit: cockpit)' in c
-# Build 76: the below-bridge neutral veil has been removed intentionally.
-assert 'GPSBridgeUpperMask()' in c
-assert 'Color(white: 0.88).opacity(0.10)' not in c
-assert 'Color(white: 0.92).opacity(0.035)' not in c
-assert '.init(color: .clear, location: 0.62)' not in c
+assert 'Color(white: 0.88).opacity(0.10)' in c
+assert 'Color(white: 0.92).opacity(0.035)' in c
+assert '.init(color: .clear, location: 0.62)' in c
 expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
 assert 'LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap),' in expanded
 assert expanded.count('telemetryTile("') == 4
