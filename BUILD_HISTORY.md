@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43393862407:ATTEMPT:1 -->
+### 2026-11-13T08:31:20Z — CI #181 · build-72-internal-led-contours · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43393862407](https://github.com/gulinodesign-maker/EMT/actions/runs/43393862407); avvio 2026-11-13T08:31:20Z UTC; aggiornamento finale 2026-11-13T08:33:35Z UTC; registrazione 2026-11-13T08:33:44+00:00 UTC; evento pull_request.
+- **Commit:** [d07afa3179e2](https://github.com/gulinodesign-maker/EMT/commit/d07afa3179e2e7c5117e21c1a2a036e76cac7495); versione **1.0**; build **72**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_map_alignment_odo_keyboard52.py, Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:43309759041:ATTEMPT:1 -->
 ### 2026-11-12T21:23:18Z — CI #180 · main · tentativo 1
 
