@@ -181,7 +181,8 @@ for tag in ['case copper = "Rame"','case glacier = "Ghiaccio"','case green = "Ve
 assert 'LazyVGrid(columns: portrait ? portraitColumns : landscapeColumns, spacing: 13)' in t
 assert 'Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)' in t
 assert 'ForEach(CockpitTheme.allCases.filter { $0.slotIndex == nil })' in t
-assert 'Scale delle barre luminose' in o and 'Nessuna barra nelle tre schede chilometriche' in o
+assert 'Scale delle barre luminose' in o and 'Le scale delle barre sono solo grafiche' in o
+assert 'Velocità massima veicolo:' in o and 'Cambio colore da:' in o
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 # Nuovo dock GPS 7 a destra; classico 4+3 invariato.
 assert 'if mapEnabled && selected == .gps {' in u
