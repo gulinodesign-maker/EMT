@@ -28,6 +28,10 @@ Ramo `build-72-internal-led-contours` derivato da `main` 1.0 (71). Lo stesso bag
 
 Cockpit tachimetro GPS, mappe Apple MapKit e itinerari, indicazioni svolta, profilo altimetrico/dislivello, trip e odometro, reset controllato, telemetria SOC/tensione/potenza/autonomia derivata da misure JK BMS, cronologia consumi, stili di cockpit con 15 colori modificabili e tre slot, temi day/night, diagnostica GPS, meteo esterno da Open-Meteo e indicatore batteria iPhone da `UIDevice`. Quando una misura non è valida/non disponibile viene mostrato un trattino, non un valore inventato. **Presenza nel sorgente ≠ verifica manuale su dispositivo.**
 
+## Direttiva permanente di rilascio (utente, 13/11/2026)
+
+**Ogni nuova build Ecojumbo completata e verificata deve essere caricata su TestFlight**, non fermata a branch, PR o compilazione. Eseguire test PR e compilazione simulatore, unire la PR su `main`, verificare CI di `main` e seguire il workflow `Pubblica Ecojumbo su TestFlight` fino a esito effettivo di upload Apple. La direttiva vale per le future modifiche richieste dall'utente e non richiede una domanda separata sul rilascio, salvo sue istruzioni differenti. Non dichiarare l'upload riuscito se è ancora in corso o fallito; documentare tutti i blocchi. L'elaborazione App Store Connect e l'assegnazione al gruppo tester **TE** restano passaggi Apple distinti, da verificare e non inventare. Non generare nuove build soltanto per ripetere un caricamento già riuscito.
+
 ## Decisioni e motivazioni (da preservare)
 
 1. Niente valori GPS/BMS/meteo simulati: la telemetria presenta solo sorgenti realmente disponibili, per evitare decisioni basate su stime fittizie.
