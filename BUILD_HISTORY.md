@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43419845447:ATTEMPT:1 -->
+### 2026-11-13T11:47:25Z — CI #187 · build-74-speed-phases-neon-testflight · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43419845447](https://github.com/gulinodesign-maker/EMT/actions/runs/43419845447); avvio 2026-11-13T11:47:25Z UTC; aggiornamento finale 2026-11-13T11:51:15Z UTC; registrazione 2026-11-13T11:51:25+00:00 UTC; evento pull_request.
+- **Commit:** [b85d2ba5a609](https://github.com/gulinodesign-maker/EMT/commit/b85d2ba5a60948cb14bcf08a5cb5e24c71f3f454); versione **1.0**; build **74**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build60_setup_navigation.py, Tests/verify_build61_setup_grid.py, Tests/verify_build66_symmetry_ring.py, Tests/verify_build67_user_fixes.py, Tests/verify_build74_speed_phases_neon.py, Tests/verify_map_alignment_odo_keyboard52.py, Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:43412198661:ATTEMPT:1 -->
 ### 2026-11-13T10:50:22Z — CI #186 · main · tentativo 1
 
