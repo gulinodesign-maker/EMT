@@ -4,7 +4,7 @@ root=Path(__file__).resolve().parents[1]
 c=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 g=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 p=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 74;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 75;") == 2
 speed=c.split("private struct OpenSpeedCluster: View {",1)[1].split(
     "// Calcola la posizione più a sinistra possibile",1)[0]
 speed_number=speed.split("Text(String(Int(speed.rounded())))",1)[1].split(

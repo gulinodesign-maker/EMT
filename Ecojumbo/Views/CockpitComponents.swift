@@ -1238,7 +1238,7 @@ private struct OpenSpeedCluster: View {
                     }
                 }
 
-                // Cifre velocità rosse in Arial Bold, senza contorno o ombre.
+                // Cifre GPS Arial Bold, con ombra inferiore per il contrasto in day mode.
                 Group {
                     if let speed {
                         Text(String(Int(speed.rounded())))
@@ -1247,6 +1247,12 @@ private struct OpenSpeedCluster: View {
                             .font(.custom("Arial-BoldMT", size: d * 0.275))
                             .monospacedDigit()
                             .foregroundStyle(CockpitTheme.speedDigitsAccent)
+                            // Il colore del tema resta invariato: ombre applicate solo alle
+                            // cifre, non al loro frame, e disattivate in dark mode.
+                            .shadow(color: colorScheme == .light ? .black.opacity(0.58) : .clear,
+                                    radius: d * 0.008, x: 0, y: d * 0.007)
+                            .shadow(color: colorScheme == .light ? .black.opacity(0.34) : .clear,
+                                    radius: d * 0.015, x: 0, y: d * 0.012)
                             .lineLimit(1)
                             .minimumScaleFactor(0.65)
                             .frame(width: d * 0.60, height: d * 0.285)
@@ -1353,6 +1359,31 @@ private enum GPSDialLayout {
 // scompare progressivamente prima dei raccordi A/kW: nessun incrocio.
 // Build 66: anello grigio metallico, concentrico e più piccolo dell'arancio.
 // La sfumatura inferiore lo fa terminare prima della sezione kW.
+// Build 75: identici colore, spessore e scostamento tra il metallo del
+// cerchio GPS e la linea secondaria sotto la top bar.
+private enum GPSMetalContourStyle {
+    static func gradient(for colorScheme: ColorScheme) -> LinearGradient {
+        LinearGradient(stops: [
+            .init(color: Color(white: colorScheme == .light ? 0.40 : 0.89),
+                  location: 0),
+            .init(color: Color(white: colorScheme == .light ? 0.51 : 0.73),
+                  location: 0.42),
+            .init(color: Color(white: colorScheme == .light ? 0.58 : 0.55),
+                  location: 0.72),
+            .init(color: Color(white: 0.40), location: 1)
+        ], startPoint: .top, endPoint: .bottom)
+    }
+
+    static func strokeWidth(for dialSize: CGFloat) -> CGFloat {
+        max(1.5, dialSize * 0.0035)
+    }
+
+    static func inset(for dialSize: CGFloat) -> CGFloat {
+        // I diametri del neon arancio e del cerchio metallico sono 0.992 e 0.965.
+        dialSize * (0.992 - 0.965) / 2
+    }
+}
+
 private struct GPSMetalInnerRing: View {
     @Environment(\.colorScheme) private var colorScheme
 
@@ -1360,18 +1391,8 @@ private struct GPSMetalInnerRing: View {
         GeometryReader { geo in
             let d = min(geo.size.width, geo.size.height)
             Circle()
-                .stroke(
-                    LinearGradient(stops: [
-                        .init(color: Color(white: colorScheme == .light ? 0.40 : 0.89),
-                              location: 0),
-                        .init(color: Color(white: colorScheme == .light ? 0.51 : 0.73),
-                              location: 0.42),
-                        .init(color: Color(white: colorScheme == .light ? 0.58 : 0.55),
-                              location: 0.72),
-                        .init(color: Color(white: 0.40), location: 1)
-                    ], startPoint: .top, endPoint: .bottom),
-                    style: StrokeStyle(lineWidth: max(1.5, d * 0.0035))
-                )
+                .stroke(GPSMetalContourStyle.gradient(for: colorScheme),
+                        style: StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: d)))
                 .frame(width: d * 0.965, height: d * 0.965)
                 .frame(width: d, height: d)
                 .mask(LinearGradient(stops: [
@@ -1831,6 +1852,7 @@ private struct GPSTopInteriorMask: Shape {
 }
 
 private struct GPSHorizonLine: View {
+    @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
 
     var body: some View {
@@ -1855,6 +1877,19 @@ private struct GPSHorizonLine: View {
             }
             let dialSize = GPSDialLayout.size(width: w, height: h)
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
+            // Il profilo grigio è una COPIA del percorso originale, traslata
+            // verso il basso dell'esatta distanza tra cerchio arancio e grigio.
+            let metalLine = line.applying(CGAffineTransform(
+                translationX: 0, y: GPSMetalContourStyle.inset(for: dialSize)))
+            let metalRadius = dialSize * 0.965 / 2
+                + GPSMetalContourStyle.strokeWidth(for: dialSize) / 2
+            let visibleOutsideMetalRing = Path { p in
+                p.addRect(CGRect(x: 0, y: 0, width: w, height: h))
+                p.addEllipse(in: CGRect(x: dialCenterX - metalRadius,
+                                        y: h * 0.494 - metalRadius,
+                                        width: metalRadius * 2,
+                                        height: metalRadius * 2))
+            }
             let visibleOutsideRing = Path { p in
                 p.addRect(CGRect(x: 0, y: 0, width: w, height: h))
                 p.addEllipse(in: CGRect(x: dialCenterX - dialSize * 0.508,
@@ -1863,19 +1898,25 @@ private struct GPSHorizonLine: View {
                                         height: dialSize * 1.016))
             }
             ZStack {
-                // Build 70: top bar senza fascia colorata a sfumatura.
-                // Contorni luminosi monocromatici, raccordi netti e foro GPS.
-                line.stroke(theme.accent.opacity(0.80 * theme.glowIntensity),
-                            lineWidth: GPSInnerLED.haloWidth(h))
-                    .blur(radius: GPSInnerLED.haloBlur(h))
-                line.stroke(theme.accent.opacity(0.96), lineWidth: GPSInnerLED.coreWidth(h))
-                    .blur(radius: GPSInnerLED.coreBlur(h))
-                    .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
-                            radius: GPSInnerLED.outerBlur(h))
-                line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))
-                line.stroke(Color.white.opacity(0.65), lineWidth: GPSInnerLED.highlightWidth(h))
+                // Seconda pista grigia senza neon, parallela alla top bar.
+                // Termina al cerchio grigio, anziché attraversare il quadrante.
+                metalLine.stroke(GPSMetalContourStyle.gradient(for: colorScheme),
+                                 style: StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: dialSize)))
+                    .mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))
+                ZStack {
+                    // Contorno arancione originale, invariato (un solo profilo LED).
+                    line.stroke(theme.accent.opacity(0.80 * theme.glowIntensity),
+                                lineWidth: GPSInnerLED.haloWidth(h))
+                        .blur(radius: GPSInnerLED.haloBlur(h))
+                    line.stroke(theme.accent.opacity(0.96), lineWidth: GPSInnerLED.coreWidth(h))
+                        .blur(radius: GPSInnerLED.coreBlur(h))
+                        .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
+                                radius: GPSInnerLED.outerBlur(h))
+                    line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))
+                    line.stroke(Color.white.opacity(0.65), lineWidth: GPSInnerLED.highlightWidth(h))
+                }
+                .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
             }
-            .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
             // I raccordi GPS terminano netti al bordo del quadrante:
             // nessuna dissolvenza radiale nei due punti di contatto.
         }

@@ -7,7 +7,7 @@ cockpit=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 settings=(root/"Ecojumbo/Views/OtherViews.swift").read_text()
 gps=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 74;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 75;") == 2
 
 dashboard=cockpit.split("struct GPSCockpitDashboard: View {",1)[1].split(
     "private struct GPSTripResetControl: View {",1)[0]
