@@ -272,7 +272,8 @@ final class EcoNavigationStore: ObservableObject {
 // EcoNavigationStore resta condiviso e mantiene la rotta quando si cambia modalità.
 
 
-// Build 69: 17 colori; gli ultimi due governano il RIEMPIMENTO delle due aree, non le linee GPS.
+// Build 74: ruoli esistenti 10 (normale), 14 (decelerazione), 17 (limite); 18 (accelerazione).
+// I valori 15 e 16 rimangono riservati e salvati per compatibilità.
 struct EcoThemePalette: Codable, Equatable {
     var name: String
     var colors: [String]
@@ -314,14 +315,15 @@ struct EcoThemePalette: Codable, Equatable {
         "Numeri kW · energia in ingresso",
         "Anello esterno · potenza erogata",
         "Anello interno · recupero energia",
-        "Arco LED · velocità GPS",
+        "Velocità GPS · fase normale",
         "Numeri del tachimetro · km/h",
         "Navigatore · svolta a destra",
         "Navigatore · svolta a sinistra",
-        "Decelerazione GPS · non sensore freno",
+        "Velocità GPS · fase decelerazione",
         "Top bar + ponte kW · sfumatura sinistra",
         "Top bar + ponte kW · sfumatura destra",
-        "Velocità · colore oltre soglia"
+        "Velocità GPS · limite superato",
+        "Velocità GPS · fase accelerazione"
     ]
     static let details = [
         "Fondo scuro dietro gli strumenti.",
@@ -334,25 +336,27 @@ struct EcoThemePalette: Codable, Equatable {
         "Numero della potenza che entra nella batteria (kW); non dimostra da sola che si sta frenando.",
         "Corona segmentata esterna: potenza in uscita dal BMS.",
         "Corona segmentata interna: energia in ingresso alla batteria, da carica o recupero.",
-        "Arco progressivo della velocità GPS, normalmente illuminato con questo colore.",
+        "Colore normale dell’arco GPS quando la variazione resta entro ±5 km/h.",
         "Cifre grandi della velocità GPS al centro.",
         "Freccia e distanza della prossima svolta verso destra.",
         "Freccia e distanza della prossima svolta verso sinistra.",
-        "Arco GPS quando la velocità sta diminuendo: non è una misura del freno fisico.",
+        "Colore dell’arco GPS quando la velocità cala di oltre 5 km/h nella finestra di osservazione; non indica il freno fisico.",
         "Colore a sinistra del RIEMPIMENTO tra bordo alto e linea top bar e dell'area sotto il ponte kW; non cambia i contorni luminosi.",
         "Colore a destra degli stessi RIEMPIMENTI; al centro la sfumatura usa il colore principale del tema.",
-        "Colore della barra luminosa del tachimetro quando la velocità GPS raggiunge la soglia impostata in Barre luminose."
+        "Colore della barra LED quando la velocità GPS raggiunge il limite attivato in Barre luminose.",
+        "Colore dell’arco GPS quando la velocità aumenta di oltre 5 km/h nella finestra di osservazione."
     ]
-    static let groups: [(title: String, range: Range<Int>)] = [
-        ("Aspetto generale", 0..<4),
-        ("Barre telemetria e potenza", 4..<8),
-        ("Anelli e numeri del tachimetro", 8..<12),
-        ("Navigatore e decelerazione", 12..<15),
-        ("Velocità oltre soglia", 17..<18)
-        // Build 70: i ruoli 15/16 rimangono salvati per compatibilità,
-        // ma non sono esposti perché le sfumature non vengono applicate.
+    // L'ordine visibile colloca le quattro fasi GPS in un'unica categoria,
+    // senza duplicare il colore normale (indice 10) né il colore di decelerazione (14).
+    static let groups: [(title: String, range: [Int])] = [
+        ("Aspetto generale", Array(0..<4)),
+        ("Barre telemetria e potenza", Array(4..<8)),
+        ("Anelli e numeri del tachimetro", [8, 9, 11]),
+        ("Navigatore", [12, 13]),
+        ("Velocità oltre soglia", [14, 10, 18, 17])
+        // I ruoli 15/16 rimangono salvati e non vengono mostrati.
     ]
-    static let colorCount = 18
+    static let colorCount = 19
     static let extraDefaults = [
         "#FA2B2E", "#2BBAFF", "#FF7008", "#FA2B2E",
         "#FFFFFF", "#FFFFFF", "#FFB224"
@@ -378,7 +382,7 @@ struct EcoThemePalette: Codable, Equatable {
         return EcoThemePalette(
             name: "Il mio tema",
             colors: ["#040405", foreground.0, foreground.1, "#D9DEE3"]
-                + standardBarColors + extraDefaults + [foreground.1, foreground.1, "#FF3B30"]
+                + standardBarColors + extraDefaults + [foreground.1, foreground.1, "#FF3B30", "#FF3B30"]
         )
     }
 
@@ -387,7 +391,8 @@ struct EcoThemePalette: Codable, Equatable {
               let data = UserDefaults.standard.data(forKey: storagePrefix + String(slot)),
               let decoded = try? JSONDecoder().decode(EcoThemePalette.self, from: data),
               (decoded.colors.count == 8 || decoded.colors.count == 15 ||
-               decoded.colors.count == 17 || decoded.colors.count == colorCount),
+               decoded.colors.count == 17 || decoded.colors.count == 18 ||
+               decoded.colors.count == colorCount),
               decoded.colors.allSatisfy({ validHex($0) }) else { return nil }
         // Migrazione non distruttiva: gli 8 colori delle build 63 restano identici.
         var migrated = decoded
@@ -403,6 +408,11 @@ struct EcoThemePalette: Codable, Equatable {
         }
         // 8→15→17→18 oppure 15→17→18 o 17→18 senza perdere i vecchi colori.
         if migrated.colors.count == 17 {
+            migrated.colors.append("#FF3B30")
+        }
+        // Build 73: il colore oltre soglia 17 resta invariato, si aggiunge
+        // soltanto la fase di accelerazione per arrivare a 19 ruoli.
+        if migrated.colors.count == 18 {
             migrated.colors.append("#FF3B30")
         }
         return migrated
@@ -736,8 +746,8 @@ private struct EcoThemeEditorView: View {
                         colorID = EcoThemeColorID(id: index)
                     })
 
-                    // Le categorie sono una griglia a due colonne; la quinta
-                    // espone i due estremi editabili della sfumatura condivisa.
+                    // Categoria velocità: quattro controlli distinti (fasi + limite).
+                    // Gli slot storici e la griglia delle categorie non cambiano.
                     if let selectedGroup {
                         let group = EcoThemePalette.groups[selectedGroup]
                         Button {
@@ -860,15 +870,14 @@ private struct EcoThemeEditorView: View {
     }
 
 
-    // La quinta categoria permette di modificare entrambe le estremità
-    // della sfumatura e le conserva negli stessi tre slot storici.
+    // La quinta categoria presenta le quattro fasi luminose della velocità.
     private func categorySymbol(_ index: Int) -> String {
         switch index {
         case 0: "paintpalette"
         case 1: "chart.bar.fill"
         case 2: "speedometer"
         case 3: "arrow.triangle.turn.up.right.diamond"
-        default: "paintbrush.pointed"
+        default: "speedometer"
         }
     }
 
