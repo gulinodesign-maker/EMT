@@ -180,6 +180,9 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     }
     var shadowAccent: Color { secondary.opacity(0.68) }
 
+    // Il bagliore è proprietà del tema salvato, non una preferenza globale.
+    var glowIntensity: Double { savedPalette?.glowIntensity ?? 0.60 }
+
     // I ruoli 15/16 restano nei dati salvati, ma non sono applicati nel cockpit 70.
     // Barre e recupero energia usano la palette attiva, non soltanto la preview.
     static var barDark: Color {
@@ -203,6 +206,9 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     }
     static var speedLEDAccent: Color {
         Color(themeHex: EcoThemePalette.active?.colors[10] ?? "#FF7008")
+    }
+    static var speedLimitAccent: Color {
+        Color(themeHex: EcoThemePalette.active?.colors[17] ?? "#FF3B30")
     }
     static var speedDigitsAccent: Color {
         Color(themeHex: EcoThemePalette.active?.colors[11] ?? "#FA2B2E")
@@ -953,16 +959,22 @@ private struct SpeedScaleTicks: View {
 private struct SpeedLEDStream: View {
     let d: CGFloat
     let speed: Double?
+    @AppStorage("ecojumbo.bars.vehicleSpeedMaxKmh") private var vehicleSpeedMaxKmh = 120.0
+    @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
     @State private var previousSpeed: Double?
     @State private var previousUpdateAt = Date.distantPast
     @State private var isDecelerating = false
     private var ledOrange: Color {
-        isDecelerating ? CockpitTheme.decelerationAccent : CockpitTheme.speedLEDAccent
+        if let speed, speed.isFinite,
+           speed >= min(max(30, vehicleSpeedMaxKmh), max(10, speedColorThresholdKmh)) {
+            return CockpitTheme.speedLimitAccent
+        }
+        return isDecelerating ? CockpitTheme.decelerationAccent : CockpitTheme.speedLEDAccent
     }
 
     private var progress: Double? {
         guard let speed, speed.isFinite, speed >= 0 else { return nil }
-        return min(1, max(0, speed / 120))
+        return min(1, max(0, speed / max(30, vehicleSpeedMaxKmh)))
     }
 
     var body: some View {
@@ -1022,8 +1034,9 @@ private struct SpeedLEDStream: View {
                 isDecelerating = false
             }
         }
-        .accessibilityLabel(progress.map { "Indicatore LED velocità: \(Int(($0 * 100).rounded()))% della scala" }
-                            ?? "GPS non disponibile")
+        .accessibilityLabel(progress.map {
+            "Indicatore LED velocità: \(Int(($0 * 100).rounded()))% della scala impostata, massimo \(Int(vehicleSpeedMaxKmh)) chilometri orari"
+        } ?? "GPS non disponibile")
     }
 }
 
@@ -1281,6 +1294,10 @@ private enum GPSInnerLED {
     static func haloBlur(_ size: CGFloat) -> CGFloat { max(1.2, size * 0.005) }
     static func coreWidth(_ size: CGFloat) -> CGFloat { max(2.1, size * 0.006) }
     static func coreBlur(_ size: CGFloat) -> CGFloat { max(0.7, size * 0.002) }
+    static func outerBlur(_ size: CGFloat) -> CGFloat { max(2.5, size * 0.010) }
+    static func outerOpacity(_ intensity: Double) -> Double {
+        min(1, max(0, intensity)) * 0.78
+    }
 }
 
 // Build 70: nessuna superficie a sfumatura colorata sopra la top bar o sotto il ponte.
@@ -1356,6 +1373,8 @@ private struct GPSGaugeHalo: View {
                     .stroke(theme.accent,
                             style: StrokeStyle(lineWidth: max(1.8, d * 0.0038)))
                     .frame(width: d * 0.992, height: d * 0.992)
+                    .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
+                            radius: GPSInnerLED.outerBlur(d))
             }
             .frame(width: d, height: d)
             // Dissolvenza inferiore identica alla build 71: il ponte resta libero.
@@ -1507,6 +1526,8 @@ private struct GPSLowerGlow: View {
                         .stroke(theme.accent,
                                 style: StrokeStyle(lineWidth: GPSContourStroke.width(height: h),
                                                    lineCap: .round))
+                        .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
+                                radius: GPSInnerLED.outerBlur(h))
                 }
                 .mask(GPSLowerTerminalFade())
             }
@@ -1811,6 +1832,8 @@ private struct GPSHorizonLine: View {
                     .blur(radius: GPSInnerLED.coreBlur(h))
                     .mask(GPSTopInteriorMask().fill(Color.white))
                 line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))
+                    .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
+                            radius: GPSInnerLED.outerBlur(h))
             }
             .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
             // I raccordi GPS terminano netti al bordo del quadrante:

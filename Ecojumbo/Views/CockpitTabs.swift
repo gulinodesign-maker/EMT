@@ -276,6 +276,31 @@ final class EcoNavigationStore: ObservableObject {
 struct EcoThemePalette: Codable, Equatable {
     var name: String
     var colors: [String]
+    var glowIntensity: Double
+
+    init(name: String, colors: [String], glowIntensity: Double = 0.60) {
+        self.name = name
+        self.colors = colors
+        self.glowIntensity = min(1, max(0, glowIntensity))
+    }
+
+    // Le palette 63–72 non contenevano intensità: default retrocompatibile.
+    private enum CodingKeys: String, CodingKey { case name, colors, glowIntensity }
+
+    init(from decoder: Decoder) throws {
+        let data = try decoder.container(keyedBy: CodingKeys.self)
+        name = try data.decode(String.self, forKey: .name)
+        colors = try data.decode([String].self, forKey: .colors)
+        let saved = try data.decodeIfPresent(Double.self, forKey: .glowIntensity) ?? 0.60
+        glowIntensity = saved.isFinite ? min(1, max(0, saved)) : 0.60
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var data = encoder.container(keyedBy: CodingKeys.self)
+        try data.encode(name, forKey: .name)
+        try data.encode(colors, forKey: .colors)
+        try data.encode(glowIntensity, forKey: .glowIntensity)
+    }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
     static let labels = [
@@ -295,7 +320,8 @@ struct EcoThemePalette: Codable, Equatable {
         "Navigatore · svolta a sinistra",
         "Decelerazione GPS · non sensore freno",
         "Top bar + ponte kW · sfumatura sinistra",
-        "Top bar + ponte kW · sfumatura destra"
+        "Top bar + ponte kW · sfumatura destra",
+        "Velocità · colore oltre soglia"
     ]
     static let details = [
         "Fondo scuro dietro gli strumenti.",
@@ -314,17 +340,19 @@ struct EcoThemePalette: Codable, Equatable {
         "Freccia e distanza della prossima svolta verso sinistra.",
         "Arco GPS quando la velocità sta diminuendo: non è una misura del freno fisico.",
         "Colore a sinistra del RIEMPIMENTO tra bordo alto e linea top bar e dell'area sotto il ponte kW; non cambia i contorni luminosi.",
-        "Colore a destra degli stessi RIEMPIMENTI; al centro la sfumatura usa il colore principale del tema."
+        "Colore a destra degli stessi RIEMPIMENTI; al centro la sfumatura usa il colore principale del tema.",
+        "Colore della barra luminosa del tachimetro quando la velocità GPS raggiunge la soglia impostata in Barre luminose."
     ]
     static let groups: [(title: String, range: Range<Int>)] = [
         ("Aspetto generale", 0..<4),
         ("Barre telemetria e potenza", 4..<8),
         ("Anelli e numeri del tachimetro", 8..<12),
-        ("Navigatore e decelerazione", 12..<15)
+        ("Navigatore e decelerazione", 12..<15),
+        ("Velocità oltre soglia", 17..<18)
         // Build 70: i ruoli 15/16 rimangono salvati per compatibilità,
         // ma non sono esposti perché le sfumature non vengono applicate.
     ]
-    static let colorCount = 17
+    static let colorCount = 18
     static let extraDefaults = [
         "#FA2B2E", "#2BBAFF", "#FF7008", "#FA2B2E",
         "#FFFFFF", "#FFFFFF", "#FFB224"
@@ -350,7 +378,7 @@ struct EcoThemePalette: Codable, Equatable {
         return EcoThemePalette(
             name: "Il mio tema",
             colors: ["#040405", foreground.0, foreground.1, "#D9DEE3"]
-                + standardBarColors + extraDefaults + [foreground.1, foreground.1]
+                + standardBarColors + extraDefaults + [foreground.1, foreground.1, "#FF3B30"]
         )
     }
 
@@ -359,7 +387,7 @@ struct EcoThemePalette: Codable, Equatable {
               let data = UserDefaults.standard.data(forKey: storagePrefix + String(slot)),
               let decoded = try? JSONDecoder().decode(EcoThemePalette.self, from: data),
               (decoded.colors.count == 8 || decoded.colors.count == 15 ||
-               decoded.colors.count == colorCount),
+               decoded.colors.count == 17 || decoded.colors.count == colorCount),
               decoded.colors.allSatisfy({ validHex($0) }) else { return nil }
         // Migrazione non distruttiva: gli 8 colori delle build 63 restano identici.
         var migrated = decoded
@@ -373,12 +401,17 @@ struct EcoThemePalette: Codable, Equatable {
             let edge = migrated.colors[2]
             migrated.colors.append(contentsOf: [edge, edge])
         }
+        // 8→15→17→18 oppure 15→17→18 o 17→18 senza perdere i vecchi colori.
+        if migrated.colors.count == 17 {
+            migrated.colors.append("#FF3B30")
+        }
         return migrated
     }
 
     @discardableResult
     static func save(_ palette: EcoThemePalette, slot: Int) -> Bool {
         guard (1...3).contains(slot), palette.colors.count == colorCount,
+              palette.glowIntensity.isFinite, (0...1).contains(palette.glowIntensity),
               palette.colors.allSatisfy({ validHex($0) }),
               let data = try? JSONEncoder().encode(palette) else { return false }
         UserDefaults.standard.set(data, forKey: storagePrefix + String(slot))
@@ -567,15 +600,12 @@ private struct EcoThemePreview: View {
         VStack(spacing: 10) {
             ZStack {
                 RoundedRectangle(cornerRadius: 12).fill(Color(themeHex: palette.colors[0]))
-                // Anteprima della fascia RIEMPITA, non un bordo sfumato.
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(LinearGradient(colors: [
-                        Color(themeHex: palette.colors[15]),
-                        Color(themeHex: palette.colors[1]),
-                        Color(themeHex: palette.colors[16])
-                    ], startPoint: .leading, endPoint: .trailing))
-                    .opacity(0.40)
-                    .frame(height: 13)
+                // Anteprima fedele: una sola linea principale con bagliore regolabile.
+                Capsule()
+                    .fill(Color(themeHex: palette.colors[1]))
+                    .frame(height: 3)
+                    .shadow(color: Color(themeHex: palette.colors[1])
+                                .opacity(palette.glowIntensity * 0.65), radius: 5)
                     .padding(.horizontal, 10)
                     .frame(maxHeight: .infinity, alignment: .top)
                     .padding(.top, 6)
@@ -754,6 +784,24 @@ private struct EcoThemeEditorView: View {
                         }
                     }
 
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Label("Bagliore esterno dei contorni", systemImage: "sun.max")
+                                .font(.subheadline.weight(.semibold))
+                            Spacer()
+                            Text("\(Int((draft.glowIntensity * 100).rounded()))%")
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                        }
+                        Slider(value: $draft.glowIntensity, in: 0...1, step: 0.05)
+                            .tint(Color(themeHex: draft.colors[1]))
+                        Text("Stessa intensità per top bar, anello arancione e ponte kW. Zero disattiva l'alone esterno.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(12)
+                    .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+
                     Button {
                         chooseSlot = true
                     } label: {
@@ -762,6 +810,7 @@ private struct EcoThemeEditorView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(draft.colors.count != EcoThemePalette.colorCount ||
+                              !draft.glowIntensity.isFinite ||
                               !draft.colors.allSatisfy({ EcoThemePalette.validHex($0) }))
                 }
                 .padding(16)

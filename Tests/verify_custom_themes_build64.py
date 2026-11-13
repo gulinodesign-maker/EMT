@@ -9,12 +9,12 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 72;") == 2
-assert "static let colorCount = 17" in tabs
+assert project.count("CURRENT_PROJECT_VERSION = 73;") == 2
+assert "static let colorCount = 18" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 17
-assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 17
+assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 18
+assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 18
 for label in (
     "Sfondo del cockpit", "Colore principale · top bar e icone Setup",
     "Barre telemetria · colore scuro", "Numeri kW · energia in ingresso",
@@ -25,7 +25,7 @@ for label in (
 ):
     assert f'"{label}"' in labels, label
 
-# Four named groups and long-press on each color; color picker keeps cancel/confirm.
+# Five named groups and long-press on each color; color picker keeps cancel/confirm.
 for group in ("Aspetto generale", "Barre telemetria e potenza",
               "Anelli e numeri del tachimetro", "Navigatore e decelerazione"):
     assert f'"{group}"' in tabs

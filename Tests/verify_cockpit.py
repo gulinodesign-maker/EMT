@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 72;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 73;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -181,7 +181,8 @@ for tag in ['case copper = "Rame"','case glacier = "Ghiaccio"','case green = "Ve
 assert 'LazyVGrid(columns: portrait ? portraitColumns : landscapeColumns, spacing: 13)' in t
 assert 'Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)' in t
 assert 'ForEach(CockpitTheme.allCases.filter { $0.slotIndex == nil })' in t
-assert 'Scale delle barre luminose' in o and 'Nessuna barra nelle tre schede chilometriche' in o
+assert 'Scale delle barre luminose' in o and 'Le scale delle barre sono solo grafiche' in o
+assert 'Velocità massima veicolo:' in o and 'Cambio colore da:' in o
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 # Nuovo dock GPS 7 a destra; classico 4+3 invariato.
 assert 'if mapEnabled && selected == .gps {' in u
@@ -290,7 +291,7 @@ assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in c
 assert 'private var ledOrange: Color {' in c and 'CockpitTheme.speedLEDAccent' in c
 assert 'let idealRun = standardHorizontalRun * ((footY - topY) / standardVerticalRun)' in c
 assert 'GPSLowerLineGeometry.points(in: rect)' in c
-assert 'LabeledContent("Numero build", value: EcojumboBuildStamp.buildNumber)' in o
+assert 'Text("Ecojumbo \\(EcojumboBuildStamp.display) · build \\(EcojumboBuildStamp.buildNumber)")' in o
 # Build 27: i tre comandi devono avere un'azione reale.
 assert 'func startNavigation(at origin: CLLocationCoordinate2D?) -> Bool' in t
 assert 'func stopNavigation()' in t

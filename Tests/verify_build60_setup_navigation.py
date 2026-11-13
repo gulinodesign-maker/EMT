@@ -8,7 +8,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 cockpit_text = cockpit.decode("utf-8")
-assert project.count("CURRENT_PROJECT_VERSION = 72;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 73;") == 2
 
 # Only driving-relevant navigation is shown: technical screens are still accessible via Setup.
 portrait = home.split("private struct PortraitServiceTabBar: View", 1)[1].split(
@@ -29,7 +29,7 @@ assert ".sheet(item: $activeSection)" in settings
 assert "CellsView(portrait: space.size.height > space.size.width)" in settings
 assert "BluetoothView()" in settings
 assert "case battery, bms, appearance, scooter, bluetooth, charging" in settings
-assert "case odometer, bars, gps, weather, privacy, version" in settings
+assert "case odometer, bars, weather" in settings
 
 # The GPS map, dial, telemetry, horizontal dock placement and vertical bounds
 # must not be changed when moving service navigation out of the cockpit.

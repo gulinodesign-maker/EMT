@@ -142,7 +142,7 @@ struct BluetoothView: View {
 
 private enum EcoSetupSection: String, CaseIterable, Identifiable {
     case battery, bms, appearance, scooter, bluetooth, charging
-    case odometer, bars, gps, weather, privacy, version
+    case odometer, bars, weather
 
     var id: Self { self }
 
@@ -156,10 +156,7 @@ private enum EcoSetupSection: String, CaseIterable, Identifiable {
         case .charging: "Ricarica"
         case .odometer: "Chilometri"
         case .bars: "Barre luminose"
-        case .gps: "GPS e viaggi"
         case .weather: "Meteo"
-        case .privacy: "Sicurezza"
-        case .version: "Versione"
         }
     }
 
@@ -173,10 +170,7 @@ private enum EcoSetupSection: String, CaseIterable, Identifiable {
         case .charging: "bolt.circle"
         case .odometer: "road.lanes"
         case .bars: "chart.bar.fill"
-        case .gps: "location.north.line"
         case .weather: "cloud.sun"
-        case .privacy: "lock.shield"
-        case .version: "info.circle"
         }
     }
 }
@@ -193,6 +187,8 @@ struct EcoSettingsView: View {
     @AppStorage("ecojumbo.chargeAlert") private var chargeAlert = 80
     @AppStorage("ecojumbo.frameFormat") private var rawFormat = JKFrameFormat.automatic.rawValue
     @AppStorage("ecojumbo.bars.averagePowerMaxKW") private var averagePowerMaxKW = 5.0
+    @AppStorage("ecojumbo.bars.vehicleSpeedMaxKmh") private var vehicleSpeedMaxKmh = 120.0
+    @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
     @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
     @AppStorage("ecojumbo.theme") private var themeName = CockpitTheme.copper.rawValue
     @AppStorage("ecojumbo.themeRevision") private var themeRevision = 0
@@ -208,8 +204,9 @@ struct EcoSettingsView: View {
             let tileHeight = landscape
                 ? max(54, min(78, area.size.height * 0.25))
                 : max(80, min(118, area.size.height * 0.14))
-            ScrollView {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 3),
+            VStack(spacing: 0) {
+                ScrollView {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 3),
                           spacing: 10) {
                     ForEach(EcoSetupSection.allCases) { section in
                         Button {
@@ -234,10 +231,19 @@ struct EcoSettingsView: View {
                         .accessibilityLabel("Apri \(section.title)")
                     }
                 }
-                .padding(.horizontal, landscape ? 16 : 18)
-                .padding(.vertical, landscape ? 8 : 16)
+                    .padding(.horizontal, landscape ? 16 : 18)
+                    .padding(.vertical, landscape ? 8 : 16)
+                }
+                .scrollIndicators(.hidden)
+
+                // Numero versione fuori dalla griglia, sempre in fondo sopra il dock.
+                Text("Ecojumbo \(EcojumboBuildStamp.display) · build \(EcojumboBuildStamp.buildNumber)")
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.bottom, landscape ? 5 : 9)
+                    .accessibilityLabel("Versione Ecojumbo \(EcojumboBuildStamp.display), build \(EcojumboBuildStamp.buildNumber)")
             }
-            .scrollIndicators(.hidden)
             .background(Color.ecoBackground)
         }
         .navigationTitle("Impostazioni")
@@ -248,6 +254,10 @@ struct EcoSettingsView: View {
         .onAppear {
             bluetooth.applyFormat(JKFrameFormat(rawValue: rawFormat) ?? .automatic, cells: cellCount)
             odometerText = gps.hasOdometer ? String(format: "%.1f", gps.totalKm) : ""
+            speedColorThresholdKmh = min(max(10, speedColorThresholdKmh), vehicleSpeedMaxKmh)
+        }
+        .onChange(of: vehicleSpeedMaxKmh) { _, newMax in
+            speedColorThresholdKmh = min(speedColorThresholdKmh, newMax)
         }
     }
 
@@ -349,16 +359,18 @@ struct EcoSettingsView: View {
             }
         case .bars:
             Section("Scale delle barre luminose") {
-                Text("Tre barre reali per carica batteria, tensione e potenza istantanea. Nessuna barra nelle tre schede chilometriche. Le scale sono solo grafiche, non limiti di sicurezza.")
+                Text("Le scale delle barre sono solo grafiche e non limitano la velocità effettiva del veicolo. Il tachimetro usa sempre la velocità GPS reale.")
                     .font(.footnote).foregroundStyle(.secondary)
                 LabeledContent("SOC", value: "0–100%")
                 LabeledContent("Tensione 20S", value: "50–73 V")
                 Stepper("Potenza istantanea: 0–\(Int(averagePowerMaxKW)) kW",
                         value: $averagePowerMaxKW, in: 1...20, step: 1)
-            }
-        case .gps:
-            Section("GPS e viaggi") {
-                Text("Il tachimetro usa soltanto Core Location e mostra — quando il segnale GPS non è disponibile. I chilometri vengono accumulati solo con posizioni valide e l’app attiva. Non sostituisce il tachimetro omologato del veicolo.")
+                Stepper("Velocità massima veicolo: \(Int(vehicleSpeedMaxKmh)) km/h",
+                        value: $vehicleSpeedMaxKmh, in: 30...240, step: 5)
+                Stepper("Cambio colore da: \(Int(speedColorThresholdKmh)) km/h",
+                        value: $speedColorThresholdKmh,
+                        in: 10...vehicleSpeedMaxKmh, step: 5)
+                Text("Da questa soglia la barra LED della velocità usa il colore oltre soglia scelto nel tema. Non è un limitatore di velocità.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
         case .weather:
@@ -367,21 +379,6 @@ struct EcoSettingsView: View {
                     .font(.footnote).foregroundStyle(.secondary)
                 Link("Fonte dati: Open-Meteo", destination: URL(string: "https://open-meteo.com")!)
                 Link("Licenza dati (CC BY 4.0)", destination: URL(string: "https://creativecommons.org/licenses/by/4.0/")!)
-            }
-        case .privacy:
-            Section("Sicurezza e privacy") {
-                Label("Sola lettura dei dati BMS", systemImage: "lock.shield")
-                Label("Nessuna simulazione", systemImage: "checkmark.seal")
-                Label("I dati della sessione restano sul telefono", systemImage: "iphone")
-                Text("I grafici non sono registrati durante la chiusura dell'app. Non utilizzare Ecojumbo come unico indicatore di sicurezza durante la guida.")
-                    .font(.footnote).foregroundStyle(.secondary)
-            }
-        case .version:
-            Section("Versione") {
-                LabeledContent("Ecojumbo", value: EcojumboBuildStamp.display)
-                LabeledContent("Numero build", value: EcojumboBuildStamp.buildNumber)
-                Text("App iPhone dedicata esclusivamente allo scooter Ecojumbo e al suo BMS.")
-                    .font(.footnote).foregroundStyle(.secondary)
             }
         }
     }
