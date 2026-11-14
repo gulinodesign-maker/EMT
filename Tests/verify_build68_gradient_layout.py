@@ -65,12 +65,12 @@ assert "return dialX + dial * 0.508 + rightInset(width: width)" in geo
 assert "let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)" in home
 assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)" in cockpit
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit
-assert ".frame(width: telemetryDock ? telemetryPanelWidth : nil, alignment: .leading)" in home
-assert "let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)" in home
+assert ".frame(width: telemetryDock ? telemetryDockWidth : nil, alignment: .leading)" in home
+assert "let justifiedGap = max(0, (telemetryDockWidth - dockContentInset - 5 * gpsSide) / 4)" in home
 for width, height in ((736, 414), (844, 390), (932, 430), (956, 440),
                       (1179, 510), (1536, 706), (1648, 928), (1806, 831)):
     d = min(height * 0.920, width * 0.525)
-    dial_center = max(d * 0.51 + width * 0.010, width * 0.168 + d * 0.30)
+    dial_center = max(d * 0.51 + width * 0.010, width * 0.154 + d * 0.280)
     tangent = dial_center + d * 0.508
     margin = max(12, width * 0.018)
     left = tangent + margin
@@ -83,9 +83,12 @@ for width, height in ((736, 414), (844, 390), (932, 430), (956, 440),
     gap = width * 0.008
     side = min(ideal_side, max(20, (width - margin - safe_left - 6 * gap) / 7))
     assert right - left > 5 * side, (width, height, left, right, side)
-    spacing = (right - left - 5 * side) / 4
+    dock_left = left - width * 0.080
+    inset = width * 0.045
+    dock_width = right - dock_left
+    spacing = (dock_width - inset - 5 * side) / 4
     assert spacing > 0
-    assert isclose(left + 5 * side + 4 * spacing, right, abs_tol=1e-8)
+    assert isclose(dock_left + inset + 5 * side + 4 * spacing, right, abs_tol=1e-8)
 
 # UI changes do not alter real GPS/JK BMS measurement sources.
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in cockpit
