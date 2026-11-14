@@ -28,7 +28,7 @@ assert "let dislHeight = 2 * cardHeight" in view
 assert "dislevelCard(height: dislHeight)" in view
 assert 'Text("DISL")' in view
 assert 'Text("TELEMETRIA")' in view
-assert "Color.white.opacity(0.038)" in view  # no smoked opaque backdrop
+assert "EMTGlossyGlassSurface(cornerRadius:" in view
 
 # Live BMS, non visualizzare valori dimostrativi.
 for placeholder in ('"35%"', '"72.4 V"', '"48 km"', '"0 m"'):
@@ -41,7 +41,7 @@ assert "fraction: live.map { Double($0.soc) / 100.0 }" in view
 assert "fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) }" in view
 assert "abs(now.timeIntervalSince($0.date)) < 10" in view
 assert view.count("showsBar: true") == 3
-assert "TelemetrySlimBar(fraction: fraction, theme: theme)" in view
+assert "EMTTelemetryRail(fraction: fraction, color: theme.accent)" in view
 
 # Il grafico è reale, e la sfumatura è tracciata solo dopo due letture GPS.
 chart = cockpit.split("private struct GPSTripAltitudeSparkline: View {", 1)[1]
@@ -49,7 +49,8 @@ assert "if points.count >= 2" in chart
 assert "points.map(\.altitudeMeters)" in chart
 assert "area.fill(LinearGradient(" in chart
 assert "line.stroke(color" in chart
-assert "color.opacity(0.34)" in chart
+assert "color.opacity(0.035)" in chart
+assert "EMTTopographicAltitude(points: points, color: color)" in chart
 assert "color.opacity(0.0)" in chart
 assert "startPoint: .top, endPoint: .bottom" in chart
 assert "closeToBottom: true" in chart
@@ -69,10 +70,10 @@ assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in gps
 # Su tutti gli iPhone landscape, card DISL esattamente alta quanto 2 tile.
 for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
              (1536, 706), (1806, 831)):
-    dock = max(51, min(83, h * .105))
+    dock = max(68, min(101, h * .142))
     margin = max(8, h * .018)
     top = h * .099 + margin
-    bottom = h - max(4, h * .006) - dock - margin
+    bottom = h - max(35, h * .058) - dock - margin
     height = bottom - top
     assert height > 160
     inset_y = max(6, min(13, height * .019))
