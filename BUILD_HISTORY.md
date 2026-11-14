@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43614183223:ATTEMPT:1 -->
+### 2026-11-14T16:10:52Z — CI #205 · build-79-power-bridge-ratio-speed-reset · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43614183223](https://github.com/gulinodesign-maker/EMT/actions/runs/43614183223); avvio 2026-11-14T16:10:52Z UTC; aggiornamento finale 2026-11-14T16:13:39Z UTC; registrazione 2026-11-14T16:13:50+00:00 UTC; evento pull_request.
+- **Commit:** [4164d66ba28c](https://github.com/gulinodesign-maker/EMT/commit/4164d66ba28c4051e568c48f255adcfcf66584e8); versione **1.0**; build **79**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:43603575447:ATTEMPT:1 -->
 ### 2026-11-14T14:11:37Z — CI #204 · main · tentativo 1
 
