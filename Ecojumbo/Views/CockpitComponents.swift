@@ -915,37 +915,11 @@ private struct GaugeArc: Shape {
     }
 }
 
-// Build 78: GPS speed ticks and the BMS lower half-scale share a single
-// circumference. The white tick tips and the outer edges of the power bars
-// stay 3–4 points radially inside the gray concentric ring.
-// The Home intentionally keeps its prior radius and LED origin.
-private enum GPSUnifiedScaleGeometry {
-    static func metalClearance(for d: CGFloat) -> CGFloat {
-        min(4, max(3, d * 0.009))
-    }
-    static func outerRadius(for d: CGFloat) -> CGFloat {
-        d * 0.965 / 2
-            - GPSMetalContourStyle.strokeWidth(for: d) / 2
-            - metalClearance(for: d)
-    }
-    // Build 80: larger power-only ticks, Home keeps its original 0.017d.
-    static let powerTickThicknessFactor: CGFloat = 0.025
-    static func powerBarRadiusFactor(for d: CGFloat) -> CGFloat {
-        // Outer power-tick edge still matches the white km/h tick radius.
-        (outerRadius(for: d) - d * powerTickThicknessFactor / 2) / d
-    }
-    static func speedLEDRadius(for d: CGFloat) -> CGFloat {
-        // Even the soft halo ends inside the metal circle.
-        outerRadius(for: d) - GPSInnerLED.haloWidth(d) / 2
-    }
-}
-
 // Tacche della velocità: nessun numero predefinito da 0 a 120.
 // Il LED rosso sottostante indica la quota della scala già percorsa.
 private struct SpeedScaleTicks: View {
     @Environment(\.colorScheme) private var colorScheme
     let d: CGFloat
-    var usesGPSRing: Bool = false
 
     var body: some View {
         Canvas { context, _ in
@@ -956,8 +930,7 @@ private struct SpeedScaleTicks: View {
     }
 
     private func drawTicks(into context: inout GraphicsContext) {
-        let outerRadius: CGFloat = usesGPSRing
-            ? GPSUnifiedScaleGeometry.outerRadius(for: d) : d * 0.393
+        let outerRadius: CGFloat = d * 0.393
         for index in 0...48 {
             let radians: Double = (146.0 + Double(index) * (248.0 / 48.0)) * .pi / 180.0
             let isMajor = index.isMultiple(of: 8)
@@ -1006,7 +979,6 @@ private struct GPSSpeedObservation {
 private struct SpeedLEDStream: View {
     let d: CGFloat
     let speed: Double?
-    var usesGPSRing: Bool = false
     @AppStorage("ecojumbo.bars.vehicleSpeedMaxKmh") private var vehicleSpeedMaxKmh = 120.0
     @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
     @AppStorage("ecojumbo.bars.speedLimitColorEnabled") private var speedLimitColorEnabled = true
@@ -1032,36 +1004,28 @@ private struct SpeedLEDStream: View {
     }
 
     var body: some View {
-        // Il LED GPS torna al FONDO SCALA delle tacche bianche (146°).
-        // Home e GPS condividono l'origine ma non il raggio, che resta
-        // più grande nel GPS. A zero km/h il flusso attivo è spento.
-        let arcStart = 146.0
-        let arcEnd = 394.0
-        let arcDiameter = usesGPSRing
-            ? 2 * GPSUnifiedScaleGeometry.speedLEDRadius(for: d) : d * 0.722
-        let ledRadius = arcDiameter / 2
         ZStack {
             // Anima inerte: si vede la forma della pista ma NON un valore simulato.
-            GaugeArc(start: arcStart, end: arcEnd)
+            GaugeArc(start: 146, end: 394)
                 .stroke(Color(red: 0.28, green: 0.11, blue: 0.02).opacity(0.28),
                         style: StrokeStyle(lineWidth: d * 0.009, lineCap: .round))
-                .frame(width: arcDiameter, height: arcDiameter)
+                .frame(width: d * 0.722, height: d * 0.722)
             if let progress, progress > 0 {
-                GaugeArc(start: arcStart, end: arcEnd, fraction: progress)
+                GaugeArc(start: 146, end: 394, fraction: progress)
                     .stroke(ledOrange.opacity(0.80),
                             style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(d), lineCap: .round))
                     .blur(radius: GPSInnerLED.haloBlur(d))
-                    .frame(width: arcDiameter, height: arcDiameter)
-                GaugeArc(start: arcStart, end: arcEnd, fraction: progress)
+                    .frame(width: d * 0.722, height: d * 0.722)
+                GaugeArc(start: 146, end: 394, fraction: progress)
                     .stroke(ledOrange, style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d), lineCap: .round))
                     .shadow(color: ledOrange.opacity(0.94), radius: GPSInnerLED.outerBlur(d))
-                    .frame(width: arcDiameter, height: arcDiameter)
-                GaugeArc(start: arcStart, end: arcEnd, fraction: progress)
+                    .frame(width: d * 0.722, height: d * 0.722)
+                GaugeArc(start: 146, end: 394, fraction: progress)
                     .stroke(Color.white.opacity(0.65),
                             style: StrokeStyle(lineWidth: GPSInnerLED.highlightWidth(d), lineCap: .round))
-                    .frame(width: arcDiameter, height: arcDiameter)
-                let angle = (arcStart + (arcEnd - arcStart) * progress) * Double.pi / 180
-                let radius = ledRadius
+                    .frame(width: d * 0.722, height: d * 0.722)
+                let angle = (146 + 248 * progress) * Double.pi / 180
+                let radius = d * 0.361
                 let endPoint = CGPoint(x: d/2 + radius * CGFloat(Darwin.cos(angle)),
                                        y: d/2 + radius * CGFloat(Darwin.sin(angle)))
                 Circle()
@@ -1120,8 +1084,6 @@ private struct SegmentedGaugeBar: View {
     let radiusFactor: CGFloat
     let activeColor: Color
     let idleColor: Color
-    // Custom thickness is used ONLY in the GPS power semicircle.
-    var thicknessFactor: CGFloat = 0.017
 
     var body: some View {
         Canvas { context, _ in
@@ -1136,13 +1098,10 @@ private struct SegmentedGaugeBar: View {
         guard count > 0 else { return }
         let radius: CGFloat = d * radiusFactor
         let stepAngle: Double = (end - start) / Double(count)
-        // Invert the inset with the direction, otherwise the right-hand
-        // clockwise power segments overlap instead of leaving small gaps.
-        let edgeInset: Double = stepAngle >= 0 ? 0.40 : -0.40
-        let thickness: CGFloat = d * thicknessFactor
+        let thickness: CGFloat = d * 0.017
         for index in 0..<count {
-            let firstAngle: Double = (start + Double(index) * stepAngle + edgeInset) * .pi / 180
-            let lastAngle: Double = (start + Double(index + 1) * stepAngle - edgeInset) * .pi / 180
+            let firstAngle: Double = (start + Double(index) * stepAngle + 0.40) * .pi / 180
+            let lastAngle: Double = (start + Double(index + 1) * stepAngle - 0.40) * .pi / 180
             var segment = Path()
             for pointIndex in 0...5 {
                 let angle = firstAngle + (lastAngle - firstAngle) * Double(pointIndex) / 5.0
@@ -1178,9 +1137,6 @@ private struct OpenSpeedCluster: View {
     // La Home mantiene i kW nel quadrante; nel cockpit GPS sono disegnati
     // separatamente dalla maschera del ponte, così restano leggibili.
     var showsPowerReadings: Bool = true
-    // Build 77: solo il GPS sposta le corone BMS nel semicerchio inferiore.
-    // La Home conserva entrambe le corone precedenti.
-    var showsOuterPowerRings: Bool = true
     // Layout unico per Home e GPS. Freccia visibile solo se la rotta è attiva.
     var navigationArrow: String? = nil
     var navigationInstruction: String? = nil
@@ -1237,32 +1193,24 @@ private struct OpenSpeedCluster: View {
                     .frame(width: d * 0.98, height: d * 0.98)
                     .opacity(colorScheme == .light ? 0 : 1)
 
-                // Le due corone storiche restano esclusivamente nella Home.
-                // In GPS la potenza BMS è nel semicerchio inferiore del dial.
-                if showsOuterPowerRings {
-                    SegmentedGaugeBar(d: d, fraction: outputFill,
-                                      start: 149, end: 391, count: 64, radiusFactor: 0.469,
-                                      activeColor: CockpitTheme.dischargeAccent,
-                                      idleColor: CockpitTheme.dischargeAccent.opacity(0.22))
-                        .shadow(color: CockpitTheme.dischargeAccent.opacity(outputFill == nil ? 0.04 : 0.72),
-                                radius: d * 0.014)
-                    SegmentedGaugeBar(d: d, fraction: inputFill,
-                                      start: 149, end: 391, count: 64, radiusFactor: 0.427,
-                                      activeColor: CockpitTheme.recoveryRingAccent,
-                                      idleColor: CockpitTheme.recoveryRingAccent.opacity(0.20))
-                        .shadow(color: CockpitTheme.recoveryRingAccent.opacity(inputFill == nil ? 0.02 : 0.48),
-                                radius: d * 0.011)
-                }
+                // Le due scale hanno un'anima grigia per tutta la corsa; solo dati REALI
+                // attivano segmenti luminosi e colorati (mai valori inventati).
+                SegmentedGaugeBar(d: d, fraction: outputFill,
+                                  start: 149, end: 391, count: 64, radiusFactor: 0.469,
+                                  activeColor: CockpitTheme.dischargeAccent,
+                                  idleColor: CockpitTheme.dischargeAccent.opacity(0.22))
+                    .shadow(color: CockpitTheme.dischargeAccent.opacity(outputFill == nil ? 0.04 : 0.72),
+                            radius: d * 0.014)
+                SegmentedGaugeBar(d: d, fraction: inputFill,
+                                  start: 149, end: 391, count: 64, radiusFactor: 0.427,
+                                  activeColor: CockpitTheme.recoveryRingAccent,
+                                  idleColor: CockpitTheme.recoveryRingAccent.opacity(0.20))
+                    .shadow(color: CockpitTheme.recoveryRingAccent.opacity(inputFill == nil ? 0.02 : 0.48),
+                            radius: d * 0.011)
 
-                // Home invariata; il GPS usa il cerchio condiviso delle
-                // tacche km/h e dei segmenti BMS con 3–4 punti di rispetto.
-                if showsOuterPowerRings {
-                    SpeedLEDStream(d: d, speed: speed)
-                    SpeedScaleTicks(d: d)
-                } else {
-                    SpeedLEDStream(d: d, speed: speed, usesGPSRing: true)
-                    SpeedScaleTicks(d: d, usesGPSRing: true)
-                }
+                // La striscia LED arancione della velocità richiede GPS valido.
+                SpeedLEDStream(d: d, speed: speed)
+                SpeedScaleTicks(d: d)
 
                 // Stessa strumentazione nella Home e nella mappa.
                 // La freccia bianca occupa la zona superiore, lontana dalle
@@ -1336,7 +1284,7 @@ private struct OpenSpeedCluster: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.70)
                         .frame(width: d * 0.48, height: d * 0.055)
-                        .position(x: d * 0.50, y: d * 0.635)
+                        .position(x: d * 0.50, y: d * 0.690)
                         .accessibilityLabel("Chilometraggio totale")
                 }
 
@@ -1345,7 +1293,7 @@ private struct OpenSpeedCluster: View {
                     .foregroundStyle(colorScheme == .light
                                      ? Color(white: 0.24) : .white.opacity(0.85))
                     .frame(width: d * 0.20, height: d * 0.065)
-                    .position(x: d * 0.5, y: d * (showsOdometer ? 0.705 : 0.755))
+                    .position(x: d * 0.5, y: d * 0.755)
 
                 if showsPowerReadings {
                     CockpitPowerReadings(d: d, incomingPower: incomingPower,
@@ -1391,100 +1339,6 @@ private struct CockpitPowerReadings: View {
     }
 }
 
-// Build 79: l'intero settore BMS è confinato sotto il ponte.
- // 24° azzurri (1/3), 48° rossi (2/3), stessa densità angolare/kW:
- // 0–2,5 kW ingresso e 0–5 kW erogazione. I valori reali del JK BMS
- // rimangono non limitati; solo la lunghezza illuminata si satura.
-private enum GPSPowerArcLayout {
-    static let zeroAngle = 102.0
-    static let regenEndAngle = 126.0
-    static let dischargeEndAngle = 54.0
-    static let regenMaxKilowatts = 2.5
-    static let dischargeMaxKilowatts = 5.0
-
-    static func angle(forKilowatts value: Double, input: Bool) -> Double {
-        let maximum = input ? regenMaxKilowatts : dischargeMaxKilowatts
-        let ratio = min(1, max(0, value / maximum))
-        let endAngle = input ? regenEndAngle : dischargeEndAngle
-        return zeroAngle + ratio * (endAngle - zeroAngle)
-    }
-}
-
-// Build 79: potenza azzurra 1/3 e rossa 2/3, entrambe sotto il ponte.
-private struct GPSPowerSemicircle: View {
-    @Environment(\.colorScheme) private var colorScheme
-    let powerWatts: Double?
-    let d: CGFloat
-
-    private var measuredPower: Double? {
-        guard let powerWatts, powerWatts.isFinite else { return nil }
-        return powerWatts
-    }
-    // Positivo = ingresso / possibile rigenerazione; negativo = erogazione.
-    // La corrente JK non identifica da sola l'origine dell'energia in ingresso.
-    private var inputFill: Double? {
-        measuredPower.map { min(1, max(0, $0) / (GPSPowerArcLayout.regenMaxKilowatts * 1_000)) }
-    }
-    private var outputFill: Double? {
-        measuredPower.map { min(1, max(0, -$0) / (GPSPowerArcLayout.dischargeMaxKilowatts * 1_000)) }
-    }
-    private var powerColor: Color {
-        guard let measuredPower else {
-            return colorScheme == .light ? Color(white: 0.34) : .white.opacity(0.82)
-        }
-        if measuredPower > 0 { return CockpitTheme.regenAccent }
-        if measuredPower < 0 { return CockpitTheme.dischargeAccent }
-        return colorScheme == .light ? Color(white: 0.34) : .white.opacity(0.82)
-    }
-    private var powerText: String {
-        measuredPower.map { String(format: "%.2f kW", abs($0) / 1_000) } ?? "— kW"
-    }
-    var body: some View {
-        ZStack {
-            // Gli indici iniziano da ZERO al centro e crescono verso l'esterno.
-            // Nessuna luce attiva senza una misura reale e finita del JK BMS.
-            SegmentedGaugeBar(d: d, fraction: inputFill,
-                              start: GPSPowerArcLayout.zeroAngle,
-                              end: GPSPowerArcLayout.regenEndAngle, count: 12,
-                              radiusFactor: GPSUnifiedScaleGeometry.powerBarRadiusFactor(for: d),
-                              activeColor: CockpitTheme.regenAccent,
-                              idleColor: CockpitTheme.regenAccent.opacity(0.20),
-                              thicknessFactor: GPSUnifiedScaleGeometry.powerTickThicknessFactor)
-                .shadow(color: CockpitTheme.regenAccent.opacity((inputFill ?? 0) > 0 ? 0.58 : 0),
-                        radius: d * 0.010)
-            SegmentedGaugeBar(d: d, fraction: outputFill,
-                              start: GPSPowerArcLayout.zeroAngle,
-                              end: GPSPowerArcLayout.dischargeEndAngle, count: 24,
-                              radiusFactor: GPSUnifiedScaleGeometry.powerBarRadiusFactor(for: d),
-                              activeColor: CockpitTheme.dischargeAccent,
-                              idleColor: CockpitTheme.dischargeAccent.opacity(0.20),
-                              thicknessFactor: GPSUnifiedScaleGeometry.powerTickThicknessFactor)
-                .shadow(color: CockpitTheme.dischargeAccent.opacity((outputFill ?? 0) > 0 ? 0.58 : 0),
-                        radius: d * 0.010)
-
-            Text(powerText)
-                .font(.system(size: d * 0.049, weight: .bold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(powerColor)
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
-                .frame(width: d * 0.39, height: d * 0.063)
-                .position(x: d * 0.50, y: d * 0.800)
-                .accessibilityLabel(measuredPower.map {
-                    $0 > 0 ? "Potenza in ingresso alla batteria" :
-                    ($0 < 0 ? "Potenza erogata dalla batteria" : "Potenza nulla")
-                } ?? "Potenza BMS non disponibile")
-
-            // Build 80: niente numeri sulle due scale di potenza.
-            // Rimane il SOLO valore centrale kW alimentato dal JK BMS.
-        }
-        .frame(width: d, height: d)
-        // Ritaglio fisico sulla STESSA curva del ponte: le tacche più
-        // spesse e le loro ombre restano sotto il profilo metallico.
-        .mask(GPSPowerBelowBridgeMask())
-    }
-}
-
 // Calcola la posizione più a sinistra possibile senza tagliare il
 // quadrante e conservando una zona di rispetto per orario/Dynamic Island.
 // Build 69: uno stesso spessore misurabile per le linee top bar e ponte.
@@ -1510,9 +1364,7 @@ private enum GPSInnerLED {
 // Build 70: nessuna superficie a sfumatura colorata sopra la top bar o sotto il ponte.
 private enum GPSDialLayout {
     static func size(width: CGFloat, height: CGFloat) -> CGFloat {
-        // Build 80: GPS dial circa 4.7% più piccolo, stesso centro e
-        // stessi allineamenti relativi per bridge, map and top bar.
-        min(height * 0.920, width * 0.525)
+        min(height * 0.965, width * 0.55)
     }
     static func centerX(width: CGFloat, height: CGFloat) -> CGFloat {
         let d = size(width: width, height: height)
@@ -1560,6 +1412,12 @@ private struct GPSMetalInnerRing: View {
                         style: StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: d)))
                 .frame(width: d * 0.965, height: d * 0.965)
                 .frame(width: d, height: d)
+                .mask(LinearGradient(stops: [
+                    .init(color: .white, location: 0),
+                    .init(color: .white, location: 0.63),
+                    .init(color: .white.opacity(0.73), location: 0.70),
+                    .init(color: .clear, location: 0.80)
+                ], startPoint: .top, endPoint: .bottom))
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
@@ -1576,28 +1434,33 @@ private struct GPSGaugeHalo: View {
                 // halo 0.034/0.027, core 0.015/ombra 0.010, luce bianca 0.003.
                 Circle()
                     .stroke(theme.accent.opacity(0.80 * theme.glowIntensity),
-                            style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(d) * 1.40))
+                            style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(d)))
                     .frame(width: d * 0.992, height: d * 0.992)
                     .blur(radius: GPSInnerLED.haloBlur(d))
                 Circle()
                     .stroke(theme.accent.opacity(0.96),
-                            style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d) * 1.45))
+                            style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d)))
                     .frame(width: d * 0.992, height: d * 0.992)
                     .blur(radius: GPSInnerLED.coreBlur(d))
                     .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
-                            radius: GPSInnerLED.outerBlur(d) * 1.25)
+                            radius: GPSInnerLED.outerBlur(d))
                 Circle()
                     .stroke(theme.accent,
-                            style: StrokeStyle(lineWidth: max(3.8, d * 0.017)))
+                            style: StrokeStyle(lineWidth: max(1.8, d * 0.0038)))
                     .frame(width: d * 0.992, height: d * 0.992)
                 Circle()
                     .stroke(Color.white.opacity(0.65),
-                            style: StrokeStyle(lineWidth: GPSInnerLED.highlightWidth(d) * 1.35))
+                            style: StrokeStyle(lineWidth: GPSInnerLED.highlightWidth(d)))
                     .frame(width: d * 0.992, height: d * 0.992)
             }
             .frame(width: d, height: d)
-            // Build 77: anello arancione più spesso e continuo a 360°:
-            // il ponte è ormai interno al quadrante, niente fade inferiore.
+            // Dissolvenza inferiore identica alla build 71: il ponte resta libero.
+            .mask(LinearGradient(stops: [
+                .init(color: .white, location: 0.0),
+                .init(color: .white, location: 0.65),
+                .init(color: .white.opacity(0.65), location: 0.72),
+                .init(color: .clear, location: 0.80)
+            ], startPoint: .top, endPoint: .bottom))
         }
         .allowsHitTesting(false)
     }
@@ -1685,55 +1548,12 @@ private struct GPSBridgeUpperMask: Shape {
     }
 }
 
-// Build 77: il ponte dei kW vive DENTRO il quadrante, non nello
-// spazio condiviso con le card. Dimensioni relative al diametro del GPS.
-private enum GPSInnerBridgeLayout {
-    static func points(in rect: CGRect) -> [CGPoint] {
-        let d = min(rect.width, rect.height)
-        let x = rect.midX - d * 0.5
-        let y = rect.midY - d * 0.5
-        return [
-            CGPoint(x: x + d * 0.165, y: y + d * 0.852),
-            CGPoint(x: x + d * 0.310, y: y + d * 0.746),
-            CGPoint(x: x + d * 0.690, y: y + d * 0.746),
-            CGPoint(x: x + d * 0.835, y: y + d * 0.852)
-        ]
-    }
-}
-private struct GPSInnerBridgeContour: Shape {
-    func path(in rect: CGRect) -> Path {
-        CockpitContourGeometry.roundedPath(
-            points: GPSInnerBridgeLayout.points(in: rect),
-            corners: [1, 2],
-            radius: min(rect.width, rect.height) * 0.090
-        )
-    }
-}
-
-// Ritaglio del settore inferiore: stessa geometria del ponte metallico.
-// Prosegue orizzontale oltre i due piedi, come limite di sicurezza.
-private struct GPSPowerBelowBridgeMask: Shape {
-    func path(in rect: CGRect) -> Path {
-        let points = GPSInnerBridgeLayout.points(in: rect)
-        guard let leftFoot = points.first, let rightFoot = points.last else {
-            return Path()
-        }
-        var below = GPSInnerBridgeContour().path(in: rect)
-        below.addLine(to: CGPoint(x: rect.maxX, y: rightFoot.y))
-        below.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        below.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-        below.addLine(to: CGPoint(x: rect.minX, y: leftFoot.y))
-        below.closeSubpath()
-        return below
-    }
-}
-
 // Maschera orizzontale ancorata ai terminali reali del ponte:
 // il tratto centrale resta pieno, le due estremità si dissolvono.
 private struct GPSLowerTerminalFade: View {
     var body: some View {
         GeometryReader { geo in
-            let points = GPSInnerBridgeLayout.points(
+            let points = GPSLowerLineGeometry.points(
                 in: CGRect(origin: .zero, size: geo.size))
             let leftX = points.first?.x ?? 0
             let rightX = points.last?.x ?? geo.size.width
@@ -1760,29 +1580,37 @@ private struct GPSLowerInteriorMask: Shape {
 }
 
 private struct GPSLowerGlow: View {
-    @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
 
     var body: some View {
         GeometryReader { geo in
-            let d = min(geo.size.width, geo.size.height)
-            // Stesso gradiente e IDENTICO spessore del cerchio grigio.
-            // Il bagliore è tenue: niente vecchio halo da 0.034d.
-            let lineWidth = GPSMetalContourStyle.strokeWidth(for: d)
+            let h = geo.size.height
             ZStack {
-                GPSInnerBridgeContour()
-                    .stroke(Color.white.opacity(0.20 * theme.glowIntensity),
-                            style: StrokeStyle(lineWidth: lineWidth * 1.15, lineCap: .round))
-                    .blur(radius: max(1.0, d * 0.004))
-                GPSInnerBridgeContour()
-                    .stroke(GPSMetalContourStyle.gradient(for: colorScheme),
-                            style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
-                GPSInnerBridgeContour()
-                    .stroke(Color.white.opacity(colorScheme == .light ? 0.34 : 0.55),
-                            style: StrokeStyle(lineWidth: max(0.45, lineWidth * 0.30),
-                                               lineCap: .round))
+                // Sotto il ponte resta solo CarbonBackdrop: nessuna velatura
+                // grigia o area del tachimetro, sia in day sia in dark mode.
+                ZStack {
+                    // Build 70: contorno mono-colore; nessuna campitura
+                    // colorata sotto il ponte kW.
+                    GPSLowerContour()
+                        .stroke(theme.accent.opacity(0.80 * theme.glowIntensity),
+                                style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(h), lineCap: .round))
+                        .blur(radius: GPSInnerLED.haloBlur(h))
+                    GPSLowerContour()
+                        .stroke(theme.accent.opacity(0.96),
+                                style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(h), lineCap: .round))
+                        .blur(radius: GPSInnerLED.coreBlur(h))
+                        .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
+                                radius: GPSInnerLED.outerBlur(h))
+                    GPSLowerContour()
+                        .stroke(theme.accent,
+                                style: StrokeStyle(lineWidth: GPSContourStroke.width(height: h),
+                                                   lineCap: .round))
+                    GPSLowerContour()
+                        .stroke(Color.white.opacity(0.65),
+                                style: StrokeStyle(lineWidth: GPSInnerLED.highlightWidth(h), lineCap: .round))
+                }
+                .mask(GPSLowerTerminalFade())
             }
-            .mask(GPSLowerTerminalFade())
             .frame(width: geo.size.width, height: geo.size.height)
         }
         .allowsHitTesting(false)
@@ -1879,44 +1707,52 @@ struct GPSCockpitDashboard: View {
 
                 // Build 71: nessun secondo profilo; disegna unicamente GPSHorizonLine.
 
-                // Build 77: disco e anelli di nuovo COMPLETI. Il ponte è
-                // inscritto nel dial, la potenza usa due semiscale interne BMS.
-                // Home, top bar, cartografia, dock e telemetria non cambiano.
-                OpenSpeedCluster(speed: gps.currentSpeed(at: now),
-                                 incomingPower: live.map { Swift.max(0, $0.power) },
-                                 outgoingPower: live.map { Swift.max(0, -$0.power) },
-                                 theme: theme,
-                                 showsOdometer: true,
-                                 odometerKm: gps.hasOdometer ? gps.totalKm : nil,
-                                 showsPowerReadings: false,
-                                 showsOuterPowerRings: false,
-                                 navigationArrow: maneuverSymbol,
-                                 navigationInstruction: navigation.guidanceInstruction,
-                                 navigationDistance: navigation.isNavigating &&
-                                     navigation.guidanceDistanceMeters != nil
-                                     ? navigation.guidanceDistanceLabel : nil)
-                    .frame(width: dialSize, height: dialSize)
-                    .position(x: dialCenterX, y: h * 0.494)
-                    .zIndex(25)
+                // Disco, tacche, trama carbonio e anelli (arancione e
+                // metallico) vengono tagliati TUTTI sul profilo del ponte kW.
+                // La maschera segue esattamente le curve di GPSLowerContour.
+                ZStack {
+                    OpenSpeedCluster(speed: gps.currentSpeed(at: now),
+                                     incomingPower: live.map { Swift.max(0, $0.power) },
+                                     outgoingPower: live.map { Swift.max(0, -$0.power) },
+                                     theme: theme,
+                                     showsOdometer: true,
+                                     odometerKm: gps.hasOdometer ? gps.totalKm : nil,
+                                     showsPowerReadings: false,
+                                     navigationArrow: maneuverSymbol,
+                                     navigationInstruction: navigation.guidanceInstruction,
+                                     navigationDistance: navigation.isNavigating &&
+                                         navigation.guidanceDistanceMeters != nil
+                                         ? navigation.guidanceDistanceLabel : nil)
+                        .frame(width: dialSize, height: dialSize)
+                        .position(x: dialCenterX, y: h * 0.494)
+                        .zIndex(25)
 
-                GPSMetalInnerRing()
-                    .frame(width: dialSize, height: dialSize)
-                    .position(x: dialCenterX, y: h * 0.494)
-                    .zIndex(26)
+                    GPSMetalInnerRing()
+                        .frame(width: dialSize, height: dialSize)
+                        .position(x: dialCenterX, y: h * 0.494)
+                        .zIndex(26)
 
-                GPSGaugeHalo(theme: theme)
-                    .frame(width: dialSize, height: dialSize)
-                    .position(x: dialCenterX, y: h * 0.494)
-                    .zIndex(27)
+                    GPSGaugeHalo(theme: theme)
+                        .frame(width: dialSize, height: dialSize)
+                        .position(x: dialCenterX, y: h * 0.494)
+                        .zIndex(27)
+                }
+                .frame(width: w, height: h)
+                .mask(GPSBridgeUpperMask())
+                .zIndex(25)
 
+                // Il solo ponte luminoso si disegna sopra il ritaglio;
+                // nessun riempimento o cerchio è visibile al di sotto.
                 GPSLowerGlow(theme: theme)
-                    .frame(width: dialSize, height: dialSize)
-                    .position(x: dialCenterX, y: h * 0.494)
+                    .frame(width: w, height: h)
                     .allowsHitTesting(false)
                     .zIndex(28)
 
-                GPSPowerSemicircle(powerWatts: live?.power, d: dialSize)
-                    .frame(width: dialSize, height: dialSize)
+                // Valori kW slegati dalla maschera ma nella STESSA posizione,
+                // con font, scala, colori e contenuti precedenti.
+                CockpitPowerReadings(d: dialSize,
+                                     incomingPower: live.map { Swift.max(0, $0.power) },
+                                     outgoingPower: live.map { Swift.max(0, -$0.power) })
                     .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(29)
 

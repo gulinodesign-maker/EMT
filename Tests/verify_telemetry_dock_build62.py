@@ -9,7 +9,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 source = cockpit.decode("utf-8")
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 80;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 81;") == 2
 
 # Preserve telemetry, dial and map source from the approved landscape cockpit.
 blob = b"blob " + str(len(cockpit)).encode() + b"\0" + cockpit
@@ -41,7 +41,7 @@ for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),
              (1179, 510), (1536, 706), (1806, 831)]:
     gap = w * 0.008
     right = max(12, w * 0.018)
-    dial = min(h * 0.920, w * 0.525)
+    dial = min(h * 0.965, w * 0.55)
     dial_x = max(dial * 0.51 + w * 0.010, w * 0.168 + dial * 0.30)
     safe_left = dial_x + dial * 0.50 + max(10, w * 0.010)
     side_ideal = min(max(51, min(83, h * 0.105)) * 0.96, w * 0.052)

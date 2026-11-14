@@ -8,7 +8,7 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 80;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 81;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -27,7 +27,7 @@ horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
 lower = cockpit.split("private struct GPSLowerGlow: View {", 1)[1].split(
     "// EJ 1.22", 1)[0]
 assert "line.stroke(theme.accent" in horizon
-assert "GPSMetalContourStyle.gradient(for: colorScheme)" in lower
+assert ".stroke(theme.accent" in lower
 assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in horizon
 assert ".mask(GPSLowerTerminalFade())" in lower
 assert "GPSLowerShade()" not in lower   # build 76: no under-bridge veil
@@ -48,7 +48,7 @@ assert ".frame(width: telemetryDock ? telemetryPanelWidth : nil, alignment: .lea
 
 for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
              (1179, 510), (1536, 706), (1648, 928), (1806, 831)):
-    d = min(h * 0.920, w * 0.525)
+    d = min(h * 0.965, w * 0.55)
     cx = max(d * 0.51 + w * 0.010, w * 0.168 + d * 0.30)
     tangent = cx + d * 0.508
     margin = max(12, w * 0.018)

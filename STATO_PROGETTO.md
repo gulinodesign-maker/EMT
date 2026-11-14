@@ -1,5 +1,14 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 81 — ripristino fedele della build 76 (14 novembre 2026)
+
+**Richiesta esplicita dell'utente:** ripristinare l'interfaccia della **build 76** e pubblicarla come nuova **1.0 (81)** su TestFlight. La sorgente storica verificata è il merge della [PR #63](https://github.com/gulinodesign-maker/EMT/pull/63), commit `42e72614211580dc771e06f9dc764f33a88fc194`. Il nuovo numero 81 NON equivale al redesign delle build 77–80: si tratta del ritorno deliberato al comportamento ed estetica della 76.
+
+**Implementazione prevista:** ripristinare **byte per byte** il file `Ecojumbo/Views/CockpitComponents.swift` della build 76, in cui `GPSBridgeUpperMask` ritaglia il quadrante e i suoi anelli sul ponte kW, e i valori `CockpitPowerReadings` restano esterni al taglio come allora. Gli altri file sorgenti e asset dell'app sono rimasti identici confrontando gli alberi Git `main` e build 76 e non richiedono modifiche. Conservare istruzioni `AGENTS.md`, profili gratuiti `.github/agents/`, workflow moderni, `BUILD_HISTORY.md` e documentazione storica: non effettuare un revert globale che perda il registro. Ripristinare la suite Python coerente con la build 76 (rimuovendo solo i test introdotti per le caratteristiche ora eliminate delle 77–80), aggiornare i controlli di versione a **81** e lasciare le versioni `MARKETING_VERSION=1.0` e bundle ID invariati. La PR grafica di anteprima #68, non integrata, non viene toccata.
+
+**Stato iniziale:** ripristino in branch `build-81-restore-build-76`. Necessari CI PR: test Python, Swift JK, barre dinamiche, compilazione simulatore; merge solo dopo esito positivo. Poi verificare CI `main` e upload TestFlight fino a `ARCHIVE SUCCEEDED` e `Upload succeeded`. **Non dichiarare** TestFlight disponibile su iPhone fino a elaborazione Apple e associazione al gruppo TE verificate separatamente. Non apportare modifiche grafiche ulteriori.
+
+
 ## Configurazione Agent locali gratuiti (14 novembre 2026 — nessuna nuova build)
 
 **Richiesta:** preparare il repository EMT all'impiego di Agent senza abbonamenti a pagamento. GitHub Copilot Free ha limiti di utilizzo ma consente Agent personalizzati in un editor compatibile, in particolare VS Code. Il *Copilot Cloud Agent* autonomo sul sito GitHub richiede invece un piano a pagamento e **non è stato attivato**.
