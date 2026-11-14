@@ -344,7 +344,7 @@ assert 'SpeedGlyphOutlineView' not in c
 assert 'HollowSpeedNumber' not in c
 assert 'import CoreText' not in c
 assert 'Text("km/h")' in c
-assert 'y: d * 0.755' in c
+assert 'y: d * (showsOdometer ? 0.705 : 0.755)' in c  # build 77: GPS adjusted, Home unchanged
 assert 'if let navigationArrow {' in c
 assert 'Image(systemName: navigationArrow)' in c
 assert '.symbolRenderingMode(.monochrome)' in c
