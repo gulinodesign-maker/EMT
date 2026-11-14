@@ -18,16 +18,16 @@ speed = source.split("Text(String(Int(speed.rounded())))", 1)[1].split(
     ".accessibilityLabel(", 1)[0]
 
 # A single metallic palette and stroke scale is used in both the ring and top bar.
-assert "GPSMetalContourStyle.gradient(for: colorScheme)" in ring
+assert "EMTMetallicRim(diameter: d * 0.890" in ring
 assert "GPSMetalContourStyle.gradient(for: colorScheme)" in top
-assert "GPSMetalContourStyle.strokeWidth(for: d)" in ring
+assert "widthFactor: 0.0035" in ring
 assert "GPSMetalContourStyle.strokeWidth(for: dialSize)" in top
-assert ".frame(width: d * 0.965, height: d * 0.965)" in ring
-assert "dialSize * (0.992 - 0.965) / 2" in metal
+assert ".frame(width: d * 0.903, height: d * 0.903)" in ring
+assert "max(2.0, dialSize * 0.007)" in metal
 assert "CGAffineTransform(" in top and "GPSMetalContourStyle.inset(for: dialSize)" in top
 assert "metalLine.stroke(" in top and "visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true))" in top
 assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in top
-assert top.count("line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))") == 1
+assert top.count("EMTNeonStroke(contour: line, color: theme.accent") == 1
 assert "GPSOuterProfileReinforcement" not in source
 
 # The only added speed contrast is a downward shadow in light mode.
@@ -39,10 +39,10 @@ assert "y: d * 0.007" in speed and "y: d * 0.012" in speed
 assert speed.index(".shadow(") < speed.index(".frame(")
 assert "Build 75" in state
 
-# The offset is the same radial inset as the concentric GPS metal ring.
+# The chrome ring is recessed; the top-bar glint remains a thin parallel line.
 for width, height in ((736, 414), (844, 390), (932, 430), (1179, 510), (1536, 706)):
     d = min(height * 0.920, width * 0.525)
-    gap = d * (0.992 - 0.965) / 2
-    assert isclose(d * 0.992 / 2 - d * 0.965 / 2, gap, abs_tol=1e-9)
-    assert gap > 0
+    gap = d * (0.992 - 0.890) / 2
+    assert isclose(d * 0.992 / 2 - d * 0.890 / 2, gap, abs_tol=1e-9)
+    assert gap > d * 0.007 > 0
 print("OK — build 75: gray top bar follows inset metal ring; day-mode speed shadows")
