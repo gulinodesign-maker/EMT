@@ -2001,7 +2001,7 @@ private enum GPSHorizonSymmetry {
             rightContact: CGPoint, rightKnee: CGPoint) {
         let axis = GPSDialLayout.centerX(width: w, height: h)
         let dial = GPSDialLayout.size(width: w, height: h)
-        let rightKnee = CGPoint(x: axis + w * 0.180, y: h * 0.099)
+        let rightKnee = CGPoint(x: axis + max(w * 0.180, dial * 0.385), y: h * 0.099)
         let rightContact = CGPoint(x: axis + dial * 0.358, y: h * 0.244)
         let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)
         let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)
