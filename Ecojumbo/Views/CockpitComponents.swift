@@ -926,7 +926,7 @@ private enum GPSUnifiedScaleGeometry {
         min(4, max(3, d * 0.009))
     }
     static func outerRadius(for d: CGFloat) -> CGFloat {
-        d * 0.965 / 2
+        d * 0.890 / 2
             - GPSMetalContourStyle.strokeWidth(for: d) / 2
             - metalClearance(for: d)
     }
@@ -1475,7 +1475,7 @@ private struct GPSPowerSemicircle: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)
                 .frame(width: d * 0.39, height: d * 0.063)
-                .position(x: d * 0.50, y: d * 0.800)
+                .position(x: d * 0.50, y: d * 0.755)
                 .accessibilityLabel(measuredPower.map {
                     $0 > 0 ? "Potenza in ingresso alla batteria" :
                     ($0 < 0 ? "Potenza erogata dalla batteria" : "Potenza nulla")
@@ -1551,8 +1551,9 @@ private enum GPSMetalContourStyle {
     }
 
     static func inset(for dialSize: CGFloat) -> CGFloat {
-        // I diametri del neon arancio e del cerchio metallico sono 0.992 e 0.965.
-        dialSize * (0.992 - 0.965) / 2
+        // Small parallel chrome reflection below the top bar, independent
+        // from the deeper recessed metal ring.
+        max(2.0, dialSize * 0.007)
     }
 }
 
@@ -1566,12 +1567,12 @@ private struct GPSMetalInnerRing: View {
                 Circle()
                     .stroke(Color(white: colorScheme == .light ? 0.62 : 0.10),
                             lineWidth: d * 0.016)
-                    .frame(width: d * 0.968, height: d * 0.968)
-                EMTMetallicRim(diameter: d * 0.965, widthFactor: 0.0035)
+                    .frame(width: d * 0.903, height: d * 0.903)
+                EMTMetallicRim(diameter: d * 0.890, widthFactor: 0.0035)
                 Circle()
                     .stroke(Color.white.opacity(colorScheme == .light ? 0.27 : 0.18),
                             lineWidth: max(0.5, d * 0.0015))
-                    .frame(width: d * 0.950, height: d * 0.950)
+                    .frame(width: d * 0.883, height: d * 0.883)
             }
             .frame(width: d, height: d)
         }
@@ -1688,10 +1689,10 @@ private enum GPSInnerBridgeLayout {
         let x = rect.midX - d * 0.5
         let y = rect.midY - d * 0.5
         return [
-            CGPoint(x: x + d * 0.165, y: y + d * 0.852),
-            CGPoint(x: x + d * 0.310, y: y + d * 0.746),
-            CGPoint(x: x + d * 0.690, y: y + d * 0.746),
-            CGPoint(x: x + d * 0.835, y: y + d * 0.852)
+            CGPoint(x: x + d * 0.165, y: y + d * 0.825),
+            CGPoint(x: x + d * 0.310, y: y + d * 0.705),
+            CGPoint(x: x + d * 0.690, y: y + d * 0.705),
+            CGPoint(x: x + d * 0.835, y: y + d * 0.825)
         ]
     }
 }
@@ -1819,8 +1820,8 @@ struct GPSCockpitDashboard: View {
             let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)
             let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) - panelLeft)
             // Le card occupano il centro dello spazio tra la top bar e il dock.
-            let dockHeight = max(51, min(83, h * 0.105))
-            let dockBottom = max(4, h * 0.006)
+            let dockHeight = max(68, min(101, h * 0.142))
+            let dockBottom = max(35, h * 0.058)
             let outerMargin = max(8, h * 0.018)
             let cardsTop = h * 0.099 + outerMargin
             let cardsBottom = h - dockBottom - dockHeight - outerMargin
@@ -2082,7 +2083,7 @@ private struct GPSHorizonLine: View {
             // verso il basso dell'esatta distanza tra cerchio arancio e grigio.
             let metalLine = line.applying(CGAffineTransform(
                 translationX: 0, y: GPSMetalContourStyle.inset(for: dialSize)))
-            let metalRadius = dialSize * 0.965 / 2
+            let metalRadius = dialSize * 0.890 / 2
                 + GPSMetalContourStyle.strokeWidth(for: dialSize) / 2
             let visibleOutsideMetalRing = Path { p in
                 p.addRect(CGRect(x: 0, y: 0, width: w, height: h))
