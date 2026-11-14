@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43618349535:ATTEMPT:1 -->
+### 2026-11-14T16:56:39Z — CI #207 · build-80-clean-power-ticks-smaller-dial · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43618349535](https://github.com/gulinodesign-maker/EMT/actions/runs/43618349535); avvio 2026-11-14T16:56:39Z UTC; aggiornamento finale 2026-11-14T16:59:20Z UTC; registrazione 2026-11-14T16:59:28+00:00 UTC; evento pull_request.
+- **Commit:** [d2cc4800866b](https://github.com/gulinodesign-maker/EMT/commit/d2cc4800866bb40a4c353a142ff9463d8333417e); versione **1.0**; build **80**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_version.py.
+
 <!-- EMT_RUN:43614497225:ATTEMPT:1 -->
 ### 2026-11-14T16:14:15Z — CI #206 · main · tentativo 1
 
