@@ -58,7 +58,7 @@ chart = cockpit.split("private struct GPSTripAltitudeSparkline: View {", 1)[1]
 assert "if points.count >= 2" in chart
 assert "line.stroke(color" in chart
 assert "area.fill(LinearGradient(" in chart
-assert "color.opacity(0.34), color.opacity(0.16), color.opacity(0.0)" in chart
+assert "color.opacity(0.035), color.opacity(0.012), color.opacity(0.0)" in chart\nassert "EMTTopographicAltitude(points: points, color: color)" in chart
 assert "startPoint: .top, endPoint: .bottom" in chart
 assert "path.closeSubpath()" in chart
 assert "Profilo GPS in attesa" in chart
@@ -70,7 +70,7 @@ assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)
 assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in cockpit
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
-assert "let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)" in home
+assert "let justifiedGap = max(0, (telemetryDockWidth - dockContentInset - 5 * gpsSide) / 4)" in home
 assert "GPSCockpitMap(theme: theme)" in cockpit
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in cockpit
 assert 'onLongPressGesture(minimumDuration: 0.5)' in cockpit
