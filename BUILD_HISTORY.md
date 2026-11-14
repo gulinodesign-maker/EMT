@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43603378049:ATTEMPT:1 -->
+### 2026-11-14T14:09:26Z — CI #203 · build-78-unified-scale-thin-bridge · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43603378049](https://github.com/gulinodesign-maker/EMT/actions/runs/43603378049); avvio 2026-11-14T14:09:26Z UTC; aggiornamento finale 2026-11-14T14:11:21Z UTC; registrazione 2026-11-14T14:11:30+00:00 UTC; evento pull_request.
+- **Commit:** [92a6ebfceb8b](https://github.com/gulinodesign-maker/EMT/commit/92a6ebfceb8b9b0d0f5f24d1c73920da5a3cd727); versione **1.0**; build **78**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:43600345371:ATTEMPT:1 -->
 ### 2026-11-14T13:33:17Z — CI #202 · main · tentativo 1
 
