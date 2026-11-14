@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43623935579:ATTEMPT:1 -->
+### 2026-11-14T17:57:57Z — CI #226 · redesign-hyperrealistic-neon-preview · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43623935579](https://github.com/gulinodesign-maker/EMT/actions/runs/43623935579); avvio 2026-11-14T17:57:57Z UTC; aggiornamento finale 2026-11-14T17:58:28Z UTC; registrazione 2026-11-14T17:58:37+00:00 UTC; evento pull_request.
+- **Commit:** [17986c436e1b](https://github.com/gulinodesign-maker/EMT/commit/17986c436e1baf88ccab49869c6a41ab50065bf1); versione **1.0**; build **80**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_landscape_geometry.py.
+
 <!-- EMT_RUN:43623874409:ATTEMPT:1 -->
 ### 2026-11-14T17:57:15Z — CI #225 · redesign-hyperrealistic-neon-preview · tentativo 1
 
