@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 79;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 80;") == 2
 symmetry = cockpit.split("private enum GPSHorizonSymmetry {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
@@ -55,7 +55,7 @@ assert ".minimumScaleFactor(0.68)" in cockpit
 
 for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
              (1179, 510), (1536, 706), (1648, 928), (1806, 831)):
-    d = min(h * .965, w * .55)
+    d = min(h * .920, w * .525)
     axis = max(d * .51 + w * .010, w * .168 + d * .30)
     right_knee = w * .54
     right_contact = w * .45

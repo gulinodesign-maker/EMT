@@ -7,7 +7,7 @@ source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 79;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 80;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -48,7 +48,7 @@ assert "GPSTopBandShade" not in source and "GPSLowerAreaGradient" not in source
 # Keep GPS geometry and telemetry controls aligned over different iPhone widths.
 for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
              (1179, 510), (1536, 706), (1806, 831)):
-    d = min(h * 0.965, w * 0.55)
+    d = min(h * 0.920, w * 0.525)
     cx = max(d * 0.51 + w * 0.010, w * 0.168 + d * 0.30)
     left = cx + d * 0.508 + max(12, w * 0.018)
     right = w - max(12, w * 0.018)
