@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43623469026:ATTEMPT:1 -->
+### 2026-11-14T17:52:39Z — CI #216 · redesign-hyperrealistic-neon-preview · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43623469026](https://github.com/gulinodesign-maker/EMT/actions/runs/43623469026); avvio 2026-11-14T17:52:39Z UTC; aggiornamento finale 2026-11-14T17:53:53Z UTC; registrazione 2026-11-14T17:54:02+00:00 UTC; evento pull_request.
+- **Commit:** [d40aeba7e3fd](https://github.com/gulinodesign-maker/EMT/commit/d40aeba7e3fd5cf7985d69b871333dce005788f5); versione **1.0**; build **80**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build77_internal_power_dial.py.
+
 <!-- EMT_RUN:43623475752:ATTEMPT:1 -->
 ### 2026-11-14T17:52:44Z — CI #217 · redesign-hyperrealistic-neon-preview · tentativo 1
 
