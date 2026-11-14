@@ -63,6 +63,7 @@ struct EMTMetallicRim: View {
             .frame(width: diameter, height: diameter)
             .allowsHitTesting(false)
             .accessibilityHidden(true)
+    }
 }
 
 // Asymmetrical ring reflections: specular upper-left highlight and
