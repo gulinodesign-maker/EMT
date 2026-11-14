@@ -95,6 +95,9 @@ jobs:
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl ui "$UDID" appearance dark
           xcrun simctl install "$UDID" "$RUNNER_TEMP/EcojumboDerivedData/Build/Products/Debug-iphonesimulator/Ecojumbo.app"
+          # Test device only: pre-authorize Core Location so its system popup
+          # does not cover the cockpit. No mock coordinates or measurements.
+          xcrun simctl privacy "$UDID" grant location it.ecojumbo.battery
           # NSArgumentDomain overrides AppStorage only for this screenshot run:
           # show the four real telemetry cards rather than the default MapKit view.
           xcrun simctl launch "$UDID" it.ecojumbo.battery -ecojumbo.mapEnabled NO
@@ -108,12 +111,18 @@ jobs:
           mkdir -p "$RUNNER_TEMP/ecojumbo-visual"
           xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ecojumbo-visual/cockpit-simulator.png"
           xcrun simctl list devices | grep "$UDID"
-          # A photo of the SpringBoard is never accepted as cockpit evidence.
+          # simctl captures the physical phone canvas in portrait even while
+          # our UI is landscape. Rotate the saved PNG, NOT the application UI.
           captured="$RUNNER_TEMP/ecojumbo-visual/cockpit-simulator.png"
           pixel_width="$(sips -g pixelWidth "$captured" | awk '/pixelWidth/ {print $2}')"
           pixel_height="$(sips -g pixelHeight "$captured" | awk '/pixelHeight/ {print $2}')"
+          if [[ "$pixel_width" -lt "$pixel_height" ]]; then
+            sips --rotate 270 "$captured" >/dev/null
+            pixel_width="$(sips -g pixelWidth "$captured" | awk '/pixelWidth/ {print $2}')"
+            pixel_height="$(sips -g pixelHeight "$captured" | awk '/pixelHeight/ {print $2}')"
+          fi
           if [[ "$pixel_width" -le "$pixel_height" ]]; then
-            echo "::error::Screenshot portrait/home screen, not a landscape cockpit: ${pixel_width}x${pixel_height}"
+            echo "::error::Screenshot not a landscape cockpit after normalization: ${pixel_width}x${pixel_height}"
             exit 1
           fi
       - name: Allega screenshot reale per confronto grafico
