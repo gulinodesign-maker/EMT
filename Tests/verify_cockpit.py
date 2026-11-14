@@ -186,13 +186,13 @@ assert 'Velocità massima veicolo:' in o and 'Cambio colore da:' in o
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 # Nuovo dock GPS 7 a destra; classico 4+3 invariato.
 assert 'if mapEnabled && selected == .gps {' in u
-assert 'selected == .gps' in u and '? max(4, h * 0.006)' in u
+assert 'selected == .gps' in u and '? max(35, h * 0.058)' in u
 # Il dock approvato del cockpit resta invariato, mentre solo il dock
 # separato dei menù portrait mostra tutte e sei le sezioni.
 landscape_dock = u.split('private struct CockpitCornerControls: View', 1)[1]
 assert 'ForEach(EcoTab.allCases) { tab in' not in landscape_dock
 assert 'ForEach([EcoTab.gps, .trips, .settings, .themes]) { tab in' in u
-assert 'gpsButton("map.fill", active: mapEnabled' in u
+assert 'gpsButton("map.fill", active: selected == .gps' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
 assert 'gpsButton("play.fill"' in u
 assert 'mapControls.send(.toggleNavigation)' in u
@@ -211,7 +211,7 @@ assert 'let contentHeight = selected == .gps' in u
 assert '.frame(width: w, height: contentHeight)' in u
 assert '.position(x: w / 2, y: contentHeight / 2)' in u
 assert '.padding(.bottom, selected == .gps ?' not in u
-assert 'foregroundStyle(active ? theme.accent : Color.secondary)' in u
+assert 'foregroundStyle(active ? theme.accent : Color.primary.opacity(0.85))' in u
 assert '.shadow(color: .black.opacity(colorScheme == .light ? 0.10 : 0.90)' not in u
 assert 'let gpsGap = width * 0.008' in u
 # Sfumature neutre su entrambe le modalità.
@@ -226,7 +226,7 @@ assert 'private enum GPSDialLayout' in c
 assert 'GPSDialLayout.centerX(width: w, height: h)' in c
 assert 'GPSGaugeHalo(theme: theme)' in c
 assert 'private struct GPSGaugeHalo: View' in c
-assert 'max(3.8, d * 0.017)' in c  # build 77: continuous bold ring
+assert 'EMTDialSpecularReflection(diameter: d)' in c  # premium asymmetric halo
 assert '.position(x: dialCenterX, y: h * 0.494)' in c
 assert 'CGRect(x: dialCenterX - dialSize * 0.508' in c
 # Il bordo della mappa non deve duplicare la linea arancione superiore.
@@ -411,7 +411,7 @@ assert 'altitudeProfile.removeAll()' in g
 assert 'recordTripAltitude(fix)' in g
 assert 'tripElevationMeters' in g
 assert 'if showsBar {' in expanded
-assert 'TelemetrySlimBar(fraction: fraction, theme: theme)' in expanded
+assert 'EMTTelemetryRail(fraction: fraction, color: theme.accent)' in expanded
 assert 'if let progress, progress > 0 {' in expanded
 assert 'speedDiagnostic' in g and 'estimatedSpeed' not in g
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation' in g
@@ -424,7 +424,7 @@ assert 'UIColor { traits in' in u
 assert '.environment(\.colorScheme, colorScheme)' in c
 assert 'Color.white.opacity(0.96)' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello standard senza mappa')]
 assert 'Color(red: 0.94, green: 0.96, blue: 0.985)' in c
-assert 'Color(white: 0.32) : Color(white: 0.68)' in c
+assert 'Color(white: 0.30) : .white.opacity(0.78)' in c
 assert '@Environment(\.colorScheme) private var colorScheme' in t
 assert 'private enum GPSManeuverIcon' in c
 assert c.count('OpenSpeedCluster(speed: ') == 2
@@ -466,7 +466,7 @@ assert 'if gps.currentCoordinate() == nil || gps.currentSpeed() == nil {' not in
 assert 'func speedStatus(at date: Date = Date()) -> String' in g
 assert 'CGPoint(x: 0, y: h * 0.099)' in c
 assert 'CGPoint(x: w, y: h * 0.099)' in c
-assert 'CGPoint(x: w * 0.54, y: h * 0.099)' in c
+assert 'let rightKnee = CGPoint(x: axis + max(w * 0.180, dial * 0.385), y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.745, y: h * 0.099)' in c
 assert 'CGPoint(x: w * 0.355, y: h * 0.252)' in c
 assert 'let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)' in c
@@ -489,7 +489,7 @@ assert 'struct BluetoothGlyph:View {' in c
 assert '.stroke(colorScheme == .light ? Color(white: 0.16) : .white,' in c
 assert 'Color.black.opacity(0.33)' in c
 assert 'title: text ?? gpsCaption(for: symbol)' in u
-assert 'foregroundStyle(active ? theme.accent : Color.secondary)' in u
+assert 'foregroundStyle(active ? theme.accent : Color.primary.opacity(0.85))' in u
 assert 'if selected != .gps {\n                    Spacer(minLength: 0)' in u
 assert 'if selected == .gps { mapEnabled.toggle() }' in u
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBest\n' not in g
