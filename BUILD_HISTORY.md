@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43627277751:ATTEMPT:1 -->
+### 2026-11-14T18:33:39Z — CI #239 · redesign-hyperrealistic-neon-preview · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43627277751](https://github.com/gulinodesign-maker/EMT/actions/runs/43627277751); avvio 2026-11-14T18:33:39Z UTC; aggiornamento finale 2026-11-14T18:34:01Z UTC; registrazione 2026-11-14T18:34:09+00:00 UTC; evento pull_request.
+- **Commit:** [6111be326f59](https://github.com/gulinodesign-maker/EMT/commit/6111be326f59eead7604c63c6e44082ddf5022a6); versione **1.0**; build **80**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Ecojumbo/Views/CockpitComponents.swift, Ecojumbo/Views/EcojumboRootView.swift, Tests/verify_build60_setup_navigation.py, Tests/verify_build65_ui.py, Tests/verify_build66_symmetry_ring.py, Tests/verify_cockpit.py, Tests/verify_landscape_geometry.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py.
+
 <!-- EMT_RUN:43625358959:ATTEMPT:1 -->
 ### 2026-11-14T18:13:13Z — CI #234 · redesign-hyperrealistic-neon-preview · tentativo 1
 
