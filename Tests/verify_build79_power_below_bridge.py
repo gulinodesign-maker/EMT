@@ -45,10 +45,10 @@ assert "below.addLine(to: CGPoint(x: rect.maxX, y: rightFoot.y))" in mask
 assert "below.addLine(to: CGPoint(x: rect.minX, y: leftFoot.y))" in mask
 assert "below.closeSubpath()" in mask
 assert "GPSPowerSemicircle(powerWatts: live?.power, d: dialSize)" in dashboard
-assert "CGPoint(x: x + d * 0.165, y: y + d * 0.852)" in bridge
-assert "CGPoint(x: x + d * 0.310, y: y + d * 0.746)" in bridge
-assert "CGPoint(x: x + d * 0.690, y: y + d * 0.746)" in bridge
-assert "CGPoint(x: x + d * 0.835, y: y + d * 0.852)" in bridge
+assert "CGPoint(x: x + d * 0.165, y: y + d * 0.825)" in bridge
+assert "CGPoint(x: x + d * 0.310, y: y + d * 0.705)" in bridge
+assert "CGPoint(x: x + d * 0.690, y: y + d * 0.705)" in bridge
+assert "CGPoint(x: x + d * 0.835, y: y + d * 0.825)" in bridge
 assert "let arcStart = 146.0" in speed
 assert "let arcEnd = 394.0" in speed
 assert "if let progress, progress > 0" in speed
@@ -64,15 +64,15 @@ assert isclose(blue_degrees/2.5, red_degrees/5)
 # line is approximated by the conservative unrounded bridge polyline;
 # actual clipping is guaranteed by the exact bridge-mask path above.
 def bridge_y(x):
-    if x<.165 or x>.835: return .852
-    if x<.310: return .852-(x-.165)*(.852-.746)/(.310-.165)
-    if x<=.690: return .746
-    return .746+(x-.690)*(.852-.746)/(.835-.690)
+    if x<.165 or x>.835: return .825
+    if x<.310: return .825-(x-.165)*(.825-.705)/(.310-.165)
+    if x<=.690: return .705
+    return .705+(x-.690)*(.825-.705)/(.835-.690)
 
 for d in (300, 394, 430, 520, 710):
     metal_width=max(1.5,d*.0035)
     clearance=min(4,max(3,d*.009))
-    tick_r=.965/2-metal_width/d/2-clearance/d
+    tick_r=.890/2-metal_width/d/2-clearance/d
     bar_r=tick_r-.025/2
     for first,last in ((102,126),(54,102)):
         for i in range(41):

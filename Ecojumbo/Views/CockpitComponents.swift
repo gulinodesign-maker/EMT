@@ -272,20 +272,22 @@ private struct CarbonBackdrop: View {
                     : theme.backdrop
                 Image("CarbonWeave")
                     .resizable(resizingMode: .tile)
-                    .opacity(colorScheme == .light ? 0.08 : 0.52)
-                LinearGradient(colors: colorScheme == .light
-                    ? [Color.white.opacity(0.45), .clear, Color(red: 0.75, green: 0.80, blue: 0.88).opacity(0.25)]
-                    : [.black.opacity(0.55), .clear, .black.opacity(0.70)],
-                    startPoint: .top, endPoint: .bottom)
-                RadialGradient(colors: colorScheme == .light
-                    ? [theme.accent.opacity(0.07), .clear, .white.opacity(0.08)]
-                    : [theme.secondary.opacity(0.14), .clear, .black.opacity(0.56)],
-                    center: .center, startRadius: 0,
-                    endRadius: max(geo.size.width, geo.size.height) * 0.62)
+                    .opacity(colorScheme == .light ? 0.075 : 0.13)
+                LinearGradient(stops: [
+                    .init(color: .black.opacity(colorScheme == .light ? 0 : 0.20), location: 0),
+                    .init(color: .clear, location: 0.45),
+                    .init(color: .black.opacity(colorScheme == .light ? 0 : 0.42), location: 1)
+                ], startPoint: .top, endPoint: .bottom)
+                RadialGradient(colors: [
+                    theme.accent.opacity(colorScheme == .light ? 0.045 : 0.065),
+                    .clear
+                ], center: UnitPoint(x: 0.29, y: 0.50), startRadius: 0,
+                   endRadius: max(geo.size.width, geo.size.height) * 0.43)
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
         .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
@@ -296,9 +298,9 @@ private struct CockpitTopSoftShade: View {
     var body: some View {
         GeometryReader { geo in
             LinearGradient(stops: [
-                .init(color: colorScheme == .light ? Color.white.opacity(0.83) : Color(white: 0.30).opacity(0.38), location: 0),
-                .init(color: colorScheme == .light ? Color.white.opacity(0.34) : Color(white: 0.23).opacity(0.26), location: 0.48),
-                .init(color: colorScheme == .light ? Color.white.opacity(0.08) : Color(white: 0.14).opacity(0.08), location: 0.82),
+                .init(color: colorScheme == .light ? Color.white.opacity(0.83) : Color(white: 0.10).opacity(0.14), location: 0),
+                .init(color: colorScheme == .light ? Color.white.opacity(0.34) : Color(white: 0.07).opacity(0.12), location: 0.48),
+                .init(color: colorScheme == .light ? Color.white.opacity(0.08) : Color(white: 0.05).opacity(0.05), location: 0.82),
                 .init(color: .clear, location: 1)
             ], startPoint: .top, endPoint: .bottom)
             .frame(width: geo.size.width, height: geo.size.height * 0.125,
@@ -924,7 +926,7 @@ private enum GPSUnifiedScaleGeometry {
         min(4, max(3, d * 0.009))
     }
     static func outerRadius(for d: CGFloat) -> CGFloat {
-        d * 0.965 / 2
+        d * 0.890 / 2
             - GPSMetalContourStyle.strokeWidth(for: d) / 2
             - metalClearance(for: d)
     }
@@ -1219,14 +1221,24 @@ private struct OpenSpeedCluster: View {
                             .init(color: .clear, location: 1)
                         ], center: .center, startRadius: 0, endRadius: d * 0.493))
                 } else {
+                    // The saved custom background palette remains effective
+                    // beneath the subtle concave glass illumination.
                     Circle()
                         .fill(theme.backdrop)
                         .frame(width: d * 0.986, height: d * 0.986)
+                    Circle()
+                        .fill(RadialGradient(stops: [
+                            .init(color: Color(red: 0.032, green: 0.041, blue: 0.051), location: 0),
+                            .init(color: Color(red: 0.019, green: 0.023, blue: 0.028), location: 0.70),
+                            .init(color: EMTMaterialPalette.black, location: 1)
+                        ], center: .center, startRadius: 0, endRadius: d * 0.49))
+                        .frame(width: d * 0.986, height: d * 0.986)
+                        .opacity(0.91)
                         .shadow(color: .black.opacity(0.88), radius: d * 0.025)
                 }
                 Image("CarbonWeave")
                     .resizable(resizingMode: .tile)
-                    .opacity(colorScheme == .light ? 0 : 0.74)
+                    .opacity(colorScheme == .light ? 0 : 0.13)
                     .frame(width: d * 0.982, height: d * 0.982)
                     .clipShape(Circle())
                 Circle()
@@ -1314,14 +1326,17 @@ private struct OpenSpeedCluster: View {
                             .accessibilityLabel("Velocità GPS: \(Int(speed.rounded())) chilometri orari")
                     } else {
                         Text("—")
-                            .font(.system(size: d * 0.22, weight: .light))
+                            .font(.system(size: d * (showsOdometer ? 0.260 : 0.22),
+                                          weight: showsOdometer ? .medium : .light))
                             .foregroundStyle(colorScheme == .light
                                              ? Color(white: 0.25) : .white.opacity(0.90))
                             .frame(width: d * 0.60, height: d * 0.285)
                             .accessibilityLabel("GPS non disponibile")
                     }
                 }
-                .position(x: d * 0.5, y: d * 0.495)
+                // The GPS reference positions the value higher than the
+                // original Home ring, above ODO and the inset steel bridge.
+                .position(x: d * 0.5, y: d * (showsOdometer ? 0.445 : 0.495))
 
                 // Chilometraggio TOTALE persistente, distinto dal Trip.
                 // Si trova all'interno del quadrante, subito sopra "km/h".
@@ -1336,16 +1351,17 @@ private struct OpenSpeedCluster: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.70)
                         .frame(width: d * 0.48, height: d * 0.055)
-                        .position(x: d * 0.50, y: d * 0.635)
+                        .position(x: d * 0.50, y: d * 0.565)
                         .accessibilityLabel("Chilometraggio totale")
                 }
 
                 Text("km/h")
-                    .font(.system(size: d * 0.047, weight: .medium))
+                    .font(.system(size: d * (showsOdometer ? 0.054 : 0.047),
+                                  weight: showsOdometer ? .bold : .medium))
                     .foregroundStyle(colorScheme == .light
                                      ? Color(white: 0.24) : .white.opacity(0.85))
                     .frame(width: d * 0.20, height: d * 0.065)
-                    .position(x: d * 0.5, y: d * (showsOdometer ? 0.705 : 0.755))
+                    .position(x: d * 0.5, y: d * (showsOdometer ? 0.630 : 0.755))
 
                 if showsPowerReadings {
                     CockpitPowerReadings(d: d, incomingPower: incomingPower,
@@ -1469,7 +1485,7 @@ private struct GPSPowerSemicircle: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)
                 .frame(width: d * 0.39, height: d * 0.063)
-                .position(x: d * 0.50, y: d * 0.800)
+                .position(x: d * 0.50, y: d * 0.755)
                 .accessibilityLabel(measuredPower.map {
                     $0 > 0 ? "Potenza in ingresso alla batteria" :
                     ($0 < 0 ? "Potenza erogata dalla batteria" : "Potenza nulla")
@@ -1516,7 +1532,8 @@ private enum GPSDialLayout {
     }
     static func centerX(width: CGFloat, height: CGFloat) -> CGFloat {
         let d = size(width: width, height: height)
-        return max(d * 0.51 + width * 0.010, width * 0.168 + d * 0.30)
+        // Normalized reference centre: 419 px at 1536 × 709.
+        return max(d * 0.51 + width * 0.010, width * 0.154 + d * 0.280)
     }
 }
 
@@ -1544,8 +1561,9 @@ private enum GPSMetalContourStyle {
     }
 
     static func inset(for dialSize: CGFloat) -> CGFloat {
-        // I diametri del neon arancio e del cerchio metallico sono 0.992 e 0.965.
-        dialSize * (0.992 - 0.965) / 2
+        // Small parallel chrome reflection below the top bar, independent
+        // from the deeper recessed metal ring.
+        max(2.0, dialSize * 0.007)
     }
 }
 
@@ -1555,11 +1573,18 @@ private struct GPSMetalInnerRing: View {
     var body: some View {
         GeometryReader { geo in
             let d = min(geo.size.width, geo.size.height)
-            Circle()
-                .stroke(GPSMetalContourStyle.gradient(for: colorScheme),
-                        style: StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: d)))
-                .frame(width: d * 0.965, height: d * 0.965)
-                .frame(width: d, height: d)
+            ZStack {
+                Circle()
+                    .stroke(Color(white: colorScheme == .light ? 0.62 : 0.10),
+                            lineWidth: d * 0.016)
+                    .frame(width: d * 0.903, height: d * 0.903)
+                EMTMetallicRim(diameter: d * 0.890, widthFactor: 0.0035)
+                Circle()
+                    .stroke(Color.white.opacity(colorScheme == .light ? 0.27 : 0.18),
+                            lineWidth: max(0.5, d * 0.0015))
+                    .frame(width: d * 0.883, height: d * 0.883)
+            }
+            .frame(width: d, height: d)
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
@@ -1572,37 +1597,18 @@ private struct GPSGaugeHalo: View {
         GeometryReader { geo in
             let d = min(geo.size.width, geo.size.height)
             ZStack {
-                // Stesso neon dell'arco velocità, non delle corone di recupero:
-                // halo 0.034/0.027, core 0.015/ombra 0.010, luce bianca 0.003.
-                Circle()
-                    .stroke(theme.accent.opacity(0.80 * theme.glowIntensity),
-                            style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(d) * 1.40))
+                // One concentric tube with four aligned optical layers.
+                EMTNeonStroke(contour: Circle(), color: theme.accent,
+                              thickness: d * 0.0095, intensity: theme.glowIntensity)
                     .frame(width: d * 0.992, height: d * 0.992)
-                    .blur(radius: GPSInnerLED.haloBlur(d))
-                Circle()
-                    .stroke(theme.accent.opacity(0.96),
-                            style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d) * 1.45))
-                    .frame(width: d * 0.992, height: d * 0.992)
-                    .blur(radius: GPSInnerLED.coreBlur(d))
-                    .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
-                            radius: GPSInnerLED.outerBlur(d) * 1.25)
-                Circle()
-                    .stroke(theme.accent,
-                            style: StrokeStyle(lineWidth: max(3.8, d * 0.017)))
-                    .frame(width: d * 0.992, height: d * 0.992)
-                Circle()
-                    .stroke(Color.white.opacity(0.65),
-                            style: StrokeStyle(lineWidth: GPSInnerLED.highlightWidth(d) * 1.35))
-                    .frame(width: d * 0.992, height: d * 0.992)
+                EMTDialSpecularReflection(diameter: d)
             }
             .frame(width: d, height: d)
-            // Build 77: anello arancione più spesso e continuo a 360°:
-            // il ponte è ormai interno al quadrante, niente fade inferiore.
         }
         .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
-
 
 // EJ 1.23 — linea A/kW specifica del cockpit GPS, larga quanto i due valori.
 // Due raccordi con lo stesso raggio della top bar; terminali dritti, lontani
@@ -1693,10 +1699,10 @@ private enum GPSInnerBridgeLayout {
         let x = rect.midX - d * 0.5
         let y = rect.midY - d * 0.5
         return [
-            CGPoint(x: x + d * 0.165, y: y + d * 0.852),
-            CGPoint(x: x + d * 0.310, y: y + d * 0.746),
-            CGPoint(x: x + d * 0.690, y: y + d * 0.746),
-            CGPoint(x: x + d * 0.835, y: y + d * 0.852)
+            CGPoint(x: x + d * 0.165, y: y + d * 0.825),
+            CGPoint(x: x + d * 0.310, y: y + d * 0.705),
+            CGPoint(x: x + d * 0.690, y: y + d * 0.705),
+            CGPoint(x: x + d * 0.835, y: y + d * 0.825)
         ]
     }
 }
@@ -1766,20 +1772,18 @@ private struct GPSLowerGlow: View {
     var body: some View {
         GeometryReader { geo in
             let d = min(geo.size.width, geo.size.height)
-            // Stesso gradiente e IDENTICO spessore del cerchio grigio.
-            // Il bagliore è tenue: niente vecchio halo da 0.034d.
             let lineWidth = GPSMetalContourStyle.strokeWidth(for: d)
             ZStack {
                 GPSInnerBridgeContour()
-                    .stroke(Color.white.opacity(0.20 * theme.glowIntensity),
-                            style: StrokeStyle(lineWidth: lineWidth * 1.15, lineCap: .round))
-                    .blur(radius: max(1.0, d * 0.004))
+                    .stroke(Color.white.opacity(0.13 * theme.glowIntensity),
+                            style: StrokeStyle(lineWidth: lineWidth * 1.35, lineCap: .round))
+                    .blur(radius: max(0.8, d * 0.0025))
                 GPSInnerBridgeContour()
                     .stroke(GPSMetalContourStyle.gradient(for: colorScheme),
                             style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 GPSInnerBridgeContour()
-                    .stroke(Color.white.opacity(colorScheme == .light ? 0.34 : 0.55),
-                            style: StrokeStyle(lineWidth: max(0.45, lineWidth * 0.30),
+                    .stroke(EMTMaterialPalette.ivory.opacity(colorScheme == .light ? 0.24 : 0.53),
+                            style: StrokeStyle(lineWidth: max(0.45, lineWidth * 0.27),
                                                lineCap: .round))
             }
             .mask(GPSLowerTerminalFade())
@@ -1816,9 +1820,9 @@ struct GPSCockpitDashboard: View {
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
             let temperatureLayout = GPSHorizonSymmetry.temperatureFrame(width: w, height: h)
             // Pulsante sotto/sinistra del quadrante: fuori dalla scala e dal ponte kW.
-            let resetSide = max(42, min(58, h * 0.08))
-            let resetX = max(resetSide / 2 + max(10, w * 0.008),
-                             dialCenterX - dialSize * 0.56)
+            let resetSide = max(64, min(100, h * 0.14))
+            let resetX = max(resetSide / 2 + w * 0.028,
+                             dialCenterX - dialSize * 0.50)
             let resetY = min(h - resetSide * 0.58, h * 0.840)
             // Telemetria centrata esattamente tra la tangente destra del
             // quadrante GPS e il bordo destro dello schermo. Stesso inset su
@@ -1826,10 +1830,10 @@ struct GPSCockpitDashboard: View {
             let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)
             let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) - panelLeft)
             // Le card occupano il centro dello spazio tra la top bar e il dock.
-            let dockHeight = max(51, min(83, h * 0.105))
-            let dockBottom = max(4, h * 0.006)
-            let outerMargin = max(8, h * 0.018)
-            let cardsTop = h * 0.099 + outerMargin
+            let dockHeight = max(58, min(101, h * 0.145))
+            let dockBottom = max(12, h * 0.058)
+            let outerMargin = max(6, h * 0.013)
+            let cardsTop = h * 0.099
             let cardsBottom = h - dockBottom - dockHeight - outerMargin
             let cardsHeight = max(1, cardsBottom - cardsTop)
             let cardsCenterY = (cardsTop + cardsBottom) / 2
@@ -1960,26 +1964,33 @@ private struct GPSTripResetControl: View {
     var body: some View {
         GeometryReader { geo in
             let side = min(geo.size.width, geo.size.height)
-            VStack(spacing: max(1, side * 0.014)) {
+            VStack(spacing: max(2, side * 0.025)) {
                 Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: side * 0.35, weight: .semibold))
+                    .font(.system(size: side * 0.32, weight: .semibold))
                     .symbolRenderingMode(.monochrome)
                 Text("RESET")
-                    .font(.system(size: max(7, side * 0.13), weight: .bold,
+                    .font(.system(size: max(9, side * 0.145), weight: .bold,
                                   design: .rounded))
-                    .tracking(0.2)
+                    .tracking(0.45)
             }
-            .foregroundStyle(colorScheme == .light
-                             ? Color(white: 0.20) : .white.opacity(0.93))
+            .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
             .frame(width: side, height: side)
             .background {
-                Circle().fill(colorScheme == .light
-                              ? Color.white.opacity(0.88)
-                              : Color.black.opacity(0.78))
+                Circle().fill(RadialGradient(colors: colorScheme == .light
+                    ? [Color.white, Color(white: 0.87)]
+                    : [Color(white: 0.13), EMTMaterialPalette.black],
+                    center: UnitPoint(x: 0.34, y: 0.16),
+                    startRadius: 0, endRadius: side * 0.75))
             }
             .overlay {
-                Circle().stroke(theme.accent.opacity(0.72), lineWidth: 1.2)
+                Circle().stroke(EMTMaterialPalette.steel.opacity(0.36), lineWidth: 0.8)
+                    .padding(3)
+                EMTNeonStroke(contour: Circle(), color: theme.accent,
+                              thickness: max(1.25, side * 0.016), intensity: theme.glowIntensity)
+                    .padding(2)
             }
+            .shadow(color: theme.accent.opacity(colorScheme == .light ? 0.10 : 0.24),
+                    radius: side * 0.15)
             .contentShape(Circle())
             .onLongPressGesture(minimumDuration: 0.5) {
                 gps.resetTrip()
@@ -1999,8 +2010,9 @@ private enum GPSHorizonSymmetry {
         -> (leftKnee: CGPoint, leftContact: CGPoint,
             rightContact: CGPoint, rightKnee: CGPoint) {
         let axis = GPSDialLayout.centerX(width: w, height: h)
-        let rightKnee = CGPoint(x: w * 0.54, y: h * 0.099)
-        let rightContact = CGPoint(x: w * 0.45, y: h * 0.244)
+        let dial = GPSDialLayout.size(width: w, height: h)
+        let rightKnee = CGPoint(x: axis + max(w * 0.180, dial * 0.385), y: h * 0.099)
+        let rightContact = CGPoint(x: axis + dial * 0.358, y: h * 0.244)
         let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)
         let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)
         return (leftKnee, leftContact, rightContact, rightKnee)
@@ -2081,7 +2093,7 @@ private struct GPSHorizonLine: View {
             // verso il basso dell'esatta distanza tra cerchio arancio e grigio.
             let metalLine = line.applying(CGAffineTransform(
                 translationX: 0, y: GPSMetalContourStyle.inset(for: dialSize)))
-            let metalRadius = dialSize * 0.965 / 2
+            let metalRadius = dialSize * 0.890 / 2
                 + GPSMetalContourStyle.strokeWidth(for: dialSize) / 2
             let visibleOutsideMetalRing = Path { p in
                 p.addRect(CGRect(x: 0, y: 0, width: w, height: h))
@@ -2103,18 +2115,9 @@ private struct GPSHorizonLine: View {
                 metalLine.stroke(GPSMetalContourStyle.gradient(for: colorScheme),
                                  style: StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: dialSize)))
                     .mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))
-                ZStack {
-                    // Contorno arancione originale, invariato (un solo profilo LED).
-                    line.stroke(theme.accent.opacity(0.80 * theme.glowIntensity),
-                                lineWidth: GPSInnerLED.haloWidth(h))
-                        .blur(radius: GPSInnerLED.haloBlur(h))
-                    line.stroke(theme.accent.opacity(0.96), lineWidth: GPSInnerLED.coreWidth(h))
-                        .blur(radius: GPSInnerLED.coreBlur(h))
-                        .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
-                                radius: GPSInnerLED.outerBlur(h))
-                    line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))
-                    line.stroke(Color.white.opacity(0.65), lineWidth: GPSInnerLED.highlightWidth(h))
-                }
+                EMTNeonStroke(contour: line, color: theme.accent,
+                              thickness: GPSContourStroke.width(height: h),
+                              intensity: theme.glowIntensity)
                 .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
             }
             // I raccordi GPS terminano netti al bordo del quadrante:
@@ -2820,15 +2823,16 @@ private struct GPSExpandedReadings: View {
         GeometryReader { geo in
             let width = geo.size.width
             let height = geo.size.height
-            let insetX = max(8, min(18, width * 0.024))
+            // The reference's glass card edges almost touch the actual
+            // telemetry span; a large inner inset would shift the left
+            // cards ~20 px away from their photographed position.
+            let insetX = max(0, min(3, width * 0.003))
             let insetY = max(6, min(13, height * 0.019))
             let innerHeight = max(1, height - 2 * insetY)
-            let headerHeight = max(24, min(40, innerHeight * 0.105))
-            let tileGap = max(5, min(10, height * 0.022))
-            // Due righe di card quadranti + DISL alta quanto due card.
-            // Il totale occupa esattamente lo spazio tra top bar e dock.
-            let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 4)
-            let dislHeight = 2 * cardHeight
+            let headerHeight = max(18, min(32, innerHeight * 0.083))
+            let tileGap = max(6, min(10, height * 0.028))
+            let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 3.8)
+            let dislHeight = 1.8 * cardHeight
             let snapshot = bluetooth.snapshot
             let live = bluetooth.isConnected && snapshot.map({
                 abs(now.timeIntervalSince($0.date)) < 10
@@ -2842,44 +2846,34 @@ private struct GPSExpandedReadings: View {
                     Text("TELEMETRIA")
                         .font(.system(size: max(11, min(17, headerHeight * 0.40)),
                                       weight: .semibold, design: .rounded))
-                        .tracking(2.0)
+                        .tracking(3)
                         .foregroundStyle(colorScheme == .light
-                                         ? Color(white: 0.33) : Color(white: 0.65))
+                                         ? Color(white: 0.30) : .white.opacity(0.78))
                     Rectangle().fill(theme.accent.opacity(0.75))
                         .frame(width: max(15, width * 0.052), height: 1)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: headerHeight)
 
-                // SOC | V BAT
-                // AUT | TRIP
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap),
-                                    GridItem(.flexible(), spacing: tileGap)],
-                          spacing: tileGap) {
-                    telemetryTile("SOC",
+                                    GridItem(.flexible(), spacing: tileGap)], spacing: tileGap) {
+                    telemetryTile("SOC", icon: "battery.100percent",
                                   value: live.map { "\($0.soc)%" } ?? "—%",
                                   fraction: live.map { Double($0.soc) / 100.0 },
                                   showsBar: true, height: cardHeight)
-
-                    telemetryTile("V BAT",
+                    telemetryTile("V BAT", icon: "bolt.fill",
                                   value: live.map { String(format: "%.1f V", $0.voltage) } ?? "— V",
                                   fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) },
                                   showsBar: true, height: cardHeight)
-
-                    telemetryTile("AUT",
-                                  value: autonomy.map {
-                                      String(format: "%.0f km", $0.kilometers)
-                                  } ?? "— km",
+                    telemetryTile("AUT", icon: "steeringwheel",
+                                  value: autonomy.map { String(format: "%.0f km", $0.kilometers) } ?? "— km",
                                   fraction: autonomy?.fractionOfFull,
                                   showsBar: true, height: cardHeight)
-
-                    telemetryTile("TRIP",
+                    telemetryTile("TRIP", icon: "point.topleft.down.curvedto.point.bottomright.up",
                                   value: String(format: "%.1f km", gps.tripKm),
                                   fraction: nil, height: cardHeight)
                 }
                 .frame(maxWidth: .infinity)
-
-                // Grafico dislivello a tutta larghezza e doppia altezza.
                 dislevelCard(height: dislHeight)
             }
             .frame(width: max(1, width - 2 * insetX), height: innerHeight)
@@ -2891,80 +2885,82 @@ private struct GPSExpandedReadings: View {
         .accessibilityLabel("Telemetria")
     }
 
-    private var tileBackground: Color {
-        colorScheme == .light ? Color.white.opacity(0.36) : Color.white.opacity(0.038)
-    }
-
-    private func telemetryTile(_ label: String, value: String,
+    private func telemetryTile(_ label: String, icon: String, value: String,
                                fraction: Double?, showsBar: Bool = false,
                                height: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 5) {
-                Text(label)
-                    .font(.system(size: max(10, min(13, height * 0.205)),
-                                  weight: .medium, design: .rounded))
-                    .tracking(0.6)
-                    .foregroundStyle(colorScheme == .light
-                                     ? Color(white: 0.32) : Color(white: 0.68))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+        VStack(spacing: max(4, height * 0.055)) {
+            HStack(alignment: .center, spacing: max(10, height * 0.12)) {
+                Image(systemName: icon)
+                    .font(.system(size: max(21, height * 0.30), weight: .medium))
+                    .foregroundStyle(colorScheme == .light ? Color(white: 0.20) : .white)
+                    .frame(width: height * 0.64, height: height * 0.52)
+                VStack(alignment: .leading, spacing: max(1, height * 0.025)) {
+                    Text(label)
+                        .font(.system(size: max(10, min(15, height * 0.155)),
+                                      weight: .medium, design: .rounded))
+                        .tracking(0.7)
+                        .foregroundStyle(colorScheme == .light
+                                         ? Color(white: 0.38) : .white.opacity(0.71))
+                    Text(value)
+                        .font(.system(size: max(15, min(29, height * 0.31)),
+                                      weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(colorScheme == .light ? Color(white: 0.12) : .white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.54)
+                }
                 Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
-            Text(value)
-                .font(.system(size: max(13, min(23, height * 0.30)),
-                              weight: .bold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(colorScheme == .light ? Color(white: 0.10) : .white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.58)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             if showsBar {
-                // A dato BMS mancante la barra resta vuota, senza valori simulati.
-                TelemetrySlimBar(fraction: fraction, theme: theme)
-                    .frame(height: max(3, min(6, height * 0.075)))
-                    .padding(.top, 2)
+                EMTTelemetryRail(fraction: fraction, color: theme.accent)
+                    .frame(height: max(7, min(11, height * 0.105)))
             }
         }
-        .padding(.horizontal, max(7, height * 0.14))
-        .padding(.vertical, max(5, height * 0.10))
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, max(11, height * 0.14))
+        .padding(.vertical, max(7, height * 0.10))
+        .frame(maxWidth: .infinity)
         .frame(height: height)
-        .background(tileBackground, in: RoundedRectangle(cornerRadius: 10))
+        .background {
+            EMTGlossyGlassSurface(cornerRadius: max(13, height * 0.19),
+                                  glowColor: theme.accent, illumination: 0.66)
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(value)")
     }
 
     private func dislevelCard(height: CGFloat) -> some View {
-        VStack(spacing: 2) {
-            HStack(spacing: 6) {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Image(systemName: "arrow.up.arrow.down")
+                    .font(.system(size: max(22, height * 0.18), weight: .medium))
+                    .foregroundStyle(colorScheme == .light ? Color(white: 0.2) : .white)
                 Text("DISL")
-                    .font(.system(size: max(11, min(15, height * 0.12)),
+                    .font(.system(size: max(13, min(18, height * 0.105)),
                                   weight: .semibold, design: .rounded))
-                    .tracking(0.6)
+                    .tracking(0.7)
                     .foregroundStyle(colorScheme == .light
-                                     ? Color(white: 0.32) : Color(white: 0.68))
+                                     ? Color(white: 0.32) : .white.opacity(0.78))
                 Spacer(minLength: 0)
-                Text(gps.tripElevationMeters.map {
-                    String(format: "%+.0f m", $0)
-                } ?? "— m")
-                    .font(.system(size: max(15, min(27, height * 0.22)),
+                Text(gps.tripElevationMeters.map { String(format: "%+.0f m", $0) } ?? "— m")
+                    .font(.system(size: max(21, min(38, height * 0.21)),
                                   weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(colorScheme == .light ? Color(white: 0.10) : .white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
             }
-            .frame(height: height * 0.29)
-
+            .padding(.horizontal, max(14, height * 0.105))
+            .frame(height: height * 0.36)
             GPSTripAltitudeSparkline(points: gps.altitudeProfile, color: theme.accent)
                 .frame(maxWidth: .infinity)
-                .frame(height: max(12, height * 0.62))
+                .frame(height: height * 0.61)
+                .padding(.horizontal, 4)
         }
-        .padding(.horizontal, 11)
-        .padding(.vertical, 4)
         .frame(maxWidth: .infinity)
         .frame(height: height)
-        .background(tileBackground, in: RoundedRectangle(cornerRadius: 10))
+        .background {
+            EMTGlossyGlassSurface(cornerRadius: max(14, height * 0.075),
+                                  glowColor: theme.accent, illumination: 0.40)
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("DISL: " + (gps.tripElevationMeters.map {
             String(format: "%+.0f m", $0)
@@ -3029,15 +3025,15 @@ private struct GPSTripAltitudeSparkline: View {
                                         horizontalSpan: horizontalSpan,
                                         closeToBottom: true)
                 ZStack {
-                    // La sfumatura è sotto al tracciato GPS reale, e segue
-                    // sempre il colore scelto per la linea DISL.
+                    // Only real altitude samples. Low-opacity area remains
+                    // for compatibility; 23 vector echoes add topographic depth.
                     area.fill(LinearGradient(
-                        colors: [color.opacity(0.34), color.opacity(0.16), color.opacity(0.0)],
+                        colors: [color.opacity(0.035), color.opacity(0.012), color.opacity(0.0)],
                         startPoint: .top, endPoint: .bottom
                     ))
-                    line.stroke(color, style: StrokeStyle(lineWidth: 2,
-                                                          lineCap: .round,
-                                                          lineJoin: .round))
+                    line.stroke(color.opacity(0.12), style: StrokeStyle(lineWidth: 1,
+                                                                        lineJoin: .round))
+                    EMTTopographicAltitude(points: points, color: color)
                 }
             } else {
                 // Nessun profilo o ombra inventati prima di 2 misure GPS.

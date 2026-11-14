@@ -60,7 +60,7 @@ assert "GPSPowerBelowBridgeMask()" in power
 
 # The bridge is now inside dial coordinates; old 76 external clip is inactive.
 for fragment in ("d * 0.165", "d * 0.310", "d * 0.690", "d * 0.835",
-                 "d * 0.746", "d * 0.852"):
+                 "d * 0.705", "d * 0.825"):
     assert fragment in bridge_geometry
 assert "GPSInnerBridgeContour()" in bridge
 assert "GPSMetalContourStyle.gradient(for: colorScheme)" in bridge
@@ -71,10 +71,9 @@ assert "CockpitPowerReadings(d: dialSize" not in dashboard
 assert "GPSLowerGlow(theme: theme)" in dashboard
 
 # Orange ring is physically thicker, concentric and fully closed.
-assert "max(3.8, d * 0.017)" in ring
-assert "GPSInnerLED.haloWidth(d) * 1.40" in ring
-assert "GPSInnerLED.coreWidth(d) * 1.45" in ring
-assert ring.count(".frame(width: d * 0.992, height: d * 0.992)") == 4
+assert "EMTNeonStroke(contour: Circle(), color: theme.accent" in ring
+assert "EMTDialSpecularReflection(diameter: d)" in ring
+assert ring.count(".frame(width: d * 0.992, height: d * 0.992)") == 1
 assert ".mask(LinearGradient(stops:" not in ring
 assert ".mask(LinearGradient(stops:" not in metal
 assert "GPSMetalInnerRing()" in dashboard and "GPSGaugeHalo(theme: theme)" in dashboard
@@ -86,5 +85,5 @@ for d in (320, 400, 520, 710):
         x=0.5*d+0.408*d*cos(radians(angle))
         y=0.5*d+0.408*d*sin(radians(angle))
         assert 0<x<d and y>0.82*d
-    assert 0.746*d < 0.800*d < 0.876*d < 0.933*d
+    assert 0.705*d < 0.755*d < 0.825*d < 0.933*d
 print("OK — 77/79: inner bridge, unequal live BMS scales and no READY/OFF")

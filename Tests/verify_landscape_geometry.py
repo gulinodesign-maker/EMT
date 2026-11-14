@@ -44,7 +44,7 @@ for w,h in [(844,390),(852,393),(932,430),(956,440),(736,414),(1536,707),(1536,8
     assert math.isclose(min(h*.075,w*.032),min(h*.075,w*.032))
 # Cockpit GPS: quadrante sinistro entro bordo, mappa a destra, sette pulsanti.
 assert 'let dialSize = GPSDialLayout.size(width: w, height: h)' in c
-assert 'return max(d * 0.51 + width * 0.010, width * 0.168 + d * 0.30)' in c
+assert 'return max(d * 0.51 + width * 0.010, width * 0.154 + d * 0.280)' in c
 assert 'private struct GPSGaugeHalo: View' in c
 assert 'LowerPanelShade()' in u
 assert c.count('CockpitTopSoftShade()') == 2
@@ -55,27 +55,27 @@ assert 'GPSHorizonLine(theme: theme)' in c
 assert 'GPSLowerGlow(theme: theme)' in c
 assert 'ForEach([EcoTab.trips, .settings, .themes])' in u
 assert '@State private var selected: EcoTab = .gps' in u
-assert '? max(4, h * 0.006)' in u
+assert '? max(12, h * 0.058)' in u
 assert 'textTop - max(12, h * 0.014)' in c
 assert 'buttonStart - max(9, w * 0.012)' in c
 for w,h in [(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    d=min(h*.965,w*.55)
-    cx=max(d*.51+w*.010,w*.168+d*.30)
+    d=min(h*.920,w*.525)
+    cx=max(d*.51+w*.010,w*.154+d*.280)
     cy=h*.494
     assert cx-d/2>0,(w,h)
     assert cx+d/2 < w*.65,(w,h)
     assert cy-d/2>0 and cy+d/2<h
     assert w*.68+w*.64/2<=w*1.001
     # Il bordo superiore del quadrante resta fuori dalla zona riservata all'orario.
-    assert cx-d*.30 > w*.155 - 3,(w,h)
+    assert cx-d*.30 > w*.145 - 3,(w,h)
     controls_h=max(51,min(83,h*.105))
     side=min(controls_h*.96,w*.059,w*.052)
     gps_width=7*side+6*w*.008
     assert gps_width+max(12,w*.018)<w*.50,(w,h,gps_width)
 # Allargamento profilo GPS, nessun testo o pulsante attraversato.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    d=min(h*.965,w*.55)
-    cx=max(d*.51+w*.010,w*.168+d*.30)
+    d=min(h*.920,w*.525)
+    cx=max(d*.51+w*.010,w*.154+d*.280)
     text_left=cx-d*.33
     text_right=cx+d*.33
     left_top=cx-d*.325
@@ -97,7 +97,7 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert right_top+run+max(9,w*.012)<=button_start+1e-8,(w,h)
     assert (right_top-left_top)<d*.66
     assert foot_y<h*.945
-    assert h-max(4,h*.006)-control_h>0
+    assert h-max(12,h*.058)-max(58,min(101,h*.145))>0
 # Build 43: nessuna tessera di telemetria sopra la cartografia.
 assert 'GPSCompactReadings' not in c
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
@@ -199,7 +199,7 @@ assert '.frame(width: d * 0.205, height: d * 0.142)' in c
 assert 'y: d * 0.241' in c
 assert 'GPSAngularManeuverArrow' not in c
 assert 'y: d * 0.682' not in c
-assert 'y: d * (showsOdometer ? 0.705 : 0.755)' in c  # Home remains .755, GPS lifts unit
+assert 'y: d * (showsOdometer ? 0.630 : 0.755)' in c  # Home remains .755, GPS lifts unit
 assert c.count('Text(String(Int(speed.rounded())))')==1
 assert 'SpeedGlyphOutlineView' not in c
 # I sei pannelli non disegnano nella circonferenza, anche nel tema chiaro.
@@ -217,16 +217,16 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     dock_width=8*side+7*gap
     right_margin=max(12,w*.018)
     assert dock_width+right_margin < w*.66,(w,h,dock_width)
-assert 'gpsButton("map.fill", active: mapEnabled' in u
+assert 'gpsButton("map.fill", active: selected == .gps' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
 assert '.frame(width: panelWidth, height: cardsHeight)' in c
 assert '.position(x: panelLeft + panelWidth / 2, y: cardsCenterY)' in c
 # Posizione delle cinque schede esattamente fra top bar e dock su ogni iPhone.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    dock_height=max(51,min(83,h*.105))
-    dock_bottom=max(4,h*.006)
-    margin=max(8,h*.018)
-    top=h*.099+margin
+    dock_height=max(58,min(101,h*.145))
+    dock_bottom=max(12,h*.058)
+    margin=max(6,h*.013)
+    top=h*.099
     bottom=h-dock_bottom-dock_height-margin
     center=(top+bottom)/2
     column_height=bottom-top
@@ -237,8 +237,8 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert abs((center+column_height/2)-bottom)<1e-8
 # Card e dock standard condividono esattamente i bordi e non invadono il disco.
 for w,h in [(736,414),(844,390),(852,393),(932,430),(956,440),(1536,706),(1536,864),(1806,831)]:
-    dial=min(h*.965,w*.55)
-    dial_center=max(dial*.51+w*.010,w*.168+dial*.30)
+    dial=min(h*.920,w*.525)
+    dial_center=max(dial*.51+w*.010,w*.154+dial*.280)
     dial_right=dial_center+dial*.50
     gap=w*.008
     right_inset=max(12,w*.018)
@@ -279,17 +279,17 @@ assert expanded.count('showsBar: true')==3
 assert expanded.count('telemetryTile("')==4
 assert 'telemetryTile("SOC"' in expanded and 'telemetryTile("V BAT"' in expanded
 assert 'telemetryTile("AUT"' in expanded and 'telemetryTile("TRIP"' in expanded
-assert 'let dislHeight = 2 * cardHeight' in expanded
+assert 'let dislHeight = 1.8 * cardHeight' in expanded
 assert 'dislevelCard(height: dislHeight)' in expanded
 assert 'if showsBar {' in expanded
-assert 'TelemetrySlimBar(fraction: fraction, theme: theme)' in expanded
+assert 'EMTTelemetryRail(fraction: fraction, color: theme.accent)' in expanded
 assert 'SpeedGlyphOutlineView' not in c  # il font velocita resta SwiftUI semplice
 assert 'Text(String(Int(speed.rounded())))' in c
 assert 'CGPoint(x: w * 0.255, y: h * 0.099)' in c
 assert 'let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)' in c
 assert 'let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)' in c
 assert 'GPSMetalInnerRing()' in c
-assert 'CGPoint(x: w * 0.54, y: h * 0.099)' in c
+assert 'let rightKnee = CGPoint(x: axis + max(w * 0.180, dial * 0.385), y: h * 0.099)' in c
 assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
 # La mappa occupa fino al bordo inferiore prima del fade, con la ricerca
 # ancora allineata al profilo della top bar.

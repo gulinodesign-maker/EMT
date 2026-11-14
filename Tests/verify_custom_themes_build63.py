@@ -55,6 +55,6 @@ assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in cockpit
 assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)" in cockpit
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
-assert "let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)" in home
+assert "let justifiedGap = max(0, (telemetryDockWidth - dockContentInset - 5 * gpsSide) / 4)" in home
 assert "UIDevice.current.orientation == .portrait" in home
 print("OK — build 63 compatibility: 3 saved slots migrate 8 -> 15 colors")

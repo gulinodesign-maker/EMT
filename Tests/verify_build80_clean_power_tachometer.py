@@ -46,7 +46,7 @@ for w, h in ((736,414),(844,390),(932,430),(1179,510),(1536,706),(1806,831)):
     old_d = min(h*0.965, w*0.55)
     d = min(h*0.920, w*0.525)
     assert 0.94 < d/old_d < 0.97
-    outer = d*0.965/2 - max(1.5, d*0.0035)/2 - min(4,max(3,d*0.009))
+    outer = d*0.890/2 - max(1.5, d*0.0035)/2 - min(4,max(3,d*0.009))
     bar_r = outer - d*0.025/2
     assert isclose(bar_r+d*0.025/2, outer, abs_tol=1e-9)
     assert d*0.025 > d*0.017

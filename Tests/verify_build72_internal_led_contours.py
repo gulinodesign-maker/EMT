@@ -11,17 +11,15 @@ for name in ("haloWidth", "haloBlur", "coreWidth", "coreBlur"):
 top = source.split("private struct GPSHorizonLine: View {", 1)[1].split("@MainActor", 1)[0]
 ring = source.split("private struct GPSGaugeHalo: View {", 1)[1].split("// EJ 1.23", 1)[0]
 lower = source.split("private struct GPSLowerGlow: View {", 1)[1].split("// EJ 1.22", 1)[0]
+# Preview: both contours use the same non-uniform multi-pass material.
 for section in (top, ring):
-    for method in ("haloWidth", "haloBlur", "coreWidth", "coreBlur"):
-        assert "GPSInnerLED." + method + "(" in section
-assert "GPSInnerLED.haloWidth(h)" in top
-assert "GPSInnerLED.highlightWidth(h)" in top
-assert "GPSInnerLED.outerOpacity(theme.glowIntensity)" in top
+    assert "EMTNeonStroke(" in section
+    assert "theme.glowIntensity" in section
+assert "GPSContourStroke.width(height: h)" in top
 assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in top
 assert "GPSHorizonSymmetry.corners(width: w, height: h)" in source
-assert ring.count("GPSInnerLED.haloWidth(d)") == 1
-assert "GPSInnerLED.highlightWidth(d)" in ring
-assert ".shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity))" in ring
+assert "EMTDialSpecularReflection(diameter: d)" in ring
+assert "thickness: d * 0.0095" in ring
 assert ".frame(width: d * 0.992, height: d * 0.992)" in ring
 assert ".mask(LinearGradient(stops:" not in ring  # 77: full 360-degree orange halo
 assert "let lineWidth = GPSMetalContourStyle.strokeWidth(for: d)" in lower
@@ -37,6 +35,6 @@ assert "GPSHorizonLine(theme: theme)" in source
 for prohibited in ("GPSOuterProfileReinforcement", "GPSTopBandShade",
                    "GPSLowerAreaGradient", "GPSAreaGradientStyle"):
     assert prohibited not in source
-assert "line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))" in top
+assert "EMTNeonStroke(contour: line, color: theme.accent" in top
 assert "style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)" in lower
 print("OK — build 72: inward LED on top bar, orange ring and kW bridge with fade preserved")

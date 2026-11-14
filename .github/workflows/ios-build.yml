@@ -32,8 +32,14 @@ jobs:
       - name: Controlli strutturali Python
         run: |
           set -euo pipefail
-          for f in Tests/verify_*.py; do python3 "$f"; done
+          failed=0
+          for f in Tests/verify_*.py; do
+            echo "::group::Regression $f"
+            python3 "$f" || failed=1
+            echo "::endgroup::"
+          done
           plutil -lint Ecojumbo.xcodeproj/project.pbxproj
+          test "$failed" -eq 0
           plutil -lint Ecojumbo/Info.plist
 
       - name: Test protocollo JK Bluetooth (sola lettura)
@@ -60,6 +66,72 @@ jobs:
             -derivedDataPath "$RUNNER_TEMP/EcojumboDerivedData" \
             CODE_SIGNING_ALLOWED=NO \
             build
+
+      # PR-only visual fixture: on-device simulator rendering, NOT a
+      # static reference image. No synthetic GPS/BMS telemetry is injected.
+      - name: Cattura anteprima cockpit reale (simulatore)
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        timeout-minutes: 7
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > "$RUNNER_TEMP/ecojumbo-sim-udid"
+          import json, subprocess
+          data = json.loads(subprocess.check_output(
+              ["xcrun", "simctl", "list", "-j", "devices", "available"]))
+          devices = [d for items in data["devices"].values() for d in items
+                     if "iPhone" in d.get("name", "") and d.get("isAvailable", True)]
+          if not devices:
+              raise SystemExit("Nessun simulatore iPhone disponibile")
+          devices.sort(key=lambda d: (
+              "Pro Max" in d.get("name", ""),
+              "Pro" in d.get("name", ""),
+              d.get("name", "")), reverse=True)
+          print(devices[0]["udid"])
+          PY
+          UDID="$(cat "$RUNNER_TEMP/ecojumbo-sim-udid")"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+          xcrun simctl ui "$UDID" appearance dark
+          xcrun simctl install "$UDID" "$RUNNER_TEMP/EcojumboDerivedData/Build/Products/Debug-iphonesimulator/Ecojumbo.app"
+          # Test device only: pre-authorize Core Location so its system popup
+          # does not cover the cockpit. No mock coordinates or measurements.
+          xcrun simctl privacy "$UDID" grant location it.ecojumbo.battery
+          # NSArgumentDomain overrides AppStorage only for this screenshot run:
+          # show the four real telemetry cards rather than the default MapKit view.
+          xcrun simctl launch "$UDID" it.ecojumbo.battery -ecojumbo.mapEnabled NO
+          sleep 7
+          echo "::group::Ecojumbo runtime diagnostics"
+          xcrun simctl spawn "$UDID" launchctl list | grep -i Ecojumbo || true
+          xcrun simctl spawn "$UDID" log show --last 2m --style compact \
+            --predicate '(process == "Ecojumbo" OR eventMessage CONTAINS "it.ecojumbo.battery")' \
+            2>&1 | tail -n 100 || true
+          echo "::endgroup::"
+          mkdir -p "$RUNNER_TEMP/ecojumbo-visual"
+          xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ecojumbo-visual/cockpit-simulator.png"
+          xcrun simctl list devices | grep "$UDID"
+          # simctl captures the physical phone canvas in portrait even while
+          # our UI is landscape. Rotate the saved PNG, NOT the application UI.
+          captured="$RUNNER_TEMP/ecojumbo-visual/cockpit-simulator.png"
+          pixel_width="$(sips -g pixelWidth "$captured" | awk '/pixelWidth/ {print $2}')"
+          pixel_height="$(sips -g pixelHeight "$captured" | awk '/pixelHeight/ {print $2}')"
+          if [[ "$pixel_width" -lt "$pixel_height" ]]; then
+            sips --rotate 270 "$captured" >/dev/null
+            pixel_width="$(sips -g pixelWidth "$captured" | awk '/pixelWidth/ {print $2}')"
+            pixel_height="$(sips -g pixelHeight "$captured" | awk '/pixelHeight/ {print $2}')"
+          fi
+          if [[ "$pixel_width" -le "$pixel_height" ]]; then
+            echo "::error::Screenshot not a landscape cockpit after normalization: ${pixel_width}x${pixel_height}"
+            exit 1
+          fi
+      - name: Allega screenshot reale per confronto grafico
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecojumbo-cockpit-visual-preview
+          path: ${{ runner.temp }}/ecojumbo-visual/*.png
+          if-no-files-found: warn
 
       - name: Archivia log diagnostici in caso di errore
         if: failure()

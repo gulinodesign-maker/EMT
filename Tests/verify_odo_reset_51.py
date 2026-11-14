@@ -24,11 +24,11 @@ assert 'Text("TELEMETRIA")' in telemetry
 assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in telemetry
 assert telemetry.count('telemetryTile("') == 4
 assert telemetry.count("showsBar: true") == 3
-assert "let dislHeight = 2 * cardHeight" in telemetry
+assert "let dislHeight = 1.8 * cardHeight" in telemetry
 assert "dislevelCard(height: dislHeight)" in telemetry
-assert "TelemetrySlimBar(fraction: fraction, theme: theme)" in telemetry
+assert "EMTTelemetryRail(fraction: fraction, color: theme.accent)" in telemetry
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in telemetry
-assert "Color.white.opacity(0.038)" in telemetry
+assert "EMTGlossyGlassSurface(cornerRadius:" in telemetry
 assert "minimumDuration: resettable" not in telemetry
 assert "gps.resetTrip()" not in telemetry
 
@@ -39,7 +39,7 @@ assert 'Text("km/h")' in speed
 assert 'String(format: "ODO %.0f km", $0)' in speed
 assert '"ODO — km"' in speed
 assert 'if showsOdometer {' in speed
-assert 'y: d * 0.635' in speed  # build 77: GPS ODO rises above inner bridge
+assert 'y: d * 0.565' in speed  # photo-matched GPS ODO above bridge
 assert "showsOdometer: true" in dashboard
 assert "odometerKm: gps.hasOdometer ? gps.totalKm : nil" in dashboard
 assert 'OpenSpeedCluster(speed: gps.currentSpeed(at: now)' in dashboard
@@ -50,7 +50,7 @@ assert "GPSTripResetControl(theme: theme)" not in map_branch
 assert "GPSTripResetControl(theme: theme)" in dashboard.split(
     "GPSLowerGlow(theme: theme)",1)[1]
 assert "let resetX = max(resetSide / 2" in dashboard
-assert "dialCenterX - dialSize * 0.56" in dashboard
+assert "dialCenterX - dialSize * 0.50" in dashboard
 assert "let resetY = min(h - resetSide * 0.58, h * 0.840)" in dashboard
 assert '.zIndex(38)' in dashboard
 assert 'Image(systemName: "arrow.counterclockwise")' in reset
@@ -77,14 +77,14 @@ assert "SpeedLEDStream(d: d, speed: speed)" in speed
 # The reset button sits to the lower left OUTSIDE the gauge ring on
 # landscape iPhones and stays fully inside the scene.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    d=min(h*.965,w*.55)
-    cx=max(d*.51+w*.010,w*.168+d*.30)
+    d=min(h*.920,w*.525)
+    cx=max(d*.51+w*.010,w*.154+d*.280)
     cy=h*.494
-    side=max(42,min(58,h*.08))
-    x=max(side/2+max(10,w*.008),cx-d*.56)
+    side=max(64,min(100,h*.14))
+    x=max(side/2+w*.028,cx-d*.50)
     y=min(h-side*.58,h*.840)
     assert side/2 < x < cx
     assert side/2 < y < h-side/2
     assert hypot(cx-x,cy-y) > d*.50+side*.20,(w,h,x,y,cx,cy)
-    assert 0.690+0.055/2 < 0.755-0.065/2  # ODO above km/h
+    assert 0.565+0.055/2 < 0.630-0.065/2  # GPS ODO above km/h
 print("OK — build 51: Telemetria no container, ODO above km/h and reset 0.5s")

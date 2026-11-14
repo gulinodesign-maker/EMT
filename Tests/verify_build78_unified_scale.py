@@ -18,7 +18,7 @@ ring=s.split("private struct GPSMetalInnerRing: View {",1)[1].split("private str
 orange=s.split("private struct GPSGaugeHalo: View {",1)[1].split("// EJ 1.23",1)[0]
 
 assert "min(4, max(3, d * 0.009))" in geo
-assert "d * 0.965 / 2" in geo
+assert "d * 0.890 / 2" in geo
 assert "GPSMetalContourStyle.strokeWidth(for: d) / 2" in geo
 assert "outerRadius(for: d) - d * powerTickThicknessFactor / 2" in geo
 assert "static let powerTickThicknessFactor: CGFloat = 0.025" in geo
@@ -42,23 +42,23 @@ assert "let arcEnd = 394.0" in led
 assert "GPSUnifiedScaleGeometry.speedLEDRadius(for: d)" in led
 assert "let radius = ledRadius" in led
 assert "speed / max(30, vehicleSpeedMaxKmh)" in led
-assert "GPSMetalContourStyle.strokeWidth(for: d)" in ring
+assert "EMTMetallicRim(diameter: d * 0.890" in ring
 assert "let lineWidth = GPSMetalContourStyle.strokeWidth(for: d)" in bridge
 assert "style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)" in bridge
 assert "GPSMetalContourStyle.gradient(for: colorScheme)" in bridge
 assert "GPSInnerLED.haloWidth" not in bridge
 assert ".mask(GPSLowerTerminalFade())" in bridge
-assert "max(3.8, d * 0.017)" in orange  # orange halo unchanged
+assert "EMTNeonStroke(contour: Circle(), color: theme.accent" in orange
 assert "Build 78" in state
 
 for d in (260,320,394,430,520,710):
     metal_width=max(1.5,d*0.0035)
     clearance=min(4,max(3,d*0.009))
-    outer=d*0.965/2-metal_width/2-clearance
+    outer=d*0.890/2-metal_width/2-clearance
     bar_center=outer-d*0.025/2
     led_center=outer-d*0.034/2
     assert 3<=clearance<=4
-    assert isclose(d*0.965/2-metal_width/2-outer,clearance,abs_tol=1e-8)
+    assert isclose(d*0.890/2-metal_width/2-outer,clearance,abs_tol=1e-8)
     assert isclose(bar_center+d*0.025/2,outer,abs_tol=1e-8)
     assert 0<led_center and led_center+d*0.034/2<=outer+1e-8
     for angle in (54,102,126):

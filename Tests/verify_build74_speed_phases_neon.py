@@ -83,13 +83,17 @@ for suffix in ("size * 0.034", "size * 0.027", "size * 0.015",
     assert suffix in neon
 for key in ("haloWidth", "haloBlur", "coreWidth", "outerBlur", "highlightWidth"):
     assert "GPSInnerLED." + key + "(d)" in speed, key
-for shape, end, dim in (("GPSHorizonLine", "@MainActor", "h"),
-                        ("GPSGaugeHalo", "// EJ 1.23", "d")):
+# New shared multilayer optical material for the static contours.
+for shape, end in (("GPSHorizonLine", "@MainActor"),
+                   ("GPSGaugeHalo", "// EJ 1.23")):
     section = cockpit.split("private struct " + shape + ": View {", 1)[1].split(end, 1)[0]
-    for key in ("haloWidth", "haloBlur", "coreWidth", "outerBlur", "highlightWidth"):
-        assert "GPSInnerLED." + key + "(" + dim + ")" in section, (shape, key)
-    assert "Color.white.opacity(0.65)" in section
-    assert "GPSInnerLED.outerOpacity(theme.glowIntensity)" in section
+    assert "EMTNeonStroke(" in section
+    assert "theme.glowIntensity" in section
+    assert "theme.accent" in section
+material = (root / "Ecojumbo/Views/EMTMaterialSystem.swift").read_text()
+for token in ("thickness * 6.5", "thickness * 3.0", "lineJoin: .round",
+              "EMTMaterialPalette.ivory"):
+    assert token in material
 lower = cockpit.split("private struct GPSLowerGlow: View {", 1)[1].split("// EJ 1.22", 1)[0]
 assert "GPSMetalContourStyle.strokeWidth(for: d)" in lower
 assert "GPSInnerLED." not in lower

@@ -14,7 +14,7 @@ view = cockpit.split("private struct GPSExpandedReadings: View {", 1)[1].split(
 
 # Nessun spostamento del contenitore: stesso allineamento del dock, top bar e tachimetro.
 assert "GPSExpandedReadings(theme: theme, now: now)" in dashboard
-assert "let cardsTop = h * 0.099 + outerMargin" in dashboard
+assert "let cardsTop = h * 0.099" in dashboard
 assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in dashboard
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in dashboard
 
@@ -23,12 +23,12 @@ assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in view
 assert view.count('telemetryTile("') == 4
 for label in ("SOC", "V BAT", "AUT", "TRIP"):
     assert 'telemetryTile("' + label + '"' in view
-assert "let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 4)" in view
-assert "let dislHeight = 2 * cardHeight" in view
+assert "let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 3.8)" in view
+assert "let dislHeight = 1.8 * cardHeight" in view
 assert "dislevelCard(height: dislHeight)" in view
 assert 'Text("DISL")' in view
 assert 'Text("TELEMETRIA")' in view
-assert "Color.white.opacity(0.038)" in view  # no smoked opaque backdrop
+assert "EMTGlossyGlassSurface(cornerRadius:" in view
 
 # Live BMS, non visualizzare valori dimostrativi.
 for placeholder in ('"35%"', '"72.4 V"', '"48 km"', '"0 m"'):
@@ -41,7 +41,7 @@ assert "fraction: live.map { Double($0.soc) / 100.0 }" in view
 assert "fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) }" in view
 assert "abs(now.timeIntervalSince($0.date)) < 10" in view
 assert view.count("showsBar: true") == 3
-assert "TelemetrySlimBar(fraction: fraction, theme: theme)" in view
+assert "EMTTelemetryRail(fraction: fraction, color: theme.accent)" in view
 
 # Il grafico è reale, e la sfumatura è tracciata solo dopo due letture GPS.
 chart = cockpit.split("private struct GPSTripAltitudeSparkline: View {", 1)[1]
@@ -49,7 +49,8 @@ assert "if points.count >= 2" in chart
 assert "points.map(\.altitudeMeters)" in chart
 assert "area.fill(LinearGradient(" in chart
 assert "line.stroke(color" in chart
-assert "color.opacity(0.34)" in chart
+assert "color.opacity(0.035)" in chart
+assert "EMTTopographicAltitude(points: points, color: color)" in chart
 assert "color.opacity(0.0)" in chart
 assert "startPoint: .top, endPoint: .bottom" in chart
 assert "closeToBottom: true" in chart
@@ -69,19 +70,19 @@ assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in gps
 # Su tutti gli iPhone landscape, card DISL esattamente alta quanto 2 tile.
 for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
              (1536, 706), (1806, 831)):
-    dock = max(51, min(83, h * .105))
-    margin = max(8, h * .018)
-    top = h * .099 + margin
-    bottom = h - max(4, h * .006) - dock - margin
+    dock = max(58, min(101, h * .145))
+    margin = max(6, h * .013)
+    top = h * .099
+    bottom = h - max(12, h * .058) - dock - margin
     height = bottom - top
     assert height > 160
     inset_y = max(6, min(13, height * .019))
     inner = height - 2 * inset_y
-    header = max(24, min(40, inner * .105))
-    gap = max(5, min(10, height * .022))
-    card = (inner - header - 3 * gap) / 4
-    disl = 2 * card
+    header = max(18, min(32, inner * .083))
+    gap = max(6, min(10, height * .028))
+    card = (inner - header - 3 * gap) / 3.8
+    disl = 1.8 * card
     assert card > 30, (w, h, card)
-    assert disl > 2 * 30
+    assert disl > 1.8 * 30
     assert abs(header + 2 * card + gap + disl + 2 * gap - inner) < 1e-7
-print("OK — build 65: 2×2 telemetria, DISL doppio, sfumatura reale e GPS invariato")
+print("OK — build 65: 2×2 telemetria, DISL 1,8×, sfumatura reale e GPS invariato")

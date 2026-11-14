@@ -26,7 +26,7 @@ horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
     "@MainActor", 1)[0]
 lower = cockpit.split("private struct GPSLowerGlow: View {", 1)[1].split(
     "// EJ 1.22", 1)[0]
-assert "line.stroke(theme.accent" in horizon
+assert "EMTNeonStroke(contour: line, color: theme.accent" in horizon
 assert "GPSMetalContourStyle.gradient(for: colorScheme)" in lower
 assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in horizon
 assert ".mask(GPSLowerTerminalFade())" in lower
@@ -43,13 +43,13 @@ assert "let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) 
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
 assert "let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)" in home
-assert "let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)" in home
-assert ".frame(width: telemetryDock ? telemetryPanelWidth : nil, alignment: .leading)" in home
+assert "let justifiedGap = max(0, (telemetryDockWidth - dockContentInset - 5 * gpsSide) / 4)" in home
+assert ".frame(width: telemetryDock ? telemetryDockWidth : nil, alignment: .leading)" in home
 
 for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
              (1179, 510), (1536, 706), (1648, 928), (1806, 831)):
     d = min(h * 0.920, w * 0.525)
-    cx = max(d * 0.51 + w * 0.010, w * 0.168 + d * 0.30)
+    cx = max(d * 0.51 + w * 0.010, w * 0.154 + d * 0.280)
     tangent = cx + d * 0.508
     margin = max(12, w * 0.018)
     left, right = tangent + margin, w - margin
@@ -62,8 +62,11 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
     gap = w * 0.008
     side = min(ideal_side, max(20, (w - margin - safe_left - 6 * gap) / 7))
     assert width >= 5 * side, (w, h, width, side)
-    justified_gap = (width - 5 * side) / 4
-    assert isclose(left + 5 * side + 4 * justified_gap, right, abs_tol=1e-8)
+    dock_left = left - w * 0.080
+    inset = w * 0.045
+    dock_width = right - dock_left
+    justified_gap = (dock_width - inset - 5 * side) / 4
+    assert isclose(dock_left + inset + 5 * side + 4 * justified_gap, right, abs_tol=1e-8)
     # The original dial remains outside the aligned telemetry panel.
     assert cx + d * 0.508 < left
 
