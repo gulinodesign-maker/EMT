@@ -1,5 +1,16 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Anteprima grafica Hyperrealistic Neon Cockpit (branch dedicato, 14 novembre 2026)
+
+**Mandato utente:** ricostruire in SwiftUI, senza immagine statica, il materiale nero vetroso/metallo e l'illuminazione asimmetrica dello screenshot di riferimento 1536 × 709; conservare BMS JK, GPS, autonomia, navigazione, trip, mappa, palette e interattività. **La build resta 1.0 (80).** L'anteprima non deve essere integrata su main né avviare pubblicazione TestFlight.
+
+**Implementazione sul branch `redesign-hyperrealistic-neon-preview` (non ancora approvata):** componente riutilizzabile `EMTMaterialSystem.swift` con neon a quattro passaggi distinti, riflessi angolari del vetro, cornice in metallo, pannelli di vetro lucido, barre solo dinamiche, dock sagomato e 23 iso-linee attenuate ottenute *esclusivamente* dai punti altimetrici GPS reali. Tachimetro, corona metallica interna, top bar, ponte kW, RESET, telemetria, DISL e comandi del cockpit riusano questi materiali. Geometrie del riferimento impostate in frazioni del canvas anziché pixel assoluti. Scuro prioritario; colori ad alto contrasto in modalità chiara. Le scale BMS mantengono 1/3 blu e 2/3 rosso, singolo valore reale kW e maschera del ponte. Nessun cambiamento ai manager Bluetooth/GPS o ai numeri di versione.
+
+**Riferimento:** screenshot utente nello scambio ChatGPT (non incluso come immagine statica dell'app o asset di runtime); misure da ricontrollare: centro quadrante circa (420, 350), corona luminosa diametro ~650, area telemetria da x~772, dock sagomato a x~650–1512 e y~567–669. Campioni approssimativi osservati: sfondo #050303, vetro #0F1012, cuore anello #FF6300, bianco caldo quasi #FFFDF7. A parità di stato dati, la fedeltà va misurata con screenshot del simulatore, confronto affiancato, overlay e differenza pixel dopo allineamento.
+
+**Stato verifiche:** implementazione su branch in corso. Controlli Python/Swift/Xcode su PR, screenshot candidato da simulatore e confronto visivo **ancora da completare**; non dichiarare fedeltà pixel-per-pixel o rendering su iPhone verificato prima di tali controlli. Nessun upload Apple/nuova build deve partire dalla sola anteprima. Non confondere CI e TestFlight.
+
+
 ## Build 80 — tacche potenza maggiorate senza numeri; tachimetro GPS leggermente ridotto (14 novembre 2026)
 
 **Richiesta utente:** eliminare i numeri sopra le scale di potenza, ingrandire le tacche e diminuire un po' la dimensione del tachimetro. Sviluppare la **1.0 (80)** e pubblicarla su TestFlight, mantenendo invariati gli altri elementi di Ecojumbo / EMT.
