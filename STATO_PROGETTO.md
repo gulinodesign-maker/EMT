@@ -1,5 +1,14 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Configurazione Agent locali gratuiti (14 novembre 2026 — nessuna nuova build)
+
+**Richiesta:** preparare il repository EMT all'impiego di Agent senza abbonamenti a pagamento. GitHub Copilot Free ha limiti di utilizzo ma consente Agent personalizzati in un editor compatibile, in particolare VS Code. Il *Copilot Cloud Agent* autonomo sul sito GitHub richiede invece un piano a pagamento e **non è stato attivato**.
+
+**Configurazione repository:** aggiunti i profili riutilizzabili `.github/agents/emt-ui.agent.md` (implementazioni grafiche native SwiftUI) e `.github/agents/emt-review.agent.md` (controllo in sola lettura), oltre a `.github/copilot-instructions.md` con riferimenti alle direttive permanenti in `AGENTS.md`. Nessun modello a pagamento selezionato, nessuna API, integrazione esterna, chiave o hook di avvio automatico. Non è richiesta modifica dei sorgenti dell'app, dei workflow CI/TestFlight o del numero build: resta **1.0 (80)**.
+
+**Attivazione residua personale:** aprire il progetto in VS Code con account GitHub collegato e Copilot Free attivo (da confermare da parte dell'utente), quindi selezionare l'Agent dal menu della chat. I profili su GitHub, da soli, non avviano sessioni né abilitano l'account. Non è verificata la visualizzazione dei profili nell'IDE dell'utente. Controllare il consumo dei crediti Free senza consentire upgrade o fatturazione extra.
+
+
 ## Build 80 — tacche potenza maggiorate senza numeri; tachimetro GPS leggermente ridotto (14 novembre 2026)
 
 **Richiesta utente:** eliminare i numeri sopra le scale di potenza, ingrandire le tacche e diminuire un po' la dimensione del tachimetro. Sviluppare la **1.0 (80)** e pubblicarla su TestFlight, mantenendo invariati gli altri elementi di Ecojumbo / EMT.
