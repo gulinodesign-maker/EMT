@@ -6,7 +6,7 @@ root=Path(__file__).resolve().parents[1]
 s=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 p=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state=(root/"STATO_PROGETTO.md").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 79;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 80;") == 2
 geo=s.split("private enum GPSUnifiedScaleGeometry {",1)[1].split("// Tacche della velocità:",1)[0]
 ticks=s.split("private struct SpeedScaleTicks: View {",1)[1].split("/// Stream LED ARANCIONE",1)[0]
 led=s.split("private struct SpeedLEDStream: View {",1)[1].split("private struct SegmentedGaugeBar: View {",1)[0]
@@ -20,7 +20,8 @@ orange=s.split("private struct GPSGaugeHalo: View {",1)[1].split("// EJ 1.23",1)
 assert "min(4, max(3, d * 0.009))" in geo
 assert "d * 0.965 / 2" in geo
 assert "GPSMetalContourStyle.strokeWidth(for: d) / 2" in geo
-assert "outerRadius(for: d) - d * 0.017 / 2" in geo
+assert "outerRadius(for: d) - d * powerTickThicknessFactor / 2" in geo
+assert "static let powerTickThicknessFactor: CGFloat = 0.025" in geo
 assert "GPSUnifiedScaleGeometry.outerRadius(for: d)" in ticks
 assert "d * 0.393" in ticks  # Home untouched
 assert "146.0 + Double(index) * (248.0 / 48.0)" in ticks
@@ -28,8 +29,9 @@ assert "start: GPSPowerArcLayout.zeroAngle," in power
 assert "end: GPSPowerArcLayout.regenEndAngle, count: 12," in power
 assert "end: GPSPowerArcLayout.dischargeEndAngle, count: 24," in power
 assert power.count("GPSUnifiedScaleGeometry.powerBarRadiusFactor(for: d)") == 2
-assert "GPSPowerArcLayout.angle(forKilowatts: kilowatts, input: input)" in power
-assert "let radius = d * 0.408" in power
+assert "GPSPowerArcLayout.angle(forKilowatts: kilowatts, input: input)" not in power
+assert "labelPoint(kilowatts:" not in power
+assert power.count("thicknessFactor: GPSUnifiedScaleGeometry.powerTickThicknessFactor") == 2
 assert "let edgeInset: Double = stepAngle >= 0 ? 0.40 : -0.40" in seg
 assert "SpeedLEDStream(d: d, speed: speed)" in speed
 assert "SpeedScaleTicks(d: d)" in speed
@@ -53,11 +55,11 @@ for d in (260,320,394,430,520,710):
     metal_width=max(1.5,d*0.0035)
     clearance=min(4,max(3,d*0.009))
     outer=d*0.965/2-metal_width/2-clearance
-    bar_center=outer-d*0.017/2
+    bar_center=outer-d*0.025/2
     led_center=outer-d*0.034/2
     assert 3<=clearance<=4
     assert isclose(d*0.965/2-metal_width/2-outer,clearance,abs_tol=1e-8)
-    assert isclose(bar_center+d*0.017/2,outer,abs_tol=1e-8)
+    assert isclose(bar_center+d*0.025/2,outer,abs_tol=1e-8)
     assert 0<led_center and led_center+d*0.034/2<=outer+1e-8
     for angle in (54,102,126):
         rad=radians(angle)

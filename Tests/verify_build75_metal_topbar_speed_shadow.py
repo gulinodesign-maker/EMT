@@ -7,7 +7,7 @@ source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 79;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 80;") == 2
 metal = source.split("private enum GPSMetalContourStyle {", 1)[1].split(
     "private struct GPSMetalInnerRing: View {", 1)[0]
 ring = source.split("private struct GPSMetalInnerRing: View {", 1)[1].split(
@@ -41,7 +41,7 @@ assert "Build 75" in state
 
 # The offset is the same radial inset as the concentric GPS metal ring.
 for width, height in ((736, 414), (844, 390), (932, 430), (1179, 510), (1536, 706)):
-    d = min(height * 0.965, width * 0.55)
+    d = min(height * 0.920, width * 0.525)
     gap = d * (0.992 - 0.965) / 2
     assert isclose(d * 0.992 / 2 - d * 0.965 / 2, gap, abs_tol=1e-9)
     assert gap > 0

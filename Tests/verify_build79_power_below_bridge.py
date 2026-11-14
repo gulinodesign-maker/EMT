@@ -6,7 +6,7 @@ root=Path(__file__).resolve().parents[1]
 source=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 status=(root/"STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 79;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 80;") == 2
 
 power=source.split("private struct GPSPowerSemicircle: View {",1)[1].split(
     "// Calcola la posizione",1)[0]
@@ -34,8 +34,10 @@ assert "end: GPSPowerArcLayout.dischargeEndAngle, count: 24," in power
 assert power.count("GPSUnifiedScaleGeometry.powerBarRadiusFactor(for: d)") == 2
 assert 'Text("READY")' not in power and 'Text("OFF")' not in power
 assert "Etichette scala: READY" not in power
-assert "ForEach([1.0, 2.5], id:" in power
-assert "ForEach(1...5, id:" in power
+assert "ForEach([1.0, 2.5], id:" not in power
+assert "ForEach(1...5, id:" not in power
+assert 'Text("0")' not in power
+assert power.count("thicknessFactor: GPSUnifiedScaleGeometry.powerTickThicknessFactor") == 2
 assert "GPSPowerBelowBridgeMask()" in power
 assert "var below = GPSInnerBridgeContour().path(in: rect)" in mask
 assert "GPSInnerBridgeLayout.points(in: rect)" in mask
@@ -58,7 +60,7 @@ red_degrees=102-54
 assert blue_degrees==24 and red_degrees==48
 assert blue_degrees*2==red_degrees
 assert isclose(blue_degrees/2.5, red_degrees/5)
-# Geometric safety margin for every BMS segment and its numeric labels:
+# Geometric safety margin for every larger BMS segment:
 # line is approximated by the conservative unrounded bridge polyline;
 # actual clipping is guaranteed by the exact bridge-mask path above.
 def bridge_y(x):
@@ -71,15 +73,11 @@ for d in (300, 394, 430, 520, 710):
     metal_width=max(1.5,d*.0035)
     clearance=min(4,max(3,d*.009))
     tick_r=.965/2-metal_width/d/2-clearance/d
-    bar_r=tick_r-.017/2
+    bar_r=tick_r-.025/2
     for first,last in ((102,126),(54,102)):
         for i in range(41):
             deg=first+(last-first)*i/40
             x=.5+bar_r*cos(radians(deg))
             y=.5+bar_r*sin(radians(deg))
-            assert y-.017/2 > bridge_y(x)+.02,(d,deg,x,y)
-    for deg in (54,63.6,73.2,82.8,92.4,102,111.6,126):
-        x=.5+.408*cos(radians(deg))
-        y=.5+.408*sin(radians(deg))
-        assert y-.020 > bridge_y(x)+.015,(d,deg,x,y)
+            assert y-.025/2 > bridge_y(x)+.02,(d,deg,x,y)
 print("OK — build 79 1/3 cyan, 2/3 red, inside-bridge mask and speed LED at scale minimum")

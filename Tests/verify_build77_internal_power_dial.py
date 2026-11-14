@@ -6,7 +6,7 @@ root=Path(__file__).resolve().parents[1]
 source=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 pbx=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state=(root/"STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 79;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 80;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 
 speed=source.split("private struct OpenSpeedCluster: View {",1)[1].split(
@@ -49,11 +49,12 @@ assert "if measuredPower > 0 { return CockpitTheme.regenAccent }" in power
 assert "if measuredPower < 0 { return CockpitTheme.dischargeAccent }" in power
 assert "String(format: \"%.2f kW\", abs($0) / 1_000)" in power
 assert '?? "— kW"' in power
-assert "ForEach(1...5, id:" in power
-assert power.count('Text(String(value))') == 1
-assert 'Text("0")' in power
-assert 'Text("2.5")' not in power  # numeric label rendered via Text(value ternary)
-assert 'value == 2.5 ? "2.5" : "1"' in power
+assert "ForEach(1...5, id:" not in power
+assert "ForEach([1.0, 2.5], id:" not in power
+assert 'Text(String(value))' not in power
+assert 'Text("0")' not in power
+assert 'value == 2.5 ? "2.5" : "1"' not in power
+assert "thicknessFactor: GPSUnifiedScaleGeometry.powerTickThicknessFactor" in power
 assert 'Text("READY")' not in power and 'Text("OFF")' not in power
 assert "GPSPowerBelowBridgeMask()" in power
 

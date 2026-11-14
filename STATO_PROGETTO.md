@@ -1,5 +1,16 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 80 — tacche potenza maggiorate senza numeri; tachimetro GPS leggermente ridotto (14 novembre 2026)
+
+**Richiesta utente:** eliminare i numeri sopra le scale di potenza, ingrandire le tacche e diminuire un po' la dimensione del tachimetro. Sviluppare la **1.0 (80)** e pubblicarla su TestFlight, mantenendo invariati gli altri elementi di Ecojumbo / EMT.
+
+**Implementazione:** in `GPSPowerSemicircle` sono rimosse soltanto le etichette numeriche delle due scale (zero, 1, 2,5 sul blu e 1–5 sul rosso). Resta il **singolo valore dinamico centrale kW** derivato da `JKSnapshot.power`, colorato secondo il segno della misura. `SegmentedGaugeBar` ottiene il parametro opzionale `thicknessFactor`: nel GPS le tacche BMS aumentano da **0,017d a 0,025d**, ossia circa +47% nello spessore; nella Home resta il valore storico 0,017d. Il raggio `GPSUnifiedScaleGeometry.powerBarRadiusFactor` compensa metà del nuovo spessore, così l'estremità esterna delle tacche mantiene il margine 3–4 punti dal cerchio grigio e il ritaglio `GPSPowerBelowBridgeMask` impedisce sforamenti sopra il ponte. `GPSDialLayout.size` cambia da `min(0.965h, 0.55w)` a `min(0.920h, 0.525w)` (circa **4,7%** di riduzione), conservando centro, proporzioni relative e top bar raccordata. Rimangono 1/3 azzurro (0–2,5 kW) e 2/3 rosso (0–5 kW), neon GPS dal fondo scala, niente READY/OFF.
+
+**Invariati:** dati reali JK BMS e GPS, cerchio arancione, ponte kW e relativo spessore, cerchio metallico, scala velocità e colori, mappa, telemetria, dock, temi e Home.
+
+**Stato iniziale:** codice preparato in branch e test di regressione aggiornati per build Debug/Release 80. **Da verificare dopo la PR:** test strutturali Python, regressioni nuove e storiche, test Swift JK e barre, compilazione simulator sulla PR e su `main`, archivio/firmatura Apple e log `Upload succeeded`. Elaborazione Apple, assegnazione gruppo tester **TE**, disponibilità TestFlight e resa su iPhone reale non sono deducibili dalla CI e richiedono verifiche separate.
+
+
 ## Build 79 — scala BMS 1/3 azzurra, 2/3 rossa; tutte le letture sotto il ponte (14 novembre 2026)
 
 **Richiesta utente da screenshot build 78:** le scale BMS azzurra (ingresso/rigenerazione) e rossa (erogazione) non devono superare il profilo grigio del ponte kW. La rigenerazione è inferiore alla potenza erogata, quindi **1/3 dell'arco disponibile azzurro e 2/3 rosso**, non due scale uguali. Eliminare interamente le scritte READY e OFF. Il LED progressivo GPS deve partire esattamente dal fondo della scala km/h (prima tacca bianca, 146°), non dall'origine 190° scelta sopra READY. Mantenere tutte le altre caratteristiche del cockpit e della Home. Pubblicazione richiesta per **1.0 (79)** su TestFlight.
