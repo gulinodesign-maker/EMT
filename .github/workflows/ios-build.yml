@@ -98,10 +98,24 @@ jobs:
           # NSArgumentDomain overrides AppStorage only for this screenshot run:
           # show the four real telemetry cards rather than the default MapKit view.
           xcrun simctl launch "$UDID" it.ecojumbo.battery -ecojumbo.mapEnabled NO
-          sleep 8
+          sleep 7
+          echo "::group::Ecojumbo runtime diagnostics"
+          xcrun simctl spawn "$UDID" launchctl list | grep -i Ecojumbo || true
+          xcrun simctl spawn "$UDID" log show --last 2m --style compact \
+            --predicate '(process == "Ecojumbo" OR eventMessage CONTAINS "it.ecojumbo.battery")' \
+            2>&1 | tail -n 100 || true
+          echo "::endgroup::"
           mkdir -p "$RUNNER_TEMP/ecojumbo-visual"
           xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ecojumbo-visual/cockpit-simulator.png"
           xcrun simctl list devices | grep "$UDID"
+          # A photo of the SpringBoard is never accepted as cockpit evidence.
+          captured="$RUNNER_TEMP/ecojumbo-visual/cockpit-simulator.png"
+          pixel_width="$(sips -g pixelWidth "$captured" | awk '/pixelWidth/ {print $2}')"
+          pixel_height="$(sips -g pixelHeight "$captured" | awk '/pixelHeight/ {print $2}')"
+          if [[ "$pixel_width" -le "$pixel_height" ]]; then
+            echo "::error::Screenshot portrait/home screen, not a landscape cockpit: ${pixel_width}x${pixel_height}"
+            exit 1
+          fi
       - name: Allega screenshot reale per confronto grafico
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
