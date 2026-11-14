@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43627659577:ATTEMPT:1 -->
+### 2026-11-14T18:37:44Z — CI #240 · redesign-hyperrealistic-neon-preview · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43627659577](https://github.com/gulinodesign-maker/EMT/actions/runs/43627659577); avvio 2026-11-14T18:37:44Z UTC; aggiornamento finale 2026-11-14T18:49:59Z UTC; registrazione 2026-11-14T18:50:09+00:00 UTC; evento pull_request.
+- **Commit:** [2354b5ec44f7](https://github.com/gulinodesign-maker/EMT/commit/2354b5ec44f72749fe8c3f62ef70d21f658e1508); versione **1.0**; build **80**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_battery_rail_range49.py.
+
 <!-- EMT_RUN:43627833374:ATTEMPT:1 -->
 ### 2026-11-14T18:39:39Z — CI #241 · redesign-hyperrealistic-neon-preview · tentativo 1
 
