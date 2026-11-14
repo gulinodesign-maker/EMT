@@ -17,6 +17,7 @@ objects = {
 		B10000000000000000000011 /* CockpitTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* CockpitTabs.swift */; };
 		B10000000000000000000012 /* CellsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* CellsView.swift */; };
 		B10000000000000000000013 /* CockpitBarMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* CockpitBarMath.swift */; };
+		B10000000000000000000014 /* EMTMaterialSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* EMTMaterialSystem.swift */; };
 /* End PBXBuildFile section */
 /* Begin PBXFileReference section */
 		A10000000000000000000001 /* EcojumboApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcojumboApp.swift; sourceTree = "<group>"; };
@@ -32,6 +33,7 @@ objects = {
 		A10000000000000000000011 /* CockpitTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/CockpitTabs.swift; sourceTree = "<group>"; };
 		A10000000000000000000012 /* CellsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/CellsView.swift; sourceTree = "<group>"; };
 		A10000000000000000000013 /* CockpitBarMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/CockpitBarMath.swift; sourceTree = "<group>"; };
+		A10000000000000000000014 /* EMTMaterialSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/EMTMaterialSystem.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 /* Begin PBXGroup section */
 		C10000000000000000000001 = {isa = PBXGroup; children = (C10000000000000000000002, C10000000000000000000003, ); sourceTree = "<group>"; };
@@ -47,6 +49,7 @@ objects = {
 				A10000000000000000000010 /* CockpitComponents.swift */,
 				A10000000000000000000011 /* CockpitTabs.swift */,
 				A10000000000000000000012 /* CellsView.swift */,
+				A10000000000000000000014 /* EMTMaterialSystem.swift */,
 				A10000000000000000000007 /* Assets.xcassets */,
 				); path = Ecojumbo; sourceTree = "<group>"; };
 		C10000000000000000000003 /* Products */ = {isa = PBXGroup; children = (A10000000000000000000008 /* Ecojumbo.app */,); name = Products; sourceTree = "<group>"; };
@@ -73,6 +76,7 @@ objects = {
 				B10000000000000000000010 /* CockpitComponents.swift in Sources */,
 				B10000000000000000000011 /* CockpitTabs.swift in Sources */,
 				B10000000000000000000012 /* CellsView.swift in Sources */,
+				B10000000000000000000014 /* EMTMaterialSystem.swift in Sources */,
 			); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
 /* Begin PBXFrameworksBuildPhase section */
