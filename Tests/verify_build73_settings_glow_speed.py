@@ -70,13 +70,13 @@ assert "outerBlur(_ size: CGFloat)" in led
 for shape, closing in (("GPSHorizonLine", "@MainActor"),
                        ("GPSGaugeHalo", "// EJ 1.23")):
     section = cockpit.split("private struct " + shape + ": View {", 1)[1].split(closing, 1)[0]
-    assert "GPSInnerLED.outerOpacity(theme.glowIntensity)" in section
-    assert "GPSInnerLED.outerBlur(" in section
+    assert "EMTNeonStroke(" in section
+    assert "intensity: theme.glowIntensity" in section
     assert "theme.accent" in section
 lower = cockpit.split("private struct GPSLowerGlow: View {", 1)[1].split("// EJ 1.22", 1)[0]
 assert "GPSMetalContourStyle.gradient(for: colorScheme)" in lower
 assert "GPSMetalContourStyle.strokeWidth(for: d)" in lower
-assert "0.20 * theme.glowIntensity" in lower
+assert "0.13 * theme.glowIntensity" in lower
 assert "GPSInnerLED.haloWidth" not in lower
 assert "GPSOuterProfileReinforcement" not in cockpit
 assert "GPSTopBandShade" not in cockpit
