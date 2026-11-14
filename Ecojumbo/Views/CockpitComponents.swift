@@ -2817,8 +2817,6 @@ private struct GPSExpandedReadings: View {
             let innerHeight = max(1, height - 2 * insetY)
             let headerHeight = max(24, min(40, innerHeight * 0.105))
             let tileGap = max(5, min(10, height * 0.022))
-            // Due righe di card quadranti + DISL alta quanto due card.
-            // Il totale occupa esattamente lo spazio tra top bar e dock.
             let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 4)
             let dislHeight = 2 * cardHeight
             let snapshot = bluetooth.snapshot
@@ -2834,44 +2832,34 @@ private struct GPSExpandedReadings: View {
                     Text("TELEMETRIA")
                         .font(.system(size: max(11, min(17, headerHeight * 0.40)),
                                       weight: .semibold, design: .rounded))
-                        .tracking(2.0)
+                        .tracking(3)
                         .foregroundStyle(colorScheme == .light
-                                         ? Color(white: 0.33) : Color(white: 0.65))
+                                         ? Color(white: 0.30) : .white.opacity(0.78))
                     Rectangle().fill(theme.accent.opacity(0.75))
                         .frame(width: max(15, width * 0.052), height: 1)
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: headerHeight)
 
-                // SOC | V BAT
-                // AUT | TRIP
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap),
-                                    GridItem(.flexible(), spacing: tileGap)],
-                          spacing: tileGap) {
-                    telemetryTile("SOC",
+                                    GridItem(.flexible(), spacing: tileGap)], spacing: tileGap) {
+                    telemetryTile("SOC", icon: "battery.100percent",
                                   value: live.map { "\($0.soc)%" } ?? "—%",
                                   fraction: live.map { Double($0.soc) / 100.0 },
                                   showsBar: true, height: cardHeight)
-
-                    telemetryTile("V BAT",
+                    telemetryTile("V BAT", icon: "bolt.fill",
                                   value: live.map { String(format: "%.1f V", $0.voltage) } ?? "— V",
                                   fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) },
                                   showsBar: true, height: cardHeight)
-
-                    telemetryTile("AUT",
-                                  value: autonomy.map {
-                                      String(format: "%.0f km", $0.kilometers)
-                                  } ?? "— km",
+                    telemetryTile("AUT", icon: "steeringwheel",
+                                  value: autonomy.map { String(format: "%.0f km", $0.kilometers) } ?? "— km",
                                   fraction: autonomy?.fractionOfFull,
                                   showsBar: true, height: cardHeight)
-
-                    telemetryTile("TRIP",
+                    telemetryTile("TRIP", icon: "point.topleft.down.curvedto.point.bottomright.up",
                                   value: String(format: "%.1f km", gps.tripKm),
                                   fraction: nil, height: cardHeight)
                 }
                 .frame(maxWidth: .infinity)
-
-                // Grafico dislivello a tutta larghezza e doppia altezza.
                 dislevelCard(height: dislHeight)
             }
             .frame(width: max(1, width - 2 * insetX), height: innerHeight)
@@ -2883,80 +2871,82 @@ private struct GPSExpandedReadings: View {
         .accessibilityLabel("Telemetria")
     }
 
-    private var tileBackground: Color {
-        colorScheme == .light ? Color.white.opacity(0.36) : Color.white.opacity(0.038)
-    }
-
-    private func telemetryTile(_ label: String, value: String,
+    private func telemetryTile(_ label: String, icon: String, value: String,
                                fraction: Double?, showsBar: Bool = false,
                                height: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 5) {
-                Text(label)
-                    .font(.system(size: max(10, min(13, height * 0.205)),
-                                  weight: .medium, design: .rounded))
-                    .tracking(0.6)
-                    .foregroundStyle(colorScheme == .light
-                                     ? Color(white: 0.32) : Color(white: 0.68))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+        VStack(spacing: max(4, height * 0.055)) {
+            HStack(alignment: .center, spacing: max(10, height * 0.12)) {
+                Image(systemName: icon)
+                    .font(.system(size: max(21, height * 0.30), weight: .medium))
+                    .foregroundStyle(colorScheme == .light ? Color(white: 0.20) : .white)
+                    .frame(width: height * 0.64, height: height * 0.52)
+                VStack(alignment: .leading, spacing: max(1, height * 0.025)) {
+                    Text(label)
+                        .font(.system(size: max(10, min(15, height * 0.155)),
+                                      weight: .medium, design: .rounded))
+                        .tracking(0.7)
+                        .foregroundStyle(colorScheme == .light
+                                         ? Color(white: 0.38) : .white.opacity(0.71))
+                    Text(value)
+                        .font(.system(size: max(15, min(29, height * 0.31)),
+                                      weight: .bold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(colorScheme == .light ? Color(white: 0.12) : .white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.54)
+                }
                 Spacer(minLength: 0)
             }
-            Spacer(minLength: 0)
-            Text(value)
-                .font(.system(size: max(13, min(23, height * 0.30)),
-                              weight: .bold, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(colorScheme == .light ? Color(white: 0.10) : .white)
-                .lineLimit(1)
-                .minimumScaleFactor(0.58)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             if showsBar {
-                // A dato BMS mancante la barra resta vuota, senza valori simulati.
-                TelemetrySlimBar(fraction: fraction, theme: theme)
-                    .frame(height: max(3, min(6, height * 0.075)))
-                    .padding(.top, 2)
+                EMTTelemetryRail(fraction: fraction, color: theme.accent)
+                    .frame(height: max(7, min(11, height * 0.105)))
             }
         }
-        .padding(.horizontal, max(7, height * 0.14))
-        .padding(.vertical, max(5, height * 0.10))
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, max(11, height * 0.14))
+        .padding(.vertical, max(7, height * 0.10))
+        .frame(maxWidth: .infinity)
         .frame(height: height)
-        .background(tileBackground, in: RoundedRectangle(cornerRadius: 10))
+        .background {
+            EMTGlossyGlassSurface(cornerRadius: max(13, height * 0.19),
+                                  glowColor: theme.accent, illumination: 0.66)
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(value)")
     }
 
     private func dislevelCard(height: CGFloat) -> some View {
-        VStack(spacing: 2) {
-            HStack(spacing: 6) {
+        VStack(spacing: 0) {
+            HStack(spacing: 12) {
+                Image(systemName: "arrow.up.arrow.down")
+                    .font(.system(size: max(22, height * 0.18), weight: .medium))
+                    .foregroundStyle(colorScheme == .light ? Color(white: 0.2) : .white)
                 Text("DISL")
-                    .font(.system(size: max(11, min(15, height * 0.12)),
+                    .font(.system(size: max(13, min(18, height * 0.105)),
                                   weight: .semibold, design: .rounded))
-                    .tracking(0.6)
+                    .tracking(0.7)
                     .foregroundStyle(colorScheme == .light
-                                     ? Color(white: 0.32) : Color(white: 0.68))
+                                     ? Color(white: 0.32) : .white.opacity(0.78))
                 Spacer(minLength: 0)
-                Text(gps.tripElevationMeters.map {
-                    String(format: "%+.0f m", $0)
-                } ?? "— m")
-                    .font(.system(size: max(15, min(27, height * 0.22)),
+                Text(gps.tripElevationMeters.map { String(format: "%+.0f m", $0) } ?? "— m")
+                    .font(.system(size: max(21, min(38, height * 0.21)),
                                   weight: .bold, design: .rounded))
                     .monospacedDigit()
                     .foregroundStyle(colorScheme == .light ? Color(white: 0.10) : .white)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
             }
-            .frame(height: height * 0.29)
-
+            .padding(.horizontal, max(14, height * 0.105))
+            .frame(height: height * 0.36)
             GPSTripAltitudeSparkline(points: gps.altitudeProfile, color: theme.accent)
                 .frame(maxWidth: .infinity)
-                .frame(height: max(12, height * 0.62))
+                .frame(height: height * 0.61)
+                .padding(.horizontal, 4)
         }
-        .padding(.horizontal, 11)
-        .padding(.vertical, 4)
         .frame(maxWidth: .infinity)
         .frame(height: height)
-        .background(tileBackground, in: RoundedRectangle(cornerRadius: 10))
+        .background {
+            EMTGlossyGlassSurface(cornerRadius: max(14, height * 0.075),
+                                  glowColor: theme.accent, illumination: 0.40)
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("DISL: " + (gps.tripElevationMeters.map {
             String(format: "%+.0f m", $0)
@@ -3021,15 +3011,15 @@ private struct GPSTripAltitudeSparkline: View {
                                         horizontalSpan: horizontalSpan,
                                         closeToBottom: true)
                 ZStack {
-                    // La sfumatura è sotto al tracciato GPS reale, e segue
-                    // sempre il colore scelto per la linea DISL.
+                    // Only real altitude samples. Low-opacity area remains
+                    // for compatibility; 23 vector echoes add topographic depth.
                     area.fill(LinearGradient(
-                        colors: [color.opacity(0.34), color.opacity(0.16), color.opacity(0.0)],
+                        colors: [color.opacity(0.035), color.opacity(0.012), color.opacity(0.0)],
                         startPoint: .top, endPoint: .bottom
                     ))
-                    line.stroke(color, style: StrokeStyle(lineWidth: 2,
-                                                          lineCap: .round,
-                                                          lineJoin: .round))
+                    line.stroke(color.opacity(0.12), style: StrokeStyle(lineWidth: 1,
+                                                                        lineJoin: .round))
+                    EMTTopographicAltitude(points: points, color: color)
                 }
             } else {
                 // Nessun profilo o ombra inventati prima di 2 misure GPS.
