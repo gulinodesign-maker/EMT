@@ -199,7 +199,7 @@ assert '.frame(width: d * 0.205, height: d * 0.142)' in c
 assert 'y: d * 0.241' in c
 assert 'GPSAngularManeuverArrow' not in c
 assert 'y: d * 0.682' not in c
-assert 'y: d * 0.755' in c
+assert 'y: d * (showsOdometer ? 0.705 : 0.755)' in c  # Home remains .755, GPS lifts unit
 assert c.count('Text(String(Int(speed.rounded())))')==1
 assert 'SpeedGlyphOutlineView' not in c
 # I sei pannelli non disegnano nella circonferenza, anche nel tema chiaro.
