@@ -1030,9 +1030,10 @@ private struct SpeedLEDStream: View {
     }
 
     var body: some View {
-        // In GPS l'arco LED parte sul lato sinistro SOPRA READY, non ai
-        // piedi della scala di potenza. La Home conserva 146° e 0.722d.
-        let arcStart = usesGPSRing ? 190.0 : 146.0
+        // Il LED GPS torna al FONDO SCALA delle tacche bianche (146°).
+        // Home e GPS condividono l'origine ma non il raggio, che resta
+        // più grande nel GPS. A zero km/h il flusso attivo è spento.
+        let arcStart = 146.0
         let arcEnd = 394.0
         let arcDiameter = usesGPSRing
             ? 2 * GPSUnifiedScaleGeometry.speedLEDRadius(for: d) : d * 0.722
@@ -1386,7 +1387,26 @@ private struct CockpitPowerReadings: View {
     }
 }
 
-// Build 77: semicerchio interno BMS, scala 0–5 kW.
+// Build 79: l'intero settore BMS è confinato sotto il ponte.
+ // 24° azzurri (1/3), 48° rossi (2/3), stessa densità angolare/kW:
+ // 0–2,5 kW ingresso e 0–5 kW erogazione. I valori reali del JK BMS
+ // rimangono non limitati; solo la lunghezza illuminata si satura.
+private enum GPSPowerArcLayout {
+    static let zeroAngle = 102.0
+    static let regenEndAngle = 126.0
+    static let dischargeEndAngle = 54.0
+    static let regenMaxKilowatts = 2.5
+    static let dischargeMaxKilowatts = 5.0
+
+    static func angle(forKilowatts value: Double, input: Bool) -> Double {
+        let maximum = input ? regenMaxKilowatts : dischargeMaxKilowatts
+        let ratio = min(1, max(0, value / maximum))
+        let endAngle = input ? regenEndAngle : dischargeEndAngle
+        return zeroAngle + ratio * (endAngle - zeroAngle)
+    }
+}
+
+// Build 79: potenza azzurra 1/3 e rossa 2/3, entrambe sotto il ponte.
 private struct GPSPowerSemicircle: View {
     @Environment(\.colorScheme) private var colorScheme
     let powerWatts: Double?
@@ -1399,10 +1419,10 @@ private struct GPSPowerSemicircle: View {
     // Positivo = ingresso / possibile rigenerazione; negativo = erogazione.
     // La corrente JK non identifica da sola l'origine dell'energia in ingresso.
     private var inputFill: Double? {
-        measuredPower.map { min(1, max(0, $0) / 5_000) }
+        measuredPower.map { min(1, max(0, $0) / (GPSPowerArcLayout.regenMaxKilowatts * 1_000)) }
     }
     private var outputFill: Double? {
-        measuredPower.map { min(1, max(0, -$0) / 5_000) }
+        measuredPower.map { min(1, max(0, -$0) / (GPSPowerArcLayout.dischargeMaxKilowatts * 1_000)) }
     }
     private var powerColor: Color {
         guard let measuredPower else {
@@ -1418,8 +1438,8 @@ private struct GPSPowerSemicircle: View {
     private var scaleTextColor: Color {
         colorScheme == .light ? Color(white: 0.24) : .white.opacity(0.92)
     }
-    private func labelPoint(value: Int, input: Bool) -> CGPoint {
-        let degrees = 90.0 + (input ? 56.0 : -56.0) * Double(value) / 5.0
+    private func labelPoint(kilowatts: Double, input: Bool) -> CGPoint {
+        let degrees = GPSPowerArcLayout.angle(forKilowatts: kilowatts, input: input)
         let angle = degrees * Double.pi / 180.0
         let radius = d * 0.408
         return CGPoint(x: d * 0.5 + radius * CGFloat(Darwin.cos(angle)),
@@ -1431,14 +1451,16 @@ private struct GPSPowerSemicircle: View {
             // Gli indici iniziano da ZERO al centro e crescono verso l'esterno.
             // Nessuna luce attiva senza una misura reale e finita del JK BMS.
             SegmentedGaugeBar(d: d, fraction: inputFill,
-                              start: 90, end: 146, count: 24,
+                              start: GPSPowerArcLayout.zeroAngle,
+                              end: GPSPowerArcLayout.regenEndAngle, count: 12,
                               radiusFactor: GPSUnifiedScaleGeometry.powerBarRadiusFactor(for: d),
                               activeColor: CockpitTheme.regenAccent,
                               idleColor: CockpitTheme.regenAccent.opacity(0.20))
                 .shadow(color: CockpitTheme.regenAccent.opacity((inputFill ?? 0) > 0 ? 0.58 : 0),
                         radius: d * 0.010)
             SegmentedGaugeBar(d: d, fraction: outputFill,
-                              start: 90, end: 34, count: 24,
+                              start: GPSPowerArcLayout.zeroAngle,
+                              end: GPSPowerArcLayout.dischargeEndAngle, count: 24,
                               radiusFactor: GPSUnifiedScaleGeometry.powerBarRadiusFactor(for: d),
                               activeColor: CockpitTheme.dischargeAccent,
                               idleColor: CockpitTheme.dischargeAccent.opacity(0.20))
@@ -1458,34 +1480,29 @@ private struct GPSPowerSemicircle: View {
                     ($0 < 0 ? "Potenza erogata dalla batteria" : "Potenza nulla")
                 } ?? "Potenza BMS non disponibile")
 
+            // Uno zero comune nel punto di giunzione tra i due settori.
             Text("0")
                 .font(.system(size: d * 0.028, weight: .semibold))
                 .foregroundStyle(scaleTextColor)
-                .position(x: d * 0.50, y: d * 0.876)
+                .position(labelPoint(kilowatts: 0, input: true))
+            // Il lato rigenerazione è più corto e arriva a 2,5 kW.
+            ForEach([1.0, 2.5], id: \.self) { value in
+                Text(value == 2.5 ? "2.5" : "1")
+                    .font(.system(size: d * 0.028, weight: .semibold))
+                    .foregroundStyle(scaleTextColor)
+                    .position(labelPoint(kilowatts: value, input: true))
+            }
             ForEach(1...5, id: \.self) { value in
                 Text(String(value))
                     .font(.system(size: d * 0.028, weight: .semibold))
                     .foregroundStyle(scaleTextColor)
-                    .position(labelPoint(value: value, input: true))
-                Text(String(value))
-                    .font(.system(size: d * 0.028, weight: .semibold))
-                    .foregroundStyle(scaleTextColor)
-                    .position(labelPoint(value: value, input: false))
+                    .position(labelPoint(kilowatts: Double(value), input: false))
             }
-
-            // Etichette di riferimento, NON un falso stato READY/OFF:
-            // il JK BMS non trasmette lo stato del comando marcia del veicolo.
-            VStack(alignment: .leading, spacing: d * 0.018) {
-                Text("READY")
-                Text("OFF")
-            }
-            .font(.system(size: d * 0.027, weight: .bold, design: .rounded))
-            .foregroundStyle(scaleTextColor)
-            .frame(width: d * 0.20, alignment: .leading)
-            .position(x: d * 0.245, y: d * 0.657)
-            .accessibilityLabel("Etichette scala: READY e OFF, stato marcia non disponibile")
         }
         .frame(width: d, height: d)
+        // Ritaglio fisico sulla STESSA curva del ponte: barre, ombre e
+        // numeri non possono mai comparire sopra il profilo metallico.
+        .mask(GPSPowerBelowBridgeMask())
     }
 }
 
@@ -1709,6 +1726,24 @@ private struct GPSInnerBridgeContour: Shape {
             corners: [1, 2],
             radius: min(rect.width, rect.height) * 0.090
         )
+    }
+}
+
+// Ritaglio del settore inferiore: stessa geometria del ponte metallico.
+// Prosegue orizzontale oltre i due piedi, come limite di sicurezza.
+private struct GPSPowerBelowBridgeMask: Shape {
+    func path(in rect: CGRect) -> Path {
+        let points = GPSInnerBridgeLayout.points(in: rect)
+        guard let leftFoot = points.first, let rightFoot = points.last else {
+            return Path()
+        }
+        var below = GPSInnerBridgeContour().path(in: rect)
+        below.addLine(to: CGPoint(x: rect.maxX, y: rightFoot.y))
+        below.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        below.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        below.addLine(to: CGPoint(x: rect.minX, y: leftFoot.y))
+        below.closeSubpath()
+        return below
     }
 }
 
