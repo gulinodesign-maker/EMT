@@ -269,23 +269,25 @@ private struct CarbonBackdrop: View {
             ZStack {
                 colorScheme == .light
                     ? Color(red: 0.94, green: 0.96, blue: 0.985)
-                    : theme.backdrop
+                    : EMTMaterialPalette.black
                 Image("CarbonWeave")
                     .resizable(resizingMode: .tile)
-                    .opacity(colorScheme == .light ? 0.08 : 0.52)
-                LinearGradient(colors: colorScheme == .light
-                    ? [Color.white.opacity(0.45), .clear, Color(red: 0.75, green: 0.80, blue: 0.88).opacity(0.25)]
-                    : [.black.opacity(0.55), .clear, .black.opacity(0.70)],
-                    startPoint: .top, endPoint: .bottom)
-                RadialGradient(colors: colorScheme == .light
-                    ? [theme.accent.opacity(0.07), .clear, .white.opacity(0.08)]
-                    : [theme.secondary.opacity(0.14), .clear, .black.opacity(0.56)],
-                    center: .center, startRadius: 0,
-                    endRadius: max(geo.size.width, geo.size.height) * 0.62)
+                    .opacity(colorScheme == .light ? 0.075 : 0.13)
+                LinearGradient(stops: [
+                    .init(color: .black.opacity(colorScheme == .light ? 0 : 0.20), location: 0),
+                    .init(color: .clear, location: 0.45),
+                    .init(color: .black.opacity(colorScheme == .light ? 0 : 0.42), location: 1)
+                ], startPoint: .top, endPoint: .bottom)
+                RadialGradient(colors: [
+                    theme.accent.opacity(colorScheme == .light ? 0.045 : 0.065),
+                    .clear
+                ], center: UnitPoint(x: 0.29, y: 0.50), startRadius: 0,
+                   endRadius: max(geo.size.width, geo.size.height) * 0.43)
             }
             .frame(width: geo.size.width, height: geo.size.height)
         }
         .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
 
@@ -1220,13 +1222,17 @@ private struct OpenSpeedCluster: View {
                         ], center: .center, startRadius: 0, endRadius: d * 0.493))
                 } else {
                     Circle()
-                        .fill(theme.backdrop)
+                        .fill(RadialGradient(stops: [
+                            .init(color: Color(red: 0.032, green: 0.041, blue: 0.051), location: 0),
+                            .init(color: Color(red: 0.019, green: 0.023, blue: 0.028), location: 0.70),
+                            .init(color: EMTMaterialPalette.black, location: 1)
+                        ], center: .center, startRadius: 0, endRadius: d * 0.49))
                         .frame(width: d * 0.986, height: d * 0.986)
                         .shadow(color: .black.opacity(0.88), radius: d * 0.025)
                 }
                 Image("CarbonWeave")
                     .resizable(resizingMode: .tile)
-                    .opacity(colorScheme == .light ? 0 : 0.74)
+                    .opacity(colorScheme == .light ? 0 : 0.13)
                     .frame(width: d * 0.982, height: d * 0.982)
                     .clipShape(Circle())
                 Circle()
@@ -1516,7 +1522,8 @@ private enum GPSDialLayout {
     }
     static func centerX(width: CGFloat, height: CGFloat) -> CGFloat {
         let d = size(width: width, height: height)
-        return max(d * 0.51 + width * 0.010, width * 0.168 + d * 0.30)
+        // Normalized reference centre: 419 px at 1536 × 709.
+        return max(d * 0.51 + width * 0.010, width * 0.154 + d * 0.280)
     }
 }
 
@@ -1555,11 +1562,18 @@ private struct GPSMetalInnerRing: View {
     var body: some View {
         GeometryReader { geo in
             let d = min(geo.size.width, geo.size.height)
-            Circle()
-                .stroke(GPSMetalContourStyle.gradient(for: colorScheme),
-                        style: StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: d)))
-                .frame(width: d * 0.965, height: d * 0.965)
-                .frame(width: d, height: d)
+            ZStack {
+                Circle()
+                    .stroke(Color(white: colorScheme == .light ? 0.62 : 0.10),
+                            lineWidth: d * 0.016)
+                    .frame(width: d * 0.968, height: d * 0.968)
+                EMTMetallicRim(diameter: d * 0.965, widthFactor: 0.0035)
+                Circle()
+                    .stroke(Color.white.opacity(colorScheme == .light ? 0.27 : 0.18),
+                            lineWidth: max(0.5, d * 0.0015))
+                    .frame(width: d * 0.950, height: d * 0.950)
+            }
+            .frame(width: d, height: d)
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
@@ -1572,37 +1586,18 @@ private struct GPSGaugeHalo: View {
         GeometryReader { geo in
             let d = min(geo.size.width, geo.size.height)
             ZStack {
-                // Stesso neon dell'arco velocità, non delle corone di recupero:
-                // halo 0.034/0.027, core 0.015/ombra 0.010, luce bianca 0.003.
-                Circle()
-                    .stroke(theme.accent.opacity(0.80 * theme.glowIntensity),
-                            style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(d) * 1.40))
+                // One concentric tube with four aligned optical layers.
+                EMTNeonStroke(contour: Circle(), color: theme.accent,
+                              thickness: d * 0.0095, intensity: theme.glowIntensity)
                     .frame(width: d * 0.992, height: d * 0.992)
-                    .blur(radius: GPSInnerLED.haloBlur(d))
-                Circle()
-                    .stroke(theme.accent.opacity(0.96),
-                            style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d) * 1.45))
-                    .frame(width: d * 0.992, height: d * 0.992)
-                    .blur(radius: GPSInnerLED.coreBlur(d))
-                    .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
-                            radius: GPSInnerLED.outerBlur(d) * 1.25)
-                Circle()
-                    .stroke(theme.accent,
-                            style: StrokeStyle(lineWidth: max(3.8, d * 0.017)))
-                    .frame(width: d * 0.992, height: d * 0.992)
-                Circle()
-                    .stroke(Color.white.opacity(0.65),
-                            style: StrokeStyle(lineWidth: GPSInnerLED.highlightWidth(d) * 1.35))
-                    .frame(width: d * 0.992, height: d * 0.992)
+                EMTDialSpecularReflection(diameter: d)
             }
             .frame(width: d, height: d)
-            // Build 77: anello arancione più spesso e continuo a 360°:
-            // il ponte è ormai interno al quadrante, niente fade inferiore.
         }
         .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }
-
 
 // EJ 1.23 — linea A/kW specifica del cockpit GPS, larga quanto i due valori.
 // Due raccordi con lo stesso raggio della top bar; terminali dritti, lontani
@@ -1766,20 +1761,18 @@ private struct GPSLowerGlow: View {
     var body: some View {
         GeometryReader { geo in
             let d = min(geo.size.width, geo.size.height)
-            // Stesso gradiente e IDENTICO spessore del cerchio grigio.
-            // Il bagliore è tenue: niente vecchio halo da 0.034d.
             let lineWidth = GPSMetalContourStyle.strokeWidth(for: d)
             ZStack {
                 GPSInnerBridgeContour()
-                    .stroke(Color.white.opacity(0.20 * theme.glowIntensity),
-                            style: StrokeStyle(lineWidth: lineWidth * 1.15, lineCap: .round))
-                    .blur(radius: max(1.0, d * 0.004))
+                    .stroke(Color.white.opacity(0.13 * theme.glowIntensity),
+                            style: StrokeStyle(lineWidth: lineWidth * 1.35, lineCap: .round))
+                    .blur(radius: max(0.8, d * 0.0025))
                 GPSInnerBridgeContour()
                     .stroke(GPSMetalContourStyle.gradient(for: colorScheme),
                             style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 GPSInnerBridgeContour()
-                    .stroke(Color.white.opacity(colorScheme == .light ? 0.34 : 0.55),
-                            style: StrokeStyle(lineWidth: max(0.45, lineWidth * 0.30),
+                    .stroke(EMTMaterialPalette.ivory.opacity(colorScheme == .light ? 0.24 : 0.53),
+                            style: StrokeStyle(lineWidth: max(0.45, lineWidth * 0.27),
                                                lineCap: .round))
             }
             .mask(GPSLowerTerminalFade())
@@ -1816,9 +1809,9 @@ struct GPSCockpitDashboard: View {
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
             let temperatureLayout = GPSHorizonSymmetry.temperatureFrame(width: w, height: h)
             // Pulsante sotto/sinistra del quadrante: fuori dalla scala e dal ponte kW.
-            let resetSide = max(42, min(58, h * 0.08))
-            let resetX = max(resetSide / 2 + max(10, w * 0.008),
-                             dialCenterX - dialSize * 0.56)
+            let resetSide = max(64, min(100, h * 0.14))
+            let resetX = max(resetSide / 2 + w * 0.028,
+                             dialCenterX - dialSize * 0.50)
             let resetY = min(h - resetSide * 0.58, h * 0.840)
             // Telemetria centrata esattamente tra la tangente destra del
             // quadrante GPS e il bordo destro dello schermo. Stesso inset su
@@ -1960,26 +1953,33 @@ private struct GPSTripResetControl: View {
     var body: some View {
         GeometryReader { geo in
             let side = min(geo.size.width, geo.size.height)
-            VStack(spacing: max(1, side * 0.014)) {
+            VStack(spacing: max(2, side * 0.025)) {
                 Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: side * 0.35, weight: .semibold))
+                    .font(.system(size: side * 0.32, weight: .semibold))
                     .symbolRenderingMode(.monochrome)
                 Text("RESET")
-                    .font(.system(size: max(7, side * 0.13), weight: .bold,
+                    .font(.system(size: max(9, side * 0.145), weight: .bold,
                                   design: .rounded))
-                    .tracking(0.2)
+                    .tracking(0.45)
             }
-            .foregroundStyle(colorScheme == .light
-                             ? Color(white: 0.20) : .white.opacity(0.93))
+            .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
             .frame(width: side, height: side)
             .background {
-                Circle().fill(colorScheme == .light
-                              ? Color.white.opacity(0.88)
-                              : Color.black.opacity(0.78))
+                Circle().fill(RadialGradient(colors: colorScheme == .light
+                    ? [Color.white, Color(white: 0.87)]
+                    : [Color(white: 0.13), EMTMaterialPalette.black],
+                    center: UnitPoint(x: 0.34, y: 0.16),
+                    startRadius: 0, endRadius: side * 0.75))
             }
             .overlay {
-                Circle().stroke(theme.accent.opacity(0.72), lineWidth: 1.2)
+                Circle().stroke(EMTMaterialPalette.steel.opacity(0.36), lineWidth: 0.8)
+                    .padding(3)
+                EMTNeonStroke(contour: Circle(), color: theme.accent,
+                              thickness: max(1.25, side * 0.016), intensity: theme.glowIntensity)
+                    .padding(2)
             }
+            .shadow(color: theme.accent.opacity(colorScheme == .light ? 0.10 : 0.24),
+                    radius: side * 0.15)
             .contentShape(Circle())
             .onLongPressGesture(minimumDuration: 0.5) {
                 gps.resetTrip()
@@ -1999,8 +1999,9 @@ private enum GPSHorizonSymmetry {
         -> (leftKnee: CGPoint, leftContact: CGPoint,
             rightContact: CGPoint, rightKnee: CGPoint) {
         let axis = GPSDialLayout.centerX(width: w, height: h)
-        let rightKnee = CGPoint(x: w * 0.54, y: h * 0.099)
-        let rightContact = CGPoint(x: w * 0.45, y: h * 0.244)
+        let dial = GPSDialLayout.size(width: w, height: h)
+        let rightKnee = CGPoint(x: axis + w * 0.180, y: h * 0.099)
+        let rightContact = CGPoint(x: axis + dial * 0.358, y: h * 0.244)
         let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)
         let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)
         return (leftKnee, leftContact, rightContact, rightKnee)
@@ -2103,18 +2104,9 @@ private struct GPSHorizonLine: View {
                 metalLine.stroke(GPSMetalContourStyle.gradient(for: colorScheme),
                                  style: StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: dialSize)))
                     .mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))
-                ZStack {
-                    // Contorno arancione originale, invariato (un solo profilo LED).
-                    line.stroke(theme.accent.opacity(0.80 * theme.glowIntensity),
-                                lineWidth: GPSInnerLED.haloWidth(h))
-                        .blur(radius: GPSInnerLED.haloBlur(h))
-                    line.stroke(theme.accent.opacity(0.96), lineWidth: GPSInnerLED.coreWidth(h))
-                        .blur(radius: GPSInnerLED.coreBlur(h))
-                        .shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
-                                radius: GPSInnerLED.outerBlur(h))
-                    line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))
-                    line.stroke(Color.white.opacity(0.65), lineWidth: GPSInnerLED.highlightWidth(h))
-                }
+                EMTNeonStroke(contour: line, color: theme.accent,
+                              thickness: GPSContourStroke.width(height: h),
+                              intensity: theme.glowIntensity)
                 .mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))
             }
             // I raccordi GPS terminano netti al bordo del quadrante:
