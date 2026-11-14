@@ -31,7 +31,7 @@ assert 'Text(snapshot.map { "\($0.soc)%" } ?? "—%")' in rail
 assert "if let charge {" in rail
 assert "Double($0.soc) / 100.0" in rail
 
-# Build 65: four tiles in 2×2 and a full-width, double-height altitude card.
+# Build 65: four tiles in 2×2 and a full-width, 1.8x-height altitude card.
 # BMS still gates live values and range estimates; map-only SOC rail is unchanged.
 assert standard.count('telemetryTile("') == 4
 assert 'telemetryTile("SOC"' in standard
@@ -39,7 +39,7 @@ assert 'telemetryTile("V BAT"' in standard
 assert 'telemetryTile("AUT"' in standard
 assert 'telemetryTile("TRIP"' in standard
 assert 'dislevelCard(height: dislHeight)' in standard
-assert 'let dislHeight = 2 * cardHeight' in standard
+assert 'let dislHeight = 1.8 * cardHeight' in standard
 assert standard.count("showsBar: true") == 3
 assert "resettable: true" not in standard
 assert "GPSTripResetControl(theme: theme)" in dashboard
@@ -64,8 +64,8 @@ assert "if mapEnabled && selected == .gps {" in u
 
 # Landscape proportions: percent rail does not overlap search or button dock.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    dock_height = max(51,min(83,h*.105))
-    dock_bottom = max(4,h*.006)
+    dock_height = max(58,min(101,h*.145))
+    dock_bottom = max(12,h*.058)
     top_bound=h*.099
     bottom_bound=h-dock_bottom-dock_height
     margin=max(10,h*.020)
