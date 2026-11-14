@@ -39,7 +39,7 @@ assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in cockpit_
 assert "let railBottomBound = h - dockBottom - dockHeight" in cockpit_text
 assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)" in cockpit_text
 assert ".position(x: w / 2, y: h - dockBottom - dockHeight / 2)" in home
-assert "let dockBottom = selected == .gps\n                ? max(4, h * 0.006)" in home
+assert "let dockBottom = selected == .gps\n                ? max(35, h * 0.058)" in home
 assert "let gpsGap = width * 0.008" in dock
 assert "Spacer(minLength: 0)" in dock
 assert "if selected != .gps {\n                    Spacer(minLength: 0)" in dock
@@ -49,8 +49,8 @@ assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit_te
 assert "y: railCenterY)" in cockpit_text
 
 for width, height in ((736, 414), (844, 390), (932, 430), (956, 440), (1536, 706)):
-    dock_height = max(51, min(83, height * 0.105))
-    dock_bottom = max(4, height * 0.006)
+    dock_height = max(68, min(101, height * 0.142))
+    dock_bottom = max(35, height * 0.058)
     dock_top = height - dock_bottom - dock_height
     outer_margin = max(8, height * 0.018)
     # Both standard telemetry and map battery rail finish above the same dock datum.
