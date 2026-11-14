@@ -8,7 +8,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 cockpit_text = cockpit.decode("utf-8")
-assert project.count("CURRENT_PROJECT_VERSION = 76;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 77;") == 2
 
 # Only driving-relevant navigation is shown: technical screens are still accessible via Setup.
 portrait = home.split("private struct PortraitServiceTabBar: View", 1)[1].split(
