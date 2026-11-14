@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43626116939:ATTEMPT:1 -->
+### 2026-11-14T18:21:09Z — CI #236 · redesign-hyperrealistic-neon-preview · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43626116939](https://github.com/gulinodesign-maker/EMT/actions/runs/43626116939); avvio 2026-11-14T18:21:09Z UTC; aggiornamento finale 2026-11-14T18:21:56Z UTC; registrazione 2026-11-14T18:22:04+00:00 UTC; evento pull_request.
+- **Commit:** [9d4242cbf376](https://github.com/gulinodesign-maker/EMT/commit/9d4242cbf376c64a7c0b64952df5ac1c2485cc20); versione **1.0**; build **80**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Ecojumbo/Views/CockpitComponents.swift.
+
 <!-- EMT_RUN:43624777261:ATTEMPT:1 -->
 ### 2026-11-14T18:07:01Z — CI #232 · redesign-hyperrealistic-neon-preview · tentativo 1
 
