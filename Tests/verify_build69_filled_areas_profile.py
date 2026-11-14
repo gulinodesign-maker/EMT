@@ -33,7 +33,7 @@ style = cockpit.split("private enum GPSContourStroke {", 1)[1].split(
 # Keep the original top bar and lower kW bridge unchanged.
 assert "GPSOuterProfileReinforcement" not in cockpit
 assert "GPSContourStroke.width(height: h) * 3" not in cockpit
-assert "line.stroke(theme.accent" in horizon
+assert "EMTNeonStroke(contour: line, color: theme.accent" in horizon
 assert "GPSMetalContourStyle.gradient(for: colorScheme)" in lower_line
 assert "visibleOutsideRing.fill(style: FillStyle(eoFill: true))" in horizon
 assert ".mask(RadialGradient" not in horizon
