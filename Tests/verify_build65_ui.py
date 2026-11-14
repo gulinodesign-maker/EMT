@@ -58,7 +58,8 @@ chart = cockpit.split("private struct GPSTripAltitudeSparkline: View {", 1)[1]
 assert "if points.count >= 2" in chart
 assert "line.stroke(color" in chart
 assert "area.fill(LinearGradient(" in chart
-assert "color.opacity(0.035), color.opacity(0.012), color.opacity(0.0)" in chart\nassert "EMTTopographicAltitude(points: points, color: color)" in chart
+assert "color.opacity(0.035), color.opacity(0.012), color.opacity(0.0)" in chart
+assert "EMTTopographicAltitude(points: points, color: color)" in chart
 assert "startPoint: .top, endPoint: .bottom" in chart
 assert "path.closeSubpath()" in chart
 assert "Profilo GPS in attesa" in chart
