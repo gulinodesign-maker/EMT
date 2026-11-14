@@ -70,8 +70,8 @@ enum EcoCockpitDockGeometry {
     static func rightInset(width: CGFloat) -> CGFloat { max(12, width * 0.018) }
 
     static func standardSide(width: CGFloat, height: CGFloat) -> CGFloat {
-        let dial = min(height * 0.965, width * 0.55)
-        let dialX = max(dial * 0.51 + width * 0.010, width * 0.168 + dial * 0.30)
+        let dial = min(height * 0.920, width * 0.525)
+        let dialX = max(dial * 0.51 + width * 0.010, width * 0.154 + dial * 0.280)
         let safeLeft = dialX + dial * 0.50 + max(10, width * 0.010)
         let idealSide = min(max(51, min(83, height * 0.105)) * 0.96, width * 0.052)
         let available = width - rightInset(width: width) - safeLeft - 6 * gap(width: width)
@@ -83,8 +83,8 @@ enum EcoCockpitDockGeometry {
     // limite sinistro. Inset simmetrico destra/sinistra: il CENTRO delle
     // schede e dei cinque tasti coincide con quello dello spazio libero.
     static func standardLeft(width: CGFloat, height: CGFloat) -> CGFloat {
-        let dial = min(height * 0.965, width * 0.55)
-        let dialX = max(dial * 0.51 + width * 0.010, width * 0.168 + dial * 0.30)
+        let dial = min(height * 0.920, width * 0.525)
+        let dialX = max(dial * 0.51 + width * 0.010, width * 0.154 + dial * 0.280)
         return dialX + dial * 0.508 + rightInset(width: width)
     }
 }
@@ -113,11 +113,13 @@ struct EcojumboRootView: View {
         GeometryReader { geometry in
             let w = geometry.size.width
             let h = geometry.size.height
-            let dockHeight = max(51, min(83, h * 0.105))
+            let dockHeight = selected == .gps
+                ? max(68, min(101, h * 0.142))
+                : max(51, min(83, h * 0.105))
             // La barra resta SEMPRE dentro la finestra. Il margine in basso
             // riserva spazio anche alle zone home/safe-area landscape.
             let dockBottom = selected == .gps
-                ? max(4, h * 0.006)
+                ? max(35, h * 0.058)
                 : max(28, geometry.safeAreaInsets.bottom + 14, h * 0.055)
             let contentHeight = selected == .gps
                 ? h : max(1, h - dockHeight - dockBottom - 10)
@@ -281,7 +283,7 @@ private struct EcoMinimalNavigationLabel: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
-        .foregroundStyle(active ? theme.accent : Color.secondary)
+        .foregroundStyle(active ? theme.accent : Color.primary.opacity(0.85))
         .frame(maxWidth: .infinity)
     }
 }
@@ -357,14 +359,18 @@ private struct CockpitCornerControls: View {
             // gli otto comandi della mappa e i menù mantengono il layout esistente.
             let telemetryDock = selected == .gps && !mapEnabled
             let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)
-            let telemetryPanelWidth = max(1, width - EcoCockpitDockGeometry.rightInset(width: width)
-                                               - telemetryPanelLeft)
-            let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)
+            // The reference dock begins left of the telemetry cards and has
+            // a beveled shoulder. It is one continuous physical glass unit.
+            let telemetryDockLeft = max(0, telemetryPanelLeft - width * 0.080)
+            let telemetryDockWidth = max(1, width
+                - EcoCockpitDockGeometry.rightInset(width: width) - telemetryDockLeft)
+            let dockContentInset = width * 0.045
+            let justifiedGap = max(0, (telemetryDockWidth - dockContentInset - 5 * gpsSide) / 4)
             HStack(alignment: .center, spacing: 0) {
                 // Tachimetro: dock a destra. Altri menu: gruppo centrato.
                 Spacer(minLength: 0)
                 HStack(spacing: telemetryDock ? justifiedGap : gpsGap) {
-                    gpsButton("map.fill", active: mapEnabled,
+                    gpsButton("map.fill", active: selected == .gps,
                               accessibility: mapEnabled ? "Disattiva la mappa" : "Attiva la mappa",
                               side: gpsSide) {
                         if selected == .gps { mapEnabled.toggle() }
@@ -405,7 +411,29 @@ private struct CockpitCornerControls: View {
                             : EcoAppearanceMode.light.rawValue
                     }
                 }
-                .frame(width: telemetryDock ? telemetryPanelWidth : nil, alignment: .leading)
+                .padding(.leading, telemetryDock ? dockContentInset : 0)
+                .frame(width: telemetryDock ? telemetryDockWidth : nil, alignment: .leading)
+                .background {
+                    if selected == .gps {
+                        EMTDockGlassSurface(color: theme.accent, intensity: theme.glowIntensity)
+                            .padding(.vertical, -10)
+                    }
+                }
+                .overlay {
+                    if telemetryDock {
+                        GeometryReader { guide in
+                            Path { p in
+                                for section in 1..<5 {
+                                    let x = guide.size.width * CGFloat(section) / 5.0
+                                    p.move(to: CGPoint(x: x, y: guide.size.height * 0.16))
+                                    p.addLine(to: CGPoint(x: x, y: guide.size.height * 0.86))
+                                }
+                            }
+                            .stroke(Color.white.opacity(isDay ? 0.18 : 0.23), lineWidth: 0.75)
+                        }
+                        .allowsHitTesting(false)
+                    }
+                }
                 if selected != .gps {
                     Spacer(minLength: 0)
                 }
@@ -450,6 +478,15 @@ private struct CockpitCornerControls: View {
             )
             .frame(width: side, height: side)
             .contentShape(Rectangle())
+            .overlay(alignment: .bottom) {
+                if active {
+                    Capsule()
+                        .fill(theme.accent)
+                        .frame(width: side * 0.72, height: max(2, side * 0.036))
+                        .shadow(color: theme.accent.opacity(0.8), radius: 5)
+                        .offset(y: side * 0.065)
+                }
+            }
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
