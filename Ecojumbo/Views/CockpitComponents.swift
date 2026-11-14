@@ -1326,14 +1326,17 @@ private struct OpenSpeedCluster: View {
                             .accessibilityLabel("Velocità GPS: \(Int(speed.rounded())) chilometri orari")
                     } else {
                         Text("—")
-                            .font(.system(size: d * 0.22, weight: .light))
+                            .font(.system(size: d * (showsOdometer ? 0.260 : 0.22),
+                                          weight: showsOdometer ? .medium : .light))
                             .foregroundStyle(colorScheme == .light
                                              ? Color(white: 0.25) : .white.opacity(0.90))
                             .frame(width: d * 0.60, height: d * 0.285)
                             .accessibilityLabel("GPS non disponibile")
                     }
                 }
-                .position(x: d * 0.5, y: d * 0.495)
+                // The GPS reference positions the value higher than the
+                // original Home ring, above ODO and the inset steel bridge.
+                .position(x: d * 0.5, y: d * (showsOdometer ? 0.445 : 0.495))
 
                 // Chilometraggio TOTALE persistente, distinto dal Trip.
                 // Si trova all'interno del quadrante, subito sopra "km/h".
@@ -1348,16 +1351,17 @@ private struct OpenSpeedCluster: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.70)
                         .frame(width: d * 0.48, height: d * 0.055)
-                        .position(x: d * 0.50, y: d * 0.635)
+                        .position(x: d * 0.50, y: d * 0.565)
                         .accessibilityLabel("Chilometraggio totale")
                 }
 
                 Text("km/h")
-                    .font(.system(size: d * 0.047, weight: .medium))
+                    .font(.system(size: d * (showsOdometer ? 0.054 : 0.047),
+                                  weight: showsOdometer ? .bold : .medium))
                     .foregroundStyle(colorScheme == .light
                                      ? Color(white: 0.24) : .white.opacity(0.85))
                     .frame(width: d * 0.20, height: d * 0.065)
-                    .position(x: d * 0.5, y: d * (showsOdometer ? 0.705 : 0.755))
+                    .position(x: d * 0.5, y: d * (showsOdometer ? 0.630 : 0.755))
 
                 if showsPowerReadings {
                     CockpitPowerReadings(d: d, incomingPower: incomingPower,
