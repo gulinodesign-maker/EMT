@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43599981897:ATTEMPT:1 -->
+### 2026-11-14T13:29:09Z — CI #201 · build-77-integrated-power-dial · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43599981897](https://github.com/gulinodesign-maker/EMT/actions/runs/43599981897); avvio 2026-11-14T13:29:09Z UTC; aggiornamento finale 2026-11-14T13:32:36Z UTC; registrazione 2026-11-14T13:32:45+00:00 UTC; evento pull_request.
+- **Commit:** [cb1f0e730a28](https://github.com/gulinodesign-maker/EMT/commit/cb1f0e730a289009ab2189e2a75eff2e0999a9f7); versione **1.0**; build **77**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_odo_reset_51.py.
+
 <!-- EMT_RUN:43599891934:ATTEMPT:1 -->
 ### 2026-11-14T13:28:00Z — CI #200 · build-77-integrated-power-dial · tentativo 1
 
