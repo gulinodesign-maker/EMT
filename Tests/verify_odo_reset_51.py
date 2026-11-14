@@ -39,7 +39,7 @@ assert 'Text("km/h")' in speed
 assert 'String(format: "ODO %.0f km", $0)' in speed
 assert '"ODO — km"' in speed
 assert 'if showsOdometer {' in speed
-assert 'y: d * 0.690' in speed
+assert 'y: d * 0.635' in speed  # build 77: GPS ODO rises above inner bridge
 assert "showsOdometer: true" in dashboard
 assert "odometerKm: gps.hasOdometer ? gps.totalKm : nil" in dashboard
 assert 'OpenSpeedCluster(speed: gps.currentSpeed(at: now)' in dashboard
