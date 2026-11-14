@@ -19,7 +19,7 @@ dashboard = cockpit.split("struct GPSCockpitDashboard: View {", 1)[1].split(
 
 # Both knees and both contacts are true reflections across the real GPS dial.
 assert "GPSDialLayout.centerX(width: w, height: h)" in symmetry
-assert "let rightKnee = CGPoint(x: axis + w * 0.180, y: h * 0.099)" in symmetry
+assert "let rightKnee = CGPoint(x: axis + max(w * 0.180, dial * 0.385), y: h * 0.099)" in symmetry
 assert "let rightContact = CGPoint(x: axis + dial * 0.358, y: h * 0.244)" in symmetry
 assert "let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)" in symmetry
 assert "let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)" in symmetry
@@ -58,7 +58,7 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
              (1179, 510), (1536, 706), (1648, 928), (1806, 831)):
     d = min(h * .920, w * .525)
     axis = max(d * .51 + w * .010, w * .154 + d * .280)
-    right_knee = axis + w * .180
+    right_knee = axis + max(w * .180, d * .385)
     right_contact = axis + d * .358
     left_knee = 2 * axis - right_knee
     left_contact = 2 * axis - right_contact
