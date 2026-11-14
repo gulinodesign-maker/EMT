@@ -94,7 +94,9 @@ jobs:
           xcrun simctl bootstatus "$UDID" -b
           xcrun simctl ui "$UDID" appearance dark
           xcrun simctl install "$UDID" "$RUNNER_TEMP/EcojumboDerivedData/Build/Products/Debug-iphonesimulator/Ecojumbo.app"
-          xcrun simctl launch "$UDID" it.ecojumbo.battery
+          # NSArgumentDomain overrides AppStorage only for this screenshot run:
+          # show the four real telemetry cards rather than the default MapKit view.
+          xcrun simctl launch "$UDID" it.ecojumbo.battery -ecojumbo.mapEnabled NO
           sleep 8
           mkdir -p "$RUNNER_TEMP/ecojumbo-visual"
           xcrun simctl io "$UDID" screenshot "$RUNNER_TEMP/ecojumbo-visual/cockpit-simulator.png"
