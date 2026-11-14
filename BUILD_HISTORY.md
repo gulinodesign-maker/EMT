@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43625358959:ATTEMPT:1 -->
+### 2026-11-14T18:13:13Z — CI #234 · redesign-hyperrealistic-neon-preview · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43625358959](https://github.com/gulinodesign-maker/EMT/actions/runs/43625358959); avvio 2026-11-14T18:13:13Z UTC; aggiornamento finale 2026-11-14T18:25:25Z UTC; registrazione 2026-11-14T18:25:34+00:00 UTC; evento pull_request.
+- **Commit:** [47010a7d9714](https://github.com/gulinodesign-maker/EMT/commit/47010a7d971440d79aece7035c439bc48457826b); versione **1.0**; build **80**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** .github/workflows/ios-build.yml.
+
 <!-- EMT_RUN:43625143466:ATTEMPT:1 -->
 ### 2026-11-14T18:10:55Z — CI #233 · redesign-hyperrealistic-neon-preview · tentativo 1
 
