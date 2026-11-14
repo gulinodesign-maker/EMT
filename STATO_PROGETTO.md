@@ -1,5 +1,14 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 78 — scala circolare unificata e ponte kW sottile (14 novembre 2026)
+
+**Richiesta utente dopo verifica visiva su build 77:** tacche km/h più grandi e a soli 3–4 px dal cerchio grigio concentrico; scala potenza in ingresso (azzurra) e potenza erogata (rossa) lungo la **medesima circonferenza** delle tacche km/h; ponte sopra i kW sottile esattamente come il cerchio grigio, eliminando il bloom bianco eccessivo; arco LED velocità con partenza sul lato sinistro **sopra READY**. Non modificare cerchio arancione, top bar, valori BMS/GPS, mappa, temi, telemetria, dock e Home. Pubblicazione richiesta build **1.0 (78)** su TestFlight.
+
+**Realizzazione tecnica:** `GPSUnifiedScaleGeometry` definisce un solo raggio esterno con distanza radiale 3–4 punti (a diametri iPhone standard), misurata tra punta delle tacche e bordo interno della traccia grigia; le barre BMS compensano il loro spessore e terminano esattamente sul medesimo raggio. La scala km/h resta a 146°–394°, mentre le barre azzurra e rossa, ciascuna 56°, occupano rispettivamente 90°–146° e 90°–34° (parte inferiore della stessa circonferenza); numeri 0–5 ricollocati al loro interno. I segmenti rossi inversi usano un inset angolare corretto per evitare sovrapposizioni. L'arco luminoso GPS inizia a 190° sopra READY, con raggio aggiornato e progressione GPS invariata; la Home mantiene esattamente i precedenti 146°, 0.722d e tacche 0.393d. Il `GPSLowerGlow` utilizza la stessa funzione `GPSMetalContourStyle.gradient` e lo stesso `strokeWidth(for:)` del cerchio grigio, una sola traccia metallica con riflesso finissimo e un'ombra leggera, preservando la geometria del ponte della build 77.
+
+**Verifiche da effettuare:** test Python, protocollo JK, barre dinamiche e compilazione Xcode simulator su PR e `main`; upload archivio iPhone e conferma Apple `Upload succeeded`. Separatamente, elaborazione App Store Connect, assegnazione gruppo TE, disponibilità dell'app su TestFlight e resa visiva su iPhone reale in day/dark mode.
+
+
 ## Build 77 — potenze nel semicerchio e ponte kW inscritto nel tachimetro (14 novembre 2026)
 
 **Richiesta utente:** seguire lo screenshot di riferimento: scala JK BMS ingresso/rigenerazione azzurra da 0 al centro a 5 kW a sinistra, scala erogazione rossa da 0 al centro a 5 kW a destra; ponte argento inserito tutto dentro il tachimetro; un unico valore kW colorato come il segmento attivo; etichette READY/OFF a sinistra alla base della velocità; anello esterno arancione più spesso, completo e luminoso. Tutto il resto invariato. Richiesta esplicita di creare e caricare su TestFlight **1.0 (77)**, senza esempi grafici.

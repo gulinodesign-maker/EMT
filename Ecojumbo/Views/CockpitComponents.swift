@@ -915,11 +915,35 @@ private struct GaugeArc: Shape {
     }
 }
 
+// Build 78: GPS speed ticks and the BMS lower half-scale share a single
+// circumference. The white tick tips and the outer edges of the power bars
+// stay 3–4 points radially inside the gray concentric ring.
+// The Home intentionally keeps its prior radius and LED origin.
+private enum GPSUnifiedScaleGeometry {
+    static func metalClearance(for d: CGFloat) -> CGFloat {
+        min(4, max(3, d * 0.009))
+    }
+    static func outerRadius(for d: CGFloat) -> CGFloat {
+        d * 0.965 / 2
+            - GPSMetalContourStyle.strokeWidth(for: d) / 2
+            - metalClearance(for: d)
+    }
+    static func powerBarRadiusFactor(for d: CGFloat) -> CGFloat {
+        // Bar tip = white tick tip, compensating for stroke width 0.017d.
+        (outerRadius(for: d) - d * 0.017 / 2) / d
+    }
+    static func speedLEDRadius(for d: CGFloat) -> CGFloat {
+        // Even the soft halo ends inside the metal circle.
+        outerRadius(for: d) - GPSInnerLED.haloWidth(d) / 2
+    }
+}
+
 // Tacche della velocità: nessun numero predefinito da 0 a 120.
 // Il LED rosso sottostante indica la quota della scala già percorsa.
 private struct SpeedScaleTicks: View {
     @Environment(\.colorScheme) private var colorScheme
     let d: CGFloat
+    var usesGPSRing: Bool = false
 
     var body: some View {
         Canvas { context, _ in
@@ -930,7 +954,8 @@ private struct SpeedScaleTicks: View {
     }
 
     private func drawTicks(into context: inout GraphicsContext) {
-        let outerRadius: CGFloat = d * 0.393
+        let outerRadius: CGFloat = usesGPSRing
+            ? GPSUnifiedScaleGeometry.outerRadius(for: d) : d * 0.393
         for index in 0...48 {
             let radians: Double = (146.0 + Double(index) * (248.0 / 48.0)) * .pi / 180.0
             let isMajor = index.isMultiple(of: 8)
@@ -979,6 +1004,7 @@ private struct GPSSpeedObservation {
 private struct SpeedLEDStream: View {
     let d: CGFloat
     let speed: Double?
+    var usesGPSRing: Bool = false
     @AppStorage("ecojumbo.bars.vehicleSpeedMaxKmh") private var vehicleSpeedMaxKmh = 120.0
     @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
     @AppStorage("ecojumbo.bars.speedLimitColorEnabled") private var speedLimitColorEnabled = true
@@ -1004,28 +1030,35 @@ private struct SpeedLEDStream: View {
     }
 
     var body: some View {
+        // In GPS l'arco LED parte sul lato sinistro SOPRA READY, non ai
+        // piedi della scala di potenza. La Home conserva 146° e 0.722d.
+        let arcStart = usesGPSRing ? 190.0 : 146.0
+        let arcEnd = 394.0
+        let arcDiameter = usesGPSRing
+            ? 2 * GPSUnifiedScaleGeometry.speedLEDRadius(for: d) : d * 0.722
+        let ledRadius = arcDiameter / 2
         ZStack {
             // Anima inerte: si vede la forma della pista ma NON un valore simulato.
-            GaugeArc(start: 146, end: 394)
+            GaugeArc(start: arcStart, end: arcEnd)
                 .stroke(Color(red: 0.28, green: 0.11, blue: 0.02).opacity(0.28),
                         style: StrokeStyle(lineWidth: d * 0.009, lineCap: .round))
-                .frame(width: d * 0.722, height: d * 0.722)
+                .frame(width: arcDiameter, height: arcDiameter)
             if let progress, progress > 0 {
-                GaugeArc(start: 146, end: 394, fraction: progress)
+                GaugeArc(start: arcStart, end: arcEnd, fraction: progress)
                     .stroke(ledOrange.opacity(0.80),
                             style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(d), lineCap: .round))
                     .blur(radius: GPSInnerLED.haloBlur(d))
-                    .frame(width: d * 0.722, height: d * 0.722)
-                GaugeArc(start: 146, end: 394, fraction: progress)
+                    .frame(width: arcDiameter, height: arcDiameter)
+                GaugeArc(start: arcStart, end: arcEnd, fraction: progress)
                     .stroke(ledOrange, style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d), lineCap: .round))
                     .shadow(color: ledOrange.opacity(0.94), radius: GPSInnerLED.outerBlur(d))
-                    .frame(width: d * 0.722, height: d * 0.722)
-                GaugeArc(start: 146, end: 394, fraction: progress)
+                    .frame(width: arcDiameter, height: arcDiameter)
+                GaugeArc(start: arcStart, end: arcEnd, fraction: progress)
                     .stroke(Color.white.opacity(0.65),
                             style: StrokeStyle(lineWidth: GPSInnerLED.highlightWidth(d), lineCap: .round))
-                    .frame(width: d * 0.722, height: d * 0.722)
-                let angle = (146 + 248 * progress) * Double.pi / 180
-                let radius = d * 0.361
+                    .frame(width: arcDiameter, height: arcDiameter)
+                let angle = (arcStart + (arcEnd - arcStart) * progress) * Double.pi / 180
+                let radius = ledRadius
                 let endPoint = CGPoint(x: d/2 + radius * CGFloat(Darwin.cos(angle)),
                                        y: d/2 + radius * CGFloat(Darwin.sin(angle)))
                 Circle()
@@ -1098,10 +1131,13 @@ private struct SegmentedGaugeBar: View {
         guard count > 0 else { return }
         let radius: CGFloat = d * radiusFactor
         let stepAngle: Double = (end - start) / Double(count)
+        // Invert the inset with the direction, otherwise the right-hand
+        // clockwise power segments overlap instead of leaving small gaps.
+        let edgeInset: Double = stepAngle >= 0 ? 0.40 : -0.40
         let thickness: CGFloat = d * 0.017
         for index in 0..<count {
-            let firstAngle: Double = (start + Double(index) * stepAngle + 0.40) * .pi / 180
-            let lastAngle: Double = (start + Double(index + 1) * stepAngle - 0.40) * .pi / 180
+            let firstAngle: Double = (start + Double(index) * stepAngle + edgeInset) * .pi / 180
+            let lastAngle: Double = (start + Double(index + 1) * stepAngle - edgeInset) * .pi / 180
             var segment = Path()
             for pointIndex in 0...5 {
                 let angle = firstAngle + (lastAngle - firstAngle) * Double(pointIndex) / 5.0
@@ -1213,9 +1249,15 @@ private struct OpenSpeedCluster: View {
                                 radius: d * 0.011)
                 }
 
-                // La striscia LED arancione della velocità richiede GPS valido.
-                SpeedLEDStream(d: d, speed: speed)
-                SpeedScaleTicks(d: d)
+                // Home invariata; il GPS usa il cerchio condiviso delle
+                // tacche km/h e dei segmenti BMS con 3–4 punti di rispetto.
+                if showsOuterPowerRings {
+                    SpeedLEDStream(d: d, speed: speed)
+                    SpeedScaleTicks(d: d)
+                } else {
+                    SpeedLEDStream(d: d, speed: speed, usesGPSRing: true)
+                    SpeedScaleTicks(d: d, usesGPSRing: true)
+                }
 
                 // Stessa strumentazione nella Home e nella mappa.
                 // La freccia bianca occupa la zona superiore, lontana dalle
@@ -1377,9 +1419,9 @@ private struct GPSPowerSemicircle: View {
         colorScheme == .light ? Color(white: 0.24) : .white.opacity(0.92)
     }
     private func labelPoint(value: Int, input: Bool) -> CGPoint {
-        let degrees = 90.0 + (input ? 36.0 : -36.0) * Double(value) / 5.0
+        let degrees = 90.0 + (input ? 56.0 : -56.0) * Double(value) / 5.0
         let angle = degrees * Double.pi / 180.0
-        let radius = d * 0.385
+        let radius = d * 0.408
         return CGPoint(x: d * 0.5 + radius * CGFloat(Darwin.cos(angle)),
                        y: d * 0.5 + radius * CGFloat(Darwin.sin(angle)))
     }
@@ -1389,13 +1431,15 @@ private struct GPSPowerSemicircle: View {
             // Gli indici iniziano da ZERO al centro e crescono verso l'esterno.
             // Nessuna luce attiva senza una misura reale e finita del JK BMS.
             SegmentedGaugeBar(d: d, fraction: inputFill,
-                              start: 90, end: 126, count: 24, radiusFactor: 0.433,
+                              start: 90, end: 146, count: 24,
+                              radiusFactor: GPSUnifiedScaleGeometry.powerBarRadiusFactor(for: d),
                               activeColor: CockpitTheme.regenAccent,
                               idleColor: CockpitTheme.regenAccent.opacity(0.20))
                 .shadow(color: CockpitTheme.regenAccent.opacity((inputFill ?? 0) > 0 ? 0.58 : 0),
                         radius: d * 0.010)
             SegmentedGaugeBar(d: d, fraction: outputFill,
-                              start: 90, end: 54, count: 24, radiusFactor: 0.433,
+                              start: 90, end: 34, count: 24,
+                              radiusFactor: GPSUnifiedScaleGeometry.powerBarRadiusFactor(for: d),
                               activeColor: CockpitTheme.dischargeAccent,
                               idleColor: CockpitTheme.dischargeAccent.opacity(0.20))
                 .shadow(color: CockpitTheme.dischargeAccent.opacity((outputFill ?? 0) > 0 ? 0.58 : 0),
@@ -1705,32 +1749,24 @@ private struct GPSLowerGlow: View {
 
     var body: some View {
         GeometryReader { geo in
-            let h = geo.size.height
+            let d = min(geo.size.width, geo.size.height)
+            // Stesso gradiente e IDENTICO spessore del cerchio grigio.
+            // Il bagliore è tenue: niente vecchio halo da 0.034d.
+            let lineWidth = GPSMetalContourStyle.strokeWidth(for: d)
             ZStack {
-                // Ponte argento compatto INSCRITTO nel cerchio GPS;
-                // la luce è proporzionata come il LED della top bar.
-                ZStack {
-                    // Nessuna fascia/maschera esterna al disco.
-                    GPSInnerBridgeContour()
-                        .stroke(Color.white.opacity(0.35 * theme.glowIntensity),
-                                style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(h), lineCap: .round))
-                        .blur(radius: GPSInnerLED.haloBlur(h))
-                    GPSInnerBridgeContour()
-                        .stroke(colorScheme == .light ? Color(white: 0.36) : Color.white.opacity(0.88),
-                                style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(h), lineCap: .round))
-                        .blur(radius: GPSInnerLED.coreBlur(h))
-                        .shadow(color: Color.white.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity)),
-                                radius: GPSInnerLED.outerBlur(h))
-                    GPSInnerBridgeContour()
-                        .stroke(GPSMetalContourStyle.gradient(for: colorScheme),
-                                style: StrokeStyle(lineWidth: GPSContourStroke.width(height: h),
-                                                   lineCap: .round))
-                    GPSInnerBridgeContour()
-                        .stroke(Color.white.opacity(0.65),
-                                style: StrokeStyle(lineWidth: GPSInnerLED.highlightWidth(h), lineCap: .round))
-                }
-                .mask(GPSLowerTerminalFade())
+                GPSInnerBridgeContour()
+                    .stroke(Color.white.opacity(0.20 * theme.glowIntensity),
+                            style: StrokeStyle(lineWidth: lineWidth * 1.15, lineCap: .round))
+                    .blur(radius: max(1.0, d * 0.004))
+                GPSInnerBridgeContour()
+                    .stroke(GPSMetalContourStyle.gradient(for: colorScheme),
+                            style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
+                GPSInnerBridgeContour()
+                    .stroke(Color.white.opacity(colorScheme == .light ? 0.34 : 0.55),
+                            style: StrokeStyle(lineWidth: max(0.45, lineWidth * 0.30),
+                                               lineCap: .round))
             }
+            .mask(GPSLowerTerminalFade())
             .frame(width: geo.size.width, height: geo.size.height)
         }
         .allowsHitTesting(false)
