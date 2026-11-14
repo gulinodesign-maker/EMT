@@ -77,14 +77,14 @@ struct EMTDialSpecularReflection: View {
                 .stroke(AngularGradient(stops: [
                     .init(color: .clear, location: 0),
                     .init(color: .clear, location: 0.44),
-                    .init(color: EMTMaterialPalette.orange.opacity(0.07), location: 0.51),
-                    .init(color: EMTMaterialPalette.amber.opacity(0.27), location: 0.58),
-                    .init(color: EMTMaterialPalette.ivory.opacity(0.59), location: 0.64),
-                    .init(color: EMTMaterialPalette.amber.opacity(0.20), location: 0.71),
+                    .init(color: EMTMaterialPalette.orange.opacity(0.15), location: 0.51),
+                    .init(color: EMTMaterialPalette.amber.opacity(0.63), location: 0.58),
+                    .init(color: EMTMaterialPalette.ivory.opacity(0.96), location: 0.64),
+                    .init(color: EMTMaterialPalette.amber.opacity(0.40), location: 0.71),
                     .init(color: .clear, location: 0.79),
                     .init(color: .clear, location: 1)
-                ], center: .center), lineWidth: diameter * 0.067)
-                .blur(radius: diameter * 0.016)
+                ], center: .center), lineWidth: diameter * 0.075)
+                .blur(radius: diameter * 0.008)
             Circle()
                 .stroke(AngularGradient(stops: [
                     .init(color: .clear, location: 0),
@@ -124,11 +124,11 @@ struct EMTGlossyGlassSurface: View {
                     .init(color: scheme == .light ? Color(white: 0.88) : Color(white: 0.018), location: 1)
                 ], startPoint: .top, endPoint: .bottom))
                 rectangle.fill(RadialGradient(colors: [
-                    glowColor.opacity(scheme == .light ? 0.10 : illumination * 0.73),
+                    glowColor.opacity(scheme == .light ? 0.10 : min(0.88, illumination * 1.20)),
                     glowColor.opacity(scheme == .light ? 0.04 : illumination * 0.29),
                     .clear
                 ], center: UnitPoint(x: 0.045, y: 0.96),
-                   startRadius: 0, endRadius: max(size.width * 0.46, size.height * 1.4)))
+                   startRadius: 0, endRadius: max(size.width * 0.26, size.height * 1.0)))
                 rectangle.fill(LinearGradient(stops: [
                     .init(color: .white.opacity(scheme == .light ? 0.18 : 0.17), location: 0),
                     .init(color: .white.opacity(0.025), location: 0.12),

@@ -298,9 +298,9 @@ private struct CockpitTopSoftShade: View {
     var body: some View {
         GeometryReader { geo in
             LinearGradient(stops: [
-                .init(color: colorScheme == .light ? Color.white.opacity(0.83) : Color(white: 0.30).opacity(0.38), location: 0),
-                .init(color: colorScheme == .light ? Color.white.opacity(0.34) : Color(white: 0.23).opacity(0.26), location: 0.48),
-                .init(color: colorScheme == .light ? Color.white.opacity(0.08) : Color(white: 0.14).opacity(0.08), location: 0.82),
+                .init(color: colorScheme == .light ? Color.white.opacity(0.83) : Color(white: 0.10).opacity(0.14), location: 0),
+                .init(color: colorScheme == .light ? Color.white.opacity(0.34) : Color(white: 0.07).opacity(0.12), location: 0.48),
+                .init(color: colorScheme == .light ? Color.white.opacity(0.08) : Color(white: 0.05).opacity(0.05), location: 0.82),
                 .init(color: .clear, location: 1)
             ], startPoint: .top, endPoint: .bottom)
             .frame(width: geo.size.width, height: geo.size.height * 0.125,
