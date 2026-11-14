@@ -1,5 +1,16 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 79 — scala BMS 1/3 azzurra, 2/3 rossa; tutte le letture sotto il ponte (14 novembre 2026)
+
+**Richiesta utente da screenshot build 78:** le scale BMS azzurra (ingresso/rigenerazione) e rossa (erogazione) non devono superare il profilo grigio del ponte kW. La rigenerazione è inferiore alla potenza erogata, quindi **1/3 dell'arco disponibile azzurro e 2/3 rosso**, non due scale uguali. Eliminare interamente le scritte READY e OFF. Il LED progressivo GPS deve partire esattamente dal fondo della scala km/h (prima tacca bianca, 146°), non dall'origine 190° scelta sopra READY. Mantenere tutte le altre caratteristiche del cockpit e della Home. Pubblicazione richiesta per **1.0 (79)** su TestFlight.
+
+**Modifica:** `GPSPowerArcLayout` fissa il settore visivo BMS 54°–126° (72°), punto zero a 102°: blu 102°–126° = 24° (1/3), rosso 102°–54° = 48° (2/3). L'estensione blu è 0–**2,5 kW** e quella rossa 0–**5 kW**, con **uguale densità angolare per kW** e lettura numerica BMS completa, mai ridotta o inventata. Il tratto blu usa 12 segmenti e quello rosso 24, entrambi con la distanza radiale della build 78 dal cerchio grigio. Il valore zero è all'incontro; etichette blu 1 / 2,5, rosse 1–5. `GPSPowerBelowBridgeMask` ritaglia l'intero gruppo (barre, numeri, valori, ombre) sullo **stesso percorso** arrotondato di `GPSInnerBridgeContour`; oltre i piedi lo spazio inferiore è delimitato orizzontalmente, evitando ogni sporgenza anche a layout diversi. La riga `let arcStart = 146.0` ripristina esattamente il fondo scala delle tacche km/h e conserva il comportamento GPS, i colori e le soglie precedenti. READY/OFF rimosse; nessun falso stato veicolo.
+
+**Restano invariati:** top bar, anello arancione e cerchio grigio, spessore/colore/forma del ponte metallico, tachimetro/km/h/ODO, mappa, dock, telemetria, stati temi, flusso JK Bluetooth, coordinate GPS e Home.
+
+**Verifiche richieste:** versioni Xcode Debug/Release 79, test regressivi Python inclusi rapporti 1:2 e confinamento nella curva del ponte, Swift JK e barre, compilazione iOS simulator su PR e `main`, workflow Apple fino a `Upload succeeded`. Separatamente: processing ASC, associazione gruppo TE e prova visiva reale in day/dark mode.
+
+
 ## Build 78 — scala circolare unificata e ponte kW sottile (14 novembre 2026)
 
 **Richiesta utente dopo verifica visiva su build 77:** tacche km/h più grandi e a soli 3–4 px dal cerchio grigio concentrico; scala potenza in ingresso (azzurra) e potenza erogata (rossa) lungo la **medesima circonferenza** delle tacche km/h; ponte sopra i kW sottile esattamente come il cerchio grigio, eliminando il bloom bianco eccessivo; arco LED velocità con partenza sul lato sinistro **sopra READY**. Non modificare cerchio arancione, top bar, valori BMS/GPS, mappa, temi, telemetria, dock e Home. Pubblicazione richiesta build **1.0 (78)** su TestFlight.
