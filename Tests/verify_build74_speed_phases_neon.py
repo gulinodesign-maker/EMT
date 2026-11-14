@@ -9,7 +9,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert pbx.count("CURRENT_PROJECT_VERSION = 77;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 78;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -84,13 +84,15 @@ for suffix in ("size * 0.034", "size * 0.027", "size * 0.015",
 for key in ("haloWidth", "haloBlur", "coreWidth", "outerBlur", "highlightWidth"):
     assert "GPSInnerLED." + key + "(d)" in speed, key
 for shape, end, dim in (("GPSHorizonLine", "@MainActor", "h"),
-                        ("GPSGaugeHalo", "// EJ 1.23", "d"),
-                        ("GPSLowerGlow", "// EJ 1.22", "h")):
+                        ("GPSGaugeHalo", "// EJ 1.23", "d")):
     section = cockpit.split("private struct " + shape + ": View {", 1)[1].split(end, 1)[0]
     for key in ("haloWidth", "haloBlur", "coreWidth", "outerBlur", "highlightWidth"):
         assert "GPSInnerLED." + key + "(" + dim + ")" in section, (shape, key)
     assert "Color.white.opacity(0.65)" in section
     assert "GPSInnerLED.outerOpacity(theme.glowIntensity)" in section
+lower = cockpit.split("private struct GPSLowerGlow: View {", 1)[1].split("// EJ 1.22", 1)[0]
+assert "GPSMetalContourStyle.strokeWidth(for: d)" in lower
+assert "GPSInnerLED." not in lower
 assert "GPSOuterProfileReinforcement" not in cockpit
 assert "GPSTopBandShade" not in cockpit
 assert "GPSLowerAreaGradient" not in cockpit

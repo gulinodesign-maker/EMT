@@ -3,7 +3,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 77;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 78;") == 2
 
 led = source.split("private enum GPSInnerLED {", 1)[1].split("private enum GPSDialLayout", 1)[0]
 for name in ("haloWidth", "haloBlur", "coreWidth", "coreBlur"):
@@ -11,7 +11,7 @@ for name in ("haloWidth", "haloBlur", "coreWidth", "coreBlur"):
 top = source.split("private struct GPSHorizonLine: View {", 1)[1].split("@MainActor", 1)[0]
 ring = source.split("private struct GPSGaugeHalo: View {", 1)[1].split("// EJ 1.23", 1)[0]
 lower = source.split("private struct GPSLowerGlow: View {", 1)[1].split("// EJ 1.22", 1)[0]
-for section in (top, ring, lower):
+for section in (top, ring):
     for method in ("haloWidth", "haloBlur", "coreWidth", "coreBlur"):
         assert "GPSInnerLED." + method + "(" in section
 assert "GPSInnerLED.haloWidth(h)" in top
@@ -24,8 +24,9 @@ assert "GPSInnerLED.highlightWidth(d)" in ring
 assert ".shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity))" in ring
 assert ".frame(width: d * 0.992, height: d * 0.992)" in ring
 assert ".mask(LinearGradient(stops:" not in ring  # 77: full 360-degree orange halo
-assert "GPSInnerLED.haloWidth(h)" in lower
-assert "GPSInnerLED.highlightWidth(h)" in lower
+assert "let lineWidth = GPSMetalContourStyle.strokeWidth(for: d)" in lower
+assert "GPSInnerLED.haloWidth" not in lower
+assert "GPSMetalContourStyle.gradient(for: colorScheme)" in lower
 assert ".mask(GPSLowerTerminalFade())" in lower
 assert "GPSLowerShade()" not in lower
 assert "GPSLowerShade().path(in: rect)" in source
@@ -37,5 +38,5 @@ for prohibited in ("GPSOuterProfileReinforcement", "GPSTopBandShade",
                    "GPSLowerAreaGradient", "GPSAreaGradientStyle"):
     assert prohibited not in source
 assert "line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))" in top
-assert "StrokeStyle(lineWidth: GPSContourStroke.width(height: h)," in lower
+assert "style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)" in lower
 print("OK — build 72: inward LED on top bar, orange ring and kW bridge with fade preserved")

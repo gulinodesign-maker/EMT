@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 77;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 78;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Existing 3 slots retain old shades. Both old 8- and 15-colour palettes migrate.
