@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43624285171:ATTEMPT:1 -->
+### 2026-11-14T18:01:41Z — CI #230 · redesign-hyperrealistic-neon-preview · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43624285171](https://github.com/gulinodesign-maker/EMT/actions/runs/43624285171); avvio 2026-11-14T18:01:41Z UTC; aggiornamento finale 2026-11-14T18:13:26Z UTC; registrazione 2026-11-14T18:13:35+00:00 UTC; evento pull_request.
+- **Commit:** [7ba0e9d73b67](https://github.com/gulinodesign-maker/EMT/commit/7ba0e9d73b67172b140d553ee6701a7214b57d4f); versione **1.0**; build **80**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Ecojumbo/Views/EMTMaterialSystem.swift.
+
 <!-- EMT_RUN:43624098058:ATTEMPT:1 -->
 ### 2026-11-14T17:59:51Z — CI #229 · redesign-hyperrealistic-neon-preview · tentativo 1
 
