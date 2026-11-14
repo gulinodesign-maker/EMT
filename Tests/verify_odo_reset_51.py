@@ -24,7 +24,7 @@ assert 'Text("TELEMETRIA")' in telemetry
 assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in telemetry
 assert telemetry.count('telemetryTile("') == 4
 assert telemetry.count("showsBar: true") == 3
-assert "let dislHeight = 2 * cardHeight" in telemetry
+assert "let dislHeight = 1.8 * cardHeight" in telemetry
 assert "dislevelCard(height: dislHeight)" in telemetry
 assert "EMTTelemetryRail(fraction: fraction, color: theme.accent)" in telemetry
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in telemetry

@@ -55,7 +55,7 @@ assert 'GPSHorizonLine(theme: theme)' in c
 assert 'GPSLowerGlow(theme: theme)' in c
 assert 'ForEach([EcoTab.trips, .settings, .themes])' in u
 assert '@State private var selected: EcoTab = .gps' in u
-assert '? max(35, h * 0.058)' in u
+assert '? max(12, h * 0.058)' in u
 assert 'textTop - max(12, h * 0.014)' in c
 assert 'buttonStart - max(9, w * 0.012)' in c
 for w,h in [(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
@@ -97,7 +97,7 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert right_top+run+max(9,w*.012)<=button_start+1e-8,(w,h)
     assert (right_top-left_top)<d*.66
     assert foot_y<h*.945
-    assert h-max(35,h*.058)-max(68,min(101,h*.142))>0
+    assert h-max(12,h*.058)-max(58,min(101,h*.145))>0
 # Build 43: nessuna tessera di telemetria sopra la cartografia.
 assert 'GPSCompactReadings' not in c
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
@@ -223,10 +223,10 @@ assert '.frame(width: panelWidth, height: cardsHeight)' in c
 assert '.position(x: panelLeft + panelWidth / 2, y: cardsCenterY)' in c
 # Posizione delle cinque schede esattamente fra top bar e dock su ogni iPhone.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
-    dock_height=max(68,min(101,h*.142))
-    dock_bottom=max(35,h*.058)
-    margin=max(8,h*.018)
-    top=h*.099+margin
+    dock_height=max(58,min(101,h*.145))
+    dock_bottom=max(12,h*.058)
+    margin=max(6,h*.013)
+    top=h*.099
     bottom=h-dock_bottom-dock_height-margin
     center=(top+bottom)/2
     column_height=bottom-top
@@ -279,7 +279,7 @@ assert expanded.count('showsBar: true')==3
 assert expanded.count('telemetryTile("')==4
 assert 'telemetryTile("SOC"' in expanded and 'telemetryTile("V BAT"' in expanded
 assert 'telemetryTile("AUT"' in expanded and 'telemetryTile("TRIP"' in expanded
-assert 'let dislHeight = 2 * cardHeight' in expanded
+assert 'let dislHeight = 1.8 * cardHeight' in expanded
 assert 'dislevelCard(height: dislHeight)' in expanded
 assert 'if showsBar {' in expanded
 assert 'EMTTelemetryRail(fraction: fraction, color: theme.accent)' in expanded

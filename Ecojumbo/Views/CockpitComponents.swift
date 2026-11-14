@@ -1830,10 +1830,10 @@ struct GPSCockpitDashboard: View {
             let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)
             let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) - panelLeft)
             // Le card occupano il centro dello spazio tra la top bar e il dock.
-            let dockHeight = max(68, min(101, h * 0.142))
-            let dockBottom = max(35, h * 0.058)
-            let outerMargin = max(8, h * 0.018)
-            let cardsTop = h * 0.099 + outerMargin
+            let dockHeight = max(58, min(101, h * 0.145))
+            let dockBottom = max(12, h * 0.058)
+            let outerMargin = max(6, h * 0.013)
+            let cardsTop = h * 0.099
             let cardsBottom = h - dockBottom - dockHeight - outerMargin
             let cardsHeight = max(1, cardsBottom - cardsTop)
             let cardsCenterY = (cardsTop + cardsBottom) / 2
@@ -2829,10 +2829,10 @@ private struct GPSExpandedReadings: View {
             let insetX = max(0, min(3, width * 0.003))
             let insetY = max(6, min(13, height * 0.019))
             let innerHeight = max(1, height - 2 * insetY)
-            let headerHeight = max(24, min(40, innerHeight * 0.105))
-            let tileGap = max(5, min(10, height * 0.022))
-            let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 4)
-            let dislHeight = 2 * cardHeight
+            let headerHeight = max(18, min(32, innerHeight * 0.083))
+            let tileGap = max(6, min(10, height * 0.028))
+            let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 3.8)
+            let dislHeight = 1.8 * cardHeight
             let snapshot = bluetooth.snapshot
             let live = bluetooth.isConnected && snapshot.map({
                 abs(now.timeIntervalSince($0.date)) < 10

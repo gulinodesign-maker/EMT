@@ -43,8 +43,8 @@ assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in panel
 assert panel.count('telemetryTile("') == 4
 for label in ("SOC", "V BAT", "AUT", "TRIP"):
     assert f'telemetryTile("{label}"' in panel
-assert "let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 4)" in panel
-assert "let dislHeight = 2 * cardHeight" in panel
+assert "let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 3.8)" in panel
+assert "let dislHeight = 1.8 * cardHeight" in panel
 assert "dislevelCard(height: dislHeight)" in panel
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile, color: theme.accent)" in panel
 assert "live = bluetooth.isConnected && snapshot.map" in panel

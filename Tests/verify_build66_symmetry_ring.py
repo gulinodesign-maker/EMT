@@ -82,7 +82,7 @@ assert 'telemetryTile("SOC"' in cockpit
 assert 'telemetryTile("V BAT"' in cockpit
 assert 'telemetryTile("AUT"' in cockpit
 assert 'telemetryTile("TRIP"' in cockpit
-assert "let dislHeight = 2 * cardHeight" in cockpit
+assert "let dislHeight = 1.8 * cardHeight" in cockpit
 assert "area.fill(LinearGradient(" in cockpit
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in cockpit
 assert "GPSCockpitMap(theme: theme)" in cockpit

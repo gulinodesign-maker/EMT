@@ -114,12 +114,12 @@ struct EcojumboRootView: View {
             let w = geometry.size.width
             let h = geometry.size.height
             let dockHeight = selected == .gps
-                ? max(68, min(101, h * 0.142))
+                ? max(58, min(101, h * 0.145))
                 : max(51, min(83, h * 0.105))
             // La barra resta SEMPRE dentro la finestra. Il margine in basso
             // riserva spazio anche alle zone home/safe-area landscape.
             let dockBottom = selected == .gps
-                ? max(35, h * 0.058)
+                ? max(12, h * 0.058)
                 : max(28, geometry.safeAreaInsets.bottom + 14, h * 0.055)
             let contentHeight = selected == .gps
                 ? h : max(1, h - dockHeight - dockBottom - 10)

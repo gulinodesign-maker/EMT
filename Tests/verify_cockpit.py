@@ -186,7 +186,7 @@ assert 'Velocità massima veicolo:' in o and 'Cambio colore da:' in o
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 # Nuovo dock GPS 7 a destra; classico 4+3 invariato.
 assert 'if mapEnabled && selected == .gps {' in u
-assert 'selected == .gps' in u and '? max(35, h * 0.058)' in u
+assert 'selected == .gps' in u and '? max(12, h * 0.058)' in u
 # Il dock approvato del cockpit resta invariato, mentre solo il dock
 # separato dei menù portrait mostra tutte e sei le sezioni.
 landscape_dock = u.split('private struct CockpitCornerControls: View', 1)[1]
@@ -376,7 +376,7 @@ assert 'Color.black.opacity(0.80)' not in c[c.index('private struct GPSCockpitMa
 assert 'EcoCockpitDockGeometry.standardLeft(width: w, height: h)' in c
 assert '.position(x: panelLeft + panelWidth / 2, y: cardsCenterY)' in c
 assert '.frame(width: panelWidth, height: cardsHeight)' in c
-assert 'let cardsTop = h * 0.099 + outerMargin' in c
+assert 'let cardsTop = h * 0.099' in c
 assert 'let cardsBottom = h - dockBottom - dockHeight - outerMargin' in c
 assert 'let mapLocalDialX = dialCenterX - fullWidth * 0.36' in c
 assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
@@ -399,7 +399,7 @@ assert expanded.count('telemetryTile("') == 4
 assert expanded.count('showsBar: true') == 3
 assert 'telemetryTile("SOC"' in expanded and 'telemetryTile("V BAT"' in expanded
 assert 'telemetryTile("AUT"' in expanded and 'telemetryTile("TRIP"' in expanded
-assert 'let dislHeight = 2 * cardHeight' in expanded
+assert 'let dislHeight = 1.8 * cardHeight' in expanded
 assert 'dislevelCard(height: dislHeight)' in expanded
 assert 'Text("DISL")' in expanded
 assert 'Text("TELEMETRIA")' in expanded
