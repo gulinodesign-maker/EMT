@@ -33,7 +33,7 @@ horizon = source.split("private struct GPSHorizonLine: View {", 1)[1].split(
     "@MainActor", 1)[0]
 assert "corners.leftKnee" in horizon and "corners.rightKnee" in horizon
 assert "corners.leftContact" in horizon and "corners.rightContact" in horizon
-assert "line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))" in horizon
+assert "EMTNeonStroke(contour: line, color: theme.accent" in horizon
 assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in horizon
 assert ".mask(RadialGradient" not in horizon
 assert "GPSHorizonSymmetry.corners(width: w, height: h)" in horizon
@@ -49,14 +49,14 @@ assert "GPSTopBandShade" not in source and "GPSLowerAreaGradient" not in source
 for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
              (1179, 510), (1536, 706), (1806, 831)):
     d = min(h * 0.920, w * 0.525)
-    cx = max(d * 0.51 + w * 0.010, w * 0.168 + d * 0.30)
+    cx = max(d * 0.51 + w * 0.010, w * 0.154 + d * 0.280)
     left = cx + d * 0.508 + max(12, w * 0.018)
     right = w - max(12, w * 0.018)
     assert left < right
     assert isclose((left + right) / 2, (cx + d * 0.508 + w) / 2)
 assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)" in dashboard
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
-assert "let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)" in home
+assert "let justifiedGap = max(0, (telemetryDockWidth - dockContentInset - 5 * gpsSide) / 4)" in home
 assert "GPSCockpitMap(theme: theme)" in source
 assert "GPSOuterProfileReinforcement" in state  # decision logged, not drawn
 print("OK — build 71: single original top bar, no double 3x contour, GPS and telemetry preserved")
