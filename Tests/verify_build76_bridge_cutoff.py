@@ -4,7 +4,7 @@ root=Path(__file__).resolve().parents[1]
 src=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state=(root/"STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 77;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 78;") == 2
 dashboard=src.split("struct GPSCockpitDashboard: View {",1)[1].split("// Pulsante dedicato",1)[0]
 bridge=src.split("private struct GPSLowerGlow: View {",1)[1].split("// EJ 1.22",1)[0]
 speed=src.split("private struct OpenSpeedCluster: View {",1)[1].split(
