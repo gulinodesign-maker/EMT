@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 76;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 77;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 
 # Setup exactly 3x3; the footer stays outside the scrolling cell grid.
@@ -73,7 +73,10 @@ for shape, closing in (("GPSHorizonLine", "@MainActor"),
     section = cockpit.split("private struct " + shape + ": View {", 1)[1].split(closing, 1)[0]
     assert "GPSInnerLED.outerOpacity(theme.glowIntensity)" in section
     assert "GPSInnerLED.outerBlur(" in section
-    assert "theme.accent" in section
+    if shape == "GPSLowerGlow":
+        assert "GPSMetalContourStyle.gradient(for: colorScheme)" in section
+    else:
+        assert "theme.accent" in section
 assert "GPSOuterProfileReinforcement" not in cockpit
 assert "GPSTopBandShade" not in cockpit
 assert "GPSLowerAreaGradient" not in cockpit

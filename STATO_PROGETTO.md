@@ -1,5 +1,14 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 77 — potenze nel semicerchio e ponte kW inscritto nel tachimetro (14 novembre 2026)
+
+**Richiesta utente:** seguire lo screenshot di riferimento: scala JK BMS ingresso/rigenerazione azzurra da 0 al centro a 5 kW a sinistra, scala erogazione rossa da 0 al centro a 5 kW a destra; ponte argento inserito tutto dentro il tachimetro; un unico valore kW colorato come il segmento attivo; etichette READY/OFF a sinistra alla base della velocità; anello esterno arancione più spesso, completo e luminoso. Tutto il resto invariato. Richiesta esplicita di creare e caricare su TestFlight **1.0 (77)**, senza esempi grafici.
+
+**Implementazione:** `GPSPowerSemicircle` riceve esclusivamente il valore `JKSnapshot.power` in watt. La scala 0–5 kW normalizza il valore reale a 5000 W e limita solo l'indicazione grafica al massimo 5, senza modificare telemetria; il verso della potenza distingue ingresso (azzurro `regenAccent`) ed erogazione (rosso `dischargeAccent`). L'origine rigenerativa di ogni ingresso non è garantita dal BMS. Il singolo testo `0.00 kW` / valore misurato / `— kW` mostra grigio neutro a zero o in assenza di dato. `GPSInnerBridgeContour` usa coordinate relative al dial e sostituisce nel rendering il ponte esterno; la maschera della build 76 non è applicata e gli anelli sono continui. La corona arancione è rinforzata con il neon preesistente e senza dissolvenza alla base. `OpenSpeedCluster` mostra le vecchie scale/periferie nella Home senza modificarne la logica, mentre nel GPS le nasconde e colloca ODO/km/h leggermente più in alto per creare lo spazio necessario. READY/OFF sono scritte di riferimento **senza stato attivo**, poiché JK BMS/GPS non forniscono uno stato affidabile del comando marcia.
+
+**Stato iniziale:** modifiche preparate in branch con versioni Xcode Debug/Release 77, da verificare test Python/regressioni, Swift JK e barre, build Xcode simulator su PR e `main`, archivio Apple e log `Upload succeeded`. Lo stato di elaborazione App Store Connect, associazione a gruppo **TE**, disponibilità su TestFlight e resa grafica su iPhone reale rimangono verifiche separate.
+
+
 ## Build 76 — ritaglio completo del tachimetro sotto il ponte kW (13 novembre 2026)
 
 **Richiesta utente:** nella zona inferiore indicata sullo screenshot, sotto la linea del ponte kW non devono comparire cerchio arancione, anello grigio, texture o sagoma circolare del tachimetro. Mantenere invariati profilo e neon del ponte, posizioni/valori/colori delle letture kW, top bar, telemetria, tema day/night, dati GPS e JK BMS. Nessun esempio grafico: correzione ai sorgenti SwiftUI, build **1.0 (76)** e upload TestFlight richiesti.

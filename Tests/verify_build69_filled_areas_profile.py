@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 76;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 77;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert "static let colorCount = 19" in tabs
 assert "decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
@@ -34,7 +34,7 @@ style = cockpit.split("private enum GPSContourStroke {", 1)[1].split(
 assert "GPSOuterProfileReinforcement" not in cockpit
 assert "GPSContourStroke.width(height: h) * 3" not in cockpit
 assert "line.stroke(theme.accent" in horizon
-assert ".stroke(theme.accent" in lower_line
+assert "GPSMetalContourStyle.gradient(for: colorScheme)" in lower_line
 assert "visibleOutsideRing.fill(style: FillStyle(eoFill: true))" in horizon
 assert ".mask(RadialGradient" not in horizon
 assert "GPSLowerShade()" not in lower_line

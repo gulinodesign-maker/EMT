@@ -70,7 +70,7 @@ for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),
 # only the existing GPS lower neon contour remains over CarbonBackdrop.
 light = c.split("private struct GPSLowerGlow: View {", 1)[1].split(
     "// EJ 1.22 — modalità GPS", 1)[0]
-assert "GPSLowerContour()" in light
+assert "GPSInnerBridgeContour()" in light  # build 77: inside GPS dial, map mask unchanged
 assert "GPSLowerShade()" not in light
 assert "colorScheme == .light ? [" not in light
 assert "Color(white: 0.88).opacity(0.10)" not in light
