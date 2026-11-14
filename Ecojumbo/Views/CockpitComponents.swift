@@ -928,9 +928,11 @@ private enum GPSUnifiedScaleGeometry {
             - GPSMetalContourStyle.strokeWidth(for: d) / 2
             - metalClearance(for: d)
     }
+    // Build 80: larger power-only ticks, Home keeps its original 0.017d.
+    static let powerTickThicknessFactor: CGFloat = 0.025
     static func powerBarRadiusFactor(for d: CGFloat) -> CGFloat {
-        // Bar tip = white tick tip, compensating for stroke width 0.017d.
-        (outerRadius(for: d) - d * 0.017 / 2) / d
+        // Outer power-tick edge still matches the white km/h tick radius.
+        (outerRadius(for: d) - d * powerTickThicknessFactor / 2) / d
     }
     static func speedLEDRadius(for d: CGFloat) -> CGFloat {
         // Even the soft halo ends inside the metal circle.
@@ -1118,6 +1120,8 @@ private struct SegmentedGaugeBar: View {
     let radiusFactor: CGFloat
     let activeColor: Color
     let idleColor: Color
+    // Custom thickness is used ONLY in the GPS power semicircle.
+    var thicknessFactor: CGFloat = 0.017
 
     var body: some View {
         Canvas { context, _ in
@@ -1135,7 +1139,7 @@ private struct SegmentedGaugeBar: View {
         // Invert the inset with the direction, otherwise the right-hand
         // clockwise power segments overlap instead of leaving small gaps.
         let edgeInset: Double = stepAngle >= 0 ? 0.40 : -0.40
-        let thickness: CGFloat = d * 0.017
+        let thickness: CGFloat = d * thicknessFactor
         for index in 0..<count {
             let firstAngle: Double = (start + Double(index) * stepAngle + edgeInset) * .pi / 180
             let lastAngle: Double = (start + Double(index + 1) * stepAngle - edgeInset) * .pi / 180
@@ -1435,17 +1439,6 @@ private struct GPSPowerSemicircle: View {
     private var powerText: String {
         measuredPower.map { String(format: "%.2f kW", abs($0) / 1_000) } ?? "— kW"
     }
-    private var scaleTextColor: Color {
-        colorScheme == .light ? Color(white: 0.24) : .white.opacity(0.92)
-    }
-    private func labelPoint(kilowatts: Double, input: Bool) -> CGPoint {
-        let degrees = GPSPowerArcLayout.angle(forKilowatts: kilowatts, input: input)
-        let angle = degrees * Double.pi / 180.0
-        let radius = d * 0.408
-        return CGPoint(x: d * 0.5 + radius * CGFloat(Darwin.cos(angle)),
-                       y: d * 0.5 + radius * CGFloat(Darwin.sin(angle)))
-    }
-
     var body: some View {
         ZStack {
             // Gli indici iniziano da ZERO al centro e crescono verso l'esterno.
@@ -1455,7 +1448,8 @@ private struct GPSPowerSemicircle: View {
                               end: GPSPowerArcLayout.regenEndAngle, count: 12,
                               radiusFactor: GPSUnifiedScaleGeometry.powerBarRadiusFactor(for: d),
                               activeColor: CockpitTheme.regenAccent,
-                              idleColor: CockpitTheme.regenAccent.opacity(0.20))
+                              idleColor: CockpitTheme.regenAccent.opacity(0.20),
+                              thicknessFactor: GPSUnifiedScaleGeometry.powerTickThicknessFactor)
                 .shadow(color: CockpitTheme.regenAccent.opacity((inputFill ?? 0) > 0 ? 0.58 : 0),
                         radius: d * 0.010)
             SegmentedGaugeBar(d: d, fraction: outputFill,
@@ -1463,7 +1457,8 @@ private struct GPSPowerSemicircle: View {
                               end: GPSPowerArcLayout.dischargeEndAngle, count: 24,
                               radiusFactor: GPSUnifiedScaleGeometry.powerBarRadiusFactor(for: d),
                               activeColor: CockpitTheme.dischargeAccent,
-                              idleColor: CockpitTheme.dischargeAccent.opacity(0.20))
+                              idleColor: CockpitTheme.dischargeAccent.opacity(0.20),
+                              thicknessFactor: GPSUnifiedScaleGeometry.powerTickThicknessFactor)
                 .shadow(color: CockpitTheme.dischargeAccent.opacity((outputFill ?? 0) > 0 ? 0.58 : 0),
                         radius: d * 0.010)
 
@@ -1480,28 +1475,12 @@ private struct GPSPowerSemicircle: View {
                     ($0 < 0 ? "Potenza erogata dalla batteria" : "Potenza nulla")
                 } ?? "Potenza BMS non disponibile")
 
-            // Uno zero comune nel punto di giunzione tra i due settori.
-            Text("0")
-                .font(.system(size: d * 0.028, weight: .semibold))
-                .foregroundStyle(scaleTextColor)
-                .position(labelPoint(kilowatts: 0, input: true))
-            // Il lato rigenerazione è più corto e arriva a 2,5 kW.
-            ForEach([1.0, 2.5], id: \.self) { value in
-                Text(value == 2.5 ? "2.5" : "1")
-                    .font(.system(size: d * 0.028, weight: .semibold))
-                    .foregroundStyle(scaleTextColor)
-                    .position(labelPoint(kilowatts: value, input: true))
-            }
-            ForEach(1...5, id: \.self) { value in
-                Text(String(value))
-                    .font(.system(size: d * 0.028, weight: .semibold))
-                    .foregroundStyle(scaleTextColor)
-                    .position(labelPoint(kilowatts: Double(value), input: false))
-            }
+            // Build 80: niente numeri sulle due scale di potenza.
+            // Rimane il SOLO valore centrale kW alimentato dal JK BMS.
         }
         .frame(width: d, height: d)
-        // Ritaglio fisico sulla STESSA curva del ponte: barre, ombre e
-        // numeri non possono mai comparire sopra il profilo metallico.
+        // Ritaglio fisico sulla STESSA curva del ponte: le tacche più
+        // spesse e le loro ombre restano sotto il profilo metallico.
         .mask(GPSPowerBelowBridgeMask())
     }
 }
@@ -1531,7 +1510,9 @@ private enum GPSInnerLED {
 // Build 70: nessuna superficie a sfumatura colorata sopra la top bar o sotto il ponte.
 private enum GPSDialLayout {
     static func size(width: CGFloat, height: CGFloat) -> CGFloat {
-        min(height * 0.965, width * 0.55)
+        // Build 80: GPS dial circa 4.7% più piccolo, stesso centro e
+        // stessi allineamenti relativi per bridge, map and top bar.
+        min(height * 0.920, width * 0.525)
     }
     static func centerX(width: CGFloat, height: CGFloat) -> CGFloat {
         let d = size(width: width, height: height)
