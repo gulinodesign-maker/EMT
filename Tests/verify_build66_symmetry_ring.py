@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 76;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 77;") == 2
 symmetry = cockpit.split("private enum GPSHorizonSymmetry {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
@@ -37,7 +37,7 @@ style = cockpit.split("private enum GPSMetalContourStyle {", 1)[1].split(
     "private struct GPSMetalInnerRing: View {", 1)[0]
 assert "max(1.5, dialSize * 0.0035)" in style
 assert "Color(white:" in style and "LinearGradient(stops:" in style
-assert "location: 0.80" in ring
+assert ".mask(LinearGradient(stops:" not in ring  # build 77: full metal circle
 assert "accessibilityHidden(true)" in ring
 assert "GPSMetalInnerRing()" in dashboard
 assert ".zIndex(26)" in dashboard
@@ -71,7 +71,7 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
     metal_radius = .965 * d / 2
     power_segments_outside = (.469 + .017 / 2) * d
     assert power_segments_outside + .0035 * d / 2 < metal_radius
-    assert metal_radius + .0035 * d / 2 < outer_radius - .0038 * d / 2
+    assert metal_radius + .0035 * d / 2 < outer_radius - .017 * d / 2
     # Keep the temperature wholly to the left of the diagonal at 15.8% h.
     ratio = (.158 - .099) / (.244 - .099)
     diagonal_x = left_knee + (left_contact - left_knee) * ratio

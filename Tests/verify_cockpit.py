@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 76;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 77;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -226,7 +226,7 @@ assert 'private enum GPSDialLayout' in c
 assert 'GPSDialLayout.centerX(width: w, height: h)' in c
 assert 'GPSGaugeHalo(theme: theme)' in c
 assert 'private struct GPSGaugeHalo: View' in c
-assert 'location: 0.80' in c and 'location: 0.65' in c
+assert 'max(3.8, d * 0.017)' in c  # build 77: continuous bold ring
 assert '.position(x: dialCenterX, y: h * 0.494)' in c
 assert 'CGRect(x: dialCenterX - dialSize * 0.508' in c
 # Il bordo della mappa non deve duplicare la linea arancione superiore.
@@ -284,8 +284,8 @@ assert 'Link("Meteo · Open-Meteo"' not in c
 assert 'Temperatura meteo esterna stimata' not in c
 assert 'Licenza dati (CC BY 4.0)' in o
 assert 'coordinate geografiche approssimate' in info['NSLocationWhenInUseUsageDescription']
-assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 3  # kW duplicate outside GPS mask
-assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 3  # kW duplicate outside GPS mask
+assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 2  # Home and GPS inputs, single GPS label from live.power
+assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2  # Home and GPS inputs
 assert 'Text(incomingPower.map { String(format: "%.2f kW"' in c
 assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in c
 assert 'private var ledOrange: Color {' in c and 'CockpitTheme.speedLEDAccent' in c
