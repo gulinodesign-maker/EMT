@@ -2819,7 +2819,10 @@ private struct GPSExpandedReadings: View {
         GeometryReader { geo in
             let width = geo.size.width
             let height = geo.size.height
-            let insetX = max(8, min(18, width * 0.024))
+            // The reference's glass card edges almost touch the actual
+            // telemetry span; a large inner inset would shift the left
+            // cards ~20 px away from their photographed position.
+            let insetX = max(0, min(3, width * 0.003))
             let insetY = max(6, min(13, height * 0.019))
             let innerHeight = max(1, height - 2 * insetY)
             let headerHeight = max(24, min(40, innerHeight * 0.105))
