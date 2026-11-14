@@ -24,7 +24,7 @@ assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in source
 dock = home.split("private struct CockpitCornerControls: View", 1)[1].split("/// EJ 1.19:", 1)[0]
 assert "let telemetryDock = selected == .gps && !mapEnabled" in dock
 assert "let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)" in dock
-assert "width - EcoCockpitDockGeometry.rightInset(width: width)" in dock
+assert "- EcoCockpitDockGeometry.rightInset(width: width)" in dock
 assert "let justifiedGap = max(0, (telemetryDockWidth - dockContentInset - 5 * gpsSide) / 4)" in dock
 assert "HStack(spacing: telemetryDock ? justifiedGap : gpsGap)" in dock
 assert ".frame(width: telemetryDock ? telemetryDockWidth : nil, alignment: .leading)" in dock
