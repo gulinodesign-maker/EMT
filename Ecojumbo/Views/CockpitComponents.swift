@@ -269,7 +269,7 @@ private struct CarbonBackdrop: View {
             ZStack {
                 colorScheme == .light
                     ? Color(red: 0.94, green: 0.96, blue: 0.985)
-                    : EMTMaterialPalette.black
+                    : theme.backdrop
                 Image("CarbonWeave")
                     .resizable(resizingMode: .tile)
                     .opacity(colorScheme == .light ? 0.075 : 0.13)
@@ -1221,6 +1221,11 @@ private struct OpenSpeedCluster: View {
                             .init(color: .clear, location: 1)
                         ], center: .center, startRadius: 0, endRadius: d * 0.493))
                 } else {
+                    // The saved custom background palette remains effective
+                    // beneath the subtle concave glass illumination.
+                    Circle()
+                        .fill(theme.backdrop)
+                        .frame(width: d * 0.986, height: d * 0.986)
                     Circle()
                         .fill(RadialGradient(stops: [
                             .init(color: Color(red: 0.032, green: 0.041, blue: 0.051), location: 0),
@@ -1228,6 +1233,7 @@ private struct OpenSpeedCluster: View {
                             .init(color: EMTMaterialPalette.black, location: 1)
                         ], center: .center, startRadius: 0, endRadius: d * 0.49))
                         .frame(width: d * 0.986, height: d * 0.986)
+                        .opacity(0.91)
                         .shadow(color: .black.opacity(0.88), radius: d * 0.025)
                 }
                 Image("CarbonWeave")
