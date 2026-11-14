@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43639827805:ATTEMPT:1 -->
+### 2026-11-14T20:52:58Z — CI #242 · build-81-restore-build-76 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43639827805](https://github.com/gulinodesign-maker/EMT/actions/runs/43639827805); avvio 2026-11-14T20:52:58Z UTC; aggiornamento finale 2026-11-14T20:55:17Z UTC; registrazione 2026-11-14T20:55:28+00:00 UTC; evento pull_request.
+- **Commit:** [627ea3e6d5e0](https://github.com/gulinodesign-maker/EMT/commit/627ea3e6d5e042ebd3506ba926f4209faab0c03e); versione **1.0**; build **81**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build81_restore_76.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:43627659577:ATTEMPT:1 -->
 ### 2026-11-14T18:37:44Z — CI #240 · redesign-hyperrealistic-neon-preview · tentativo 1
 
