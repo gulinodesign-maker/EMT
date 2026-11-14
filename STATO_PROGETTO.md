@@ -8,7 +8,7 @@
 
 **Restano invariati:** top bar, anello arancione e cerchio grigio, spessore/colore/forma del ponte metallico, tachimetro/km/h/ODO, mappa, dock, telemetria, stati temi, flusso JK Bluetooth, coordinate GPS e Home.
 
-**Verifiche richieste:** versioni Xcode Debug/Release 79, test regressivi Python inclusi rapporti 1:2 e confinamento nella curva del ponte, Swift JK e barre, compilazione iOS simulator su PR e `main`, workflow Apple fino a `Upload succeeded`. Separatamente: processing ASC, associazione gruppo TE e prova visiva reale in day/dark mode.
+**Verificato:** numero build Xcode Debug e Release `1.0 (79)`. [PR #66](https://github.com/gulinodesign-maker/EMT/pull/66) integrata su `main`, merge commit `e176cf8b72468e07a8729a437ef049b9e77af75d`. **CI PR [43614183223](https://github.com/gulinodesign-maker/EMT/actions/runs/43614183223) `success`**: test Python, regressione 1:2 / ritaglio ponte / LED 146°, protocollo Swift JK, barre dinamiche e build Xcode simulator. **CI main [43614497225](https://github.com/gulinodesign-maker/EMT/actions/runs/43614497225) `success`**, stesse verifiche. **Upload Apple [43614497239](https://github.com/gulinodesign-maker/EMT/actions/runs/43614497239) `success`**: `Numero build TestFlight: 79`, `ARCHIVE SUCCEEDED`, `Upload succeeded`, `EXPORT SUCCEEDED` (14/11/2026 ore **16:23:53 UTC**); Apple risponde `Uploaded package is processing`. Il job ha atteso in coda il runner macOS ma è poi riuscito, **nessun secondo upload avviato**. **Da verificare separatamente:** elaborazione conclusa in App Store Connect, assegnazione al gruppo tester **TE**, installabilità sull'iPhone e verifica visiva in day/dark mode (rispetto del ponte e rapporto 1:2).
 
 
 ## Build 78 — scala circolare unificata e ponte kW sottile (14 novembre 2026)
