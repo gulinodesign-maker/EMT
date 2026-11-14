@@ -39,7 +39,7 @@ assert 'Text("km/h")' in speed
 assert 'String(format: "ODO %.0f km", $0)' in speed
 assert '"ODO — km"' in speed
 assert 'if showsOdometer {' in speed
-assert 'y: d * 0.635' in speed  # build 77: GPS ODO rises above inner bridge
+assert 'y: d * 0.565' in speed  # photo-matched GPS ODO above bridge
 assert "showsOdometer: true" in dashboard
 assert "odometerKm: gps.hasOdometer ? gps.totalKm : nil" in dashboard
 assert 'OpenSpeedCluster(speed: gps.currentSpeed(at: now)' in dashboard
@@ -86,5 +86,5 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     assert side/2 < x < cx
     assert side/2 < y < h-side/2
     assert hypot(cx-x,cy-y) > d*.50+side*.20,(w,h,x,y,cx,cy)
-    assert 0.690+0.055/2 < 0.755-0.065/2  # ODO above km/h
+    assert 0.565+0.055/2 < 0.630-0.065/2  # GPS ODO above km/h
 print("OK — build 51: Telemetria no container, ODO above km/h and reset 0.5s")
