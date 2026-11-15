@@ -285,8 +285,9 @@ assert 'Link("Meteo · Open-Meteo"' not in c
 assert 'Temperatura meteo esterna stimata' not in c
 assert 'Licenza dati (CC BY 4.0)' in o
 assert 'coordinate geografiche approssimate' in info['NSLocationWhenInUseUsageDescription']
-assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 3  # kW duplicate outside GPS mask
-assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 3  # kW duplicate outside GPS mask
+assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 2  # Home + GPS speed input
+assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2  # Home + GPS speed output
+assert 'GPSLowerPowerScale(powerWatts: live?.power)' in c  # one neutral/sign-colored kW on lower glass
 assert 'Text(incomingPower.map { String(format: "%.2f kW"' in c
 assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in c
 assert 'private var ledOrange: Color {' in c and 'CockpitTheme.speedLEDAccent' in c
