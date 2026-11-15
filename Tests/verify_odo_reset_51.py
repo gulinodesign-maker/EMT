@@ -7,7 +7,7 @@ source=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 82;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 83;") == 2
 dashboard=source.split("struct GPSCockpitDashboard: View {",1)[1].split(
     "private struct GPSHorizonLine: View {",1)[0]
 speed=source.split("private struct OpenSpeedCluster: View {",1)[1].split(
@@ -48,10 +48,10 @@ assert 'OpenSpeedCluster(speed: gps.currentSpeed(at: now)' in dashboard
 map_branch=dashboard.split("if mapEnabled {",1)[1].split("} else {",1)[0]
 assert "GPSTripResetControl(theme: theme)" not in map_branch
 assert "GPSTripResetControl(theme: theme)" in dashboard.split(
-    "GPSLowerPowerScale(powerWatts: live?.power)",1)[1]
+    "GPSLowerGlow(theme: theme)",1)[1]
 assert "let resetX = max(resetSide / 2" in dashboard
 assert "dialCenterX - dialSize * 0.56" in dashboard
-assert "let resetY = min(h - resetSide * 0.58, h * 0.815)" in dashboard
+assert "let resetY = min(h - resetSide * 0.58, h * 0.840)" in dashboard
 assert '.zIndex(38)' in dashboard
 assert 'Image(systemName: "arrow.counterclockwise")' in reset
 assert 'Text("RESET")' in reset
@@ -72,7 +72,7 @@ assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10" in gps
 assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in gps
 assert "date.timeIntervalSince(lastValidAt) < 8" in gps
-assert "SpeedLEDStream(d: d, speed: speed," in speed
+assert "SpeedLEDStream(d: d, speed: speed)" in speed
 
 # The reset button sits to the lower left OUTSIDE the gauge ring on
 # landscape iPhones and stays fully inside the scene.
@@ -82,7 +82,7 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     cy=h*.494
     side=max(42,min(58,h*.08))
     x=max(side/2+max(10,w*.008),cx-d*.56)
-    y=min(h-side*.58,h*.815)
+    y=min(h-side*.58,h*.840)
     assert side/2 < x < cx
     assert side/2 < y < h-side/2
     assert hypot(cx-x,cy-y) > d*.50+side*.20,(w,h,x,y,cx,cy)

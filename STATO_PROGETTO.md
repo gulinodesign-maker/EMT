@@ -1,5 +1,13 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 83 — ripristino della build 81 (15 novembre 2026)
+
+**Richiesta utente:** ripartire esattamente dalla build **81** e pubblicare una nuova **1.0 (83)** su TestFlight, prima di ulteriori modifiche grafiche. Non includere il redesign della build 82.
+
+**Base verificata:** commit storico della build 81 `203944d2dd658ba68a5bda6b7baa94f9411cb7d9` (PR #69), app `Ecojumbo/` ripristinata all'albero Git `4a4fef54e54e707d7d1689fdffbd7b2742efe389` senza modificare alcun file Swift o asset rispetto alla build 81. Progetto Xcode e test partono anch'essi dall'albero 81; uniche modifiche intenzionali: `CURRENT_PROJECT_VERSION = 83` in Debug/Release, aggiornamento test di versione e test di regressione dedicato `Tests/verify_build83_restore_81.py` con fingerprint del cockpit originale della build 76/81. `MARKETING_VERSION=1.0` e bundle ID `it.ecojumbo.battery` invariati. I workflow, i registri e le istruzioni del repository restano aggiornati; la build 82 viene conservata nella cronologia, non cancellata.
+
+**Verifiche e pubblicazione:** in attesa degli esiti effettivi della CI PR/main e del workflow TestFlight. Non considerare la creazione del commit o della PR come prova di build, upload o disponibilità Apple. Prossimo passo: verificare test strutturali, compilazione simulatore, merge della PR soltanto dopo CI verde, upload Apple `Upload succeeded`, poi separatamente stato TestFlight/gruppo TE/installazione.
+
 ## Build 82 — cockpit vetrato a LED nascosti e semicerchio di potenza editabile (15 novembre 2026)
 
 **Richiesta:** dal riferimento grafico approvato, realizzare due layer (top bar e dock) sfumati che nascondono la sorgente LED e lasciano visibile solo l'illuminazione indiretta estesa lungo tutto il profilo. L'anello esterno diventa vetro ed è coperto dal layer basso, mai sopra di esso; due vecchie corone BMS azzurra/rossa rimosse dal tachimetro; pista arancione velocità al loro posto, come continuazione visiva del semicerchio inferiore. La potenza è disegnata **soltanto sul semicerchio del layer basso**, con tacche azzurre ingresso e rosse uscita **configurabili**, rapporto fisso 1/3 e 2/3; testo kW centrale unico, bianco se assente/zero, azzurro/rosso da segno della misura JK reale. RESET centrato nello spazio nero; telemetria in pannelli SOC/V BAT/AUT/TRIP/DISL e dock Mappa/Viaggi/Setup/Temi/Tema. Build **1.0 (82)** e pubblicazione TestFlight esplicitamente richieste. Nessuna creazione/configurazione di Agent GitHub (divieto utente).

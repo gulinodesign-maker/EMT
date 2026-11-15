@@ -47,12 +47,12 @@ assert 'let dialSize = GPSDialLayout.size(width: w, height: h)' in c
 assert 'return max(d * 0.51 + width * 0.010, width * 0.168 + d * 0.30)' in c
 assert 'private struct GPSGaugeHalo: View' in c
 assert 'LowerPanelShade()' in u
-assert c.count('CockpitTopSoftShade()') == 1
+assert c.count('CockpitTopSoftShade()') == 2
 assert '.position(x: dialCenterX, y: h * 0.494)' in c
 assert '.frame(width: w * 0.64, height: h * 0.955)' in c
 assert '.position(x: w * 0.68, y: h * 0.5225)' in c
-assert 'GPSUpperGlassLayer(theme: theme)' in c
-assert 'GPSLowerGlassLayer(theme: theme)' in c
+assert 'GPSHorizonLine(theme: theme)' in c
+assert 'GPSLowerGlow(theme: theme)' in c
 assert 'ForEach([EcoTab.trips, .settings, .themes])' in u
 assert '@State private var selected: EcoTab = .gps' in u
 assert '? max(4, h * 0.006)' in u
