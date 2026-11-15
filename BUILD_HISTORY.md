@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43736746482:ATTEMPT:1 -->
+### 2026-11-15T16:40:01Z — CI #245 · build-82-layered-glass-power-scales · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43736746482](https://github.com/gulinodesign-maker/EMT/actions/runs/43736746482); avvio 2026-11-15T16:40:01Z UTC; aggiornamento finale 2026-11-15T16:40:30Z UTC; registrazione 2026-11-15T16:40:39+00:00 UTC; evento pull_request.
+- **Commit:** [dc8d95736790](https://github.com/gulinodesign-maker/EMT/commit/dc8d95736790fdbf04c17c3016bb82dcd9510171); versione **1.0**; build **82**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build66_symmetry_ring.py.
+
 <!-- EMT_RUN:43736565284:ATTEMPT:1 -->
 ### 2026-11-15T16:38:00Z — CI #244 · build-82-layered-glass-power-scales · tentativo 1
 
