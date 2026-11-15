@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 81;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 82;") == 2
 symmetry = cockpit.split("private enum GPSHorizonSymmetry {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
@@ -30,19 +30,19 @@ assert "visibleOutsideRing.fill(style: FillStyle(eoFill: true))" in horizon
 assert "GPSMapTopContourClip()" in cockpit
 
 # Metal ring concentric with the orange GPS halo and physically inside it.
-assert ".frame(width: d * 0.965, height: d * 0.965)" in ring
-assert "StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: d))" in ring
-assert "GPSMetalContourStyle.gradient(for: colorScheme)" in ring
+assert ".frame(width: d * 0.976, height: d * 0.976)" in ring
+assert "AngularGradient(stops:" in ring
+assert "Color.white.opacity(colorScheme == .light ? 0.38 : 0.72)" in ring
 style = cockpit.split("private enum GPSMetalContourStyle {", 1)[1].split(
     "private struct GPSMetalInnerRing: View {", 1)[0]
 assert "max(1.5, dialSize * 0.0035)" in style
 assert "Color(white:" in style and "LinearGradient(stops:" in style
-assert "location: 0.80" in ring
+assert "location: 0.76" in ring
 assert "accessibilityHidden(true)" in ring
 assert "GPSMetalInnerRing()" in dashboard
 assert ".zIndex(26)" in dashboard
-assert "GPSGaugeHalo(theme: theme)" in dashboard
-assert ".zIndex(27)" in dashboard
+assert "GPSGaugeHalo(theme: theme)" not in dashboard
+assert "GPSLowerGlassLayer(theme: theme)" in dashboard
 assert ".position(x: dialCenterX, y: h * 0.494)" in dashboard
 
 # Temperature shifts left when a mirrored bend reduces available space.
@@ -91,7 +91,8 @@ assert "let dislHeight = 2 * cardHeight" in cockpit
 assert "area.fill(LinearGradient(" in cockpit
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in cockpit
 assert "GPSCockpitMap(theme: theme)" in cockpit
-assert "GPSLowerGlow(theme: theme)" in cockpit
+assert "GPSLowerGlassLayer(theme: theme)" in cockpit
+assert "GPSLowerGlow(theme: theme)" not in cockpit
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
 assert "let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)" in home
 print("OK — build 66: mathematically mirrored top-bar bends, inset metal ring and temperature clearance")

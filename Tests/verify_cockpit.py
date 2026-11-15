@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 81;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 82;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -102,7 +102,7 @@ assert '48 A' not in c and '62 km/h' not in c and '400 V' not in c
 assert '— V' in c and '— kW' in c and '— km' in c
 assert 'Text(String(Int(speed.rounded())))' in c and 'Text("km/h")' in c
 assert 'Label("GPS", systemImage: "location.north.fill")' in c and 'Text("P")' not in c
-assert 'SpeedLEDStream(d: d, speed: speed)' in c and 'SpeedScaleTicks(d: d)' in c
+assert 'SpeedLEDStream(d: d, speed: speed,' in c and 'SpeedScaleTicks(d: d)' in c
 assert 'SegmentedGaugeBar(d:' in c
 
 # Le linee usano lo stesso raggio effettivo; angoli inferiori retti.
@@ -113,7 +113,7 @@ assert 'ForEach([EcoTab.trips, .settings, .themes])' in u
 assert 'private struct GPSLowerContour: Shape' in c
 assert 'private struct GPSLowerShade: Shape' in c
 assert 'private struct GPSLowerGlow: View' in c
-assert 'GPSLowerGlow(theme: theme)' in c
+assert 'GPSLowerGlassLayer(theme: theme)' in c and 'GPSLowerGlow(theme: theme)' not in c
 assert 'private struct GPSLowerTerminalFade: View' in c
 assert '.mask(GPSLowerTerminalFade())' in c
 assert 'location: 0.17' in c and 'location: 0.83' in c
@@ -211,20 +211,21 @@ assert 'let contentHeight = selected == .gps' in u
 assert '.frame(width: w, height: contentHeight)' in u
 assert '.position(x: w / 2, y: contentHeight / 2)' in u
 assert '.padding(.bottom, selected == .gps ?' not in u
-assert 'foregroundStyle(active ? theme.accent : Color.secondary)' in u
+assert 'foregroundStyle(active ? theme.accent : Color.primary.opacity(0.85))' in u
 assert '.shadow(color: .black.opacity(colorScheme == .light ? 0.10 : 0.90)' not in u
 assert 'let gpsGap = width * 0.008' in u
 # Sfumature neutre su entrambe le modalità.
 assert 'private struct CockpitTopSoftShade: View' in c
 assert 'geo.size.height * 0.125' in c
 assert 'colorScheme == .light ? Color.white.opacity(0.83) : Color(white: 0.30).opacity(0.38)' in c
-assert c.count('CockpitTopSoftShade()') == 2
+assert c.count('CockpitTopSoftShade()') == 1  # GPS has independent upper glass
 assert 'private struct LowerPanelShade: Shape' in u
 assert 'LowerPanelShade()' in u
 # Tachimetro GPS più a sinistra e anello brillante senza attraversare A/kW.
 assert 'private enum GPSDialLayout' in c
 assert 'GPSDialLayout.centerX(width: w, height: h)' in c
-assert 'GPSGaugeHalo(theme: theme)' in c
+assert 'GPSGaugeHalo(theme: theme)' not in c
+assert 'GPSUpperGlassLayer(theme: theme)' in c and 'GPSLowerPowerScale(powerWatts: live?.power)' in c
 assert 'private struct GPSGaugeHalo: View' in c
 assert 'location: 0.80' in c and 'location: 0.65' in c
 assert '.position(x: dialCenterX, y: h * 0.494)' in c
@@ -284,8 +285,9 @@ assert 'Link("Meteo · Open-Meteo"' not in c
 assert 'Temperatura meteo esterna stimata' not in c
 assert 'Licenza dati (CC BY 4.0)' in o
 assert 'coordinate geografiche approssimate' in info['NSLocationWhenInUseUsageDescription']
-assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 3  # kW duplicate outside GPS mask
-assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 3  # kW duplicate outside GPS mask
+assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 2  # Home + GPS speed input
+assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2  # Home + GPS speed output
+assert 'GPSLowerPowerScale(powerWatts: live?.power)' in c  # one neutral/sign-colored kW on lower glass
 assert 'Text(incomingPower.map { String(format: "%.2f kW"' in c
 assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in c
 assert 'private var ledOrange: Color {' in c and 'CockpitTheme.speedLEDAccent' in c
@@ -489,7 +491,7 @@ assert 'struct BluetoothGlyph:View {' in c
 assert '.stroke(colorScheme == .light ? Color(white: 0.16) : .white,' in c
 assert 'Color.black.opacity(0.33)' in c
 assert 'title: text ?? gpsCaption(for: symbol)' in u
-assert 'foregroundStyle(active ? theme.accent : Color.secondary)' in u
+assert 'foregroundStyle(active ? theme.accent : Color.primary.opacity(0.85))' in u
 assert 'if selected != .gps {\n                    Spacer(minLength: 0)' in u
 assert 'if selected == .gps { mapEnabled.toggle() }' in u
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBest\n' not in g

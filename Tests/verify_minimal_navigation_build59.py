@@ -8,12 +8,12 @@ app = (root / "Ecojumbo/EcojumboApp.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 
-assert pbx.count("CURRENT_PROJECT_VERSION = 81;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 82;") == 2
 
 # Same shared flat treatment drives portrait tabs and landscape menu/GPS controls.
 assert "private struct EcoMinimalNavigationLabel: View" in home
 assert home.count("EcoMinimalNavigationLabel(") == 3
-assert "foregroundStyle(active ? theme.accent : Color.secondary)" in home
+assert "foregroundStyle(active ? theme.accent : Color.primary.opacity(0.85))" in home
 assert 'PortraitServiceTabBar(selected: $selected, theme: theme)' in home
 controls = home.split("    private func iconButton(_ tab: EcoTab, side: CGFloat)", 1)[1].split("/// EJ 1.19:", 1)[0]
 for forbidden in ("LinearGradient(", ".shadow(", ".stroke(", "BluetoothGlyph()"):
