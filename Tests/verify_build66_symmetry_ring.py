@@ -91,7 +91,8 @@ assert "let dislHeight = 2 * cardHeight" in cockpit
 assert "area.fill(LinearGradient(" in cockpit
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in cockpit
 assert "GPSCockpitMap(theme: theme)" in cockpit
-assert "GPSLowerGlow(theme: theme)" in cockpit
+assert "GPSLowerGlassLayer(theme: theme)" in cockpit
+assert "GPSLowerGlow(theme: theme)" not in cockpit
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
 assert "let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)" in home
 print("OK — build 66: mathematically mirrored top-bar bends, inset metal ring and temperature clearance")
