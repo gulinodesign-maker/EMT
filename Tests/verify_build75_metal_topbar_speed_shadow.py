@@ -7,7 +7,7 @@ source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 81;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 82;") == 2
 metal = source.split("private enum GPSMetalContourStyle {", 1)[1].split(
     "private struct GPSMetalInnerRing: View {", 1)[0]
 ring = source.split("private struct GPSMetalInnerRing: View {", 1)[1].split(
@@ -18,11 +18,11 @@ speed = source.split("Text(String(Int(speed.rounded())))", 1)[1].split(
     ".accessibilityLabel(", 1)[0]
 
 # A single metallic palette and stroke scale is used in both the ring and top bar.
-assert "GPSMetalContourStyle.gradient(for: colorScheme)" in ring
+assert "AngularGradient(stops:" in ring
 assert "GPSMetalContourStyle.gradient(for: colorScheme)" in top
-assert "GPSMetalContourStyle.strokeWidth(for: d)" in ring
+assert "d * 0.017" in ring
 assert "GPSMetalContourStyle.strokeWidth(for: dialSize)" in top
-assert ".frame(width: d * 0.965, height: d * 0.965)" in ring
+assert ".frame(width: d * 0.976, height: d * 0.976)" in ring
 assert "dialSize * (0.992 - 0.965) / 2" in metal
 assert "CGAffineTransform(" in top and "GPSMetalContourStyle.inset(for: dialSize)" in top
 assert "metalLine.stroke(" in top and "visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true))" in top

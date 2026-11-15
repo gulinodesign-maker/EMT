@@ -7,7 +7,7 @@ source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 81;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 82;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -20,12 +20,12 @@ assert "GPSContourStroke.width(height: h) * 3" not in source
 
 dashboard = source.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "// Pulsante dedicato", 1)[0]
-assert dashboard.count("GPSHorizonLine(theme: theme)") == 1
-assert ".zIndex(8)" in dashboard
-assert ".zIndex(12)" not in dashboard
+assert "GPSHorizonLine(theme: theme)" not in dashboard
+assert "GPSUpperGlassLayer(theme: theme)" in dashboard
 assert "GPSMetalInnerRing()" in dashboard
-assert "GPSGaugeHalo(theme: theme)" in dashboard
-assert "GPSLowerGlow(theme: theme)" in dashboard
+assert "GPSGaugeHalo(theme: theme)" not in dashboard
+assert "GPSLowerGlassLayer(theme: theme)" in dashboard
+assert "GPSLowerPowerScale(powerWatts: live?.power)" in dashboard
 assert "GPSExpandedReadings(theme: theme, now: now)" in dashboard
 
 # Preserve the authentic mirrored contour, ring exclusion and sharp connections.
