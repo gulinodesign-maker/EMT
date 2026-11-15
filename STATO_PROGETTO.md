@@ -8,7 +8,7 @@
 
 **Invariati:** GPS/ODO, dati BMS reali, navigazione/MapKit, telemetria, tema editabile, Home, logica pulsanti. Numero `CURRENT_PROJECT_VERSION=82` in Debug/Release, `MARKETING_VERSION=1.0`.
 
-**Verifica richiesta:** suite Python e test Swift, Xcode simulator CI PR/main, TestFlight Apple `Upload succeeded`; processing in App Store Connect, gruppo TE e verifica visiva su iPhone restano passi distinti. L'anteprima fornita è concettuale, non uno screenshot iOS nativo verificato.
+**Verificato:** numero versione **1.0 (82)** in Debug e Release. [PR #70](https://github.com/gulinodesign-maker/EMT/pull/70) integrata su `main` con commit `0b77ab6d79a747da91a31fd5a81f9a876a9ac958`. CI PR [43737389403](https://github.com/gulinodesign-maker/EMT/actions/runs/43737389403) **SUCCESS**: regressioni Python compresa `verify_build82_layered_power_cockpit.py`, Swift JK Bluetooth, barre dinamiche e build Xcode simulator. CI `main` [43737774133](https://github.com/gulinodesign-maker/EMT/actions/runs/43737774133) **SUCCESS**, tutte le stesse verifiche. Pubblicazione Apple [43737774108](https://github.com/gulinodesign-maker/EMT/actions/runs/43737774108) **SUCCESS**: `Numero build TestFlight: 82`, `ARCHIVE SUCCEEDED` (15/11/2026 16:51:52 UTC), `Upload succeeded` e `EXPORT SUCCEEDED` (15/11/2026 **16:53:18 UTC**, 17:53:18 Europe/Rome). Apple ha risposto `Uploaded package is processing`. **Non verificati:** conclusione processing su App Store Connect, assegnazione al gruppo tester `TE`, installabilità su iPhone e fedeltà visiva al riferimento su dispositivo. L'anteprima fornita è concettuale e non uno screenshot iOS nativo verificato. **Nessun Agent GitHub creato o configurato.**
 
 
 ## Build 81 — ripristino fedele della build 76 (14 novembre 2026)
