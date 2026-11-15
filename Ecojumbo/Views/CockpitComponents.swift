@@ -1897,28 +1897,19 @@ private struct GPSHorizonLine: View {
             let h = geo.size.height
             let radius = CockpitContourGeometry.cornerRadius(in: geo.size)
             let corners = GPSHorizonSymmetry.corners(width: w, height: h)
-            let left = CockpitContourGeometry.roundedPath(points: [
-                CGPoint(x: 0, y: h * 0.099),
-                corners.leftKnee,
-                corners.leftContact
-            ], corners: [1], radius: radius)
             let right = CockpitContourGeometry.roundedPath(points: [
                 corners.rightContact,
                 corners.rightKnee,
                 CGPoint(x: w, y: h * 0.099)
             ], corners: [1], radius: radius)
-            // Build 84: il neon superiore resta solo a destra del tachimetro.
-            // La guida metallica grigia mantiene entrambi i tratti originali.
-            let metalBaseLine = Path { path in
-                path.addPath(left)
-                path.addPath(right)
-            }
+            // Build 85: solo il lato destro disegna sia il neon sia il profilo
+            // metallico grigio. Nessun contorno superiore a sinistra del GPS.
             let line = right
             let dialSize = GPSDialLayout.size(width: w, height: h)
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
-            // Il profilo grigio è una COPIA del percorso originale, traslata
-            // verso il basso dell'esatta distanza tra cerchio arancio e grigio.
-            let metalLine = metalBaseLine.applying(CGAffineTransform(
+            // Il profilo grigio destro segue il medesimo percorso del neon,
+            // traslato verso il basso della distanza fra i due anelli.
+            let metalLine = line.applying(CGAffineTransform(
                 translationX: 0, y: GPSMetalContourStyle.inset(for: dialSize)))
             let metalRadius = dialSize * 0.965 / 2
                 + GPSMetalContourStyle.strokeWidth(for: dialSize) / 2

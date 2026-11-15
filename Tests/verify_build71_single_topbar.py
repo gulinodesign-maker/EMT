@@ -7,7 +7,7 @@ source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 84;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 85;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -31,8 +31,10 @@ assert "GPSExpandedReadings(theme: theme, now: now)" in dashboard
 # Preserve the authentic mirrored contour, ring exclusion and sharp connections.
 horizon = source.split("private struct GPSHorizonLine: View {", 1)[1].split(
     "@MainActor", 1)[0]
-assert "corners.leftKnee" in horizon and "corners.rightKnee" in horizon
-assert "corners.leftContact" in horizon and "corners.rightContact" in horizon
+# Build 85: no left-hand top-bar geometry in the drawn horizon.
+assert "corners.leftKnee" not in horizon and "corners.rightKnee" in horizon
+assert "corners.leftContact" not in horizon and "corners.rightContact" in horizon
+assert "let metalLine = line.applying(" in horizon
 assert "line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))" in horizon
 assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in horizon
 assert ".mask(RadialGradient" not in horizon
