@@ -979,7 +979,6 @@ private struct GPSSpeedObservation {
 private struct SpeedLEDStream: View {
     let d: CGFloat
     let speed: Double?
-    var trackDiameterFactor: CGFloat = 0.722
     @AppStorage("ecojumbo.bars.vehicleSpeedMaxKmh") private var vehicleSpeedMaxKmh = 120.0
     @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
     @AppStorage("ecojumbo.bars.speedLimitColorEnabled") private var speedLimitColorEnabled = true
@@ -1008,27 +1007,25 @@ private struct SpeedLEDStream: View {
         ZStack {
             // Anima inerte: si vede la forma della pista ma NON un valore simulato.
             GaugeArc(start: 146, end: 394)
-                .stroke(trackDiameterFactor > 0.80
-                        ? CockpitTheme.speedLEDAccent.opacity(0.36)
-                        : Color(red: 0.28, green: 0.11, blue: 0.02).opacity(0.28),
+                .stroke(Color(red: 0.28, green: 0.11, blue: 0.02).opacity(0.28),
                         style: StrokeStyle(lineWidth: d * 0.009, lineCap: .round))
-                .frame(width: d * trackDiameterFactor, height: d * trackDiameterFactor)
+                .frame(width: d * 0.722, height: d * 0.722)
             if let progress, progress > 0 {
                 GaugeArc(start: 146, end: 394, fraction: progress)
                     .stroke(ledOrange.opacity(0.80),
                             style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(d), lineCap: .round))
                     .blur(radius: GPSInnerLED.haloBlur(d))
-                    .frame(width: d * trackDiameterFactor, height: d * trackDiameterFactor)
+                    .frame(width: d * 0.722, height: d * 0.722)
                 GaugeArc(start: 146, end: 394, fraction: progress)
                     .stroke(ledOrange, style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d), lineCap: .round))
                     .shadow(color: ledOrange.opacity(0.94), radius: GPSInnerLED.outerBlur(d))
-                    .frame(width: d * trackDiameterFactor, height: d * trackDiameterFactor)
+                    .frame(width: d * 0.722, height: d * 0.722)
                 GaugeArc(start: 146, end: 394, fraction: progress)
                     .stroke(Color.white.opacity(0.65),
                             style: StrokeStyle(lineWidth: GPSInnerLED.highlightWidth(d), lineCap: .round))
-                    .frame(width: d * trackDiameterFactor, height: d * trackDiameterFactor)
+                    .frame(width: d * 0.722, height: d * 0.722)
                 let angle = (146 + 248 * progress) * Double.pi / 180
-                let radius = d * trackDiameterFactor / 2
+                let radius = d * 0.361
                 let endPoint = CGPoint(x: d/2 + radius * CGFloat(Darwin.cos(angle)),
                                        y: d/2 + radius * CGFloat(Darwin.sin(angle)))
                 Circle()
@@ -1087,7 +1084,6 @@ private struct SegmentedGaugeBar: View {
     let radiusFactor: CGFloat
     let activeColor: Color
     let idleColor: Color
-    var thicknessFactor: CGFloat = 0.017
 
     var body: some View {
         Canvas { context, _ in
@@ -1102,7 +1098,7 @@ private struct SegmentedGaugeBar: View {
         guard count > 0 else { return }
         let radius: CGFloat = d * radiusFactor
         let stepAngle: Double = (end - start) / Double(count)
-        let thickness: CGFloat = d * thicknessFactor
+        let thickness: CGFloat = d * 0.017
         for index in 0..<count {
             let firstAngle: Double = (start + Double(index) * stepAngle + 0.40) * .pi / 180
             let lastAngle: Double = (start + Double(index + 1) * stepAngle - 0.40) * .pi / 180
@@ -1141,8 +1137,6 @@ private struct OpenSpeedCluster: View {
     // La Home mantiene i kW nel quadrante; nel cockpit GPS sono disegnati
     // separatamente dalla maschera del ponte, così restano leggibili.
     var showsPowerReadings: Bool = true
-    var showsOuterPowerRings: Bool = true
-    var speedTrackDiameterFactor: CGFloat = 0.722
     // Layout unico per Home e GPS. Freccia visibile solo se la rotta è attiva.
     var navigationArrow: String? = nil
     var navigationInstruction: String? = nil
@@ -1199,24 +1193,23 @@ private struct OpenSpeedCluster: View {
                     .frame(width: d * 0.98, height: d * 0.98)
                     .opacity(colorScheme == .light ? 0 : 1)
 
-                // Home: original rings. GPS: all BMS ticks move to lower panel.
-                if showsOuterPowerRings {
-                    SegmentedGaugeBar(d: d, fraction: outputFill,
-                                      start: 149, end: 391, count: 64, radiusFactor: 0.469,
-                                      activeColor: CockpitTheme.dischargeAccent,
-                                      idleColor: CockpitTheme.dischargeAccent.opacity(0.22))
-                        .shadow(color: CockpitTheme.dischargeAccent.opacity(outputFill == nil ? 0.04 : 0.72),
-                                radius: d * 0.014)
-                    SegmentedGaugeBar(d: d, fraction: inputFill,
-                                      start: 149, end: 391, count: 64, radiusFactor: 0.427,
-                                      activeColor: CockpitTheme.recoveryRingAccent,
-                                      idleColor: CockpitTheme.recoveryRingAccent.opacity(0.20))
-                        .shadow(color: CockpitTheme.recoveryRingAccent.opacity(inputFill == nil ? 0.02 : 0.48),
-                                radius: d * 0.011)
-                }
-                // The orange speed arc replaces the former red/blue outer rings.
-                SpeedLEDStream(d: d, speed: speed,
-                               trackDiameterFactor: speedTrackDiameterFactor)
+                // Le due scale hanno un'anima grigia per tutta la corsa; solo dati REALI
+                // attivano segmenti luminosi e colorati (mai valori inventati).
+                SegmentedGaugeBar(d: d, fraction: outputFill,
+                                  start: 149, end: 391, count: 64, radiusFactor: 0.469,
+                                  activeColor: CockpitTheme.dischargeAccent,
+                                  idleColor: CockpitTheme.dischargeAccent.opacity(0.22))
+                    .shadow(color: CockpitTheme.dischargeAccent.opacity(outputFill == nil ? 0.04 : 0.72),
+                            radius: d * 0.014)
+                SegmentedGaugeBar(d: d, fraction: inputFill,
+                                  start: 149, end: 391, count: 64, radiusFactor: 0.427,
+                                  activeColor: CockpitTheme.recoveryRingAccent,
+                                  idleColor: CockpitTheme.recoveryRingAccent.opacity(0.20))
+                    .shadow(color: CockpitTheme.recoveryRingAccent.opacity(inputFill == nil ? 0.02 : 0.48),
+                            radius: d * 0.011)
+
+                // La striscia LED arancione della velocità richiede GPS valido.
+                SpeedLEDStream(d: d, speed: speed)
                 SpeedScaleTicks(d: d)
 
                 // Stessa strumentazione nella Home e nella mappa.
@@ -1408,32 +1401,23 @@ private enum GPSMetalContourStyle {
     }
 }
 
-// Glass rim, hidden under the curved lower power surface.
 private struct GPSMetalInnerRing: View {
     @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         GeometryReader { geo in
             let d = min(geo.size.width, geo.size.height)
-            ZStack {
-                Circle()
-                    .stroke(AngularGradient(stops: [
-                        .init(color: .white.opacity(0.88), location: 0),
-                        .init(color: Color(red: 0.44, green: 0.56, blue: 0.68).opacity(0.56), location: 0.23),
-                        .init(color: .white.opacity(0.19), location: 0.46),
-                        .init(color: Color(red: 0.56, green: 0.66, blue: 0.82).opacity(0.62), location: 0.76),
-                        .init(color: .white.opacity(0.88), location: 1)
-                    ], center: .center), lineWidth: d * 0.017)
-                    .frame(width: d * 0.976, height: d * 0.976)
-                Circle()
-                    .stroke(Color.white.opacity(colorScheme == .light ? 0.38 : 0.72),
-                            lineWidth: max(1, d * 0.0025))
-                    .frame(width: d * 0.993, height: d * 0.993)
-                Circle()
-                    .stroke(Color(red: 0.65, green: 0.79, blue: 0.95).opacity(0.22),
-                            lineWidth: max(1, d * 0.003))
-                    .frame(width: d * 0.953, height: d * 0.953)
-            }
-            .frame(width: d, height: d)
+            Circle()
+                .stroke(GPSMetalContourStyle.gradient(for: colorScheme),
+                        style: StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: d)))
+                .frame(width: d * 0.965, height: d * 0.965)
+                .frame(width: d, height: d)
+                .mask(LinearGradient(stops: [
+                    .init(color: .white, location: 0),
+                    .init(color: .white, location: 0.63),
+                    .init(color: .white.opacity(0.73), location: 0.70),
+                    .init(color: .clear, location: 0.80)
+                ], startPoint: .top, endPoint: .bottom))
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
@@ -1634,171 +1618,6 @@ private struct GPSLowerGlow: View {
     }
 }
 
-// Build 82: dark translucent top glass with concealed LED edge wash.
-private struct GPSUpperGlassLayer: View {
-    let theme: CockpitTheme
-    var body: some View {
-        GeometryReader { geo in
-            let w = geo.size.width
-            let h = geo.size.height
-            let d = GPSDialLayout.size(width: w, height: h)
-            let cx = GPSDialLayout.centerX(width: w, height: h)
-            let edge = Path { p in
-                p.move(to: CGPoint(x: 0, y: h * 0.57))
-                p.addCurve(to: CGPoint(x: cx - d * 0.41, y: h * 0.38),
-                           control1: CGPoint(x: w * 0.11, y: h * 0.57),
-                           control2: CGPoint(x: cx - d * 0.59, y: h * 0.43))
-                p.addCurve(to: CGPoint(x: cx + d * 0.46, y: h * 0.195),
-                           control1: CGPoint(x: cx - d * 0.18, y: h * 0.19),
-                           control2: CGPoint(x: cx + d * 0.29, y: h * 0.19))
-                p.addCurve(to: CGPoint(x: w, y: h * 0.168),
-                           control1: CGPoint(x: cx + d * 0.57, y: h * 0.168),
-                           control2: CGPoint(x: w * 0.76, y: h * 0.168))
-            }
-            let panel = Path { p in
-                p.addPath(edge)
-                p.addLine(to: CGPoint(x: w, y: 0))
-                p.addLine(to: .zero)
-                p.closeSubpath()
-            }
-            ZStack {
-                edge.stroke(theme.accent.opacity(0.59), lineWidth: h * 0.050)
-                    .blur(radius: h * 0.029)
-                edge.stroke(theme.accent.opacity(0.31), lineWidth: h * 0.017)
-                    .blur(radius: h * 0.012)
-                panel.fill(LinearGradient(colors: [
-                    Color(red: 0.012, green: 0.015, blue: 0.039),
-                    Color(red: 0.012, green: 0.054, blue: 0.103),
-                    Color(red: 0.007, green: 0.028, blue: 0.069)
-                ], startPoint: .topLeading, endPoint: .bottomTrailing))
-                edge.stroke(theme.accent.opacity(0.11), lineWidth: max(1, h * 0.003))
-                    .blur(radius: h * 0.011)
-            }
-            .frame(width: w, height: h)
-        }
-        .allowsHitTesting(false)
-    }
-}
-
-private enum GPSLowerGlassGeometry {
-    static func edge(in rect: CGRect) -> Path {
-        let w = rect.width
-        let h = rect.height
-        let d = GPSDialLayout.size(width: w, height: h)
-        let cx = GPSDialLayout.centerX(width: w, height: h)
-        let start = CGPoint(x: max(0, cx - d * 0.55), y: h * 0.987)
-        let rise = CGPoint(x: cx - d * 0.215, y: h * 0.665)
-        let crest = CGPoint(x: cx + d * 0.195, y: h * 0.665)
-        let foot = CGPoint(x: min(w, cx + d * 0.51), y: h * 0.798)
-        return Path { p in
-            p.move(to: start)
-            p.addCurve(to: rise,
-                       control1: CGPoint(x: start.x + d * 0.02, y: h * 0.882),
-                       control2: CGPoint(x: rise.x - d * 0.10, y: rise.y))
-            p.addLine(to: crest)
-            p.addCurve(to: foot,
-                       control1: CGPoint(x: crest.x + d * 0.12, y: crest.y),
-                       control2: CGPoint(x: foot.x - d * 0.12, y: foot.y))
-            p.addLine(to: CGPoint(x: w, y: foot.y))
-        }
-    }
-}
-
-private struct GPSLowerGlassShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        var p = GPSLowerGlassGeometry.edge(in: rect)
-        p.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-        p.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-        p.closeSubpath()
-        return p
-    }
-}
-
-private struct GPSLowerGlassLayer: View {
-    let theme: CockpitTheme
-    var body: some View {
-        GeometryReader { geo in
-            let edge = GPSLowerGlassGeometry.edge(in: CGRect(origin: .zero, size: geo.size))
-            ZStack {
-                edge.stroke(theme.accent.opacity(0.62), lineWidth: geo.size.height * 0.065)
-                    .blur(radius: geo.size.height * 0.034)
-                edge.stroke(theme.accent.opacity(0.38), lineWidth: geo.size.height * 0.022)
-                    .blur(radius: geo.size.height * 0.013)
-                GPSLowerGlassShape()
-                    .fill(LinearGradient(colors: [
-                        Color(red: 0.066, green: 0.069, blue: 0.154),
-                        Color(red: 0.014, green: 0.032, blue: 0.081),
-                        Color(red: 0.005, green: 0.012, blue: 0.030)
-                    ], startPoint: .top, endPoint: .bottom))
-                edge.stroke(theme.accent.opacity(0.11), lineWidth: max(1, geo.size.height * 0.003))
-                    .blur(radius: geo.size.height * 0.010)
-            }
-            .frame(width: geo.size.width, height: geo.size.height)
-        }
-        .allowsHitTesting(false)
-    }
-}
-
-// Only the lower glass dome owns BMS scales: 1/3 cyan, 2/3 red.
-// Editable ranges and counts in Setup, editable colors in existing themes.
-private struct GPSLowerPowerScale: View {
-    @AppStorage("ecojumbo.bars.regenPowerMaxKW") private var regenPowerMaxKW = 2.5
-    @AppStorage("ecojumbo.bars.dischargePowerMaxKW") private var dischargePowerMaxKW = 5.0
-    @AppStorage("ecojumbo.bars.regenPowerTickCount") private var regenPowerTickCount = 12
-    @AppStorage("ecojumbo.bars.dischargePowerTickCount") private var dischargePowerTickCount = 24
-    let powerWatts: Double?
-
-    var body: some View {
-        GeometryReader { geo in
-            let w = geo.size.width
-            let h = geo.size.height
-            let d = GPSDialLayout.size(width: w, height: h)
-            let cx = GPSDialLayout.centerX(width: w, height: h)
-            let cy = h * 0.494
-            let measured = powerWatts.flatMap { $0.isFinite ? $0 : nil }
-            let inputFill = measured.map { min(1, max(0, $0) / (max(0.5, regenPowerMaxKW) * 1_000)) }
-            let outputFill = measured.map { min(1, max(0, -$0) / (max(0.5, dischargePowerMaxKW) * 1_000)) }
-            let liveColor: Color = measured.map {
-                $0 > 0 ? CockpitTheme.regenAccent :
-                    ($0 < 0 ? CockpitTheme.dischargeAccent : .white)
-            } ?? .white
-            ZStack {
-                SegmentedGaugeBar(d: d, fraction: inputFill,
-                                  start: 104, end: 132,
-                                  count: max(6, min(30, regenPowerTickCount)),
-                                  radiusFactor: 0.375,
-                                  activeColor: CockpitTheme.regenAccent,
-                                  idleColor: CockpitTheme.regenAccent.opacity(0.24),
-                                  thicknessFactor: 0.023)
-                    .frame(width: d, height: d)
-                    .position(x: cx, y: cy)
-                SegmentedGaugeBar(d: d, fraction: outputFill,
-                                  start: 104, end: 48,
-                                  count: max(12, min(60, dischargePowerTickCount)),
-                                  radiusFactor: 0.375,
-                                  activeColor: CockpitTheme.dischargeAccent,
-                                  idleColor: CockpitTheme.dischargeAccent.opacity(0.24),
-                                  thicknessFactor: 0.023)
-                    .frame(width: d, height: d)
-                    .position(x: cx, y: cy)
-                // One kW, white if missing/zero, sign-driven cyan/red otherwise.
-                Text(measured.map { String(format: "%.2f kW", abs($0) / 1000) } ?? "— kW")
-                    .font(.system(size: d * 0.054, weight: .semibold))
-                    .monospacedDigit()
-                    .foregroundStyle(liveColor)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.70)
-                    .frame(width: d * 0.46, height: d * 0.080)
-                    .position(x: cx, y: cy + d * 0.255)
-            }
-            .frame(width: w, height: h)
-            .mask(GPSLowerGlassShape())
-        }
-        .accessibilityLabel("Potenza batteria")
-        .accessibilityValue(powerWatts.map { String(format: "%.2f kilowatt", $0 / 1000) } ?? "BMS non disponibile")
-    }
-}
-
 // EJ 1.22 — modalità GPS nello STESSO cockpit: tachimetro a sinistra,
 // mappa stradale Apple a destra, sette tasti sempre visibili in basso.
 // Le misure non sono simulate; la rotta MKDirections resta condivisa.
@@ -1828,7 +1647,7 @@ struct GPSCockpitDashboard: View {
             let resetSide = max(42, min(58, h * 0.08))
             let resetX = max(resetSide / 2 + max(10, w * 0.008),
                              dialCenterX - dialSize * 0.56)
-            let resetY = min(h - resetSide * 0.58, h * 0.815)
+            let resetY = min(h - resetSide * 0.58, h * 0.840)
             // Telemetria centrata esattamente tra la tangente destra del
             // quadrante GPS e il bordo destro dello schermo. Stesso inset su
             // entrambe le estremità; le card rimangono fuori dal quadrante.
@@ -1855,9 +1674,9 @@ struct GPSCockpitDashboard: View {
             let live = bluetooth.snapshot
             ZStack {
                 CarbonBackdrop(theme: theme)
-                GPSUpperGlassLayer(theme: theme)
+                CockpitTopSoftShade()
                     .frame(width: w, height: h)
-                    .zIndex(2)
+                    .zIndex(1)
 
                 // Mappa 3D a tutta area, senza riquadro: parte sotto il
                 // cruscotto e arriva fino al margine destro, con bordi sfumati.
@@ -1882,7 +1701,9 @@ struct GPSCockpitDashboard: View {
 
                 // Build 70: nessun riempimento colorato sotto il ponte kW.
 
-                // No exposed top-bar LED: only the upper glass underglow.
+                GPSHorizonLine(theme: theme)
+                    .frame(width: w, height: h)
+                    .zIndex(8)
 
                 // Build 71: nessun secondo profilo; disegna unicamente GPSHorizonLine.
 
@@ -1897,8 +1718,6 @@ struct GPSCockpitDashboard: View {
                                      showsOdometer: true,
                                      odometerKm: gps.hasOdometer ? gps.totalKm : nil,
                                      showsPowerReadings: false,
-                                     showsOuterPowerRings: false,
-                                     speedTrackDiameterFactor: 0.875,
                                      navigationArrow: maneuverSymbol,
                                      navigationInstruction: navigation.guidanceInstruction,
                                      navigationDistance: navigation.isNavigating &&
@@ -1913,20 +1732,29 @@ struct GPSCockpitDashboard: View {
                         .position(x: dialCenterX, y: h * 0.494)
                         .zIndex(26)
 
+                    GPSGaugeHalo(theme: theme)
+                        .frame(width: dialSize, height: dialSize)
+                        .position(x: dialCenterX, y: h * 0.494)
+                        .zIndex(27)
                 }
                 .frame(width: w, height: h)
                 .mask(GPSBridgeUpperMask())
                 .zIndex(25)
 
-                // Opaque lower glass covers the speed rim: never crosses the dome.
-                GPSLowerGlassLayer(theme: theme)
+                // Il solo ponte luminoso si disegna sopra il ritaglio;
+                // nessun riempimento o cerchio è visibile al di sotto.
+                GPSLowerGlow(theme: theme)
                     .frame(width: w, height: h)
-                    .zIndex(30)
+                    .allowsHitTesting(false)
+                    .zIndex(28)
 
-                // BMS ticks confined to lower dome and editable in Setup.
-                GPSLowerPowerScale(powerWatts: live?.power)
-                    .frame(width: w, height: h)
-                    .zIndex(31)
+                // Valori kW slegati dalla maschera ma nella STESSA posizione,
+                // con font, scala, colori e contenuti precedenti.
+                CockpitPowerReadings(d: dialSize,
+                                     incomingPower: live.map { Swift.max(0, $0.power) },
+                                     outgoingPower: live.map { Swift.max(0, -$0.power) })
+                    .position(x: dialCenterX, y: h * 0.494)
+                    .zIndex(29)
 
                 // Reset indipendente dalla Telemetria, visibile con mappa ON/OFF.
                 GPSTripResetControl(theme: theme)

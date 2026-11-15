@@ -187,10 +187,6 @@ struct EcoSettingsView: View {
     @AppStorage("ecojumbo.chargeAlert") private var chargeAlert = 80
     @AppStorage("ecojumbo.frameFormat") private var rawFormat = JKFrameFormat.automatic.rawValue
     @AppStorage("ecojumbo.bars.averagePowerMaxKW") private var averagePowerMaxKW = 5.0
-    @AppStorage("ecojumbo.bars.regenPowerMaxKW") private var regenPowerMaxKW = 2.5
-    @AppStorage("ecojumbo.bars.dischargePowerMaxKW") private var dischargePowerMaxKW = 5.0
-    @AppStorage("ecojumbo.bars.regenPowerTickCount") private var regenPowerTickCount = 12
-    @AppStorage("ecojumbo.bars.dischargePowerTickCount") private var dischargePowerTickCount = 24
     @AppStorage("ecojumbo.bars.vehicleSpeedMaxKmh") private var vehicleSpeedMaxKmh = 120.0
     @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
     @AppStorage("ecojumbo.bars.speedLimitColorEnabled") private var speedLimitColorEnabled = true
@@ -370,17 +366,6 @@ struct EcoSettingsView: View {
                 LabeledContent("Tensione 20S", value: "50–73 V")
                 Stepper("Potenza istantanea: 0–\(Int(averagePowerMaxKW)) kW",
                         value: $averagePowerMaxKW, in: 1...20, step: 1)
-                LabeledContent("Semicerchio inferiore", value: "1/3 azzurro · 2/3 rosso")
-                Stepper("Ingresso: max \(regenPowerMaxKW, specifier: "%.1f") kW",
-                        value: $regenPowerMaxKW, in: 0.5...20, step: 0.5)
-                Stepper("Tacche azzurre: \(regenPowerTickCount)",
-                        value: $regenPowerTickCount, in: 6...30)
-                Stepper("Erogazione: max \(dischargePowerMaxKW, specifier: "%.1f") kW",
-                        value: $dischargePowerMaxKW, in: 0.5...20, step: 0.5)
-                Stepper("Tacche rosse: \(dischargePowerTickCount)",
-                        value: $dischargePowerTickCount, in: 12...60)
-                Text("I fondoscala e il numero di tacche sono solo grafici. I colori BMS si modificano in Temi; le misure reali non cambiano.")
-                    .font(.footnote).foregroundStyle(.secondary)
                 Stepper("Velocità massima veicolo: \(Int(vehicleSpeedMaxKmh)) km/h",
                         value: $vehicleSpeedMaxKmh, in: 30...240, step: 5)
                 Toggle("Colore speciale oltre il limite", isOn: $speedLimitColorEnabled)

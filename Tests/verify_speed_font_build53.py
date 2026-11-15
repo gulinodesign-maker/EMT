@@ -4,7 +4,7 @@ root=Path(__file__).resolve().parents[1]
 c=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 g=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 p=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 82;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 81;") == 2
 speed=c.split("private struct OpenSpeedCluster: View {",1)[1].split(
     "// Calcola la posizione più a sinistra possibile",1)[0]
 speed_number=speed.split("Text(String(Int(speed.rounded())))",1)[1].split(
@@ -17,7 +17,7 @@ assert ".font(.system(size: d * 0.275, weight: .bold, design: .rounded))" not in
 assert speed.count("Arial-BoldMT") == 1
 assert "Text(\"km/h\")" in speed
 assert "String(format: \"ODO %.0f km\", $0)" in speed
-assert "SpeedLEDStream(d: d, speed: speed," in speed
+assert "SpeedLEDStream(d: d, speed: speed)" in speed
 # Models/GPSRideManager is intentionally unchanged from the working GPS build.
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in g
 assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in g

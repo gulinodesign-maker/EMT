@@ -281,7 +281,7 @@ private struct EcoMinimalNavigationLabel: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
-        .foregroundStyle(active ? theme.accent : Color.primary.opacity(0.85))
+        .foregroundStyle(active ? theme.accent : Color.secondary)
         .frame(maxWidth: .infinity)
     }
 }
