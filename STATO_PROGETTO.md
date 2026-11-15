@@ -1,5 +1,13 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 85 — elimina anche la guida grigia a sinistra del tachimetro (15 novembre 2026)
+
+**Richiesta:** sullo screenshot della build 84 l'utente indica la linea grigia residua a sinistra del tachimetro, già privata del neon arancione, e chiede di eliminarla e pubblicare su TestFlight. La versione nuova è **1.0 (85)**, basata esattamente sulla 84.
+
+**Modifica circoscritta:** in `Ecojumbo/Views/CockpitComponents.swift`, `GPSHorizonLine` rimuove la geometria del tratto sinistro e il vecchio `metalBaseLine` composto da sinistra e destra. Ora **sia** la linea neon arancione/bianca **sia** la guida metallica grigia usano il solo `Path right`: `let line = right`, `let metalLine = line.applying(...)`. Le altre geometrie di simmetria rimangono disponibili per maschere e termometro; restano invariati anello del tachimetro, raccordo destro, ponte kW, telemetria, GPS, JK BMS, mappa, tasti, palette e Home. Versione aggiornata a `CURRENT_PROJECT_VERSION = 85` in Debug e Release, `MARKETING_VERSION = 1.0` e bundle ID immutati.
+
+**Verifiche previste:** test Python storici allineati alla build 85; sostituito il fingerprint integrale della 84 con `Tests/verify_build85_left_topbar_off.py` e nuove verifiche sull'assenza del tratto grigio sinistro. Verificare CI della PR (controlli Python, protocollo JK, barre, compilazione simulatore) prima del merge, CI su `main` e successivo upload Apple `Upload succeeded`. **Non considerare verificati prima dei log reali**: successo CI, archivio firmato, upload TestFlight, elaborazione Apple, assegnazione gruppo TE e disponibilità iPhone. Prossima verifica grafica: controllo su dispositivo della rimozione della doppia linea sinistra.
+
 ## Build 84 — rimozione neon top bar a sinistra del tachimetro (15 novembre 2026)
 
 **Nuova richiesta utente:** «elimina la linea neon della top bar a sinistra del tachimetro». La build **1.0 (84)** parte dalla build 83 già caricata su TestFlight. Interpretazione mirata: rimuovere **soltanto il profilo luminoso arancione superiore a sinistra del cerchio GPS**, mantenere il profilo neon **a destra**, il cerchio neon del tachimetro e il ponte kW inferiore; la pista metallica grigia secondaria resta intatta su entrambi i lati.

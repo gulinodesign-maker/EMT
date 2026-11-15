@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 84;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 85;") == 2
 symmetry = cockpit.split("private enum GPSHorizonSymmetry {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
@@ -23,7 +23,9 @@ assert "let rightKnee = CGPoint(x: w * 0.54, y: h * 0.099)" in symmetry
 assert "let rightContact = CGPoint(x: w * 0.45, y: h * 0.244)" in symmetry
 assert "let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)" in symmetry
 assert "let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)" in symmetry
-assert "corners.leftKnee" in horizon and "corners.leftContact" in horizon
+# Build 85: the left top-bar path is no longer rendered; mirror coordinates stay in the model.
+assert "corners.leftKnee" not in horizon and "corners.leftContact" not in horizon
+assert "let line = right" in horizon and "let metalLine = line.applying(" in horizon
 assert "corners.rightKnee" in horizon and "corners.rightContact" in horizon
 assert "corners: [1], radius: radius" in horizon
 assert "visibleOutsideRing.fill(style: FillStyle(eoFill: true))" in horizon
