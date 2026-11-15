@@ -1,5 +1,13 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 84 — rimozione neon top bar a sinistra del tachimetro (15 novembre 2026)
+
+**Nuova richiesta utente:** «elimina la linea neon della top bar a sinistra del tachimetro». La build **1.0 (84)** parte dalla build 83 già caricata su TestFlight. Interpretazione mirata: rimuovere **soltanto il profilo luminoso arancione superiore a sinistra del cerchio GPS**, mantenere il profilo neon **a destra**, il cerchio neon del tachimetro e il ponte kW inferiore; la pista metallica grigia secondaria resta intatta su entrambi i lati.
+
+**Implementazione:** in `Ecojumbo/Views/CockpitComponents.swift`, il componente `GPSHorizonLine` mantiene la geometria dei due raccordi `left`/`right` per la pista metallica (`metalBaseLine`), mentre i quattro stroke luminosi arancio/bianco (`line`) sono applicati **esclusivamente al Path `right`**. Nessun colore trasparente fittizio, nessuna alterazione di simmetria/misure, GPS/BMS, MapKit, Home, temi, retroilluminazione del cerchio, ponte o tasti. `CURRENT_PROJECT_VERSION=84` in Debug/Release, `MARKETING_VERSION=1.0` e bundle ID invariati. Test storici di versione allineati a 84; la regressione fingerprint integrale della 83 viene sostituita dal nuovo controllo `Tests/verify_build84_left_topbar_off.py`, che conferma l'esatta modifica e l'integrità del codice restante.
+
+**Verifiche:** attesa conclusione CI della PR (Python, Swift JK, barre e build simulatore). Solo dopo esito positivo procedere al merge su `main`, verificare la relativa CI e l'upload Apple TestFlight fino a `Upload succeeded`. Da distinguere da processing App Store Connect, associazione gruppo `TE` e disponibilità su iPhone, non ancora verificati. **Prossimo passo:** verificare visivamente su dispositivo che il neon di sinistra non compaia più, mantenendo la guida grigia e il neon destro.
+
 ## Build 83 — ripristino della build 81 (15 novembre 2026)
 
 **Richiesta utente:** ripartire esattamente dalla build **81** e pubblicare una nuova **1.0 (83)** su TestFlight, prima di ulteriori modifiche grafiche. Non includere il redesign della build 82.

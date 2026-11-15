@@ -1907,15 +1907,18 @@ private struct GPSHorizonLine: View {
                 corners.rightKnee,
                 CGPoint(x: w, y: h * 0.099)
             ], corners: [1], radius: radius)
-            let line = Path { path in
+            // Build 84: il neon superiore resta solo a destra del tachimetro.
+            // La guida metallica grigia mantiene entrambi i tratti originali.
+            let metalBaseLine = Path { path in
                 path.addPath(left)
                 path.addPath(right)
             }
+            let line = right
             let dialSize = GPSDialLayout.size(width: w, height: h)
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
             // Il profilo grigio è una COPIA del percorso originale, traslata
             // verso il basso dell'esatta distanza tra cerchio arancio e grigio.
-            let metalLine = line.applying(CGAffineTransform(
+            let metalLine = metalBaseLine.applying(CGAffineTransform(
                 translationX: 0, y: GPSMetalContourStyle.inset(for: dialSize)))
             let metalRadius = dialSize * 0.965 / 2
                 + GPSMetalContourStyle.strokeWidth(for: dialSize) / 2
