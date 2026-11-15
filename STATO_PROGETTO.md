@@ -1,5 +1,16 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 82 — cockpit vetrato a LED nascosti e semicerchio di potenza editabile (15 novembre 2026)
+
+**Richiesta:** dal riferimento grafico approvato, realizzare due layer (top bar e dock) sfumati che nascondono la sorgente LED e lasciano visibile solo l'illuminazione indiretta estesa lungo tutto il profilo. L'anello esterno diventa vetro ed è coperto dal layer basso, mai sopra di esso; due vecchie corone BMS azzurra/rossa rimosse dal tachimetro; pista arancione velocità al loro posto, come continuazione visiva del semicerchio inferiore. La potenza è disegnata **soltanto sul semicerchio del layer basso**, con tacche azzurre ingresso e rosse uscita **configurabili**, rapporto fisso 1/3 e 2/3; testo kW centrale unico, bianco se assente/zero, azzurro/rosso da segno della misura JK reale. RESET centrato nello spazio nero; telemetria in pannelli SOC/V BAT/AUT/TRIP/DISL e dock Mappa/Viaggi/Setup/Temi/Tema. Build **1.0 (82)** e pubblicazione TestFlight esplicitamente richieste. Nessuna creazione/configurazione di Agent GitHub (divieto utente).
+
+**Modifiche:** `GPSUpperGlassLayer` e `GPSLowerGlassLayer` con superfici navy/indaco e wash arancione sfumato dietro i contorni, senza visibilità di un tubo neon esposto. Nuovo `GPSLowerGlassGeometry` con ponte del layer basso alto al centro, ginocchio destro degradante e base continua dietro al dock; la sagoma opaca copre il cerchio in vetro nella zona inferiore. `GPSMetalInnerRing` rende ora riflessi vetro/argento, non un anello metallico. In GPS, `OpenSpeedCluster` nasconde i due vecchi `SegmentedGaugeBar` e usa `SpeedLEDStream` allargato a `0.875d`; Home mantiene originali corone, diametro e dati. `GPSLowerPowerScale` usa due segmenti di 28° blu / 56° rossi (12/24 tacche predefinite) su raggio `0.375d`, mascherati sulla sagoma inferiore; lettura BMS live non sostituita. Setup > Scale delle barre permette di modificare fondoscala kW e conteggio tacche dei due lati (6–30/12–60); colori disponibili nell'editor temi già esistente. Un solo `Text` kW al centro del semicerchio. Il tasto RESET viene ricentrato nel nero a sinistra.
+
+**Invariati:** GPS/ODO, dati BMS reali, navigazione/MapKit, telemetria, tema editabile, Home, logica pulsanti. Numero `CURRENT_PROJECT_VERSION=82` in Debug/Release, `MARKETING_VERSION=1.0`.
+
+**Verifica richiesta:** suite Python e test Swift, Xcode simulator CI PR/main, TestFlight Apple `Upload succeeded`; processing in App Store Connect, gruppo TE e verifica visiva su iPhone restano passi distinti. L'anteprima fornita è concettuale, non uno screenshot iOS nativo verificato.
+
+
 ## Build 81 — ripristino fedele della build 76 (14 novembre 2026)
 
 **Richiesta esplicita dell'utente:** ripristinare l'interfaccia della **build 76** e pubblicarla come nuova **1.0 (81)** su TestFlight. La sorgente storica verificata è il merge della [PR #63](https://github.com/gulinodesign-maker/EMT/pull/63), commit `42e72614211580dc771e06f9dc764f33a88fc194`. Il nuovo numero 81 NON equivale al redesign delle build 77–80: si tratta del ritorno deliberato al comportamento ed estetica della 76.
