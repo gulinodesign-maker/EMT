@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43875241936:ATTEMPT:1 -->
+### 2026-11-16T13:23:09Z — CI #284 · build-94-preview-icons-dial-profile · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43875241936](https://github.com/gulinodesign-maker/EMT/actions/runs/43875241936); avvio 2026-11-16T13:23:09Z UTC; aggiornamento finale 2026-11-16T13:25:16Z UTC; registrazione 2026-11-16T13:25:28+00:00 UTC; evento pull_request.
+- **Commit:** [e69031258fb6](https://github.com/gulinodesign-maker/EMT/commit/e69031258fb6c7092038b13e9eea6f460978f89f); versione **1.0**; build **94**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:43871992012:ATTEMPT:1 -->
 ### 2026-11-16T13:02:21Z — CI #283 · main · tentativo 1
 
