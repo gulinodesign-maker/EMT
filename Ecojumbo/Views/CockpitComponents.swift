@@ -1450,6 +1450,7 @@ private enum GPSContourStroke {
 private struct GPSPowerHorizontalGauge: View {
     let d: CGFloat
     let powerWatts: Double?
+    let bridgeMaxWidth: CGFloat
     private let regenTacks = 9
     private let dischargeTacks = 21
     private var normalizedPower: Double? {
@@ -1478,7 +1479,10 @@ private struct GPSPowerHorizontalGauge: View {
                 }
             }
         }
-        .frame(width: d * 0.39, height: max(5, d * 0.014))
+        // Due volte lo spessore e fino a due volte la larghezza della
+        // barra 99; il piede più stretto del ponte limita l'estensione.
+        .frame(width: min(d * 0.78, max(1, bridgeMaxWidth)),
+               height: 2 * max(5, d * 0.014))
         .animation(.easeOut(duration: 0.30), value: normalizedPower)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Potenza: 30 percento recupero azzurro, 70 percento erogazione rossa")
@@ -1712,6 +1716,18 @@ private enum GPSLowerLineGeometry {
             CGPoint(x: rightTopX, y: topY),
             CGPoint(x: rightTopX + run, y: footY)
         ]
+    }
+
+    // Spazio massimo simmetrico rispetto al centro del tachimetro fra i
+    // piedi reali del ponte: la barra ingrandita non invade mai i fianchi.
+    static func powerBarMaxWidth(in size: CGSize) -> CGFloat {
+        let rect = CGRect(origin: .zero, size: size)
+        let ends = points(in: rect)
+        let center = GPSDialLayout.centerX(width: size.width, height: size.height)
+        let d = GPSDialLayout.size(width: size.width, height: size.height)
+        let safety = max(6, d * 0.014)
+        let halfSpace = min(center - ends[0].x, ends[3].x - center) - safety
+        return max(1, 2 * halfSpace)
     }
 }
 
@@ -1976,8 +1992,11 @@ struct GPSCockpitDashboard: View {
                     .zIndex(29)
 
                 // Barra orizzontale sotto il kW; non oltrepassa il ponte.
-                GPSPowerHorizontalGauge(d: dialSize,
-                                        powerWatts: live.map { -$0.power })
+                GPSPowerHorizontalGauge(
+                    d: dialSize,
+                    powerWatts: live.map { -$0.power },
+                    bridgeMaxWidth: GPSLowerLineGeometry.powerBarMaxWidth(
+                        in: CGSize(width: w, height: h)))
                     .position(x: dialCenterX, y: h * 0.963)
                     .zIndex(30)
 
@@ -2385,7 +2404,9 @@ struct EcoCockpitThemeMiniature: View {
                     .font(.system(size: d * 0.066, weight: .bold))
                     .foregroundStyle(tone(7))
                     .position(x: cx, y: h * 0.875)
-                miniaturePowerBar(d: d)
+                miniaturePowerBar(d: d,
+                                 bridgeMaxWidth: GPSLowerLineGeometry.powerBarMaxWidth(
+                                    in: CGSize(width: w, height: h)))
                     .position(x: cx, y: h * 0.963)
 
                 miniatureTelemetry(width: panelWidth, height: h * 0.60)
@@ -2443,14 +2464,15 @@ struct EcoCockpitThemeMiniature: View {
         .mask(GPSBridgeExteriorMask().fill(style: FillStyle(eoFill: true)))
     }
 
-    private func miniaturePowerBar(d: CGFloat) -> some View {
+    private func miniaturePowerBar(d: CGFloat, bridgeMaxWidth: CGFloat) -> some View {
         HStack(spacing: max(0.7, d * 0.0021)) {
             ForEach(0..<30, id: \.self) { i in
                 RoundedRectangle(cornerRadius: 1)
                     .fill((i < 9 ? tone(9) : tone(8)).opacity(0.28))
             }
         }
-        .frame(width: d * 0.39, height: max(3, d * 0.014))
+        .frame(width: min(d * 0.78, max(1, bridgeMaxWidth)),
+               height: 2 * max(3, d * 0.014))
     }
 
     private func miniatureTelemetry(width: CGFloat, height: CGFloat) -> some View {
@@ -2599,18 +2621,22 @@ private struct GPSHeader: View {
             let w = geo.size.width
             let h = geo.size.height
             HStack(spacing: max(7, h * 0.20)) {
-                Image("EcojumboMark")
-                    .resizable().scaledToFit()
-                    .frame(width: h * 0.73, height: h * 0.72)
+                // Logo sopra, temperatura reale sotto, SENZA pill.
+                // Il testo resta a sinistra dell'anello del tachimetro.
+                VStack(spacing: 1) {
+                    Image("EcojumboMark")
+                        .resizable().scaledToFit()
+                        .frame(width: h * 0.75, height: h * 0.54)
+                    EcoOutsideTemperature(now: now, plain: true)
+                        .frame(width: h * 0.86, height: h * 0.20)
+                }
+                .frame(width: h * 0.90, height: h * 0.88)
                 Rectangle().fill(colorScheme == .light
                                  ? Color.black.opacity(0.33) : .white.opacity(0.55))
                     .frame(width: 1, height: h * 0.40)
                 SystemClockText()
                     .font(.system(size: h * 0.44, weight: .bold))
                     .monospacedDigit()
-                // Lettura meteo reale dentro la top bar.
-                EcoOutsideTemperature(now: now)
-                    .frame(width: max(56, w * 0.066))
                 Spacer(minLength: 0)
                 Button { showGPSDiagnostics = true } label: {
                     HStack(spacing: max(5, h * 0.09)) {
