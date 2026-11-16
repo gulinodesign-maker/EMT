@@ -8,13 +8,13 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 92;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 93;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 91" in state
 
 layer = source.split("private struct GPSUpperGradientLayer: View {", 1)[1].split(
-    "private struct GPSHorizonLine: View {", 1)[0]
+    "// Build 93 — anteprima", 1)[0]
 accessors = source.split("var topBarGradientStart: Color {", 1)[1].split(
     "// Le barre mantengono", 1)[0]
 dashboard = source.split("struct GPSCockpitDashboard: View {", 1)[1].split(
@@ -29,7 +29,7 @@ for prop in ("topBarGradientStart", "topBarGradientEnd", "topBarUnderGlow",
              "topBarHighFade", "topBarLowFade",
              "topBarHighFadeIntensity", "topBarLowFadeIntensity"):
     assert "theme." + prop in layer, prop
-assert layer.count("GPSUpperLayerFootprint()") == 5
+assert layer.count("GPSUpperLayerFootprint()") == 7
 assert "LinearGradient(stops: [" in layer
 assert layer.count("], startPoint: .top, endPoint: .bottom)") == 2
 for location in ("location: 0)", "location: 0.20)", "location: 0.45)",

@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 92;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 93;") == 2
 symmetry = cockpit.split("private enum GPSHorizonSymmetry {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
@@ -32,7 +32,8 @@ assert "visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true))" in horizon
 assert "GPSMapTopContourClip()" in cockpit
 
 # Metal ring concentric with the orange GPS halo and physically inside it.
-assert ".frame(width: d * 0.965, height: d * 0.965)" in ring
+assert ".frame(width: d * GPSDialLayout.metalRingDiameterFactor," in ring
+assert "metalRingDiameterFactor: CGFloat = 0.965 * 0.90" in cockpit
 assert "StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: d))" in ring
 assert "GPSMetalContourStyle.gradient(for: colorScheme)" in ring
 style = cockpit.split("private enum GPSMetalContourStyle {", 1)[1].split(
@@ -68,11 +69,11 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
     assert isclose(axis - left_contact, right_contact - axis, abs_tol=1e-7)
     assert isclose(.099 * h, .099 * h)
     assert isclose(.244 * h, .244 * h)
-    # Orange halo at diameter 0.992 d; silver at diameter 0.965 d.
+    # GPS: -10% metal ring with expanded speed graduation safely inside.
     outer_radius = .992 * d / 2
-    metal_radius = .965 * d / 2
-    power_segments_outside = (.469 + .017 / 2) * d
-    assert power_segments_outside + .0035 * d / 2 < metal_radius
+    metal_radius = .965 * .90 * d / 2
+    gps_speed_tick_radius = .393 * 1.08 * d
+    assert gps_speed_tick_radius + .0035 * d / 2 < metal_radius
     assert metal_radius + .0035 * d / 2 < outer_radius - .0038 * d / 2
     # Keep the temperature wholly to the left of the diagonal at 15.8% h.
     ratio = (.158 - .099) / (.244 - .099)

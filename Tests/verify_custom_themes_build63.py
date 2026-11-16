@@ -5,7 +5,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 92;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 93;") == 2
 assert "struct EcoThemePalette: Codable, Equatable" in tabs
 assert 'static let storagePrefix = "ecojumbo.customTheme."' in tabs
 assert "let data = try? JSONEncoder().encode(palette)" in tabs
@@ -23,7 +23,8 @@ assert "ForEach(CockpitTheme.allCases.filter { $0.slotIndex == nil })" in tabs
 assert 'Label("Crea un nuovo tema", systemImage: "paintbrush.pointed")' in tabs
 assert "private struct EcoThemeEditorView: View" in tabs
 assert "private struct EcoThemeColorPicker: View" in tabs
-assert "EcoThemePreview(palette: draft, editColor:" in tabs
+assert "EcoThemePreview(palette: draft)" in tabs
+assert "EcoCockpitThemeMiniature(palette: palette)" in tabs
 assert "minimumDuration: 0.45" in tabs
 assert ".sheet(item: $colorID)" in tabs
 assert ".sheet(item: $editor)" in tabs

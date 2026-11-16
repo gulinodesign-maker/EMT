@@ -1162,6 +1162,7 @@ private struct OpenSpeedCluster: View {
     // separatamente dalla maschera del ponte, così restano leggibili.
     var showsPowerReadings: Bool = true
     var showsCircularPowerGauges: Bool = true // La Home conserva le corone.
+    var maximizesGPSSpeedScale: Bool = false // Solo GPS, senza alterare la Home.
     // Layout unico per Home e GPS. Freccia visibile solo se la rotta è attiva.
     var navigationArrow: String? = nil
     var navigationInstruction: String? = nil
@@ -1237,8 +1238,15 @@ private struct OpenSpeedCluster: View {
 
                 }
                 // La striscia LED arancione della velocità richiede GPS valido.
-                SpeedLEDStream(d: d, speed: speed)
-                SpeedScaleTicks(d: d)
+                if maximizesGPSSpeedScale {
+                    SpeedLEDStream(d: d, speed: speed)
+                        .scaleEffect(GPSDialLayout.speedScaleMagnification)
+                    SpeedScaleTicks(d: d)
+                        .scaleEffect(GPSDialLayout.speedScaleMagnification)
+                } else {
+                    SpeedLEDStream(d: d, speed: speed)
+                    SpeedScaleTicks(d: d)
+                }
 
                 // Stessa strumentazione nella Home e nella mappa.
                 // La freccia bianca occupa la zona superiore, lontana dalle
@@ -1469,6 +1477,10 @@ private enum GPSInnerLED {
 
 // Build 70: nessuna superficie a sfumatura colorata sopra la top bar o sotto il ponte.
 private enum GPSDialLayout {
+    // Build 93: cerchio metallico GPS più piccolo del 10%; scala km/h ampliata.
+    static let metalRingDiameterFactor: CGFloat = 0.965 * 0.90
+    static let speedScaleMagnification: CGFloat = 1.08
+
     static func size(width: CGFloat, height: CGFloat) -> CGFloat {
         min(height * 0.965, width * 0.55)
     }
@@ -1516,7 +1528,8 @@ private struct GPSMetalInnerRing: View {
             Circle()
                 .stroke(GPSMetalContourStyle.gradient(for: colorScheme),
                         style: StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: d)))
-                .frame(width: d * 0.965, height: d * 0.965)
+                .frame(width: d * GPSDialLayout.metalRingDiameterFactor,
+                       height: d * GPSDialLayout.metalRingDiameterFactor)
                 .frame(width: d, height: d)
                 .mask(LinearGradient(stops: [
                     .init(color: .white, location: 0),
@@ -1767,6 +1780,7 @@ struct GPSCockpitDashboard: View {
                                      odometerKm: gps.hasOdometer ? gps.totalKm : nil,
                                      showsPowerReadings: false,
                                      showsCircularPowerGauges: false,
+                                     maximizesGPSSpeedScale: true,
                                      navigationArrow: maneuverSymbol,
                                      navigationInstruction: navigation.guidanceInstruction,
                                      navigationDistance: navigation.isNavigating &&
@@ -1994,9 +2008,12 @@ private struct GPSUpperLayerFootprint: Shape {
                 y: centerY + circleRadius * CGFloat(Darwin.sin(angle))))
         }
         left.addLine(to: CGPoint(x: leftFoot.x - 3, y: leftFoot.y))
-        // Il bordo sinistro della zona sotto il ponte prosegue sino
-        // al bordo inferiore del display, senza la maschera della 88.
-        left.addLine(to: CGPoint(x: leftFoot.x - 3, y: h))
+        // Build 93: la diagonale gialla continua il fianco sinistro
+        // del ponte fino al bordo inferiore, senza tratto verticale.
+        let bridgeRise = max(1, leftFoot.y - leftShoulder.y)
+        let continuation = (h - leftFoot.y) / bridgeRise
+        let leftBottomX = leftFoot.x + (leftFoot.x - leftShoulder.x) * continuation - 3
+        left.addLine(to: CGPoint(x: leftBottomX, y: h))
         left.addLine(to: CGPoint(x: 0, y: h))
         left.closeSubpath()
 
@@ -2096,6 +2113,18 @@ private struct GPSUpperGradientLayer: View {
                             theme.topBarLowFadeIntensity), location: 1)
                     ], startPoint: .top, endPoint: .bottom),
                     style: FillStyle(eoFill: true))
+
+                // Build 93: luce interna spostata verso il centro
+                // dell'app. Resta confinata al layer esterno: non può
+                // invadere tachimetro o ponte grazie alle due maschere.
+                GPSUpperLayerFootprint()
+                    .stroke(theme.topBarUnderGlow.opacity(
+                        theme.glowIntensity * 0.72),
+                        lineWidth: max(2, d * 0.015))
+                    .blur(radius: max(5, d * 0.028))
+                    .offset(x: d * 0.023, y: d * 0.012)
+                    .mask(GPSUpperLayerFootprint()
+                        .fill(style: FillStyle(eoFill: true)))
             }
             // Entrambe le maschere si applicano DOPO blur e riempimento.
             // Il quadrante e tutto il ponte sono esclusi in modo indipendente.
@@ -2106,6 +2135,235 @@ private struct GPSUpperGradientLayer: View {
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
+    }
+}
+
+// Build 93 — anteprima dell'INTERO cockpit, non una griglia di campioni.
+// Riutilizza i tracciati reali GPS (quadrante, scala, top bar e ponte),
+// con i colori del draft ancora non salvato. I valori senza dati sono
+// trattini, mai una telemetria dimostrativa presentata come reale.
+struct EcoCockpitThemeMiniature: View {
+    let palette: EcoThemePalette
+    @Environment(\.colorScheme) private var colorScheme
+
+    private func tone(_ index: Int) -> Color {
+        Color(themeHex: palette.colors[index])
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            let d = GPSDialLayout.size(width: w, height: h)
+            let cx = GPSDialLayout.centerX(width: w, height: h)
+            let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)
+            let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) - panelLeft)
+
+            ZStack {
+                tone(0)
+                Image("CarbonWeave")
+                    .resizable(resizingMode: .tile)
+                    .opacity(0.42)
+
+                miniatureLayer(d: d)
+                    .frame(width: w, height: h)
+
+                Circle()
+                    .fill(tone(0))
+                    .frame(width: d * 0.986, height: d * 0.986)
+                    .position(x: cx, y: h * 0.494)
+                Image("CarbonWeave")
+                    .resizable(resizingMode: .tile)
+                    .opacity(0.72)
+                    .frame(width: d * 0.982, height: d * 0.982)
+                    .clipShape(Circle())
+                    .position(x: cx, y: h * 0.494)
+
+                SpeedScaleTicks(d: d)
+                    .scaleEffect(GPSDialLayout.speedScaleMagnification)
+                    .frame(width: d, height: d)
+                    .position(x: cx, y: h * 0.494)
+                GPSMetalInnerRing()
+                    .frame(width: d, height: d)
+                    .position(x: cx, y: h * 0.494)
+
+                // Solo il valore non disponibile: l'anteprima non inventa velocità.
+                Text("—")
+                    .font(.custom("Arial-BoldMT", size: d * 0.25))
+                    .foregroundStyle(tone(11))
+                    .position(x: cx, y: h * 0.49)
+                Text("ODO — km")
+                    .font(.system(size: d * 0.028, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.8))
+                    .position(x: cx, y: h * 0.69)
+                Text("km/h")
+                    .font(.system(size: d * 0.065, weight: .bold))
+                    .foregroundStyle(.white)
+                    .position(x: cx, y: h * 0.755)
+
+                GPSLowerGlow(theme: .copper)
+                    .frame(width: w, height: h)
+                Text("— kW")
+                    .font(.system(size: d * 0.066, weight: .bold))
+                    .foregroundStyle(tone(7))
+                    .position(x: cx, y: h * 0.875)
+                miniaturePowerBar(d: d)
+                    .position(x: cx, y: h * 0.963)
+
+                miniatureTelemetry(width: panelWidth, height: h * 0.60)
+                    .frame(width: panelWidth, height: h * 0.60)
+                    .position(x: panelLeft + panelWidth / 2, y: h * 0.44)
+
+                miniatureHeader(width: w, height: h)
+                    .frame(width: w, height: h * 0.10)
+                    .position(x: w / 2, y: h * 0.05)
+                miniatureDock(height: h)
+                    .frame(width: panelWidth, height: h * 0.082)
+                    .position(x: panelLeft + panelWidth / 2, y: h * 0.925)
+            }
+            .frame(width: w, height: h)
+            .clipped()
+        }
+        .aspectRatio(2.16, contentMode: .fit)
+        .allowsHitTesting(false)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Anteprima completa del cockpit: tachimetro, top bar, ponte kilowatt, barra potenza, telemetria e comandi")
+    }
+
+    private func miniatureLayer(d: CGFloat) -> some View {
+        ZStack {
+            GPSUpperLayerFootprint()
+                .fill(LinearGradient(
+                    colors: [tone(15), tone(16)],
+                    startPoint: .leading, endPoint: .trailing),
+                    style: FillStyle(eoFill: true))
+                .opacity(0.84)
+            GPSUpperLayerFootprint()
+                .fill(LinearGradient(stops: [
+                    .init(color: tone(19).opacity(palette.topFadeIntensity), location: 0),
+                    .init(color: .clear, location: 0.45)
+                ], startPoint: .top, endPoint: .bottom),
+                style: FillStyle(eoFill: true))
+            GPSUpperLayerFootprint()
+                .fill(LinearGradient(stops: [
+                    .init(color: .clear, location: 0.55),
+                    .init(color: tone(20).opacity(palette.bottomFadeIntensity), location: 1)
+                ], startPoint: .top, endPoint: .bottom),
+                style: FillStyle(eoFill: true))
+            GPSUpperLayerFootprint()
+                .stroke(tone(2).opacity(palette.glowIntensity * 0.72),
+                        lineWidth: max(2, d * 0.015))
+                .blur(radius: max(5, d * 0.028))
+                .offset(x: d * 0.023, y: d * 0.012)
+                .mask(GPSUpperLayerFootprint().fill(style: FillStyle(eoFill: true)))
+        }
+        .mask(GPSDialExteriorMask().fill(style: FillStyle(eoFill: true)))
+        .mask(GPSBridgeExteriorMask().fill(style: FillStyle(eoFill: true)))
+    }
+
+    private func miniaturePowerBar(d: CGFloat) -> some View {
+        HStack(spacing: max(0.7, d * 0.0021)) {
+            ForEach(0..<30, id: \.self) { i in
+                RoundedRectangle(cornerRadius: 1)
+                    .fill((i < 9 ? tone(9) : tone(8)).opacity(0.28))
+            }
+        }
+        .frame(width: d * 0.39, height: max(3, d * 0.014))
+    }
+
+    private func miniatureTelemetry(width: CGFloat, height: CGFloat) -> some View {
+        let gap = max(3, height * 0.025)
+        return VStack(spacing: gap) {
+            Text("T E L E M E T R I A")
+                .font(.system(size: height * 0.05, weight: .bold))
+                .foregroundStyle(.white.opacity(0.75))
+                .frame(maxWidth: .infinity)
+            HStack(spacing: gap) {
+                miniatureTile("SOC", "—%", height: height * 0.22)
+                miniatureTile("V BAT", "— V", height: height * 0.22)
+            }
+            HStack(spacing: gap) {
+                miniatureTile("AUT", "— km", height: height * 0.22)
+                miniatureTile("TRIP", "— km", height: height * 0.22)
+            }
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text("DISL")
+                    Spacer()
+                    Text("— m")
+                }
+                .font(.system(size: height * 0.065, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.83))
+                Spacer(minLength: 0)
+                Path { p in
+                    p.move(to: CGPoint(x: width * 0.03, y: 8))
+                    p.addLine(to: CGPoint(x: width * 0.22, y: 14))
+                    p.addLine(to: CGPoint(x: width * 0.40, y: 9))
+                    p.addLine(to: CGPoint(x: width * 0.64, y: 17))
+                    p.addLine(to: CGPoint(x: width * 0.96, y: 11))
+                }
+                .stroke(tone(1).opacity(0.38), lineWidth: 1.3)
+                .frame(height: 22)
+            }
+            .padding(gap)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 5))
+        }
+        .frame(width: width, height: height)
+    }
+
+    private func miniatureTile(_ title: String, _ value: String, height: CGFloat) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.system(size: height * 0.17, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.70))
+            Text(value)
+                .font(.system(size: height * 0.26, weight: .bold))
+                .foregroundStyle(.white)
+            Spacer(minLength: 0)
+            Capsule().fill(tone(4).opacity(0.24)).frame(height: max(1, height * 0.035))
+        }
+        .padding(5)
+        .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
+        .background(.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 5))
+    }
+
+    private func miniatureHeader(width: CGFloat, height: CGFloat) -> some View {
+        HStack(spacing: 5) {
+            Image("EcojumboMark")
+                .resizable()
+                .scaledToFit()
+                .frame(width: height * 1.10, height: height * 0.66)
+            Text("—:—")
+                .font(.system(size: height * 0.50, weight: .bold))
+                .foregroundStyle(.white)
+            Spacer(minLength: 0)
+            Image(systemName: "location.north.fill")
+            Image(systemName: "bluetooth")
+            Image(systemName: "battery.100")
+        }
+        .font(.system(size: height * 0.47))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 8)
+    }
+
+    private func miniatureDock(height: CGFloat) -> some View {
+        HStack(spacing: 0) {
+            miniatureButton("map.fill", "Mappa", height: height)
+            miniatureButton("chart.bar.fill", "Viaggi", height: height)
+            miniatureButton("gearshape.fill", "Setup", height: height)
+            miniatureButton("paintpalette.fill", "Temi", height: height)
+            miniatureButton("sun.max.fill", "Tema", height: height)
+        }
+    }
+
+    private func miniatureButton(_ symbol: String, _ label: String, height: CGFloat) -> some View {
+        VStack(spacing: 1) {
+            Image(systemName: symbol).font(.system(size: height * 0.41))
+            Text(label).font(.system(size: height * 0.17, weight: .medium))
+        }
+        .foregroundStyle(.white.opacity(0.68))
+        .frame(maxWidth: .infinity)
     }
 }
 

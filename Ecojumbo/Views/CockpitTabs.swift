@@ -521,7 +521,7 @@ struct ThemePickerView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Tre temi personali. Tieni premuto ogni quadratino nel configuratore per scegliere il suo colore. Salva il risultato in uno degli slot.")
+                Text("Tre temi personali con anteprima dell'intero cockpit. Nel configuratore scegli una categoria e tieni premuto il colore da modificare; poi salva nello slot.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
@@ -631,75 +631,26 @@ struct ThemePickerView: View {
     }
 }
 
+// Build 93: ogni slot e il configuratore mostrano una miniatura fedele
+// dell'intero cockpit GPS, con colori del draft aggiornati in tempo reale.
+// Non è più una collezione di cerchi, swatch o quadratini colore.
 private struct EcoThemePreview: View {
     let palette: EcoThemePalette
     var active = false
-    var editColor: ((Int) -> Void)? = nil
 
     var body: some View {
-        VStack(spacing: 10) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 12).fill(Color(themeHex: palette.colors[0]))
-                // Anteprima fedele: una sola linea principale con bagliore regolabile.
-                Capsule()
-                    .fill(Color(themeHex: palette.colors[1]))
-                    .frame(height: 3)
-                    .shadow(color: Color(themeHex: palette.colors[1])
-                                .opacity(palette.glowIntensity * 0.65), radius: 5)
-                    .padding(.horizontal, 10)
-                    .frame(maxHeight: .infinity, alignment: .top)
-                    .padding(.top, 6)
-                // Tre corone separate: potenza in uscita, ingresso e arco GPS.
-                Circle()
-                    .stroke(Color(themeHex: palette.colors[8]).opacity(0.88), lineWidth: 5)
-                    .frame(width: 78, height: 78)
-                Circle()
-                    .stroke(Color(themeHex: palette.colors[9]).opacity(0.88), lineWidth: 5)
-                    .frame(width: 66, height: 66)
-                Circle()
-                    .trim(from: 0.10, to: 0.77)
-                    .stroke(Color(themeHex: palette.colors[10]),
-                            style: StrokeStyle(lineWidth: 4, lineCap: .round))
-                    .rotationEffect(.degrees(75))
-                    .frame(width: 53, height: 53)
-                Text("88")
-                    .font(.system(size: 19, weight: .bold))
-                    .foregroundStyle(Color(themeHex: palette.colors[11]))
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.turn.up.left")
-                        .foregroundStyle(Color(themeHex: palette.colors[13]))
-                    Image(systemName: "arrow.turn.up.right")
-                        .foregroundStyle(Color(themeHex: palette.colors[12]))
-                    Circle()
-                        .fill(Color(themeHex: palette.colors[14]))
-                        .frame(width: 6, height: 6)
-                }
-                .font(.system(size: 10, weight: .bold))
-                .offset(y: 40)
-                HStack(spacing: 0) {
-                    ForEach(4..<7, id: \.self) { i in
-                        Color(themeHex: palette.colors[i])
+        VStack(spacing: 8) {
+            EcoCockpitThemeMiniature(palette: palette)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(alignment: .topTrailing) {
+                    if active {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(Color(themeHex: palette.colors[1]))
+                            .shadow(color: .black.opacity(0.8), radius: 3)
+                            .padding(8)
                     }
                 }
-                .frame(width: 72, height: 5)
-                .clipShape(Capsule())
-                .offset(x: 64, y: 25)
-                if active {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.title3)
-                        .foregroundStyle(Color(themeHex: palette.colors[1]))
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                        .padding(8)
-                }
-            }
-            .frame(height: 100)
-
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 5),
-                      spacing: 5) {
-                ForEach(0..<EcoThemePalette.colorCount, id: \.self) { index in
-                    swatch(index)
-                }
-            }
             Text(palette.name.isEmpty ? "Il mio tema" : palette.name)
                 .font(.headline)
                 .foregroundStyle(.primary)
@@ -710,21 +661,6 @@ private struct EcoThemePreview: View {
         .overlay(RoundedRectangle(cornerRadius: 14)
             .stroke(active ? Color(themeHex: palette.colors[1]) : .secondary.opacity(0.23),
                     lineWidth: active ? 2 : 1))
-    }
-
-    private func swatch(_ index: Int) -> some View {
-        RoundedRectangle(cornerRadius: 4)
-            .fill(Color(themeHex: palette.colors[index]))
-            .frame(maxWidth: .infinity)
-            .frame(height: editColor == nil ? 16 : 35)
-            .overlay(RoundedRectangle(cornerRadius: 4)
-                .strokeBorder(.white.opacity(0.22), lineWidth: 1))
-            .contentShape(Rectangle())
-            .onLongPressGesture(minimumDuration: 0.45) { editColor?(index) }
-            .accessibilityLabel("\(EcoThemePalette.labels[index]): \(palette.colors[index])")
-            .accessibilityHint("Tieni premuto per modificare il colore")
-            .accessibilityAddTraits(editColor == nil ? [] : [.isButton])
-            .accessibilityAction { editColor?(index) }
     }
 }
 
@@ -769,12 +705,10 @@ private struct EcoThemeEditorView: View {
                             .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 10))
                     }
 
-                    Text("Anteprima · Tieni premuto un quadratino per cambiarne il colore.")
+                    Text("Anteprima completa del cockpit · aggiornamento immediato. Seleziona una categoria e tieni premuto il colore da modificare.")
                         .font(.subheadline).foregroundStyle(.secondary)
 
-                    EcoThemePreview(palette: draft, editColor: { index in
-                        colorID = EcoThemeColorID(id: index)
-                    })
+                    EcoThemePreview(palette: draft)
 
                     // Categoria velocità: quattro controlli distinti (fasi + limite).
                     // Gli slot storici e la griglia delle categorie non cambiano.
