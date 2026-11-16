@@ -2411,7 +2411,7 @@ struct EcoCockpitThemeMiniature: View {
         let underGlow = daylight ? Color(themeHex: day.underGlow) : tone(2)
         let highStrength = daylight ? day.highIntensity : palette.topFadeIntensity
         let lowStrength = daylight ? day.lowIntensity : palette.bottomFadeIntensity
-        ZStack {
+        return ZStack {
             GPSUpperLayerFootprint()
                 .fill(LinearGradient(
                     colors: [from, to],
