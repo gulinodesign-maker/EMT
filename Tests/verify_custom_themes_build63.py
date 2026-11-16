@@ -32,8 +32,10 @@ assert "confirmationDialog(" in tabs
 assert "In quale slot vuoi salvare il tema?" in tabs
 assert "Sostituire il tema nello slot" in tabs
 assert "onSave(slot, palette)" in tabs
-assert "ColorPicker(" in tabs
-assert "count: 6" in tabs
+assert "private static let baseColors: [String]" in tabs
+assert "ForEach(Self.baseColors.indices, id:" in tabs
+assert "Slider(value: $shadeLevel, in: 0...1, step: 0.01)" in tabs
+assert "count: 5" in tabs
 for declaration in [
     'case slot1 = "Slot 1"', 'case slot2 = "Slot 2"', 'case slot3 = "Slot 3"',
     "var accent: Color", "var secondary: Color", "var backdrop: Color",
