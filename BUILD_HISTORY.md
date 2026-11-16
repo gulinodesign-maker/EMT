@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43871551413:ATTEMPT:1 -->
+### 2026-11-16T12:59:28Z — CI #282 · build-93-cockpit-preview-geometry · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43871551413](https://github.com/gulinodesign-maker/EMT/actions/runs/43871551413); avvio 2026-11-16T12:59:28Z UTC; aggiornamento finale 2026-11-16T13:01:49Z UTC; registrazione 2026-11-16T13:02:04+00:00 UTC; evento pull_request.
+- **Commit:** [768805592b1a](https://github.com/gulinodesign-maker/EMT/commit/768805592b1af30f4d5c90e182c29792846a397d); versione **1.0**; build **93**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_landscape_geometry.py.
+
 <!-- EMT_RUN:43871281049:ATTEMPT:1 -->
 ### 2026-11-16T12:57:37Z — CI #281 · build-93-cockpit-preview-geometry · tentativo 1
 
