@@ -117,6 +117,37 @@ final class EcoMusicManager: ObservableObject {
         isPlaying = false
     }
 
+    // Build 99 — fallback offline/locale: cerca nell'effettiva libreria
+    // musicale dell'iPhone senza richiedere il developer token MusicKit.
+    // Questo NON sostituisce l'accesso al catalogo Apple Music completo.
+    func searchLocalLibrary(_ term: String, limit: Int = 35) -> [MPMediaItem] {
+        appleAuthorized = MPMediaLibrary.authorizationStatus() == .authorized
+        guard appleAuthorized else { return [] }
+        let search = term.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard search.count >= 2 else { return [] }
+        let items = MPMediaQuery.songs().items ?? []
+        return Array(items.lazy.filter { item in
+            (item.title?.localizedStandardContains(search) ?? false)
+                || (item.artist?.localizedStandardContains(search) ?? false)
+                || (item.albumTitle?.localizedStandardContains(search) ?? false)
+        }.prefix(limit))
+    }
+
+    // La selezione avvia il brano nel lettore di sistema controllato da EMT.
+    // L'app resta in primo piano e i comandi del dock continuano a funzionare.
+    @discardableResult
+    func playLocalLibrary(_ song: MPMediaItem) -> Bool {
+        appleAuthorized = MPMediaLibrary.authorizationStatus() == .authorized
+        guard appleAuthorized else {
+            message = "Autorizza la libreria musicale nelle impostazioni dell'iPhone."
+            return false
+        }
+        applePlayer.setQueue(with: MPMediaItemCollection(items: [song]))
+        applePlayer.play()
+        refreshApple()
+        return true
+    }
+
     // Apple Music: controlla la vera app Musica, non un player isolato.
     func requestAppleAccess() {
         MPMediaLibrary.requestAuthorization { [weak self] status in
