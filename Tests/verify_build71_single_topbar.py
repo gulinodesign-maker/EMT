@@ -7,7 +7,7 @@ source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 86;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 87;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -24,7 +24,7 @@ assert dashboard.count("GPSHorizonLine(theme: theme)") == 1
 assert ".zIndex(8)" in dashboard
 assert ".zIndex(12)" not in dashboard
 assert "GPSMetalInnerRing()" in dashboard
-assert "GPSGaugeHalo(theme: theme)" in dashboard
+assert "GPSGaugeHalo(theme: theme)" not in dashboard
 assert "GPSLowerGlow(theme: theme)" in dashboard
 assert "GPSExpandedReadings(theme: theme, now: now)" in dashboard
 
@@ -35,8 +35,8 @@ horizon = source.split("private struct GPSHorizonLine: View {", 1)[1].split(
 assert "corners.leftKnee" not in horizon and "corners.rightKnee" in horizon
 assert "corners.leftContact" not in horizon and "corners.rightContact" in horizon
 assert "let metalLine = line.applying(" in horizon
-assert "line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))" in horizon
-assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in horizon
+assert "metalLine.stroke(GPSMetalContourStyle.gradient(for: colorScheme)" in horizon
+assert ".mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))" in horizon
 assert ".mask(RadialGradient" not in horizon
 assert "GPSHorizonSymmetry.corners(width: w, height: h)" in horizon
 

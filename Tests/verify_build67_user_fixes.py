@@ -5,7 +5,7 @@ root = Path(__file__).resolve().parents[1]
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 86;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 87;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -16,7 +16,7 @@ gps_horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split
 home_horizon = cockpit.split("private struct ContinuousHorizonLine: View {", 1)[1].split(
     "// Disegniamo il pittogramma", 1
 )[0]
-assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in gps_horizon
+assert ".mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))" in gps_horizon
 assert ".mask(RadialGradient(stops:" not in gps_horizon
 assert ".mask(RadialGradient(stops:" in home_horizon
 

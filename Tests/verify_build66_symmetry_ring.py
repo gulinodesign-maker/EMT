@@ -7,13 +7,13 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 86;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 87;") == 2
 symmetry = cockpit.split("private enum GPSHorizonSymmetry {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
     "private struct GPSHeader: View {", 1)[0]
 ring = cockpit.split("private struct GPSMetalInnerRing: View {", 1)[1].split(
-    "private struct GPSGaugeHalo: View {", 1)[0]
+    "// Build 87: corona LED tachimetro GPS rimossa", 1)[0]
 dashboard = cockpit.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "// Pulsante dedicato per azzerare trip", 1)[0]
 
@@ -28,7 +28,7 @@ assert "corners.leftKnee" not in horizon and "corners.leftContact" not in horizo
 assert "let line = right" in horizon and "let metalLine = line.applying(" in horizon
 assert "corners.rightKnee" in horizon and "corners.rightContact" in horizon
 assert "corners: [1], radius: radius" in horizon
-assert "visibleOutsideRing.fill(style: FillStyle(eoFill: true))" in horizon
+assert "visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true))" in horizon
 assert "GPSMapTopContourClip()" in cockpit
 
 # Metal ring concentric with the orange GPS halo and physically inside it.
@@ -43,8 +43,8 @@ assert "location: 0.80" in ring
 assert "accessibilityHidden(true)" in ring
 assert "GPSMetalInnerRing()" in dashboard
 assert ".zIndex(26)" in dashboard
-assert "GPSGaugeHalo(theme: theme)" in dashboard
-assert ".zIndex(27)" in dashboard
+assert "GPSGaugeHalo(theme: theme)" not in dashboard
+assert ".zIndex(27)" not in dashboard
 assert ".position(x: dialCenterX, y: h * 0.494)" in dashboard
 
 # Temperature shifts left when a mirrored bend reduces available space.
