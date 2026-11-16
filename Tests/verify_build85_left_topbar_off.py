@@ -24,7 +24,7 @@ assert "let left = CockpitContourGeometry.roundedPath" not in top
 assert "metalLine.stroke(GPSMetalContourStyle.gradient(for: colorScheme)" in top
 # Only the right-side shape feeds all four orange/white LED strokes.
 assert "let line = Path { path in" not in top
-assert top.count("line.stroke(") == 1  # Solo metalLine.stroke contiene il suffisso
+assert top.count("line.stroke(") == 0  # Nessuna traccia LED sul profilo
 assert "line.stroke(theme.accent" not in top
 assert ".mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))" in top
 assert "GPSGaugeHalo(theme: theme)" not in code
