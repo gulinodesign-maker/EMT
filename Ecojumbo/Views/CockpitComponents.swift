@@ -93,7 +93,9 @@ private struct EcoOutsideTemperature: View {
                 .minimumScaleFactor(0.68)
                 .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
         }
-        .font(.system(size: 15, weight: .semibold))
+        // In cockpit GPS 30 pt (2× rispetto a 15 pt del vecchio label).
+        // Il termometro delle altre schermate resta invariato.
+        .font(.system(size: plain ? 30 : 15, weight: .semibold))
         .padding(.horizontal, plain ? 0 : 5)
         .padding(.vertical, plain ? 0 : 3)
         .background {
@@ -1445,14 +1447,15 @@ private enum GPSContourStroke {
     static func width(height h: CGFloat) -> CGFloat { max(1.4, h * 0.003) }
 }
 
-// Build 87: un'unica barra GPS, 9 tacche azzurre (30%) e 21 rosse (70%).
+// Build 102: 10 tacche totali, 3 azzurre rigenerazione e 7 rosse
+// erogazione (30%/70%): più strette, più alte e centrate nel ponte.
 // I watt JK validi determinano le sole tacche accese; mai dati simulati.
 private struct GPSPowerHorizontalGauge: View {
     let d: CGFloat
     let powerWatts: Double?
     let bridgeMaxWidth: CGFloat
-    private let regenTacks = 9
-    private let dischargeTacks = 21
+    private let regenTacks = 3
+    private let dischargeTacks = 7
     private var normalizedPower: Double? {
         guard let powerWatts, powerWatts.isFinite else { return nil }
         return max(-1.0, min(1.0, powerWatts / 13_000.0))
@@ -1461,9 +1464,12 @@ private struct GPSPowerHorizontalGauge: View {
         let regenFraction = normalizedPower.map { $0 < 0 ? abs($0) : 0 } ?? 0
         let dischargeFraction = normalizedPower.map { $0 > 0 ? $0 : 0 } ?? 0
         GeometryReader { geo in
-            let gap = max(1.0, d * 0.0021)
-            let tickWidth = max(1, (geo.size.width - CGFloat(regenTacks + dischargeTacks - 1) * gap)
-                                    / CGFloat(regenTacks + dischargeTacks))
+            // Dieci segmenti stretti distribuiti nell'area utile.
+            // Lo spazio aumenta tra le tacche, non il loro spessore.
+            let count = regenTacks + dischargeTacks
+            let tickWidth = min(max(2, d * 0.018), geo.size.width / CGFloat(count))
+            let gap = max(0, (geo.size.width - CGFloat(count) * tickWidth)
+                                / CGFloat(count - 1))
             HStack(spacing: gap) {
                 ForEach(0..<(regenTacks + dischargeTacks), id: \.self) { index in
                     let isRegen = index < regenTacks
@@ -1478,11 +1484,13 @@ private struct GPSPowerHorizontalGauge: View {
                         .frame(width: tickWidth, height: geo.size.height)
                 }
             }
+            .frame(width: geo.size.width, height: geo.size.height,
+                   alignment: .center)
         }
-        // Due volte lo spessore e fino a due volte la larghezza della
-        // barra 99; il piede più stretto del ponte limita l'estensione.
-        .frame(width: min(d * 0.78, max(1, bridgeMaxWidth)),
-               height: 2 * max(5, d * 0.014))
+        // Dieci tacche ALTE (circa 1.5× la barra 101) e sottili; la
+        // larghezza massima è sempre quella calcolata dai piedi del ponte.
+        .frame(width: min(d * 0.54, max(1, bridgeMaxWidth)),
+               height: max(16, d * 0.045))
         .animation(.easeOut(duration: 0.30), value: normalizedPower)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Potenza: 30 percento recupero azzurro, 70 percento erogazione rossa")
@@ -2008,15 +2016,9 @@ private struct GPSTripResetControl: View {
     var body: some View {
         GeometryReader { geo in
             let side = min(geo.size.width, geo.size.height)
-            VStack(spacing: max(1, side * 0.014)) {
-                Image(systemName: "arrow.counterclockwise")
-                    .font(.system(size: side * 0.35, weight: .semibold))
-                    .symbolRenderingMode(.monochrome)
-                Text("RESET")
-                    .font(.system(size: max(7, side * 0.13), weight: .bold,
-                                  design: .rounded))
-                    .tracking(0.2)
-            }
+            Image(systemName: "arrow.uturn.backward.circle.fill")
+                .font(.system(size: side * 0.48, weight: .medium))
+                .symbolRenderingMode(.monochrome)
             .foregroundStyle(colorScheme == .light
                              ? Color(white: 0.20) : .white.opacity(0.93))
             .frame(width: side, height: side)
@@ -2442,14 +2444,17 @@ struct EcoCockpitThemeMiniature: View {
     }
 
     private func miniaturePowerBar(d: CGFloat, bridgeMaxWidth: CGFloat) -> some View {
-        HStack(spacing: max(0.7, d * 0.0021)) {
-            ForEach(0..<30, id: \.self) { i in
-                RoundedRectangle(cornerRadius: 1)
-                    .fill((i < 9 ? tone(9) : tone(8)).opacity(0.28))
+        let width = min(d * 0.54, max(1, bridgeMaxWidth))
+        let tickWidth = min(max(2, d * 0.018), width / 10)
+        let gap = max(0, (width - tickWidth * 10) / 9)
+        return HStack(spacing: gap) {
+            ForEach(0..<10, id: \.self) { i in
+                RoundedRectangle(cornerRadius: max(0.6, d * 0.0013))
+                    .fill((i < 3 ? tone(9) : tone(8)).opacity(0.28))
+                    .frame(width: tickWidth)
             }
         }
-        .frame(width: min(d * 0.78, max(1, bridgeMaxWidth)),
-               height: 2 * max(3, d * 0.014))
+        .frame(width: width, height: max(16, d * 0.045))
     }
 
     private func miniatureTelemetry(width: CGFloat, height: CGFloat) -> some View {
@@ -2600,14 +2605,15 @@ private struct GPSHeader: View {
             HStack(spacing: max(7, h * 0.20)) {
                 // Logo sopra, temperatura reale sotto, SENZA pill.
                 // Il testo resta a sinistra dell'anello del tachimetro.
-                VStack(spacing: 1) {
+                VStack(spacing: h * 0.015) {
                     Image("EcojumboMark")
                         .resizable().scaledToFit()
-                        .frame(width: h * 0.75, height: h * 0.54)
+                        .frame(width: h * 0.75, height: h * 0.49)
                     EcoOutsideTemperature(now: now, plain: true)
-                        .frame(width: h * 0.86, height: h * 0.20)
+                        .frame(width: h * 1.05, height: h * 0.34)
+                        .offset(y: h * 0.09)
                 }
-                .frame(width: h * 0.90, height: h * 0.88)
+                .frame(width: h * 1.08, height: h * 0.94)
                 Rectangle().fill(colorScheme == .light
                                  ? Color.black.opacity(0.33) : .white.opacity(0.55))
                     .frame(width: 1, height: h * 0.40)
