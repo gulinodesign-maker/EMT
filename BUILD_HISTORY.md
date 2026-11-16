@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43855916659:ATTEMPT:1 -->
+### 2026-11-16T11:13:59Z — CI #274 · build-91-top-bottom-fades · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43855916659](https://github.com/gulinodesign-maker/EMT/actions/runs/43855916659); avvio 2026-11-16T11:13:59Z UTC; aggiornamento finale 2026-11-16T11:16:28Z UTC; registrazione 2026-11-16T11:16:39+00:00 UTC; evento pull_request.
+- **Commit:** [a6987611e403](https://github.com/gulinodesign-maker/EMT/commit/a6987611e4036f8945ac8fb0236b55f39aeb8e2b); versione **1.0**; build **91**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build90_exterior_layer.py.
+
 <!-- EMT_RUN:43855751311:ATTEMPT:1 -->
 ### 2026-11-16T11:12:54Z — CI #273 · build-91-top-bottom-fades · tentativo 1
 
