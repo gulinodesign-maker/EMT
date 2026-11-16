@@ -1027,11 +1027,14 @@ private struct EcoThemeEditorView: View {
     }
 }
 
+// Build 92 — venti colori base; il cursore schiarisce o scurisce
+// SOLO il colore selezionato, senza modificare gli altri ruoli del tema.
 private struct EcoThemeColorPicker: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedHex: String
-    @State private var pickerColor: Color
-    @State private var filter = 0
+    @State private var referenceHex: String
+    @State private var shadeLevel: Double = 0.50
+    @State private var selectedBaseIndex: Int?
 
     let title: String
     let onConfirm: (String) -> Void
@@ -1040,50 +1043,48 @@ private struct EcoThemeColorPicker: View {
         self.title = title
         self.onConfirm = onConfirm
         _selectedHex = State(initialValue: initialHex)
-        _pickerColor = State(initialValue: Color(themeHex: initialHex))
+        _referenceHex = State(initialValue: initialHex)
+        _selectedBaseIndex = State(initialValue: Self.baseColors.firstIndex(of: initialHex.uppercased()))
     }
 
-    // Righe per tonalità, sei gradazioni per riga, come nel selettore di riferimento.
-    private static let spectrum: [String] = {
-        let hues: [CGFloat] = [0, 0.055, 0.12, 0.175, 0.27, 0.35,
-                              0.47, 0.54, 0.61, 0.70, 0.77, 0.89]
-        return hues.flatMap { hue in
-            (0..<6).map { step in
-                EcoThemePalette.colorHex(UIColor(
-                    hue: hue, saturation: [0.07, 0.20, 0.38, 0.60, 0.80, 0.98][step],
-                    brightness: [1.0, 1.0, 1.0, 0.99, 0.91, 0.72][step],
-                    alpha: 1
-                ))
-            }
-        }
-    }()
-    private static let neutrals: [String] =
-        ["#FFFFFF", "#F2F2F2", "#D9D9D9", "#AAAAAA", "#555555", "#000000"]
+    // Esattamente 20 campioni fissi, non 72 gradazioni + filtri.
+    // Sono colori di partenza: la luminosità fine si regola sotto.
+    private static let baseColors: [String] = [
+        "#E53935", "#F4511E", "#FF7043", "#FB8C00", "#FBC02D",
+        "#C0CA33", "#7CB342", "#43A047", "#00897B", "#00ACC1",
+        "#039BE5", "#1E88E5", "#3949AB", "#5E35B1", "#8E24AA",
+        "#D81B60", "#F06292", "#795548", "#78909C", "#E0E0E0"
+    ]
 
-    private var displayedColors: [String] {
-        switch filter {
-        case 1: Self.spectrum.filter { hex in
-            let color = UIColor(Color(themeHex: hex))
-            var h: CGFloat = 0, saturation: CGFloat = 0, brightness: CGFloat = 0, alpha: CGFloat = 0
-            return color.getHue(&h, saturation: &saturation, brightness: &brightness, alpha: &alpha)
-                && brightness > 0.92
+    // 0 = nero, 0.5 = colore di partenza, 1 = bianco.
+    // Interpolazione RGB continua: conserva il colore originale dello slot
+    // finché non si muove il cursore o non si sceglie una nuova base.
+    private static func shade(baseHex: String, level: Double) -> String {
+        let base = UIColor(Color(themeHex: baseHex))
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+        guard base.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else {
+            return baseHex
         }
-        case 2: Self.spectrum.filter { hex in
-            let color = UIColor(Color(themeHex: hex))
-            var h: CGFloat = 0, s: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
-            return color.getHue(&h, saturation: &s, brightness: &b, alpha: &a) && s > 0.75
+        let progress = CGFloat(max(0, min(1, level)))
+        func shift(_ channel: CGFloat) -> CGFloat {
+            if progress <= 0.5 {
+                return channel * (progress * 2)
+            }
+            return channel + (1 - channel) * ((progress - 0.5) * 2)
         }
-        case 3: Self.neutrals
-        default: Self.spectrum + Self.neutrals
-        }
+        return EcoThemePalette.colorHex(UIColor(
+            red: shift(red), green: shift(green), blue: shift(blue), alpha: 1))
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 18) {
+                VStack(alignment: .leading, spacing: 18) {
                     HStack(spacing: 10) {
-                        Text("Tag colore").font(.title3.bold())
+                        Text("Colore del tema").font(.title3.bold())
                         Spacer()
                         Button {
                             onConfirm(selectedHex)
@@ -1107,46 +1108,69 @@ private struct EcoThemeColorPicker: View {
                         }
                         .accessibilityLabel("Annulla modifica")
                     }
-                    HStack(spacing: 8) {
-                        filterButton(0, symbol: "square.fill", title: "Tutti")
-                        filterButton(1, symbol: "square.on.square", title: "Chiari")
-                        filterButton(2, symbol: "a", title: "Accesi")
-                        filterButton(3, symbol: "circle.lefthalf.filled", title: "Grigi")
-                    }
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 7), count: 6),
-                              spacing: 8) {
-                        ForEach(displayedColors, id: \.self) { hex in
+
+                    Text("Scegli uno dei 20 colori base")
+                        .font(.subheadline.weight(.semibold))
+                    LazyVGrid(columns: Array(
+                        repeating: GridItem(.flexible(), spacing: 9), count: 5),
+                              spacing: 9) {
+                        ForEach(Self.baseColors.indices, id: \.self) { index in
+                            let hex = Self.baseColors[index]
                             Button {
+                                selectedBaseIndex = index
+                                referenceHex = hex
+                                shadeLevel = 0.50
                                 selectedHex = hex
-                                pickerColor = Color(themeHex: hex)
                             } label: {
                                 RoundedRectangle(cornerRadius: 9)
                                     .fill(Color(themeHex: hex))
-                                    .frame(height: 41)
+                                    .frame(height: 46)
                                     .overlay(RoundedRectangle(cornerRadius: 9)
-                                        .strokeBorder(Color.black.opacity(0.13), lineWidth: 0.8))
+                                        .strokeBorder(Color.black.opacity(0.16), lineWidth: 0.8))
                                     .overlay(RoundedRectangle(cornerRadius: 11)
-                                        .strokeBorder(selectedHex == hex ? Color.blue : .clear,
+                                        .strokeBorder(selectedBaseIndex == index ? Color.blue : .clear,
                                                       lineWidth: 3)
                                         .padding(-3))
                             }
                             .buttonStyle(.plain)
-                            .accessibilityLabel("Colore \(hex)")
-                            .accessibilityAddTraits(selectedHex == hex ? .isSelected : [])
+                            .accessibilityLabel("Colore base \(index + 1): \(hex)")
+                            .accessibilityAddTraits(selectedBaseIndex == index ? .isSelected : [])
                         }
                     }
-                    HStack(spacing: 12) {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(themeHex: selectedHex))
-                            .frame(width: 40, height: 40)
-                        Text("\(title): \(selectedHex)").font(.subheadline.monospaced())
-                        Spacer()
-                        ColorPicker("Altro colore", selection: $pickerColor, supportsOpacity: false)
-                            .labelsHidden()
-                            .onChange(of: pickerColor) { _, newColor in
-                                selectedHex = EcoThemePalette.colorHex(UIColor(newColor))
+
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Regola il colore selezionato")
+                            .font(.subheadline.weight(.semibold))
+                        HStack(spacing: 10) {
+                            Text("Scuro").font(.caption.weight(.medium))
+                            Slider(value: $shadeLevel, in: 0...1, step: 0.01)
+                                .tint(Color(themeHex: selectedHex))
+                                .onChange(of: shadeLevel) { _, level in
+                                    selectedHex = Self.shade(baseHex: referenceHex, level: level)
+                                }
+                                .accessibilityLabel("Da scuro a chiaro")
+                            Text("Chiaro").font(.caption.weight(.medium))
+                        }
+                        HStack(spacing: 12) {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color(themeHex: selectedHex))
+                                .frame(width: 58, height: 44)
+                                .overlay(RoundedRectangle(cornerRadius: 8)
+                                    .strokeBorder(.secondary.opacity(0.25), lineWidth: 1))
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(title).font(.subheadline.weight(.semibold))
+                                Text(selectedHex).font(.subheadline.monospaced())
+                                    .foregroundStyle(.secondary)
                             }
+                            Spacer(minLength: 0)
+                        }
+                        Text("La regolazione cambia soltanto questo colore. Premi ✓ per salvarlo oppure × per annullare.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
+                    .padding(14)
+                    .background(Color(uiColor: .secondarySystemBackground),
+                                in: RoundedRectangle(cornerRadius: 12))
                 }
                 .padding(18)
             }
@@ -1154,22 +1178,5 @@ private struct EcoThemeColorPicker: View {
             .navigationBarHidden(true)
         }
         .presentationDragIndicator(.visible)
-    }
-
-    private func filterButton(_ value: Int, symbol: String, title: String) -> some View {
-        Button {
-            filter = value
-        } label: {
-            VStack(spacing: 4) {
-                Image(systemName: symbol).font(.system(size: 19))
-                Text(title).font(.system(size: 10, weight: .medium))
-            }
-            .foregroundStyle(filter == value ? .white : .primary)
-            .frame(maxWidth: .infinity)
-            .frame(height: 56)
-            .background(filter == value ? Color.blue : Color(uiColor: .secondarySystemBackground),
-                        in: RoundedRectangle(cornerRadius: 12))
-        }
-        .buttonStyle(.plain)
     }
 }
