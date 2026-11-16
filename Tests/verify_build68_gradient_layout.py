@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 97;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 98;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Existing 3 slots retain old shades. Both old 8- and 15-colour palettes migrate.
@@ -65,7 +65,7 @@ assert "return dialX + dial * 0.508 + rightInset(width: width)" in geo
 assert "let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)" in home
 assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)" in cockpit
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit
-assert ".frame(width: telemetryDock ? telemetryPanelWidth : nil, alignment: .leading)" in home
+assert ".frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .leading)" in home
 assert "let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)" in home
 for width, height in ((736, 414), (844, 390), (932, 430), (956, 440),
                       (1179, 510), (1536, 706), (1648, 928), (1806, 831)):
