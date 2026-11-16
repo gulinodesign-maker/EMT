@@ -1461,31 +1461,30 @@ private struct GPSPowerHorizontalGauge: View {
         let regenFraction = normalizedPower.map { $0 < 0 ? abs($0) : 0 } ?? 0
         let dischargeFraction = normalizedPower.map { $0 > 0 ? $0 : 0 } ?? 0
         GeometryReader { geo in
-            // Dieci segmenti stretti distribuiti nell'area utile.
-            // Lo spazio aumenta tra le tacche, non il loro spessore.
+            // Dieci QUADRATI esatti, affiancati e senza interstizi.
+            // Il lato è limitato sia dall'altezza sia dai piedi reali
+            // del ponte (bridgeMaxWidth calcolato dal layout).
             let count = regenTacks + dischargeTacks
-            let tickWidth = min(max(2, d * 0.018), geo.size.width / CGFloat(count))
-            let gap = max(0, (geo.size.width - CGFloat(count) * tickWidth)
-                                / CGFloat(count - 1))
-            HStack(spacing: gap) {
+            let tickSide = min(geo.size.width / CGFloat(count), geo.size.height)
+            HStack(spacing: 0) {
                 ForEach(0..<(regenTacks + dischargeTacks), id: \.self) { index in
                     let isRegen = index < regenTacks
                     let threshold = isRegen
                         ? Double(regenTacks - index) / Double(regenTacks)
                         : Double(index - regenTacks + 1) / Double(dischargeTacks)
                     let active = isRegen ? regenFraction >= threshold : dischargeFraction >= threshold
-                    RoundedRectangle(cornerRadius: max(0.6, d * 0.0013))
+                    Rectangle()
                         .fill(isRegen
                               ? CockpitTheme.regenAccent.opacity(active ? 1.0 : 0.26)
                               : CockpitTheme.dischargeAccent.opacity(active ? 1.0 : 0.26))
-                        .frame(width: tickWidth, height: geo.size.height)
+                        .frame(width: tickSide, height: tickSide)
                 }
             }
             .frame(width: geo.size.width, height: geo.size.height,
                    alignment: .center)
         }
-        // Dieci tacche ALTE (circa 1.5× la barra 101) e sottili; la
-        // larghezza massima è sempre quella calcolata dai piedi del ponte.
+        // Le dieci tacche rimangono interamente dentro il ponte,
+        // allineate una all'altra con spaziatura rigorosamente zero.
         .frame(width: min(d * 0.54, max(1, bridgeMaxWidth)),
                height: max(16, d * 0.045))
         .animation(.easeOut(duration: 0.30), value: normalizedPower)
@@ -2445,16 +2444,16 @@ struct EcoCockpitThemeMiniature: View {
 
     private func miniaturePowerBar(d: CGFloat, bridgeMaxWidth: CGFloat) -> some View {
         let width = min(d * 0.54, max(1, bridgeMaxWidth))
-        let tickWidth = min(max(2, d * 0.018), width / 10)
-        let gap = max(0, (width - tickWidth * 10) / 9)
-        return HStack(spacing: gap) {
+        let height = max(16, d * 0.045)
+        let tickSide = min(width / 10, height)
+        return HStack(spacing: 0) {
             ForEach(0..<10, id: \.self) { i in
-                RoundedRectangle(cornerRadius: max(0.6, d * 0.0013))
+                Rectangle()
                     .fill((i < 3 ? tone(9) : tone(8)).opacity(0.28))
-                    .frame(width: tickWidth)
+                    .frame(width: tickSide, height: tickSide)
             }
         }
-        .frame(width: width, height: max(16, d * 0.045))
+        .frame(width: width, height: height)
     }
 
     private func miniatureTelemetry(width: CGFloat, height: CGFloat) -> some View {
