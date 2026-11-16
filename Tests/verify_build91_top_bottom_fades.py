@@ -35,8 +35,8 @@ assert layer.count("], startPoint: .top, endPoint: .bottom)") == 2
 for location in ("location: 0)", "location: 0.20)", "location: 0.45)",
                  "location: 0.55)", "location: 0.80)", "location: 1)"):
     assert location in layer
-assert "theme.topBarHighFadeIntensity * 0.28" in layer
-assert "theme.topBarLowFadeIntensity * 0.28" in layer
+assert "highStrength * 0.28" in layer
+assert "lowStrength * 0.28" in layer
 
 # Both masks are OUTSIDE the ZStack and AFTER all four fills.
 assert layer.index("topBarLowFadeIntensity") < layer.index(
@@ -58,12 +58,12 @@ assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
 assert '"Layer top bar · sfumatura alta"' in tabs
 assert '"Layer top bar · sfumatura bassa"' in tabs
 assert '("Layer top bar", [15, 16, 19, 20, 2])' in tabs
-assert "Slider(value: $draft.topFadeIntensity, in: 0...1, step: 0.05)" in tabs
-assert "Slider(value: $draft.bottomFadeIntensity, in: 0...1, step: 0.05)" in tabs
-assert "Color(themeHex: draft.colors[19])" in tabs
-assert "Color(themeHex: draft.colors[20])" in tabs
+assert "Slider(value: topFadeBinding, in: 0...1, step: 0.05)" in tabs
+assert "Slider(value: bottomFadeBinding, in: 0...1, step: 0.05)" in tabs
+assert "Color(themeHex: roleHex(19))" in tabs
+assert "Color(themeHex: roleHex(20))" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
-assert "if selectedGroup == 5 {" in tabs
+assert "if selectedGroup == 4 {" in tabs
 
 # Old custom slots of every previously supported size upgrade to 21 colors
 # without overwriting original indexes 0..18.
