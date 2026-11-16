@@ -8,7 +8,7 @@ theme = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 proj = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert proj.count("CURRENT_PROJECT_VERSION = 89;") == 2
+assert proj.count("CURRENT_PROJECT_VERSION = 90;") == 2
 assert "Build 89" in state
 footprint = src.split("private struct GPSUpperLayerFootprint: Shape {", 1)[1].split(
     "private struct GPSUpperGradientLayer: View {", 1)[0]
@@ -33,7 +33,9 @@ assert "Darwin.atan2(" in footprint
 assert "for step in 1...96" in footprint
 assert "left.addLine(to: CGPoint(x: leftFoot.x - 3, y: h))" in footprint
 assert "left.addLine(to: CGPoint(x: 0, y: h))" in footprint
-assert "left.addEllipse(in: CGRect(" in footprint
+assert "left.addEllipse(in: CGRect(" not in footprint
+assert "GPSDialExteriorMask()" in layer
+assert "GPSBridgeExteriorMask()" in layer
 assert "circleRadius = d * 0.965 / 2" in footprint
 assert "+ GPSMetalContourStyle.strokeWidth(for: d) / 2 + 3" in footprint
 
@@ -41,6 +43,8 @@ assert "+ GPSMetalContourStyle.strokeWidth(for: d) / 2 + 3" in footprint
 assert "offset(y:" not in layer
 assert ".mask(GPSBridgeUpperMask())" not in layer
 assert ".mask(GPSUpperLayerFootprint()" in layer
+assert ".mask(GPSDialExteriorMask().fill(style: FillStyle(eoFill: true)))" in layer
+assert ".mask(GPSBridgeExteriorMask().fill(style: FillStyle(eoFill: true)))" in layer
 assert "FillStyle(eoFill: true)" in layer
 assert "theme.topBarUnderGlow" in layer
 assert "theme.topBarGradientStart" in layer
