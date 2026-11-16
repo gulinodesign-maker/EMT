@@ -16,7 +16,7 @@ project = read("Ecojumbo.xcodeproj/project.pbxproj")
 # L'area musicale sostituisce solo le letture a destra, non tachimetro o mappa.
 assert "let musicEnabled: Bool" in cockpit
 assert "if musicEnabled {" in cockpit
-assert "EcoMusicCockpitPanel(theme: theme)" in cockpit
+assert "EcoMusicCockpitPanel(searchVisible: $musicSearchVisible, theme: theme)" in cockpit
 assert "} else if mapEnabled {" in cockpit
 assert "GPSCockpitMap(theme: theme)" in cockpit
 assert "GPSExpandedReadings(theme: theme, now: now)" in cockpit
@@ -25,11 +25,11 @@ assert "GPSCockpitPowerReading(d:" in cockpit
 assert "GPSHeader(theme: theme, now: now," in cockpit
 
 # Sesto pulsante sempre nella home, separato dai comandi navigazione.
-assert 'gpsButton("music.note", active: musicEnabled,' in root_view
+assert 'gpsButton("music.note", active: false,' in root_view
 assert 'case "music.note": "Musica"' in root_view
-assert "musicEnabled.toggle()" in root_view
-assert "if musicEnabled { mapEnabled = false }" in root_view
-assert "if musicEnabled {\n                                musicEnabled = false\n                                mapEnabled = true" in root_view
+assert "musicEnabled = true" in root_view
+assert "Non cancellare mapEnabled" in root_view
+assert "mapEnabled = false" in root_view
 assert "telemetryPanelWidth - 6 * gpsSide" in root_view
 assert "GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled," in root_view
 
@@ -50,7 +50,7 @@ for command in ["applePlayer.pause()", "applePlayer.play()", "applePlayer.skipTo
 for endpoint in ["/me/player", "/me/player/next", "/me/player/previous", "/me/player/pause", "/me/player/play"]:
     assert endpoint in manager
 assert "AsyncImage(url: url)" in panel
-assert "Image(uiImage: cover)" in panel
+assert "Image(uiImage: artwork)" in panel
 assert "Nessun brano" in manager
 
 # Spotify: PKCE S256, state vincolato, Keychain e mai Client Secret.
@@ -63,7 +63,7 @@ assert "client_secret" not in manager.lower()
 assert "EcoMusicManager.shared.handleSpotifyCallback(url)" in app
 assert "<key>NSAppleMusicUsageDescription</key>" in plist
 assert "<string>ecojumbo-spotify</string>" in plist
-assert project.count("CURRENT_PROJECT_VERSION = 97;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 98;") == 2
 for filename in ("EcoMusicManager.swift", "EcoMusicCockpitPanel.swift"):
     assert project.count(f"{filename} in Sources") >= 2
 
