@@ -6,7 +6,7 @@ root=Path(__file__).resolve().parents[1]
 tabs=(root/"Ecojumbo/Views/CockpitTabs.swift").read_text()
 c=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 103;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 104;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Deliberately remove ONLY the extra second ring. The original luminous
@@ -32,16 +32,16 @@ assert '"Secondo cerchio esterno · spessore doppio"' not in tabs
 assert '"Barre telemetria e potenza"' not in tabs
 groups=tabs.split("static let groups:",1)[1].split("static let colorCount",1)[0]
 for text in ('("Aspetto generale", [0])',
-             '("Anelli e numeri del tachimetro", [1, 3, 21, 11, 10, 14, 18, 17, 8, 9, 7])',
+             '("Anelli e numeri del tachimetro", [1, 3, 21, 11, 10, 14, 18, 17, 8, 9])',
              '("Barre telemetria", [4, 5, 6])',
              '("Navigatore", [12, 13])',
-             '("Layer top bar", [15, 16, 19, 20, 2])'):
+             '("Sfumature · luce e ombra", [15, 16, 19, 20, 2])'):
     assert text in groups
 indices=[int(v) for v in re.findall(r"\d+", groups)]
-assert sorted(indices)==list(range(22)),indices
+assert sorted(indices)==[i for i in range(22) if i != 7],indices
 assert '"Barre di potenza · energia in uscita"' in tabs
 assert '"Barre di potenza · energia in entrata"' in tabs
-assert 'colorRoleSection("Barre di potenza", roles: [8, 9, 7])' in tabs
+assert 'colorRoleSection("Barre di potenza", roles: [8, 9])' in tabs
 assert 'colorRoleSection("Anelli e luci", roles: [1, 3, 21])' in tabs
 assert 'colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])' in tabs
 labels=tabs.split("static let labels = [",1)[1].split("]",1)[0]

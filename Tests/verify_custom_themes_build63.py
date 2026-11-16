@@ -5,7 +5,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 103;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 104;") == 2
 assert "struct EcoThemePalette: Codable, Equatable" in tabs
 assert 'static let storagePrefix = "ecojumbo.customTheme."' in tabs
 assert "let data = try? JSONEncoder().encode(palette)" in tabs
@@ -46,7 +46,9 @@ for declaration in [
 ]:
     assert declaration in cockpit
 assert "EcoThemePalette.load(slot: $0)" in cockpit
-for index in range(4, 8):
+# The historic 7th kW role is hidden: live recovery digits and blocks
+# intentionally share saved colour role 9; 4–6 remain the BMS bars.
+for index in (4, 5, 6, 9):
     assert f"EcoThemePalette.active?.colors[{index}]" in cockpit
 assert ": theme.backdrop" in cockpit
 assert ".fill(theme.backdrop)" in cockpit
