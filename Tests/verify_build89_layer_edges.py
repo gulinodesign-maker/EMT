@@ -8,7 +8,7 @@ theme = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 proj = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert proj.count("CURRENT_PROJECT_VERSION = 103;") == 2
+assert proj.count("CURRENT_PROJECT_VERSION = 104;") == 2
 assert "Build 89" in state
 footprint = src.split("private struct GPSUpperLayerFootprint: Shape {", 1)[1].split(
     "private struct GPSUpperGradientLayer: View {", 1)[0]
@@ -56,7 +56,7 @@ assert "GPSMetalInnerRing()" in gps
 assert ".mask(GPSBridgeUpperMask())" in gps  # dial mask retained
 
 # Saved theme slots and other cockpit features still exist.
-assert '("Layer top bar", [15, 16, 19, 20, 2])' in theme
+assert '("Sfumature · luce e ombra", [15, 16, 19, 20, 2])' in theme
 assert "powerWatts: live.map { -$0.power }" in gps
 assert "GPSPowerHorizontalGauge(d: dialSize," in gps
 
