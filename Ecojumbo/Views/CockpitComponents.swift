@@ -1758,8 +1758,7 @@ struct GPSCockpitDashboard: View {
             let h = geo.size.height
             let dialSize = GPSDialLayout.size(width: w, height: h)
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
-            // La temperatura è ora dentro GPSHeader, senza overlay a sinistra.
-            // Pulsante sotto/sinistra del quadrante: fuori dalla scala e dal ponte kW.
+            // La temperatura resta nel GPSHeader; nessun comando Siri aggiuntivo.
             let resetSide = max(42, min(58, h * 0.08))
             let resetX = max(resetSide / 2 + max(10, w * 0.008),
                              dialCenterX - dialSize * 0.56)
@@ -1915,12 +1914,6 @@ struct GPSCockpitDashboard: View {
                     .frame(width: w, height: h * 0.125)
                     .position(x: w * 0.5, y: h * 0.0625)
                     .zIndex(40)
-                // Siri e RESET hanno la stessa ascissa, speculari
-                // rispetto all'asse orizzontale del display.
-                GPSSiriControl(theme: theme)
-                    .frame(width: resetSide, height: resetSide)
-                    .position(x: resetX, y: h - resetY)
-                    .zIndex(41)
             }
             .frame(width: w, height: h)
             .clipped()
@@ -1937,38 +1930,6 @@ struct GPSCockpitDashboard: View {
             ? "Cruscotto Ecojumbo con lettore musicale"
             : (mapEnabled ? "Cruscotto Ecojumbo con mappa e percorso GPS"
                           : "Cruscotto Ecojumbo con letture della batteria"))
-    }
-}
-
-// iOS non espone una API pubblica per aprire l'interfaccia di Siri
-// da un pulsante di un'app. La posizione richiesta è attiva e spiega
-// il comando vocale hands-free senza aprire altre applicazioni.
-@MainActor
-private struct GPSSiriControl: View {
-    let theme: CockpitTheme
-    @State private var showInstructions = false
-
-    var body: some View {
-        Button { showInstructions = true } label: {
-            VStack(spacing: 2) {
-                Image(systemName: "waveform")
-                    .font(.system(size: 23, weight: .semibold))
-                Text("SIRI")
-                    .font(.system(size: 10, weight: .bold, design: .rounded))
-                    .tracking(0.8)
-            }
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.black.opacity(0.76), in: Circle())
-            .overlay(Circle().stroke(theme.accent.opacity(0.90), lineWidth: 1.5))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Come usare Siri senza uscire da EMT")
-        .alert("Siri sul tuo iPhone", isPresented: $showInstructions) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text("Pronuncia “Siri” o “Ehi Siri”, oppure tieni premuto il tasto laterale. iOS non consente a un'app di avviare direttamente Siri tramite un pulsante.")
-        }
     }
 }
 
@@ -2713,19 +2674,31 @@ private struct GPSMapTopContourClip: Shape {
         let cockpit = GPSMapContourSpace.cockpitSize(for: rect)
         let w = cockpit.width
         let h = cockpit.height
-        // Inset di sicurezza sotto la linea luminosa, in punti reali.
-        let clearance = max(2, h * 0.003)
+        // Build 99: il riferimento non è il neon originale ma il bordo
+        // INFERIORE dello stroke metallico, spostato verso il basso.
+        // Mappa e cover condividono questa forma: nessun pixel oltrepassa
+        // il profilo grigio visibile (anche con altri diametri iPhone).
+        let d = GPSDialLayout.size(width: w, height: h)
+        let metalBottom = GPSMetalContourStyle.inset(for: d)
+            + GPSMetalContourStyle.strokeWidth(for: d) / 2
+        let clearance = max(1.5, h * 0.002)
+        let lowerEdge = metalBottom + clearance
+        let corners = GPSHorizonSymmetry.corners(width: w, height: h)
         let corner = CockpitContourGeometry.cornerRadius(in: cockpit)
         let start = GPSMapContourSpace.local(
-            CGPoint(x: w * 0.45, y: h * 0.244 + clearance), cockpit: cockpit)
+            CGPoint(x: corners.rightContact.x, y: corners.rightContact.y + lowerEdge),
+            cockpit: cockpit)
         let elbow = GPSMapContourSpace.local(
-            CGPoint(x: w * 0.54, y: h * 0.099 + clearance), cockpit: cockpit)
+            CGPoint(x: corners.rightKnee.x, y: corners.rightKnee.y + lowerEdge),
+            cockpit: cockpit)
+        let rightEnd = GPSMapContourSpace.local(
+            CGPoint(x: w, y: h * 0.099 + lowerEdge), cockpit: cockpit)
 
         var path = Path()
         path.move(to: CGPoint(x: 0, y: rect.height))
         path.addLine(to: CGPoint(x: rect.width, y: rect.height))
-        path.addLine(to: CGPoint(x: rect.width, y: elbow.y))
-        // Stesso addArc tangente usato dalla linea superiore del cockpit.
+        path.addLine(to: rightEnd)
+        // La stessa curva tangente dello stroke di GPSHorizonLine.
         path.addArc(tangent1End: elbow, tangent2End: start, radius: corner)
         path.addLine(to: start)
         path.addLine(to: CGPoint(x: 0, y: start.y))
@@ -2932,13 +2905,16 @@ private struct GPSCockpitMap: View {
                     Spacer(minLength: 0)
                 }
                 // Il bordo superiore si allinea alla top bar della Home GPS.
-                .padding(.top, h * 0.0565)
+                .padding(.top, h * 0.0565 + max(8, h * 0.014))
                 .frame(width: w, height: h, alignment: .topLeading)
 
                 // Build 43: nessuna card BMS sopra la cartografia.
 
             }
             .frame(width: w, height: h)
+            // Ritaglio sul composito MapKit + barra ricerca + messaggi:
+            // la maschera interna MapKit da sola non ritagliava i controlli.
+            .mask(GPSMapTopContourClip())
             // Nessuna clip arrotondata e nessun bordo rettangolare sulla mappa.
             .onAppear {
                 mapViewportSize = geo.size

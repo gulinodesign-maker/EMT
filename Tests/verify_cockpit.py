@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 98;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 99;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -258,7 +258,7 @@ assert 'onLongPressGesture(minimumDuration: 1.3)' in c
 assert 'GPSCompactReadings' not in c
 assert 'GPSCompactReadings(theme: theme)' not in c
 assert 'glassReading(' not in c
-assert '.padding(.top, h * 0.0565)' in c
+assert '.padding(.top, h * 0.0565 + max(8, h * 0.014))' in c
 assert '.padding(.leading, w * 0.285)' in c
 assert 'if reading.title == "Trip parziale"' in c
 assert 'gps.resetTrip()' in c
@@ -477,7 +477,7 @@ assert 'let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)' in c
 assert 'GPSMetalInnerRing()' in c
 assert 'GPSMapContourSpace.local(' in c
 assert 'GPSMapContourSpace.local(' in c
-assert '.padding(.top, h * 0.0565)' in c
+assert '.padding(.top, h * 0.0565 + max(8, h * 0.014))' in c
 # Build 40: estensione della mappa, freccia GPS, contrasto daylight,
 # controlli minimal e avvio Core Location più rapido.
 assert '.frame(width: w * 0.64, height: h * 0.955)' in c

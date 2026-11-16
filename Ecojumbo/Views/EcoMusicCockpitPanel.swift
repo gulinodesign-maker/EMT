@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import MusicKit
+import MediaPlayer
 
 // Catalogo e riproduzione Apple Music restano all'interno di EMT.
 // Nessun brano, album o artista fittizio.
@@ -15,14 +16,16 @@ final class EcoAppleMusicPlayback: ObservableObject {
     @Published private(set) var artworkURL: URL?
     @Published private(set) var isPlaying = false
     @Published private(set) var errorMessage = ""
+    @Published private(set) var authorized = MusicAuthorization.currentStatus == .authorized
 
     private init() {}
 
-    var isAuthorized: Bool { MusicAuthorization.currentStatus == .authorized }
+    var isAuthorized: Bool { authorized }
 
     func requestAuthorization() {
         Task {
             let status = await MusicAuthorization.request()
+            authorized = status == .authorized
             if status != .authorized {
                 errorMessage = "Consenti l'accesso ad Apple Music nelle impostazioni di iOS."
             } else {
@@ -71,6 +74,12 @@ final class EcoAppleMusicPlayback: ObservableObject {
             artworkURL = current.artwork?.url(width: 1100, height: 1100) ?? artworkURL
         }
         isPlaying = player.state.playbackStatus == .playing
+    }
+
+    func surrenderToSystemPlayer() {
+        if hasChosenTrack { player.pause() }
+        hasChosenTrack = false
+        errorMessage = ""
     }
 
     func togglePlayback() {
@@ -127,8 +136,12 @@ struct EcoMusicCockpitPanel: View {
     @Binding var searchVisible: Bool
     @State private var query = ""
     @State private var results: [Song] = []
+    @State private var libraryResults: [MPMediaItem] = []
     @State private var searchError = ""
     @State private var searching = false
+    @State private var catalogTokenUnavailable = false
+    @State private var searchRevision = 0
+    @FocusState private var searchFieldFocused: Bool
     let theme: CockpitTheme
 
     private var provider: EcoMusicProvider {
@@ -179,36 +192,76 @@ struct EcoMusicCockpitPanel: View {
             searchVisible = false
             query = ""
             results.removeAll()
+            libraryResults.removeAll()
+            catalogTokenUnavailable = false
+        }
+        .onChange(of: searchVisible) { _, visible in
+            searchFieldFocused = visible
+        }
+        .onChange(of: apple.authorized) { _, value in
+            if value { searchRevision += 1 }
+        }
+        .onChange(of: music.appleAuthorized) { _, value in
+            if value { searchRevision += 1 }
         }
         .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
             music.refresh()
             apple.refresh()
         }
-        .task(id: searchVisible ? query : "") {
+        .task(id: searchVisible ? "\(query)|\(searchRevision)" : "") {
             guard searchVisible, provider == .apple else {
-                results = []
+                results.removeAll()
+                libraryResults.removeAll()
                 searchError = ""
+                searching = false
                 return
             }
             let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
             guard term.count >= 2 else {
-                results = []
+                results.removeAll()
+                libraryResults.removeAll()
                 searchError = ""
+                searching = false
                 return
             }
             searching = true
+            do { try await Task.sleep(nanoseconds: 320_000_000) }
+            catch { searching = false; return }
+            guard !Task.isCancelled else { return }
+
+            // Ricerca realmente disponibile anche quando Apple non ha ancora
+            // abilitato il developer token per il catalogo MusicKit di EMT.
+            // I risultati locali sono veri MPMediaItem, mai dati di esempio.
+            libraryResults = music.searchLocalLibrary(term)
+            results.removeAll()
+            guard apple.isAuthorized else {
+                searchError = "Per cercare nel catalogo autorizza Apple Music; puoi già cercare nella libreria del tuo iPhone."
+                searching = false
+                return
+            }
+            guard !catalogTokenUnavailable else {
+                searching = false
+                searchError = "Catalogo online non disponibile: abilita MusicKit per it.ecojumbo.battery in Apple Developer → Identifiers → App Services. La ricerca nella libreria locale resta attiva."
+                return
+            }
+
             do {
-                try await Task.sleep(nanoseconds: 320_000_000)
                 let songs = try await apple.search(term)
                 guard !Task.isCancelled else { return }
                 results = songs
-                searchError = songs.isEmpty ? "Nessun risultato trovato." : ""
+                searchError = songs.isEmpty && libraryResults.isEmpty
+                    ? "Nessun brano trovato nel catalogo Apple Music." : ""
             } catch is CancellationError {
                 return
             } catch {
-                if !Task.isCancelled {
-                    results = []
-                    searchError = error.localizedDescription
+                guard !Task.isCancelled else { return }
+                let tokenFailure = (error as? MusicTokenRequestError) == .developerTokenRequestFailed
+                    || error.localizedDescription.localizedCaseInsensitiveContains("developer token")
+                if tokenFailure {
+                    catalogTokenUnavailable = true
+                    searchError = "Catalogo Apple Music non abilitato per EMT. Attiva MusicKit nell'App ID it.ecojumbo.battery su Apple Developer. Nel frattempo puoi cercare e riprodurre i brani presenti nella libreria iPhone."
+                } else {
+                    searchError = "Ricerca nel catalogo non disponibile: \(error.localizedDescription). I brani nella libreria iPhone restano utilizzabili."
                 }
             }
             searching = false
@@ -292,15 +345,21 @@ struct EcoMusicCockpitPanel: View {
         .frame(width: w, height: h)
     }
 
+    // Il campo e i risultati sono interamente interni a EMT.
+    // La ricerca locale funziona anche se MusicKit non riceve il token Apple.
     private func searchLayer(width w: CGFloat, height h: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: max(8, h * 0.018)) {
             HStack {
                 Image(systemName: "magnifyingglass")
-                TextField("Cerca brano o artista", text: $query)
+                TextField("Cerca brano, artista o album", text: $query)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .submitLabel(.search)
+                    .focused($searchFieldFocused)
+                    .onSubmit { searchRevision += 1 }
+                    .accessibilityLabel("Cerca nella musica senza uscire da EMT")
                 Button {
+                    searchFieldFocused = false
                     searchVisible = false
                 } label: {
                     Image(systemName: "xmark.circle.fill")
@@ -311,63 +370,134 @@ struct EcoMusicCockpitPanel: View {
             .foregroundStyle(.white)
             .tint(theme.accent)
             .padding(11)
-            .background(.black.opacity(0.70), in: RoundedRectangle(cornerRadius: 10))
+            .background(.black.opacity(0.76), in: RoundedRectangle(cornerRadius: 10))
 
             if provider != .apple {
                 Text("La ricerca musicale interna è attualmente disponibile con Apple Music.")
                     .foregroundStyle(.white)
                     .font(.footnote)
-            } else if !apple.isAuthorized {
-                Button("Autorizza Apple Music") {
-                    apple.requestAuthorization()
-                }
-                .foregroundStyle(theme.accent)
             } else {
+                if !apple.isAuthorized || !music.appleAuthorized {
+                    Button("Autorizza Apple Music e la libreria") {
+                        apple.requestAuthorization()
+                        music.requestAppleAccess()
+                    }
+                    .buttonStyle(.plain)
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(theme.accent)
+                    .accessibilityLabel("Autorizza l'accesso alla libreria e al catalogo musicale")
+                }
                 if searching {
-                    ProgressView("Ricerca nel catalogo Apple Music…")
+                    ProgressView("Ricerca musicale…")
+                        .font(.footnote)
                         .tint(theme.accent)
                         .foregroundStyle(.white)
                 }
                 if !searchError.isEmpty {
                     Text(searchError)
-                        .font(.footnote)
-                        .foregroundStyle(.white)
+                        .font(.system(size: max(11, h * 0.027)))
+                        .foregroundStyle(.white.opacity(0.91))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if catalogTokenUnavailable {
+                    Button("Riprova catalogo Apple Music") {
+                        catalogTokenUnavailable = false
+                        searchRevision += 1
+                    }
+                    .font(.footnote.weight(.medium))
+                    .foregroundStyle(theme.accent)
+                    .buttonStyle(.plain)
                 }
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 4) {
-                        ForEach(results) { song in
-                            Button {
-                                Task {
-                                    if await apple.play(song) {
+                    LazyVStack(alignment: .leading, spacing: 5) {
+                        if !results.isEmpty {
+                            Text("CATALOGO APPLE MUSIC")
+                                .font(.caption2.weight(.bold))
+                                .tracking(1)
+                                .foregroundStyle(.white.opacity(0.72))
+                            ForEach(results) { song in
+                                Button {
+                                    searchFieldFocused = false
+                                    Task {
+                                        if await apple.play(song) {
+                                            searchVisible = false
+                                        } else {
+                                            searchError = apple.errorMessage
+                                        }
+                                    }
+                                } label: {
+                                    HStack(spacing: 11) {
+                                        AsyncImage(url: song.artwork?.url(width: 100, height: 100)) { image in
+                                            image.resizable().scaledToFill()
+                                        } placeholder: {
+                                            Image(systemName: "music.note").foregroundStyle(theme.accent)
+                                        }
+                                        .frame(width: 43, height: 43).clipped()
+                                        VStack(alignment: .leading, spacing: 3) {
+                                            Text(song.title).font(.subheadline.bold()).lineLimit(1)
+                                            Text(song.artistName).font(.caption).lineLimit(1)
+                                        }
+                                        Spacer(minLength: 0)
+                                        Image(systemName: "play.fill")
+                                    }
+                                    .foregroundStyle(.white)
+                                    .padding(.vertical, 3)
+                                }
+                                .buttonStyle(.plain)
+                                Divider().overlay(.white.opacity(0.12))
+                            }
+                        }
+                        if !libraryResults.isEmpty {
+                            Text("NELLA LIBRERIA IPHONE")
+                                .font(.caption2.weight(.bold))
+                                .tracking(1)
+                                .foregroundStyle(.white.opacity(0.72))
+                                .padding(.top, 5)
+                            ForEach(libraryResults, id: \.persistentID) { item in
+                                Button {
+                                    apple.surrenderToSystemPlayer()
+                                    if music.playLocalLibrary(item) {
+                                        searchFieldFocused = false
                                         searchVisible = false
                                     } else {
-                                        searchError = apple.errorMessage
+                                        searchError = music.message
                                     }
+                                } label: {
+                                    HStack(spacing: 11) {
+                                        if let image = item.artwork?.image(at: CGSize(width: 100, height: 100)) {
+                                            Image(uiImage: image)
+                                                .resizable().scaledToFill()
+                                                .frame(width: 43, height: 43).clipped()
+                                        } else {
+                                            Image(systemName: "music.note")
+                                                .foregroundStyle(theme.accent)
+                                                .frame(width: 43, height: 43)
+                                        }
+                                        VStack(alignment: .leading, spacing: 3) {
+                                            Text(item.title ?? "Brano senza titolo")
+                                                .font(.subheadline.bold()).lineLimit(1)
+                                            Text(item.artist ?? "Artista non disponibile")
+                                                .font(.caption).lineLimit(1)
+                                        }
+                                        Spacer(minLength: 0)
+                                        Image(systemName: "play.fill")
+                                    }
+                                    .foregroundStyle(.white)
+                                    .padding(.vertical, 3)
                                 }
-                            } label: {
-                                HStack(spacing: 11) {
-                                    AsyncImage(url: song.artwork?.url(width: 100, height: 100)) { image in
-                                        image.resizable().scaledToFill()
-                                    } placeholder: {
-                                        Image(systemName: "music.note").foregroundStyle(theme.accent)
-                                    }
-                                    .frame(width: 45, height: 45).clipped()
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text(song.title).font(.subheadline.bold()).lineLimit(1)
-                                        Text(song.artistName).font(.caption).lineLimit(1)
-                                    }
-                                    Spacer(minLength: 0)
-                                    Image(systemName: "play.fill")
-                                }
-                                .foregroundStyle(.white)
-                                .padding(.vertical, 5)
+                                .buttonStyle(.plain)
+                                Divider().overlay(.white.opacity(0.12))
                             }
-                            .buttonStyle(.plain)
-                            Divider().overlay(.white.opacity(0.15))
                         }
                     }
                 }
                 .scrollIndicators(.hidden)
+                if !searching && query.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2
+                    && results.isEmpty && libraryResults.isEmpty {
+                    Text("Nessun risultato disponibile. Il catalogo online richiede MusicKit attivo; la libreria può essere vuota.")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.75))
+                }
             }
             Spacer(minLength: 0)
         }
