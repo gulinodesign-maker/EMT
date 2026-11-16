@@ -173,7 +173,9 @@ assert 'if left { icon }' in c and 'if !left { icon }' in c
 assert 'if left { Spacer(minLength: 0) }' in c
 assert 'var previewPalette: [Color]' in c
 assert 'EcoThemePalette.standardBarColors.map' in c
-assert 'ForEach(0..<EcoThemePalette.colorCount, id:' in t
+assert 'EcoCockpitThemeMiniature(palette: palette)' in t
+assert 'ForEach(group.range, id:' in t
+assert 'draft.colors[selected.id] = hex' in t
 
 # Sei temi, griglia visibile con 3 colonne e 2 righe in landscape.
 for tag in ['case copper = "Rame"','case glacier = "Ghiaccio"','case green = "Verde"','case aquamarine = "Acquamarina"','case brown = "Marrone"','case racing = "Racing"']:
