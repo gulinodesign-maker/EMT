@@ -2080,13 +2080,17 @@ private struct GPSUpperLayerFootprint: Shape {
         left.addLine(to: CGPoint(x: 0, y: h))
         left.closeSubpath()
 
-        // La fascia destra è SOLO la zona al di SOPRA del profilo grigio.
+        // Build 96: il layer si appoggia direttamente al bordo inferiore
+        // della linea metallica, senza il vecchio distacco di 3 pt.
+        // La linea rimane sopra il riempimento nello ZStack del cockpit.
         // Chiudere sul cerchio, mai scendere da rightContact fino al dock.
         let corners = GPSHorizonSymmetry.corners(width: w, height: h)
+        let topBarFillEdge = GPSMetalContourStyle.inset(for: d)
+            + GPSMetalContourStyle.strokeWidth(for: d) / 2
         var upper = CockpitContourGeometry.roundedPath(points: [
-            CGPoint(x: corners.rightContact.x, y: corners.rightContact.y - 3),
-            CGPoint(x: corners.rightKnee.x, y: corners.rightKnee.y - 3),
-            CGPoint(x: w, y: h * 0.099 - 3)
+            CGPoint(x: corners.rightContact.x, y: corners.rightContact.y + topBarFillEdge),
+            CGPoint(x: corners.rightKnee.x, y: corners.rightKnee.y + topBarFillEdge),
+            CGPoint(x: w, y: h * 0.099 + topBarFillEdge)
         ], corners: [1],
            radius: CockpitContourGeometry.cornerRadius(in: rect.size))
         upper.addLine(to: CGPoint(x: w, y: 0))
