@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 96;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 97;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -26,7 +26,7 @@ assert 'ForEach([EcoTab.trips, .settings, .themes])' in u
 assert 'if mapEnabled && selected == .gps {' in u
 assert 'EcoMinimalNavigationLabel(' in u and 'CockpitCornerControls' in u
 # GPS è una modalità del cockpit, non una NavigationStack separata.
-assert 'GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)' in u
+assert 'GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled,' in u
 assert 'NavigationStack { AppleMapsPanel() }' not in u
 assert 'NavigationStack { RoutesPanel() }' not in u
 assert 'case .gps: "GPS"' in u
@@ -494,7 +494,10 @@ assert 'Color.black.opacity(0.33)' in c
 assert 'title: text ?? gpsCaption(for: symbol)' in u
 assert 'foregroundStyle(active ? theme.accent : Color.secondary)' in u
 assert 'if selected != .gps {\n                    Spacer(minLength: 0)' in u
-assert 'if selected == .gps { mapEnabled.toggle() }' in u
+assert 'if selected == .gps {' in u
+assert 'mapEnabled.toggle()' in u
+assert 'if musicEnabled {' in u
+assert 'mapEnabled = true' in u
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBest\n' not in g
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation' in g
 assert 'manager.requestLocation()' not in g

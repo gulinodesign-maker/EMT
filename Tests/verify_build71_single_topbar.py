@@ -7,7 +7,7 @@ source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 96;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 97;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -58,7 +58,7 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
     assert isclose((left + right) / 2, (cx + d * 0.508 + w) / 2)
 assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)" in dashboard
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
-assert "let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)" in home
+assert "let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)" in home
 assert "GPSCockpitMap(theme: theme)" in source
 assert "GPSOuterProfileReinforcement" in state  # decision logged, not drawn
 print("OK — build 71: single original top bar, no double 3x contour, GPS and telemetry preserved")

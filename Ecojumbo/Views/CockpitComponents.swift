@@ -1743,6 +1743,7 @@ struct GPSCockpitDashboard: View {
     let theme: CockpitTheme
     let now: Date
     let mapEnabled: Bool
+    let musicEnabled: Bool
 
     private var maneuverSymbol: String? {
         navigation.isNavigating
@@ -1794,7 +1795,12 @@ struct GPSCockpitDashboard: View {
 
                 // Mappa 3D a tutta area, senza riquadro: parte sotto il
                 // cruscotto e arriva fino al margine destro, con bordi sfumati.
-                if mapEnabled {
+                if musicEnabled {
+                    EcoMusicCockpitPanel(theme: theme)
+                        .frame(width: panelWidth, height: cardsHeight)
+                        .position(x: panelLeft + panelWidth / 2, y: cardsCenterY)
+                        .zIndex(6)
+                } else if mapEnabled {
                     GPSCockpitMap(theme: theme)
                         .frame(width: w * 0.64, height: h * 0.955)
                         .position(x: w * 0.68, y: h * 0.5225)
@@ -1906,9 +1912,10 @@ struct GPSCockpitDashboard: View {
             .clipped()
         }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(mapEnabled
-            ? "Cruscotto Ecojumbo con mappa e percorso GPS"
-            : "Cruscotto Ecojumbo con letture della batteria")
+        .accessibilityLabel(musicEnabled
+            ? "Cruscotto Ecojumbo con lettore musicale"
+            : (mapEnabled ? "Cruscotto Ecojumbo con mappa e percorso GPS"
+                          : "Cruscotto Ecojumbo con letture della batteria"))
     }
 }
 

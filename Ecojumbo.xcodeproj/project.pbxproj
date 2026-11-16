@@ -17,6 +17,8 @@ objects = {
 		B10000000000000000000011 /* CockpitTabs.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* CockpitTabs.swift */; };
 		B10000000000000000000012 /* CellsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* CellsView.swift */; };
 		B10000000000000000000013 /* CockpitBarMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* CockpitBarMath.swift */; };
+		B10000000000000000000014 /* EcoMusicManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* EcoMusicManager.swift */; };
+		B10000000000000000000015 /* EcoMusicCockpitPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* EcoMusicCockpitPanel.swift */; };
 /* End PBXBuildFile section */
 /* Begin PBXFileReference section */
 		A10000000000000000000001 /* EcojumboApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EcojumboApp.swift; sourceTree = "<group>"; };
@@ -32,6 +34,8 @@ objects = {
 		A10000000000000000000011 /* CockpitTabs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/CockpitTabs.swift; sourceTree = "<group>"; };
 		A10000000000000000000012 /* CellsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/CellsView.swift; sourceTree = "<group>"; };
 		A10000000000000000000013 /* CockpitBarMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/CockpitBarMath.swift; sourceTree = "<group>"; };
+		A10000000000000000000014 /* EcoMusicManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/EcoMusicManager.swift; sourceTree = "<group>"; };
+		A10000000000000000000015 /* EcoMusicCockpitPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Views/EcoMusicCockpitPanel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 /* Begin PBXGroup section */
 		C10000000000000000000001 = {isa = PBXGroup; children = (C10000000000000000000002, C10000000000000000000003, ); sourceTree = "<group>"; };
@@ -41,6 +45,8 @@ objects = {
 				A10000000000000000000003 /* JKProtocol.swift */,
 				A10000000000000000000004 /* RideSession.swift */,
 				A10000000000000000000009 /* GPSRideManager.swift */,
+				A10000000000000000000014 /* EcoMusicManager.swift */,
+				A10000000000000000000015 /* EcoMusicCockpitPanel.swift */,
 				A10000000000000000000013 /* CockpitBarMath.swift */,
 				A10000000000000000000005 /* EcojumboRootView.swift */,
 				A10000000000000000000006 /* OtherViews.swift */,
@@ -67,6 +73,8 @@ objects = {
 				B10000000000000000000003 /* JKProtocol.swift in Sources */,
 				B10000000000000000000004 /* RideSession.swift in Sources */,
 				B10000000000000000000008 /* GPSRideManager.swift in Sources */,
+				B10000000000000000000014 /* EcoMusicManager.swift in Sources */,
+				B10000000000000000000015 /* EcoMusicCockpitPanel.swift in Sources */,
 				B10000000000000000000013 /* CockpitBarMath.swift in Sources */,
 				B10000000000000000000005 /* EcojumboRootView.swift in Sources */,
 				B10000000000000000000006 /* OtherViews.swift in Sources */,
@@ -84,7 +92,7 @@ objects = {
 		E20000000000000000000003 /* Target Debug */ = {isa = XCBuildConfiguration; buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 96;
+				CURRENT_PROJECT_VERSION = 97;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Ecojumbo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -102,7 +110,7 @@ objects = {
 		E20000000000000000000004 /* Target Release */ = {isa = XCBuildConfiguration; buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 96;
+				CURRENT_PROJECT_VERSION = 97;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Ecojumbo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;

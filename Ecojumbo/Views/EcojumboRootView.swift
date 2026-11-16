@@ -99,6 +99,7 @@ struct EcojumboRootView: View {
     @State private var selected: EcoTab = .gps
     @State private var lastMenu: EcoTab = .trips
     @AppStorage("ecojumbo.mapEnabled") private var mapEnabled = true
+    @State private var musicEnabled = false
     @State private var tick = Date()
     // Il movimento fisico in portrait apre Impostazioni, anche con GPS bloccato landscape.
 
@@ -134,7 +135,8 @@ struct EcojumboRootView: View {
                     case .trips:
                         NavigationStack { TripsPanel() }
                     case .gps:
-                        GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)
+                        GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled,
+                                            musicEnabled: musicEnabled)
                     case .battery:
                         NavigationStack { CellsView() }
                     case .bms:
@@ -151,6 +153,7 @@ struct EcojumboRootView: View {
                 // Dock flottante, NON parte del contenuto scrollabile. La posizione
                 // dipende dal bordo inferiore dello schermo, mai da padding esterni.
                 CockpitCornerControls(selected: $selected, mapEnabled: $mapEnabled,
+                                      musicEnabled: $musicEnabled,
                                       appearanceMode: $appearanceMode, theme: theme,
                                       screenHeight: h)
                     .frame(width: w, height: dockHeight)
@@ -333,6 +336,7 @@ private struct CockpitCornerControls: View {
     @StateObject private var navigation = EcoNavigationStore.shared
     @Binding var selected: EcoTab
     @Binding var mapEnabled: Bool
+    @Binding var musicEnabled: Bool
     @Binding var appearanceMode: String
     let theme: CockpitTheme
     let screenHeight: CGFloat
@@ -348,18 +352,18 @@ private struct CockpitCornerControls: View {
             let height = geo.size.height
             let buttonSide = min(height * 0.96, width * 0.059)
             let gpsSide = (mapEnabled && selected == .gps)
-                ? min(buttonSide, width * 0.052)
+                ? min(buttonSide, width * 0.046)
                 : EcoCockpitDockGeometry.standardSide(width: width, height: screenHeight)
             let gpsGap = width * 0.008
             // Stesso intervallo centrato tra tangente destra al tachimetro
             // e bordo destro del display. I cinque tasti occupano
             // esattamente la stessa larghezza della telemetria;
-            // gli otto comandi della mappa e i menù mantengono il layout esistente.
+            // i comandi della mappa e i menù mantengono il layout esistente.
             let telemetryDock = selected == .gps && !mapEnabled
             let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)
             let telemetryPanelWidth = max(1, width - EcoCockpitDockGeometry.rightInset(width: width)
                                                - telemetryPanelLeft)
-            let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)
+            let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)
             HStack(alignment: .center, spacing: 0) {
                 // Tachimetro: dock a destra. Altri menu: gruppo centrato.
                 Spacer(minLength: 0)
@@ -367,8 +371,23 @@ private struct CockpitCornerControls: View {
                     gpsButton("map.fill", active: mapEnabled,
                               accessibility: mapEnabled ? "Disattiva la mappa" : "Attiva la mappa",
                               side: gpsSide) {
-                        if selected == .gps { mapEnabled.toggle() }
+                        if selected == .gps {
+                            if musicEnabled {
+                                musicEnabled = false
+                                mapEnabled = true
+                            } else {
+                                mapEnabled.toggle()
+                            }
+                        }
                         selected = .gps
+                    }
+                    if selected == .gps {
+                        gpsButton("music.note", active: musicEnabled,
+                                  accessibility: musicEnabled ? "Chiudi musica" : "Apri musica",
+                                  side: gpsSide) {
+                            musicEnabled.toggle()
+                            if musicEnabled { mapEnabled = false }
+                        }
                     }
                     if mapEnabled && selected == .gps {
                         gpsButton("play.fill", alternate: "stop.fill",
@@ -461,6 +480,7 @@ private struct CockpitCornerControls: View {
     private func gpsCaption(for symbol: String) -> String {
         switch symbol {
         case "map.fill": "Mappa"
+        case "music.note": "Musica"
         case "play.fill": "Naviga"
         case "location.north.line.fill": "Direz."
         case "scope": "Centra"

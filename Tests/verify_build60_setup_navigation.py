@@ -8,7 +8,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 cockpit_text = cockpit.decode("utf-8")
-assert project.count("CURRENT_PROJECT_VERSION = 96;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 97;") == 2
 
 # Only driving-relevant navigation is shown: technical screens are still accessible via Setup.
 portrait = home.split("private struct PortraitServiceTabBar: View", 1)[1].split(
@@ -61,5 +61,5 @@ for width, height in ((736, 414), (844, 390), (932, 430), (956, 440), (1536, 706
 # Portrait rotation still selects Setup; GPS-only landscape is retained.
 assert "if selected == .gps && UIDevice.current.orientation == .portrait" in home
 assert "selected = .settings" in home
-assert "GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)" in home
+assert "GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled," in home
 print("OK — build 61: Batteria/BMS only in Setup, GPS dock and telemetry vertically aligned")

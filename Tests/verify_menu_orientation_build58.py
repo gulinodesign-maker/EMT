@@ -12,7 +12,7 @@ cells = (root / "Ecojumbo/Views/CellsView.swift").read_text()
 themes = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit_file = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 
-assert pbx.count("CURRENT_PROJECT_VERSION = 96;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 97;") == 2
 assert set(plist["UISupportedInterfaceOrientations"]) == {
     "UIInterfaceOrientationPortrait",
     "UIInterfaceOrientationLandscapeLeft",
@@ -37,8 +37,8 @@ assert "EcojumboOrientationPolicy.update(for: newTab)" in home
 assert "if selected != .gps && w < h {" in home
 assert "} else if selected == .gps && w < h {" in home
 assert "landscapeDashboardGuard(width: w, height: h)" in home
-assert 'GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)' in home
-assert home.count("GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)") == 1
+assert 'GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled,' in home
+assert home.count("GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled,") == 1
 assert "PortraitCockpitDashboard" not in home
 assert "PortraitServiceTabBar(selected: $selected, theme: theme)" in home
 assert "ForEach([EcoTab.gps, .trips, .settings, .themes])" in home

@@ -142,7 +142,7 @@ struct BluetoothView: View {
 
 private enum EcoSetupSection: String, CaseIterable, Identifiable {
     case battery, bms, appearance, scooter, bluetooth, charging
-    case odometer, bars, weather
+    case odometer, bars, weather, music
 
     var id: Self { self }
 
@@ -157,6 +157,7 @@ private enum EcoSetupSection: String, CaseIterable, Identifiable {
         case .odometer: "Chilometri"
         case .bars: "Barre luminose"
         case .weather: "Meteo"
+        case .music: "Musica"
         }
     }
 
@@ -171,6 +172,7 @@ private enum EcoSetupSection: String, CaseIterable, Identifiable {
         case .odometer: "road.lanes"
         case .bars: "chart.bar.fill"
         case .weather: "cloud.sun"
+        case .music: "music.note"
         }
     }
 }
@@ -178,6 +180,7 @@ private enum EcoSetupSection: String, CaseIterable, Identifiable {
 struct EcoSettingsView: View {
     @EnvironmentObject private var gps: GPSRideManager
     @EnvironmentObject private var bluetooth: JKBluetoothManager
+    @StateObject private var music = EcoMusicManager.shared
     @State private var activeSection: EcoSetupSection?
     @State private var odometerText = ""
     @State private var odometerStatus: String?
@@ -191,6 +194,8 @@ struct EcoSettingsView: View {
     @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
     @AppStorage("ecojumbo.bars.speedLimitColorEnabled") private var speedLimitColorEnabled = true
     @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
+    @AppStorage("ecojumbo.music.provider") private var musicProvider = EcoMusicProvider.apple.rawValue
+    @AppStorage("ecojumbo.spotifyClientID") private var spotifyClientID = ""
     @AppStorage("ecojumbo.theme") private var themeName = CockpitTheme.copper.rawValue
     @AppStorage("ecojumbo.themeRevision") private var themeRevision = 0
 
@@ -312,6 +317,46 @@ struct EcoSettingsView: View {
                 Text("Automatico segue l'aspetto del dispositivo (anche il cambio programmato giorno/notte). La scelta vale per la Home, tutte le pagine e Apple Maps.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
+            }
+        case .music:
+            Section("Servizio musicale") {
+                Picker("Provider", selection: $musicProvider) {
+                    ForEach(EcoMusicProvider.allCases) { provider in
+                        Text(provider.rawValue).tag(provider.rawValue)
+                    }
+                }
+                Text("Il tasto Musica nel cockpit mostra copertina, brano e comandi sulla destra, senza interrompere tachimetro e telemetria.")
+                    .font(.footnote).foregroundStyle(.secondary)
+            }
+            if musicProvider == EcoMusicProvider.apple.rawValue {
+                Section("Apple Music") {
+                    Button("Autorizza Apple Music") { music.requestAppleAccess() }
+                    Text("Usa il lettore dell'app Musica su iPhone. Avvia un brano nell'app Musica: titolo e copertina appariranno nel cockpit.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+            } else if musicProvider == EcoMusicProvider.spotify.rawValue {
+                Section("Collegamento Spotify") {
+                    TextField("Client ID Spotify", text: $spotifyClientID)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    Text("Registra il Client ID nel portale Spotify Developer per il bundle it.ecojumbo.battery e la URI di ritorno ecojumbo-spotify://callback. Non inserire Client Secret.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                    if music.spotifyConnected {
+                        Button("Scollega Spotify", role: .destructive) { music.disconnectSpotify() }
+                    } else {
+                        Button("Collega Spotify") { music.connectSpotify() }
+                    }
+                    Text("Il controllo remoto Spotify richiede connessione Internet, autorizzazione dell'account, un dispositivo di riproduzione attivo e, per diversi comandi, Spotify Premium.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                    if !music.message.isEmpty {
+                        Text(music.message).font(.footnote).foregroundStyle(.secondary)
+                    }
+                }
+            } else {
+                Section("YouTube Music") {
+                    Text("Si apre YouTube Music come servizio esterno. La sua API non offre qui comandi di riproduzione integrati.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
             }
         case .scooter:
             Section("Il mio Ecojumbo") {

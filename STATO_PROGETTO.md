@@ -1,5 +1,20 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 97 — integrazione musica nel cockpit (16 novembre 2026)
+
+**Richiesta utente e autorizzazione:** aggiungere un sesto pulsante **Musica** nel dock del cockpit. Toccandolo, sostituire il pannello a destra (non il tachimetro) con copertina album, titolo, artista e precedente / play-pausa / successivo. Nella pagina **Setup → Musica** selezionare un provider persistente, inizialmente Apple Music, Spotify e YouTube Music (Google Play Music è stato dismesso). L'utente ha autorizzato sviluppo, test e pubblicazione TestFlight.
+
+**Implementazione su branch `build-97-cockpit-music`:**
+- `EcojumboRootView.swift`: nuovo pulsante accessibile `Musica`, sesto tasto nel dock telemetria; in modalità mappa nuovo tasto nel gruppo già presente, proporzioni aggiornate per contenere i comandi. Il tasto passa a una modalità musica distinta, disattivando la mappa solo mentre la si apre; la selezione della mappa ripristina quest'ultima. Restano invariati tachimetro, ponte kW, header, GPS, BMS, palette e navigazione.
+- `CockpitComponents.swift`: area originale delle cinque letture telemetria sostituita con `EcoMusicCockpitPanel` solo quando la modalità musica è richiesta. La mappa e le letture originali restano alternate senza cambiare geometrie e livelli del tachimetro.
+- `EcoMusicCockpitPanel.swift`: copertina reale, titolo e artista del brano, pulsanti precedente / play-pausa / successivo; messaggi di stato sinceri quando non c'è un brano o manca autorizzazione.
+- `EcoMusicManager.swift`: Apple Music controllato tramite il lettore di sistema `MPMusicPlayerController.systemMusicPlayer` e autorizzazione `MPMediaLibrary`. Spotify usa le API ufficiali con OAuth PKCE (S256 e state), URL di ritorno `ecojumbo-spotify://callback`, token in Keychain e aggiornamento/rinnovo dell'accesso; nessun client secret nel codice. Spotify richiede Client ID di un'app registrata nel portale sviluppatori, account autorizzato, dispositivo Spotify attivo e solitamente Premium per i comandi. Setup offre campo Client ID, connessione e disconnessione. Il collegamento Spotify non è operativamente verificabile senza credenziali e iPhone reale. YouTube Music è disponibile solo come apertura esterna, non controllabile dall'interno dell'app; non è presentato come integrazione completa.
+- `Info.plist`: motivazione richiesta Apple Music e callback Spotify; `EcojumboApp.swift`: gestisce URL auth. Versione Debug/Release **1.0 (97)**; il bundle resta `it.ecojumbo.battery`.
+- `Tests/verify_build97_music_cockpit.py`: regressioni su dock, map/telemetry, integrazione music, PKCE, credenziali non hardcoded e versione.
+
+**Stato verifiche al momento del commit:** codice e test aggiunti sul branch, **CI Xcode e upload TestFlight ancora non verificati**. Procedura: aprire PR, attendere test Python, JK BLE, barre e build iOS simulatore, correggere regressioni, quindi fare merge su main; il workflow TestFlight parte automaticamente dal merge e deve essere verificato fino a `Upload succeeded`. App Store Connect deve ancora confermare elaborazione della 97 e distribuzione al gruppo TE. I controlli reali Apple Music e Spotify richiedono verifica su iPhone con account autorizzati.
+
+
 ## Build 96 — layer sfumato a contatto con la linea grigia della top bar (16 novembre 2026)
 
 **Richiesta da screenshot iPhone:** eliminare completamente lo spazio tra linea metallica grigia superiore destra e layer sfumato. Il colore deve arrivare fino alla linea, che rimane nitidamente visibile. Tutte le altre aree, sfumature personalizzabili, tachimetro, ponte kW e telemetria devono restare invariate.
