@@ -1,5 +1,17 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 89 — correzione del layer dalla fotografia iPhone (16 novembre 2026)
+
+**Richiesta:** nello screenshot della build 88, l'utente indica in rosso una larga falda colorata a destra del tachimetro, sopra le schede telemetria, che non deve esistere; nell'area segnata sotto a sinistra, il layer deve invece proseguire senza interruzioni fino al bordo inferiore del display. Mantenere sfumatura a due colori, bagliore editabile, scostamento 3 pt dalle linee grigie e tutto il resto della build 88.
+
+**Causa verificata nel codice:** `GPSUpperLayerFootprint` della 88 univa il raccordo destro alla quota `h` con un segmento verticale (`rightContact.x, y: h`), producendo il pannello colorato indesiderato. Inoltre `GPSUpperGradientLayer` applicava `GPSBridgeUpperMask`, che tagliava la superficie sinistra al 93,7% dell'altezza e lasciava una striscia nera sotto.
+
+**Correzione:** `GPSUpperLayerFootprint` usa due sottopercorsi contigui: la fascia destra esiste **soltanto sopra** il tracciato metallico della top bar e termina sul cerchio; la zona sinistra segue il bordo esterno del tachimetro fino all'intersezione reale con il fianco sinistro del ponte kW, poi raggiunge il suo piede e **prosegue fino a `y = h`**. Il foro circolare protegge il tachimetro; l'offset di 3 punti è incorporato nei confini, senza spostare i margini dello schermo. Rimossa solo dal nuovo layer la maschera `GPSBridgeUpperMask`, che rimane applicata al quadrante GPS. Il bagliore viene a sua volta mascherato sulla stessa superficie per impedirne l'invasione della telemetria. Invariati temi salvati, contenuto del cockpit, barra kW 30/70 e funzioni Home/JK/GPS. Versione 1.0 (89), bundle ID invariato.
+
+**Verifiche:** nuova regressione `Tests/verify_build89_layer_edges.py` e CI iOS da eseguire. Dopo CI positiva: PR su `main`, verifica simulatore e caricamento TestFlight. Confermare upload Apple dai log, senza confonderlo con processing o assegnazione al gruppo TE.
+
+
+
 ## Build 88 — layer top bar con gradiente e luce sottostante (16 novembre 2026)
 
 **Richiesta:** superficie delimitata dal bordo alto/sinistro display, dalla top bar metallica, dal cerchio tachimetro e dal ponte kW; offset 3 punti rispetto ai profili grigi; due colori sfumati più luce sottostante modificabili in Temi. Pubblicare su TestFlight.
