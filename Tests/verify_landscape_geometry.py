@@ -45,7 +45,7 @@ for w,h in [(844,390),(852,393),(932,430),(956,440),(736,414),(1536,707),(1536,8
 # Cockpit GPS: quadrante sinistro entro bordo, mappa a destra, sette pulsanti.
 assert 'let dialSize = GPSDialLayout.size(width: w, height: h)' in c
 assert 'return max(d * 0.51 + width * 0.010, width * 0.168 + d * 0.30)' in c
-assert 'private struct GPSGaugeHalo: View' in c
+assert 'private struct GPSGaugeHalo: View' not in c
 assert 'LowerPanelShade()' in u
 assert c.count('CockpitTopSoftShade()') == 2
 assert '.position(x: dialCenterX, y: h * 0.494)' in c

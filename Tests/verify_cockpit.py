@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 86;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 87;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -150,7 +150,7 @@ assert c.count('.mask(RadialGradient(stops: [') == 3
 assert 'startRadius: ringRadius, endRadius: ringRadius + max(18, h * 0.070)' in c
 gps_horizon = c.split('private struct GPSHorizonLine: View {', 1)[1].split('@MainActor', 1)[0]
 assert '.mask(RadialGradient(stops: [' not in gps_horizon
-assert '.mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))' in gps_horizon
+assert '.mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))' in gps_horizon
 assert c.count('Circle()\n                        .stroke(theme.accent.opacity(') == 2
 assert c.count('.frame(width: dialSize * 0.985, height: dialSize * 0.985)') == 2
 assert 'private struct HomeRingBridgeMask: Shape' in c
@@ -224,8 +224,8 @@ assert 'LowerPanelShade()' in u
 # Tachimetro GPS più a sinistra e anello brillante senza attraversare A/kW.
 assert 'private enum GPSDialLayout' in c
 assert 'GPSDialLayout.centerX(width: w, height: h)' in c
-assert 'GPSGaugeHalo(theme: theme)' in c
-assert 'private struct GPSGaugeHalo: View' in c
+assert 'GPSGaugeHalo(theme: theme)' not in c
+assert 'private struct GPSGaugeHalo: View' not in c
 assert 'location: 0.80' in c and 'location: 0.65' in c
 assert '.position(x: dialCenterX, y: h * 0.494)' in c
 assert 'CGRect(x: dialCenterX - dialSize * 0.508' in c
