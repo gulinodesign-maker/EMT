@@ -475,15 +475,15 @@ assert 'CGPoint(x: w * 0.355, y: h * 0.252)' in c
 assert 'let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)' in c
 assert 'let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)' in c
 assert 'GPSMetalInnerRing()' in c
-assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
-assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
+assert 'GPSMapContourSpace.local(' in c
+assert 'GPSMapContourSpace.local(' in c
 assert '.padding(.top, h * 0.0565)' in c
 # Build 40: estensione della mappa, freccia GPS, contrasto daylight,
 # controlli minimal e avvio Core Location più rapido.
 assert '.frame(width: w * 0.64, height: h * 0.955)' in c
 assert '.position(x: w * 0.68, y: h * 0.5225)' in c
-assert 'let fullWidth = w / 0.64' in c
-assert 'let fullHeight = h / 0.955' in c
+assert 'CGSize(width: rect.width / 0.64, height: rect.height / 0.955)' in c
+assert 'GPSDialLayout.mapExclusionRadius(for: d)' in c
 assert '.init(color: .white.opacity(0.70), location: 0.91)' in c
 assert 'UserAnnotation()' not in c
 assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c
