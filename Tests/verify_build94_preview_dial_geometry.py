@@ -55,7 +55,8 @@ assert "miniatureDock(height: h)" not in preview
 assert ".frame(width: w, height: h * 0.10)" in preview
 assert ".frame(width: panelWidth, height: h * 0.082)" in preview
 assert "d * GPSDialLayout.outerProfileDiameterFactor" in preview
-assert "d * GPSDialLayout.carbonProfileDiameterFactor" in preview
+assert "d * GPSDialLayout.carbonProfileDiameterFactor" not in preview
+assert 'Image("CarbonWeave")' not in preview
 for comp in ('miniatureButton("map.fill"', 'miniatureButton("chart.bar.fill"',
              'miniatureButton("gearshape.fill"', 'miniatureButton("paintpalette.fill"',
              'miniatureButton("sun.max.fill"'):
