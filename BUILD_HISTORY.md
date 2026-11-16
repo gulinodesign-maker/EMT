@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43919767706:ATTEMPT:1 -->
+### 2026-11-16T17:34:21Z — CI #309 · build-99-music-library-search-map-clip · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43919767706](https://github.com/gulinodesign-maker/EMT/actions/runs/43919767706); avvio 2026-11-16T17:34:21Z UTC; aggiornamento finale 2026-11-16T17:34:53Z UTC; registrazione 2026-11-16T17:35:05+00:00 UTC; evento pull_request.
+- **Commit:** [9b0a837a058f](https://github.com/gulinodesign-maker/EMT/commit/9b0a837a058ffb539f72f821402ab81f58397a04); versione **1.0**; build **99**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:43914818588:ATTEMPT:1 -->
 ### 2026-11-16T17:06:30Z — CI #308 · main · tentativo 1
 
