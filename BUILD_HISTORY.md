@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43919977547:ATTEMPT:1 -->
+### 2026-11-16T17:35:30Z — CI #310 · build-99-music-library-search-map-clip · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43919977547](https://github.com/gulinodesign-maker/EMT/actions/runs/43919977547); avvio 2026-11-16T17:35:30Z UTC; aggiornamento finale 2026-11-16T17:36:03Z UTC; registrazione 2026-11-16T17:36:22+00:00 UTC; evento pull_request.
+- **Commit:** [054a3ef32665](https://github.com/gulinodesign-maker/EMT/commit/054a3ef32665290a52c6b8c0893440beb1f9e80f); versione **1.0**; build **99**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build66_symmetry_ring.py, Tests/verify_build98_inapp_music.py.
+
 <!-- EMT_RUN:43919767706:ATTEMPT:1 -->
 ### 2026-11-16T17:34:21Z — CI #309 · build-99-music-library-search-map-clip · tentativo 1
 
