@@ -1,5 +1,14 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 96 — layer sfumato a contatto con la linea grigia della top bar (16 novembre 2026)
+
+**Richiesta da screenshot iPhone:** eliminare completamente lo spazio tra linea metallica grigia superiore destra e layer sfumato. Il colore deve arrivare fino alla linea, che rimane nitidamente visibile. Tutte le altre aree, sfumature personalizzabili, tachimetro, ponte kW e telemetria devono restare invariate.
+
+**Causa tecnica e correzione:** in `GPSUpperLayerFootprint` la fascia destra usava ancora i vertici `rightContact/rightKnee/h*0.099 - 3 pt` della build 88; `GPSHorizonLine` disegna invece il metallo alla stessa geometria con offset verticale `GPSMetalContourStyle.inset(for: d)` e stroke centrato. La fascia ora termina precisamente **al bordo inferiore della linea metallica**, usando `inset + strokeWidth/2` su tutti e tre i vertici del tracciato arrotondato. Il riempimento si estende sotto lo stroke senza lasciare fessure; `GPSHorizonLine` continua davanti al layer (z-index 8 contro 4), quindi il grigio non viene coperto. Il lato sinistro, i fori/mask separati di quadrante e ponte, la palette a 22 ruoli, l'anteprima Temi, GPS, JK BLE e mappa non sono cambiati.
+
+**Verifiche da eseguire:** versione Xcode Debug/Release **1.0 (96)**, nuovo test geometrico `Tests/verify_build96_topbar_flush.py` e controlli storici aggiornati dal valore 95 al 96. Confermare CI Python/Swift/Xcode simulatore sulla PR, poi merge su `main`, archivio e upload Apple TestFlight. **Non dichiarare disponibile ai tester** prima delle verifiche App Store Connect e assegnazione gruppo `TE`. Il confronto visivo reale sul dispositivo è ancora da verificare.
+
+
 ## Build 95 — mappa a 2pt dall'anello esterno, cerchio concentrico editabile (16 novembre 2026)
 
 **Richiesta:** nel cockpit GPS, la cartografia deve arrivare da destra fino al profilo concentrico del tachimetro lasciando **solo 2 punti di separazione** (misura in coordinate SwiftUI, non una fascia sfumata). Aggiungere un **cerchio concentrico** al tachimetro, colorabile dai Temi, visibile **sopra** la top bar ma **mai** dentro il ponte kW. La versione già pubblicata su TestFlight per le correzioni della miniatura e del profilo nero è la **94**; questa richiesta è dunque la **build 95**, non una seconda 94.
