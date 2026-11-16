@@ -1162,6 +1162,7 @@ private struct OpenSpeedCluster: View {
     // separatamente dalla maschera del ponte, così restano leggibili.
     var showsPowerReadings: Bool = true
     var showsCircularPowerGauges: Bool = true // La Home conserva le corone.
+    var maximizesGPSSpeedScale: Bool = false // Solo GPS, senza alterare la Home.
     // Layout unico per Home e GPS. Freccia visibile solo se la rotta è attiva.
     var navigationArrow: String? = nil
     var navigationInstruction: String? = nil
@@ -1237,8 +1238,15 @@ private struct OpenSpeedCluster: View {
 
                 }
                 // La striscia LED arancione della velocità richiede GPS valido.
-                SpeedLEDStream(d: d, speed: speed)
-                SpeedScaleTicks(d: d)
+                if maximizesGPSSpeedScale {
+                    SpeedLEDStream(d: d, speed: speed)
+                        .scaleEffect(GPSDialLayout.speedScaleMagnification)
+                    SpeedScaleTicks(d: d)
+                        .scaleEffect(GPSDialLayout.speedScaleMagnification)
+                } else {
+                    SpeedLEDStream(d: d, speed: speed)
+                    SpeedScaleTicks(d: d)
+                }
 
                 // Stessa strumentazione nella Home e nella mappa.
                 // La freccia bianca occupa la zona superiore, lontana dalle
@@ -1469,6 +1477,10 @@ private enum GPSInnerLED {
 
 // Build 70: nessuna superficie a sfumatura colorata sopra la top bar o sotto il ponte.
 private enum GPSDialLayout {
+    // Build 93: cerchio metallico GPS più piccolo del 10%; scala km/h ampliata.
+    static let metalRingDiameterFactor: CGFloat = 0.965 * 0.90
+    static let speedScaleMagnification: CGFloat = 1.08
+
     static func size(width: CGFloat, height: CGFloat) -> CGFloat {
         min(height * 0.965, width * 0.55)
     }
@@ -1516,7 +1528,8 @@ private struct GPSMetalInnerRing: View {
             Circle()
                 .stroke(GPSMetalContourStyle.gradient(for: colorScheme),
                         style: StrokeStyle(lineWidth: GPSMetalContourStyle.strokeWidth(for: d)))
-                .frame(width: d * 0.965, height: d * 0.965)
+                .frame(width: d * GPSDialLayout.metalRingDiameterFactor,
+                       height: d * GPSDialLayout.metalRingDiameterFactor)
                 .frame(width: d, height: d)
                 .mask(LinearGradient(stops: [
                     .init(color: .white, location: 0),
@@ -1767,6 +1780,7 @@ struct GPSCockpitDashboard: View {
                                      odometerKm: gps.hasOdometer ? gps.totalKm : nil,
                                      showsPowerReadings: false,
                                      showsCircularPowerGauges: false,
+                                     maximizesGPSSpeedScale: true,
                                      navigationArrow: maneuverSymbol,
                                      navigationInstruction: navigation.guidanceInstruction,
                                      navigationDistance: navigation.isNavigating &&
@@ -1994,9 +2008,12 @@ private struct GPSUpperLayerFootprint: Shape {
                 y: centerY + circleRadius * CGFloat(Darwin.sin(angle))))
         }
         left.addLine(to: CGPoint(x: leftFoot.x - 3, y: leftFoot.y))
-        // Il bordo sinistro della zona sotto il ponte prosegue sino
-        // al bordo inferiore del display, senza la maschera della 88.
-        left.addLine(to: CGPoint(x: leftFoot.x - 3, y: h))
+        // Build 93: la diagonale gialla continua il fianco sinistro
+        // del ponte fino al bordo inferiore, senza tratto verticale.
+        let bridgeRise = max(1, leftFoot.y - leftShoulder.y)
+        let continuation = (h - leftFoot.y) / bridgeRise
+        let leftBottomX = leftFoot.x + (leftFoot.x - leftShoulder.x) * continuation - 3
+        left.addLine(to: CGPoint(x: leftBottomX, y: h))
         left.addLine(to: CGPoint(x: 0, y: h))
         left.closeSubpath()
 
@@ -2096,6 +2113,18 @@ private struct GPSUpperGradientLayer: View {
                             theme.topBarLowFadeIntensity), location: 1)
                     ], startPoint: .top, endPoint: .bottom),
                     style: FillStyle(eoFill: true))
+
+                // Build 93: luce interna spostata verso il centro
+                // dell'app. Resta confinata al layer esterno: non può
+                // invadere tachimetro o ponte grazie alle due maschere.
+                GPSUpperLayerFootprint()
+                    .stroke(theme.topBarUnderGlow.opacity(
+                        theme.glowIntensity * 0.72),
+                        lineWidth: max(2, d * 0.015))
+                    .blur(radius: max(5, d * 0.028))
+                    .offset(x: d * 0.023, y: d * 0.012)
+                    .mask(GPSUpperLayerFootprint()
+                        .fill(style: FillStyle(eoFill: true)))
             }
             // Entrambe le maschere si applicano DOPO blur e riempimento.
             // Il quadrante e tutto il ponte sono esclusi in modo indipendente.
