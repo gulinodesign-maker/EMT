@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43832458117:ATTEMPT:1 -->
+### 2026-11-16T08:35:27Z — CI #262 · build-87-gray-contours-horizontal-power · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43832458117](https://github.com/gulinodesign-maker/EMT/actions/runs/43832458117); avvio 2026-11-16T08:35:27Z UTC; aggiornamento finale 2026-11-16T08:36:18Z UTC; registrazione 2026-11-16T08:36:28+00:00 UTC; evento pull_request.
+- **Commit:** [7fd78a05ebf8](https://github.com/gulinodesign-maker/EMT/commit/7fd78a05ebf820839136d037eb82a644011dda1d); versione **1.0**; build **87**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build87_gray_horizontal_power.py.
+
 <!-- EMT_RUN:43832314411:ATTEMPT:1 -->
 ### 2026-11-16T08:34:26Z — CI #261 · build-87-gray-contours-horizontal-power · tentativo 1
 
