@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43936414613:ATTEMPT:1 -->
+### 2026-11-16T19:09:45Z — CI #314 · build-100-luminous-double-ring-power-temp · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43936414613](https://github.com/gulinodesign-maker/EMT/actions/runs/43936414613); avvio 2026-11-16T19:09:45Z UTC; aggiornamento finale 2026-11-16T19:10:19Z UTC; registrazione 2026-11-16T19:10:30+00:00 UTC; evento pull_request.
+- **Commit:** [f6e5b13f84bf](https://github.com/gulinodesign-maker/EMT/commit/f6e5b13f84bff694d1d8dd2f9aabef2d33097733); versione **1.0**; build **100**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build68_gradient_layout.py.
+
 <!-- EMT_RUN:43936256052:ATTEMPT:1 -->
 ### 2026-11-16T19:08:50Z — CI #313 · build-100-luminous-double-ring-power-temp · tentativo 1
 
