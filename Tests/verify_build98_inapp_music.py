@@ -55,7 +55,7 @@ assert "MusicKit" in s
 
 # Siri button deliberately doesn't promise unsupported programmatic Siri launch.
 assert "GPSSiriControl" not in dash
-assert ".position(x: resetX, y: h - resetY)" in dash
+assert ".position(x: resetX, y: resetY)" in dash
 header=c.split("private struct GPSHeader: View",1)[1].split("private struct GPSDiagnosticsView:",1)[0]
 assert 'EcoOutsideTemperature(now: now)' in header
 assert "private struct GPSSiriControl: View" not in c
