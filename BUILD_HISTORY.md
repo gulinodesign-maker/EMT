@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43950585975:ATTEMPT:1 -->
+### 2026-11-16T20:31:04Z — CI #329 · build-101-day-topbar-theme-cleanup · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43950585975](https://github.com/gulinodesign-maker/EMT/actions/runs/43950585975); avvio 2026-11-16T20:31:04Z UTC; aggiornamento finale 2026-11-16T20:33:24Z UTC; registrazione 2026-11-16T20:33:37+00:00 UTC; evento pull_request.
+- **Commit:** [d943e119c252](https://github.com/gulinodesign-maker/EMT/commit/d943e119c252c7b2a9bb818794afb16749d83225); versione **1.0**; build **101**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Ecojumbo/Views/CockpitComponents.swift.
+
 <!-- EMT_RUN:43950137760:ATTEMPT:1 -->
 ### 2026-11-16T20:28:27Z — CI #328 · build-101-day-topbar-theme-cleanup · tentativo 1
 
