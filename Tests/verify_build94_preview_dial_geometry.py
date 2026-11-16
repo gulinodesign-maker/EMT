@@ -24,7 +24,7 @@ cluster = c.split("private struct OpenSpeedCluster: View {", 1)[1].split(
 assert "maximizesGPSSpeedScale ? GPSDialLayout.outerProfileDiameterFactor : 0.986" in cluster
 assert "maximizesGPSSpeedScale ? GPSDialLayout.carbonProfileDiameterFactor : 0.982" in cluster
 assert ".frame(width: d * outerDiameterFactor, height: d * outerDiameterFactor)" in cluster
-assert ".frame(width: d * carbonDiameterFactor, height: d * carbonDiameterFactor)" in cluster
+assert 'Image("CarbonWeave")' not in cluster
 assert "endRadius: d * outerDiameterFactor / 2" in cluster
 assert cluster.count(".scaleEffect(GPSDialLayout.speedScaleMagnification)") == 2
 assert "showsCircularPowerGauges: Bool = true" in cluster

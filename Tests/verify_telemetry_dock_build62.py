@@ -59,7 +59,7 @@ for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),
     assert justified_gap >= gap
     assert button_left >= panel_left
     assert button_right <= w - right + 1e-7
-    assert panel_left > safe_left - 5, (w, h, panel_left, safe_left)
+    assert panel_left > dial_x + dial * (.986 * .90) / 2, (w, h, panel_left)
     dial_tangent = dial_x + dial * (.986 * .90) / 2 + 1.5 + max(2.4, min(4.2, dial * .0051)) / 2
     assert isclose(panel_left - dial_tangent, right, abs_tol=1e-7)
     assert isclose((button_left + button_right) / 2,

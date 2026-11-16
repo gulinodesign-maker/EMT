@@ -29,6 +29,7 @@ assert "line.stroke(theme.accent" not in top
 assert ".mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))" in top
 assert "GPSGaugeHalo(theme: theme)" not in code
 assert "GPSLowerGlow(theme: theme)" in code
-assert "EcoOutsideTemperature(now: now, plain: true)" in code.split("private struct GPSHeader: View",1)[1]
+assert "EcoOutsideTemperature(now: now, plain: true)" in code.split("struct GPSCockpitDashboard: View",1)[1]
+assert "EcoOutsideTemperature(now: now, plain: true)" not in code.split("private struct GPSHeader: View",1)[1]
 assert "private struct GPSBridgeUpperMask: Shape {" in code
 print("OK — build 85: left gray and neon top-bar traces removed; right contour and cockpit preserved")
