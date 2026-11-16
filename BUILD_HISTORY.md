@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43949985711:ATTEMPT:1 -->
+### 2026-11-16T20:27:34Z — CI #327 · build-101-day-topbar-theme-cleanup · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43949985711](https://github.com/gulinodesign-maker/EMT/actions/runs/43949985711); avvio 2026-11-16T20:27:34Z UTC; aggiornamento finale 2026-11-16T20:28:09Z UTC; registrazione 2026-11-16T20:28:19+00:00 UTC; evento pull_request.
+- **Commit:** [b2cf69f79999](https://github.com/gulinodesign-maker/EMT/commit/b2cf69f799996dce39d4230aa55a4a0400f52140); versione **1.0**; build **101**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build93_geometry_preview.py.
+
 <!-- EMT_RUN:43949855018:ATTEMPT:1 -->
 ### 2026-11-16T20:26:48Z — CI #326 · build-101-day-topbar-theme-cleanup · tentativo 1
 
