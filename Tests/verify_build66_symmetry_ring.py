@@ -49,7 +49,7 @@ assert "GPSUpperGradientLayer(theme: theme)" in dashboard and ".zIndex(4)" in da
 assert ".position(x: dialCenterX, y: h * 0.494)" in dashboard
 
 # Temperature shifts left when a mirrored bend reduces available space.
-assert "EcoOutsideTemperature(now: now)" in cockpit  # nel GPSHeader superiore
+assert "EcoOutsideTemperature(now: now, plain: true)" in cockpit  # nel GPSHeader, testo sotto logo
 assert "GPSSiriControl" not in dashboard
 assert ".position(x: resetX, y: resetY)" in dashboard
 assert "let lineX = points.leftKnee.x" in symmetry
