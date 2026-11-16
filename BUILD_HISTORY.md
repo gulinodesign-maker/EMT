@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43948800477:ATTEMPT:1 -->
+### 2026-11-16T20:20:43Z — CI #321 · build-101-day-topbar-theme-cleanup · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43948800477](https://github.com/gulinodesign-maker/EMT/actions/runs/43948800477); avvio 2026-11-16T20:20:43Z UTC; aggiornamento finale 2026-11-16T20:21:06Z UTC; registrazione 2026-11-16T20:21:17+00:00 UTC; evento pull_request.
+- **Commit:** [709bdf47d791](https://github.com/gulinodesign-maker/EMT/commit/709bdf47d791d809f6d0c719b9f878bd9f07eecf); versione **1.0**; build **101**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build74_speed_phases_neon.py.
+
 <!-- EMT_RUN:43948625945:ATTEMPT:1 -->
 ### 2026-11-16T20:19:44Z — CI #320 · build-101-day-topbar-theme-cleanup · tentativo 1
 
