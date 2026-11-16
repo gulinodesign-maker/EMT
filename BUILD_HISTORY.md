@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43845264828:ATTEMPT:1 -->
+### 2026-11-16T10:02:53Z — CI #266 · build-88-topbar-layer-gradient-glow · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43845264828](https://github.com/gulinodesign-maker/EMT/actions/runs/43845264828); avvio 2026-11-16T10:02:53Z UTC; aggiornamento finale 2026-11-16T10:03:25Z UTC; registrazione 2026-11-16T10:03:34+00:00 UTC; evento pull_request.
+- **Commit:** [f4942aecdfe8](https://github.com/gulinodesign-maker/EMT/commit/f4942aecdfe8a1f69d98e24140d12c16e5a38392); versione **1.0**; build **88**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build69_filled_areas_profile.py.
+
 <!-- EMT_RUN:43845112208:ATTEMPT:1 -->
 ### 2026-11-16T10:01:51Z — CI #265 · build-88-topbar-layer-gradient-glow · tentativo 1
 
