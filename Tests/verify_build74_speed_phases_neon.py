@@ -9,7 +9,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert pbx.count("CURRENT_PROJECT_VERSION = 102;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 103;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -78,8 +78,8 @@ for current, expected in ((50, "normal"), (55, "normal"), (55.001, "accelerating
 # The actual speed LED remains active; decorative GPS outlines are removed.
 neon = cockpit.split("private enum GPSInnerLED {", 1)[1].split(
     "private enum GPSDialLayout {", 1)[0]
-for suffix in ("size * 0.034", "size * 0.027", "size * 0.015",
-               "size * 0.010", "size * 0.003"):
+for suffix in ("size * 0.042", "size * 0.027", "size * 0.0195",
+               "size * 0.012", "size * 0.004"):
     assert suffix in neon
 for key in ("haloWidth", "haloBlur", "coreWidth", "outerBlur", "highlightWidth"):
     assert "GPSInnerLED." + key + "(d)" in speed, key

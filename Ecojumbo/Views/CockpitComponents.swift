@@ -307,7 +307,7 @@ enum CockpitContourGeometry {
     }
 }
 
-// Carbonio reale come texture ripetuta, indipendente dalle metriche e dalle preferenze.
+// Sfondo cockpit liscio, privo di qualsiasi trama in fibra di carbonio.
 private struct CarbonBackdrop: View {
     @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
@@ -317,9 +317,6 @@ private struct CarbonBackdrop: View {
                 colorScheme == .light
                     ? Color(red: 0.94, green: 0.96, blue: 0.985)
                     : theme.backdrop
-                Image("CarbonWeave")
-                    .resizable(resizingMode: .tile)
-                    .opacity(colorScheme == .light ? 0.08 : 0.52)
                 LinearGradient(colors: colorScheme == .light
                     ? [Color.white.opacity(0.45), .clear, Color(red: 0.75, green: 0.80, blue: 0.88).opacity(0.25)]
                     : [.black.opacity(0.55), .clear, .black.opacity(0.70)],
@@ -1235,11 +1232,6 @@ private struct OpenSpeedCluster: View {
                         .frame(width: d * outerDiameterFactor, height: d * outerDiameterFactor)
                         .shadow(color: .black.opacity(0.88), radius: d * 0.025)
                 }
-                Image("CarbonWeave")
-                    .resizable(resizingMode: .tile)
-                    .opacity(colorScheme == .light ? 0 : 0.74)
-                    .frame(width: d * carbonDiameterFactor, height: d * carbonDiameterFactor)
-                    .clipShape(Circle())
                 Circle()
                     .fill(RadialGradient(colors: colorScheme == .light
                         ? [Color(white: 0.85).opacity(0.20), .clear, Color(white: 0.72).opacity(0.11)]
@@ -1504,12 +1496,12 @@ private struct GPSPowerHorizontalGauge: View {
 private enum GPSInnerLED {
     // Stesse proporzioni dell'arco SpeedLEDStream: 0.034, 0.027,
     // 0.015, 0.010, riflesso bianco 0.003 (non le barre BMS).
-    static func haloWidth(_ size: CGFloat) -> CGFloat { size * 0.034 }
+    static func haloWidth(_ size: CGFloat) -> CGFloat { size * 0.042 }
     static func haloBlur(_ size: CGFloat) -> CGFloat { size * 0.027 }
-    static func coreWidth(_ size: CGFloat) -> CGFloat { size * 0.015 }
+    static func coreWidth(_ size: CGFloat) -> CGFloat { size * 0.0195 }
     static func coreBlur(_ size: CGFloat) -> CGFloat { max(0.5, size * 0.002) }
-    static func highlightWidth(_ size: CGFloat) -> CGFloat { size * 0.003 }
-    static func outerBlur(_ size: CGFloat) -> CGFloat { size * 0.010 }
+    static func highlightWidth(_ size: CGFloat) -> CGFloat { size * 0.004 }
+    static func outerBlur(_ size: CGFloat) -> CGFloat { size * 0.012 }
     static func outerOpacity(_ intensity: Double) -> Double {
         min(1, max(0, intensity)) * 0.94
     }
@@ -1531,8 +1523,9 @@ private enum GPSDialLayout {
     static func concentricRingRadius(for d: CGFloat) -> CGFloat {
         d * outerProfileDiameterFactor / 2 + 1.5
     }
+    // Build 103: linea al neon visibile ~70% più corposa, anche a 0 km/h.
     static func concentricRingStroke(for d: CGFloat) -> CGFloat {
-        max(1.5, min(2.4, d * 0.003))
+        max(2.4, min(4.2, d * 0.0051))
     }
     // Build 101: dopo la rimozione del cerchio aggiuntivo la mappa
     // torna a 2pt dal SOLO anello concentrico rimasto.
@@ -1826,7 +1819,10 @@ struct GPSCockpitDashboard: View {
             let h = geo.size.height
             let dialSize = GPSDialLayout.size(width: w, height: h)
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
-            // La temperatura resta nel GPSHeader; nessun comando Siri aggiuntivo.
+            // Temperatura nel vuoto sinistro indicato a fianco del quadrante,
+            // non più schiacciata nella fascia superiore sotto il logo.
+            let temperatureX = max(43, w * 0.060)
+            let temperatureY = h * 0.235
             let resetSide = max(42, min(58, h * 0.08))
             let resetX = max(resetSide / 2 + max(10, w * 0.008),
                              dialCenterX - dialSize * 0.56)
@@ -1972,6 +1968,13 @@ struct GPSCockpitDashboard: View {
                                             in: CGSize(width: w, height: h)))
                     .position(x: dialCenterX, y: h * 0.963)
                     .zIndex(30)
+
+                // Build 103: solo testo reale, senza pill, in prossimità
+                // del riferimento indaco (lato sinistro, sotto il logo).
+                EcoOutsideTemperature(now: now, plain: true)
+                    .frame(width: max(83, w * 0.075), height: 48)
+                    .position(x: temperatureX, y: temperatureY)
+                    .zIndex(37)
 
                 // Reset indipendente dalla Telemetria, visibile con mappa ON/OFF.
                 GPSTripResetControl(theme: theme)
@@ -2322,9 +2325,6 @@ struct EcoCockpitThemeMiniature: View {
 
             ZStack {
                 tone(0)
-                Image("CarbonWeave")
-                    .resizable(resizingMode: .tile)
-                    .opacity(0.42)
 
                 miniatureLayer(d: d)
                     .frame(width: w, height: h)
@@ -2333,13 +2333,6 @@ struct EcoCockpitThemeMiniature: View {
                     .fill(tone(0))
                     .frame(width: d * GPSDialLayout.outerProfileDiameterFactor,
                            height: d * GPSDialLayout.outerProfileDiameterFactor)
-                    .position(x: cx, y: h * 0.494)
-                Image("CarbonWeave")
-                    .resizable(resizingMode: .tile)
-                    .opacity(0.72)
-                    .frame(width: d * GPSDialLayout.carbonProfileDiameterFactor,
-                           height: d * GPSDialLayout.carbonProfileDiameterFactor)
-                    .clipShape(Circle())
                     .position(x: cx, y: h * 0.494)
 
                 SpeedScaleTicks(d: d)
@@ -2511,7 +2504,20 @@ struct EcoCockpitThemeMiniature: View {
         }
         .padding(5)
         .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
-        .background(.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 5))
+        .background {
+            let daytime = colorScheme == .light
+            let from = daytime ? Color(themeHex: palette.dayTopBar.left) : tone(15)
+            let to = daytime ? Color(themeHex: palette.dayTopBar.right) : tone(16)
+            RoundedRectangle(cornerRadius: 5)
+                .fill(.white.opacity(0.055))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(LinearGradient(
+                            colors: [from.opacity(daytime ? 0.38 : 0.32),
+                                     to.opacity(daytime ? 0.38 : 0.32)],
+                            startPoint: .leading, endPoint: .trailing))
+                }
+        }
     }
 
     private func miniatureHeader(width: CGFloat, height: CGFloat) -> some View {
@@ -2603,17 +2609,12 @@ private struct GPSHeader: View {
             let w = geo.size.width
             let h = geo.size.height
             HStack(spacing: max(7, h * 0.20)) {
-                // Logo sopra, temperatura reale sotto, SENZA pill.
-                // Il testo resta a sinistra dell'anello del tachimetro.
-                VStack(spacing: h * 0.015) {
-                    Image("EcojumboMark")
-                        .resizable().scaledToFit()
-                        .frame(width: h * 0.75, height: h * 0.49)
-                    EcoOutsideTemperature(now: now, plain: true)
-                        .frame(width: h * 1.05, height: h * 0.34)
-                        .offset(y: h * 0.09)
-                }
-                .frame(width: h * 1.08, height: h * 0.94)
+                // Nella top bar resta solo il logo; il termometro è
+                // indipendente e più in basso nel cruscotto.
+                Image("EcojumboMark")
+                    .resizable().scaledToFit()
+                    .frame(width: h * 0.75, height: h * 0.65)
+                    .frame(width: h * 1.08, height: h * 0.94)
                 Rectangle().fill(colorScheme == .light
                                  ? Color.black.opacity(0.33) : .white.opacity(0.55))
                     .frame(width: 1, height: h * 0.40)
@@ -3389,6 +3390,27 @@ private struct GPSExpandedReadings: View {
         colorScheme == .light ? Color.white.opacity(0.36) : Color.white.opacity(0.038)
     }
 
+    // Esattamente gli stessi DUE colori configurabili della top bar.
+    // Anche le card reagiscono subito a Day/Night e ai temi personali;
+    // l'opacità lascia leggibili testo, grafico e dati BMS reali.
+    private var telemetryCardGradient: LinearGradient {
+        let day = colorScheme == .light
+        let from = day ? Color(themeHex: theme.dayTopBar.left) : theme.topBarGradientStart
+        let to = day ? Color(themeHex: theme.dayTopBar.right) : theme.topBarGradientEnd
+        return LinearGradient(colors: [from.opacity(day ? 0.38 : 0.32),
+                                       to.opacity(day ? 0.38 : 0.32)],
+                              startPoint: .leading, endPoint: .trailing)
+    }
+
+    private var telemetryCardBackground: some View {
+        RoundedRectangle(cornerRadius: 10)
+            .fill(tileBackground)
+            .overlay {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(telemetryCardGradient)
+            }
+    }
+
     private func telemetryTile(_ label: String, value: String,
                                fraction: Double?, showsBar: Bool = false,
                                height: CGFloat) -> some View {
@@ -3423,7 +3445,7 @@ private struct GPSExpandedReadings: View {
         .padding(.vertical, max(5, height * 0.10))
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(height: height)
-        .background(tileBackground, in: RoundedRectangle(cornerRadius: 10))
+        .background(telemetryCardBackground)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(value)")
     }
@@ -3458,7 +3480,7 @@ private struct GPSExpandedReadings: View {
         .padding(.vertical, 4)
         .frame(maxWidth: .infinity)
         .frame(height: height)
-        .background(tileBackground, in: RoundedRectangle(cornerRadius: 10))
+        .background(telemetryCardBackground)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("DISL: " + (gps.tripElevationMeters.map {
             String(format: "%+.0f m", $0)

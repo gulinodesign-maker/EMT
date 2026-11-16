@@ -9,7 +9,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 source = cockpit.decode("utf-8")
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 102;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 103;") == 2
 
 # Preserve telemetry, dial and map source from the approved landscape cockpit.
 blob = b"blob " + str(len(cockpit)).encode() + b"\0" + cockpit
@@ -49,7 +49,7 @@ for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),
     available = w - right - safe_left - 6 * gap
     side = min(side_ideal, max(20, available / 7))
     # Build 68: tangente al bordo reale del tachimetro e inset simmetrici.
-    panel_left = dial_x + dial * 0.508 + right
+    panel_left = dial_x + dial * (.986 * .90) / 2 + 1.5 + max(2.4, min(4.2, dial * .0051)) / 2 + right
     panel_width = w - right - panel_left
     justified_gap = max(0, (panel_width - 6 * side) / 5)
     standard_gap = min(justified_gap, max(8, w * 0.013))
@@ -59,8 +59,8 @@ for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),
     assert justified_gap >= gap
     assert button_left >= panel_left
     assert button_right <= w - right + 1e-7
-    assert panel_left > safe_left - 5, (w, h, panel_left, safe_left)
-    dial_tangent = dial_x + dial * 0.508
+    assert panel_left > dial_x + dial * (.986 * .90) / 2, (w, h, panel_left)
+    dial_tangent = dial_x + dial * (.986 * .90) / 2 + 1.5 + max(2.4, min(4.2, dial * .0051)) / 2
     assert isclose(panel_left - dial_tangent, right, abs_tol=1e-7)
     assert isclose((button_left + button_right) / 2,
                    (dial_tangent + w) / 2, abs_tol=1e-7)

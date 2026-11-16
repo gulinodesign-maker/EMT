@@ -8,7 +8,7 @@ t = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 p = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 status = (root / "STATO_PROGETTO.md").read_text()
 
-assert p.count("CURRENT_PROJECT_VERSION = 102;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 103;") == 2
 assert p.count("MARKETING_VERSION = 1.0;") == 2
 assert "Build 94" in status
 
@@ -24,7 +24,7 @@ cluster = c.split("private struct OpenSpeedCluster: View {", 1)[1].split(
 assert "maximizesGPSSpeedScale ? GPSDialLayout.outerProfileDiameterFactor : 0.986" in cluster
 assert "maximizesGPSSpeedScale ? GPSDialLayout.carbonProfileDiameterFactor : 0.982" in cluster
 assert ".frame(width: d * outerDiameterFactor, height: d * outerDiameterFactor)" in cluster
-assert ".frame(width: d * carbonDiameterFactor, height: d * carbonDiameterFactor)" in cluster
+assert 'Image("CarbonWeave")' not in cluster
 assert "endRadius: d * outerDiameterFactor / 2" in cluster
 assert cluster.count(".scaleEffect(GPSDialLayout.speedScaleMagnification)") == 2
 assert "showsCircularPowerGauges: Bool = true" in cluster
@@ -55,7 +55,8 @@ assert "miniatureDock(height: h)" not in preview
 assert ".frame(width: w, height: h * 0.10)" in preview
 assert ".frame(width: panelWidth, height: h * 0.082)" in preview
 assert "d * GPSDialLayout.outerProfileDiameterFactor" in preview
-assert "d * GPSDialLayout.carbonProfileDiameterFactor" in preview
+assert "d * GPSDialLayout.carbonProfileDiameterFactor" not in preview
+assert 'Image("CarbonWeave")' not in preview
 for comp in ('miniatureButton("map.fill"', 'miniatureButton("chart.bar.fill"',
              'miniatureButton("gearshape.fill"', 'miniatureButton("paintpalette.fill"',
              'miniatureButton("sun.max.fill"'):

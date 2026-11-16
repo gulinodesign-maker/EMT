@@ -9,7 +9,7 @@ tabs = (r / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (r / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (r / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 102;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 103;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert "## Build 100" in state
 
@@ -60,10 +60,10 @@ assert "var plain: Bool = false" in weather
 assert ".padding(.horizontal, plain ? 0 : 5)" in weather
 assert ".padding(.vertical, plain ? 0 : 3)" in weather
 assert "if !plain {" in weather
-assert "VStack(spacing: h * 0.015)" in header
-assert "EcoOutsideTemperature(now: now, plain: true)" in header
-assert header.index('Image("EcojumboMark")') < header.index(
-    "EcoOutsideTemperature(now: now, plain: true)") < header.index("SystemClockText()")
+assert 'Image("EcojumboMark")' in header
+assert "EcoOutsideTemperature(now: now, plain: true)" not in header
+assert "EcoOutsideTemperature(now: now, plain: true)" in dashboard
+assert ".position(x: temperatureX, y: temperatureY)" in dashboard
 assert cockpit.count("EcoOutsideTemperature(now: now)") == 1
 assert "GPSSiriControl" not in cockpit
 
