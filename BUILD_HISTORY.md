@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43827641996:ATTEMPT:1 -->
+### 2026-11-16T07:58:52Z — CI #259 · build-86-single-kw-shorter-bridge · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43827641996](https://github.com/gulinodesign-maker/EMT/actions/runs/43827641996); avvio 2026-11-16T07:58:52Z UTC; aggiornamento finale 2026-11-16T08:01:45Z UTC; registrazione 2026-11-16T08:01:55+00:00 UTC; evento pull_request.
+- **Commit:** [5276d3bac02c](https://github.com/gulinodesign-maker/EMT/commit/5276d3bac02c1074ee87c009faf7d541909f39a0); versione **1.0**; build **86**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build86_single_kw_bridge.py, Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py.
+
 <!-- EMT_RUN:43757412829:ATTEMPT:1 -->
 ### 2026-11-15T20:19:25Z — CI #258 · main · tentativo 1
 
