@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43956946799:ATTEMPT:1 -->
+### 2026-11-16T21:08:10Z — CI #332 · build-102-dock-ten-power-weather-reset · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43956946799](https://github.com/gulinodesign-maker/EMT/actions/runs/43956946799); avvio 2026-11-16T21:08:10Z UTC; aggiornamento finale 2026-11-16T21:10:57Z UTC; registrazione 2026-11-16T21:11:09+00:00 UTC; evento pull_request.
+- **Commit:** [4ab9864735aa](https://github.com/gulinodesign-maker/EMT/commit/4ab9864735aadc755726d45d92a45257b3a7bb3c); versione **1.0**; build **102**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build68_gradient_layout.py, Tests/verify_build70_no_gradients_centered.py.
+
 <!-- EMT_RUN:43956678110:ATTEMPT:1 -->
 ### 2026-11-16T21:06:37Z — CI #331 · build-102-dock-ten-power-weather-reset · tentativo 1
 
