@@ -64,7 +64,7 @@ assert "GPSHorizonLine(theme: theme)" in dashboard
 assert "GPSLowerGlow(theme: theme)" in dashboard
 assert "GPSCockpitPowerReading(d: dialSize," in dashboard
 assert "GPSPowerHorizontalGauge(d: dialSize," in dashboard
-assert '("Layer top bar", [15, 16, 2])' in themes
+assert '("Layer top bar", [15, 16, 19, 20, 2])' in themes
 assert "powerWatts: live.map { -$0.power }" in dashboard
 
 # Mathematically the dial mask clears every point on and inside the entire
