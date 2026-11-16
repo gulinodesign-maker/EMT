@@ -2905,7 +2905,7 @@ private struct GPSCockpitMap: View {
                     Spacer(minLength: 0)
                 }
                 // Il bordo superiore si allinea alla top bar della Home GPS.
-                .padding(.top, h * 0.0565)
+                .padding(.top, h * 0.0565 + max(8, h * 0.014))
                 .frame(width: w, height: h, alignment: .topLeading)
 
                 // Build 43: nessuna card BMS sopra la cartografia.
