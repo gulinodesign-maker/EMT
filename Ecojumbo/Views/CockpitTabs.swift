@@ -272,6 +272,66 @@ final class EcoNavigationStore: ObservableObject {
 // EcoNavigationStore resta condiviso e mantiene la rotta quando si cambia modalità.
 
 
+// Build 101: cinque colori indipendenti e due intensità per il layer diurno.
+// I ruoli della palette notturna rimangono negli indici storici 2/15/16/19/20.
+struct EcoDayTopBarPalette: Codable, Equatable {
+    var left: String
+    var right: String
+    var high: String
+    var low: String
+    var underGlow: String
+    var highIntensity: Double
+    var lowIntensity: Double
+
+    static func derived(from colors: [String]) -> EcoDayTopBarPalette {
+        func pastel(_ hex: String, white: CGFloat = 0.72) -> String {
+            let original = UIColor(Color(themeHex: hex))
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            guard original.getRed(&r, green: &g, blue: &b, alpha: &a) else {
+                return "#DDE5EE"
+            }
+            return EcoThemePalette.colorHex(UIColor(red: r * (1 - white) + white,
+                                                     green: g * (1 - white) + white,
+                                                     blue: b * (1 - white) + white,
+                                                     alpha: 1))
+        }
+        return EcoDayTopBarPalette(
+            left: pastel(colors[15]), right: pastel(colors[16]),
+            high: pastel(colors[19]), low: pastel(colors[20]),
+            underGlow: pastel(colors[2], white: 0.55),
+            highIntensity: 0.22, lowIntensity: 0.22
+        )
+    }
+
+    func hex(for role: Int) -> String {
+        switch role {
+        case 15: left
+        case 16: right
+        case 19: high
+        case 20: low
+        case 2: underGlow
+        default: "#FFFFFF"
+        }
+    }
+
+    mutating func set(_ hex: String, for role: Int) {
+        switch role {
+        case 15: left = hex
+        case 16: right = hex
+        case 19: high = hex
+        case 20: low = hex
+        case 2: underGlow = hex
+        default: break
+        }
+    }
+
+    var isValid: Bool {
+        [left, right, high, low, underGlow].allSatisfy(EcoThemePalette.validHex)
+            && highIntensity.isFinite && (0...1).contains(highIntensity)
+            && lowIntensity.isFinite && (0...1).contains(lowIntensity)
+    }
+}
+
 // Build 74: ruoli esistenti 10 (normale), 14 (decelerazione), 17 (limite); 18 (accelerazione).
 // I valori 15 e 16 rimangono riservati e salvati per compatibilità.
 struct EcoThemePalette: Codable, Equatable {
@@ -280,19 +340,22 @@ struct EcoThemePalette: Codable, Equatable {
     var glowIntensity: Double
     var topFadeIntensity: Double
     var bottomFadeIntensity: Double
+    var dayTopBar: EcoDayTopBarPalette
 
     init(name: String, colors: [String], glowIntensity: Double = 0.60,
-         topFadeIntensity: Double = 0.35, bottomFadeIntensity: Double = 0.35) {
+         topFadeIntensity: Double = 0.35, bottomFadeIntensity: Double = 0.35,
+         dayTopBar: EcoDayTopBarPalette? = nil) {
         self.name = name
         self.colors = colors
         self.glowIntensity = glowIntensity.isFinite ? min(1, max(0, glowIntensity)) : 0.60
         self.topFadeIntensity = topFadeIntensity.isFinite ? min(1, max(0, topFadeIntensity)) : 0.35
         self.bottomFadeIntensity = bottomFadeIntensity.isFinite ? min(1, max(0, bottomFadeIntensity)) : 0.35
+        self.dayTopBar = dayTopBar ?? EcoDayTopBarPalette.derived(from: colors)
     }
 
     // Le palette 63–72 non contenevano intensità: default retrocompatibile.
     private enum CodingKeys: String, CodingKey {
-        case name, colors, glowIntensity, topFadeIntensity, bottomFadeIntensity
+        case name, colors, glowIntensity, topFadeIntensity, bottomFadeIntensity, dayTopBar
     }
 
     init(from decoder: Decoder) throws {
@@ -307,6 +370,8 @@ struct EcoThemePalette: Codable, Equatable {
         let low = try data.decodeIfPresent(Double.self, forKey: .bottomFadeIntensity) ?? 0.35
         topFadeIntensity = high.isFinite ? min(1, max(0, high)) : 0.35
         bottomFadeIntensity = low.isFinite ? min(1, max(0, low)) : 0.35
+        dayTopBar = try data.decodeIfPresent(EcoDayTopBarPalette.self, forKey: .dayTopBar)
+            ?? EcoDayTopBarPalette.derived(from: colors)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -316,6 +381,7 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(glowIntensity, forKey: .glowIntensity)
         try data.encode(topFadeIntensity, forKey: .topFadeIntensity)
         try data.encode(bottomFadeIntensity, forKey: .bottomFadeIntensity)
+        try data.encode(dayTopBar, forKey: .dayTopBar)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -328,8 +394,8 @@ struct EcoThemePalette: Codable, Equatable {
         "Barre telemetria · colore intermedio",
         "Barre telemetria · colore luminoso",
         "Numeri kW · energia in ingresso",
-        "Anello esterno · potenza erogata",
-        "Anello interno · recupero energia",
+        "Barre di potenza · energia in uscita",
+        "Barre di potenza · energia in entrata",
         "Velocità GPS · fase normale",
         "Numeri del tachimetro · km/h",
         "Navigatore · svolta a destra",
@@ -341,8 +407,7 @@ struct EcoThemePalette: Codable, Equatable {
         "Velocità GPS · fase accelerazione",
         "Layer top bar · sfumatura alta",
         "Layer top bar · sfumatura bassa",
-        "Cerchio concentrico · sopra top bar",
-        "Secondo cerchio esterno · spessore doppio"
+        "Cerchio concentrico luminoso · tachimetro"
     ]
     static let details = [
         "Fondo scuro dietro gli strumenti.",
@@ -353,8 +418,8 @@ struct EcoThemePalette: Codable, Equatable {
         "Tonalità centrale delle barre di telemetria.",
         "Tonalità brillante delle barre di telemetria.",
         "Numero della potenza che entra nella batteria (kW); non dimostra da sola che si sta frenando.",
-        "Corona segmentata esterna: potenza in uscita dal BMS.",
-        "Corona segmentata interna: energia in ingresso alla batteria, da carica o recupero.",
+        "Segmenti rossi della scala potenza nel ponte kW: energia in uscita.",
+        "Segmenti azzurri della scala potenza nel ponte kW: energia in entrata o recupero.",
         "Colore normale dell’arco GPS quando la variazione resta entro ±5 km/h.",
         "Cifre grandi della velocità GPS al centro.",
         "Freccia e distanza della prossima svolta verso destra.",
@@ -366,20 +431,18 @@ struct EcoThemePalette: Codable, Equatable {
         "Colore dell’arco GPS quando la velocità aumenta di oltre 5 km/h nella finestra di osservazione.",
         "Sfumatura verticale dal bordo alto verso il centro del layer esterno; colore e intensità indipendenti.",
         "Sfumatura verticale dal bordo basso verso il centro del layer esterno; colore e intensità indipendenti.",
-        "Colore del nuovo cerchio concentrico sopra la top bar. Il tracciato termina prima del ponte kW.",
-        "Colore indipendente del secondo anello più esterno, spesso il doppio; bagliore editabile con il cursore generale, ponte kW rispettato."
+        "Colore del cerchio luminoso rimasto attorno al tachimetro; bagliore regolabile qui, termina prima del ponte kW."
     ]
-    // L'ordine visibile colloca le quattro fasi GPS in un'unica categoria,
-    // senza duplicare il colore normale (indice 10) né il colore di decelerazione (14).
+    // Ogni ruolo compare una sola volta. Barre in entrata/uscita e tutte
+    // le fasi della velocità fanno parte del tachimetro, non della telemetria.
     static let groups: [(title: String, range: [Int])] = [
-        ("Aspetto generale", Array(0..<4)),
-        ("Barre telemetria e potenza", Array(4..<8)),
-        ("Anelli e numeri del tachimetro", [8, 9, 11, 22]),
+        ("Aspetto generale", [0]),
+        ("Anelli e numeri del tachimetro", [1, 3, 21, 11, 10, 14, 18, 17, 8, 9, 7]),
+        ("Barre telemetria", [4, 5, 6]),
         ("Navigatore", [12, 13]),
-        ("Velocità oltre soglia", [14, 10, 18, 17]),
-        ("Layer top bar", [15, 16, 19, 20, 2, 21])
+        ("Layer top bar", [15, 16, 19, 20, 2])
     ]
-    static let colorCount = 23
+    static let colorCount = 22
     static let extraDefaults = [
         "#FA2B2E", "#2BBAFF", "#FF7008", "#FA2B2E",
         "#FFFFFF", "#FFFFFF", "#FFB224"
@@ -407,7 +470,7 @@ struct EcoThemePalette: Codable, Equatable {
             colors: ["#040405", foreground.0, foreground.1, "#D9DEE3"]
                 + standardBarColors + extraDefaults
                 + [foreground.1, foreground.1, "#FF3B30", "#FF3B30",
-                   foreground.1, foreground.0, foreground.0, foreground.0]
+                   foreground.1, foreground.0, foreground.0]
         )
     }
 
@@ -418,7 +481,7 @@ struct EcoThemePalette: Codable, Equatable {
               (decoded.colors.count == 8 || decoded.colors.count == 15 ||
                decoded.colors.count == 17 || decoded.colors.count == 18 ||
                decoded.colors.count == 19 || decoded.colors.count == 21 ||
-               decoded.colors.count == 22 || decoded.colors.count == colorCount),
+               decoded.colors.count == 22 || decoded.colors.count == 23),
               decoded.colors.allSatisfy({ validHex($0) }) else { return nil }
         // Migrazione non distruttiva: gli 8 colori delle build 63 restano identici.
         var migrated = decoded
@@ -453,10 +516,11 @@ struct EcoThemePalette: Codable, Equatable {
         if migrated.colors.count == 21 {
             migrated.colors.append(migrated.colors[1])
         }
-        // Build 100: 22→23; secondo anello eredita solo inizialmente
-        // l'accento salvato, poi rimane indipendente. Nessun colore perso.
-        if migrated.colors.count == 22 {
-            migrated.colors.append(migrated.colors[1])
+        // Build 101: il ruolo 22 è orfano dopo la rimozione del
+        // secondo anello. Troncamento dell'UNICO valore non più usato;
+        // tutti i colori 0...21 e il nuovo layer Day restano intatti.
+        if migrated.colors.count == 23 {
+            migrated.colors.removeLast()
         }
         return migrated
     }
@@ -467,6 +531,7 @@ struct EcoThemePalette: Codable, Equatable {
               palette.glowIntensity.isFinite, (0...1).contains(palette.glowIntensity),
               palette.topFadeIntensity.isFinite, (0...1).contains(palette.topFadeIntensity),
               palette.bottomFadeIntensity.isFinite, (0...1).contains(palette.bottomFadeIntensity),
+              palette.dayTopBar.isValid,
               palette.colors.allSatisfy({ validHex($0) }),
               let data = try? JSONEncoder().encode(palette) else { return false }
         UserDefaults.standard.set(data, forKey: storagePrefix + String(slot))
