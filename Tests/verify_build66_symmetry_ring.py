@@ -44,7 +44,7 @@ assert "accessibilityHidden(true)" in ring
 assert "GPSMetalInnerRing()" in dashboard
 assert ".zIndex(26)" in dashboard
 assert "GPSGaugeHalo(theme: theme)" not in dashboard
-assert ".zIndex(27)" not in dashboard
+assert "GPSUpperGradientLayer(theme: theme)" in dashboard and ".zIndex(27)" in dashboard
 assert ".position(x: dialCenterX, y: h * 0.494)" in dashboard
 
 # Temperature shifts left when a mirrored bend reduces available space.
