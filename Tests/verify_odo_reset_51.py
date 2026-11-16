@@ -7,7 +7,7 @@ source=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 101;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 102;") == 2
 dashboard=source.split("struct GPSCockpitDashboard: View {",1)[1].split(
     "private struct GPSHorizonLine: View {",1)[0]
 speed=source.split("private struct OpenSpeedCluster: View {",1)[1].split(
@@ -53,8 +53,8 @@ assert "let resetX = max(resetSide / 2" in dashboard
 assert "dialCenterX - dialSize * 0.56" in dashboard
 assert "let resetY = min(h - resetSide * 0.58, h * 0.840)" in dashboard
 assert '.zIndex(38)' in dashboard
-assert 'Image(systemName: "arrow.counterclockwise")' in reset
-assert 'Text("RESET")' in reset
+assert 'Image(systemName: "arrow.uturn.backward.circle.fill")' in reset
+assert 'Text("RESET")' not in reset
 assert '.onLongPressGesture(minimumDuration: 0.5)' in reset
 assert "gps.resetTrip()" in reset
 assert 'accessibilityLabel("Azzera trip e dislivello")' in reset

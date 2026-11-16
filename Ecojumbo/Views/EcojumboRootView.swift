@@ -370,14 +370,19 @@ private struct CockpitCornerControls: View {
             let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)
             let telemetryPanelWidth = max(1, width - EcoCockpitDockGeometry.rightInset(width: width)
                                                - telemetryPanelLeft)
+            // In Telemetria i sei pulsanti formano un gruppo COMPATTO
+            // centrato nella stessa fascia tra quadrante e lato destro
+            // delle schede; non occupano tutta la larghezza distribuendo
+            // lo spazio vuoto fra i singoli pulsanti.
             let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)
+            let standardGap = min(justifiedGap, max(8, width * 0.013))
             let musicGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)
             let musicDock = selected == .gps && musicEnabled
             let fillsTelemetryWidth = telemetryDock || musicDock
             HStack(alignment: .center, spacing: 0) {
                 // Tachimetro: dock a destra. Altri menu: gruppo centrato.
                 Spacer(minLength: 0)
-                HStack(spacing: musicDock ? musicGap : (telemetryDock ? justifiedGap : gpsGap)) {
+                HStack(spacing: musicDock ? musicGap : (telemetryDock ? standardGap : gpsGap)) {
                     if musicDock {
                         // Comandi musicali AL POSTO dei pulsanti standard:
                         // Telemetria, precedente, play/pausa, successivo, cerca.
@@ -464,7 +469,9 @@ private struct CockpitCornerControls: View {
                         }
                     }
                 }
-                .frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .leading)
+                // Il centro coincide esattamente con quello della Telemetria;
+                // allineamento a destra del dock resta invariato in Mappa.
+                .frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .center)
                 if selected != .gps {
                     Spacer(minLength: 0)
                 }

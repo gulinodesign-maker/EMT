@@ -8,7 +8,7 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 101;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 102;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -44,7 +44,7 @@ assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
 assert "let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)" in home
 assert "let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)" in home
-assert ".frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .leading)" in home
+assert ".frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .center)" in home
 
 for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
              (1179, 510), (1536, 706), (1648, 928), (1806, 831)):
@@ -63,7 +63,12 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
     side = min(ideal_side, max(20, (w - margin - safe_left - 6 * gap) / 7))
     assert width >= 6 * side, (w, h, width, side)
     justified_gap = (width - 6 * side) / 5
-    assert isclose(left + 6 * side + 5 * justified_gap, right, abs_tol=1e-8)
+    standard_gap = min(justified_gap, max(8, w * 0.013))
+    group_width = 6 * side + 5 * standard_gap
+    button_left = (left + right) / 2 - group_width / 2
+    button_right = button_left + group_width
+    assert isclose((button_left + button_right) / 2, (left + right) / 2, abs_tol=1e-8)
+    assert left <= button_left <= button_right <= right
     # The original dial remains outside the aligned telemetry panel.
     assert cx + d * 0.508 < left
 

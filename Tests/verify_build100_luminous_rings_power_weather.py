@@ -9,7 +9,7 @@ tabs = (r / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (r / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (r / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 101;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 102;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert "## Build 100" in state
 
@@ -60,7 +60,7 @@ assert "var plain: Bool = false" in weather
 assert ".padding(.horizontal, plain ? 0 : 5)" in weather
 assert ".padding(.vertical, plain ? 0 : 3)" in weather
 assert "if !plain {" in weather
-assert "VStack(spacing: 1)" in header
+assert "VStack(spacing: h * 0.015)" in header
 assert "EcoOutsideTemperature(now: now, plain: true)" in header
 assert header.index('Image("EcojumboMark")') < header.index(
     "EcoOutsideTemperature(now: now, plain: true)") < header.index("SystemClockText()")
@@ -74,14 +74,14 @@ bar = cockpit.split("private struct GPSPowerHorizontalGauge: View {", 1)[1].spli
 bridge = cockpit.split("private enum GPSLowerLineGeometry {", 1)[1].split(
     "private struct GPSLowerContour: Shape {", 1)[0]
 assert "let bridgeMaxWidth: CGFloat" in bar
-assert "min(d * 0.78, max(1, bridgeMaxWidth))" in bar
-assert "height: 2 * max(5, d * 0.014)" in bar
-assert "let regenTacks = 9" in bar and "let dischargeTacks = 21" in bar
+assert "min(d * 0.54, max(1, bridgeMaxWidth))" in bar
+assert "height: max(16, d * 0.045)" in bar
+assert "let regenTacks = 3" in bar and "let dischargeTacks = 7" in bar
 assert "let halfSpace = min(center - ends[0].x, ends[3].x - center) - safety" in bridge
 assert "static func powerBarMaxWidth(in size: CGSize)" in bridge
 assert "bridgeMaxWidth: GPSLowerLineGeometry.powerBarMaxWidth(" in dashboard
-assert "2 * max(3, d * 0.014)" in preview
-assert "min(d * 0.78, max(1, bridgeMaxWidth))" in preview
+assert "max(16, d * 0.045)" in preview
+assert "min(d * 0.54, max(1, bridgeMaxWidth))" in preview
 assert "let live = bluetooth.snapshot" in dashboard
 assert "powerWatts: live.map { -$0.power }" in dashboard
 
@@ -102,10 +102,10 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
     right_top = min(cx + d * .195, max_right - ideal_run)
     run = min(ideal_run, max(0, max_right - right_top))
     left_foot, right_foot = left_top - run, right_top + run
-    width = min(d * .78,
+    width = min(d * .54,
                 max(1, 2 * (min(cx-left_foot, right_foot-cx)-max(6,d*.014))))
     assert width > 0 and cx - width / 2 > left_foot
     assert cx + width / 2 < right_foot
-    assert isclose(2 * max(5, d * .014) / max(5, d * .014), 2)
+    assert max(16, d * .045) > 2 * max(5, d * .014)
 
 print("OK — retained build 100 primary glow, plain logo weather and safe 2× power scale; extra ring removed")
