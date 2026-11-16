@@ -7,7 +7,7 @@ panel = (root / "Ecojumbo/Views/EcoMusicCockpitPanel.swift").read_text()
 manager = (root / "Ecojumbo/Models/EcoMusicManager.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 99;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 100;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
 # Both MapKit and artwork crop below the real lower edge of the gray metal
@@ -43,7 +43,7 @@ assert ".zIndex(8)" in dashboard and ".zIndex(5)" in dashboard
 # The overlay is fully gone: it must not leave its button, alert or geometry.
 assert "GPSSiriControl" not in cockpit
 assert 'Text("SIRI")' not in cockpit
-assert 'EcoOutsideTemperature(now: now)' in cockpit.split(
+assert 'EcoOutsideTemperature(now: now, plain: true)' in cockpit.split(
     "private struct GPSHeader: View", 1)[1]
 assert "GPSTripResetControl(theme: theme)" in dashboard
 
