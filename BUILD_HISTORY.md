@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43848037898:ATTEMPT:1 -->
+### 2026-11-16T10:21:02Z — CI #269 · build-89-topbar-profile-correction · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43848037898](https://github.com/gulinodesign-maker/EMT/actions/runs/43848037898); avvio 2026-11-16T10:21:02Z UTC; aggiornamento finale 2026-11-16T10:22:50Z UTC; registrazione 2026-11-16T10:23:00+00:00 UTC; evento pull_request.
+- **Commit:** [7ef00426bbc5](https://github.com/gulinodesign-maker/EMT/commit/7ef00426bbc53bcb82a0f46797378fe33cb81645); versione **1.0**; build **89**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:43845607976:ATTEMPT:1 -->
 ### 2026-11-16T10:05:07Z — CI #268 · main · tentativo 1
 
