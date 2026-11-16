@@ -325,13 +325,13 @@ struct EcoSettingsView: View {
                         Text(provider.rawValue).tag(provider.rawValue)
                     }
                 }
-                Text("Il tasto Musica nel cockpit mostra copertina, brano e comandi sulla destra, senza interrompere tachimetro e telemetria.")
+                Text("In Telemetria e Mappa compare Musica; nella modalità musicale i pulsanti standard diventano i comandi dei brani e la ricerca interna, mentre tachimetro e GPS restano attivi.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             if musicProvider == EcoMusicProvider.apple.rawValue {
                 Section("Apple Music") {
                     Button("Autorizza Apple Music") { music.requestAppleAccess() }
-                    Text("Usa il lettore dell'app Musica su iPhone. Avvia un brano nell'app Musica: titolo e copertina appariranno nel cockpit.")
+                    Text("Il tasto Cerca interroga Apple Music tramite MusicKit. Selezionando un brano, la riproduzione parte direttamente in EMT, senza aprire altre app. Servono autorizzazione iOS, un abbonamento per il catalogo e il servizio MusicKit abilitato nell'Apple Developer ID.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             } else if musicProvider == EcoMusicProvider.spotify.rawValue {
