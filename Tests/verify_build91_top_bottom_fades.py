@@ -75,7 +75,7 @@ for prop in ("topFadeIntensity", "bottomFadeIntensity"):
     assert f"decodeIfPresent(Double.self, forKey: .{prop})" in tabs
     assert f"data.encode({prop}, forKey: .{prop})" in tabs
     assert f"palette.{prop}.isFinite" in tabs
-assert "foreground.1, foreground.0, foreground.0]" in tabs
+assert "foreground.1, foreground.0, foreground.0, foreground.0]" in tabs
 assert "EcoThemePalette.save(palette, slot: slot)" in tabs
 
 print("OK — build 91: independent high/low color and opacity, migrated slots, dial/bridge masks")
