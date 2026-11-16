@@ -1729,10 +1729,11 @@ struct GPSCockpitDashboard: View {
                         .zIndex(6)
                 }
 
-                // Build 88: layer sopra il quadrante, sotto le linee metalliche.
+                // Build 90: la superficie resta DIETRO a tachimetro,
+                // top bar metallica, telemetria e ponte (difesa aggiuntiva).
                 GPSUpperGradientLayer(theme: theme)
                     .frame(width: w, height: h)
-                    .zIndex(27)
+                    .zIndex(4)
 
                 GPSHorizonLine(theme: theme)
                     .frame(width: w, height: h)
@@ -2000,11 +2001,41 @@ private struct GPSUpperLayerFootprint: Shape {
         upper.closeSubpath()
         left.addPath(upper)
 
-        // Il foro conserva esattamente il tachimetro e il suo bordo metallico.
-        left.addEllipse(in: CGRect(x: centerX - circleRadius,
-                                   y: centerY - circleRadius,
-                                   width: 2 * circleRadius, height: 2 * circleRadius))
+        // Build 90: NON aggiungere il foro al tracciato composito.
+        // L'esclusione del quadrante avviene con una maschera separata,
+        // evitando l'inversione della regola pari/dispari fra sottopercorsi.
         return left
+    }
+}
+
+// Build 90: due esclusioni indipendenti, applicate in serie.
+// Usare due maschere, NON sommare i fori a GPSUpperLayerFootprint:
+// l'even-odd di un tracciato composto può riempire il disco per parità.
+private struct GPSDialExteriorMask: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width
+        let h = rect.height
+        let d = GPSDialLayout.size(width: w, height: h)
+        let centerX = GPSDialLayout.centerX(width: w, height: h)
+        // Copri l'intero diametro visibile del quadrante (0.986 d)
+        // e il margine esterno, non solo la pista metallica (0.965 d).
+        let radius = d * 0.508 + 3
+        var exterior = Path(rect)
+        exterior.addEllipse(in: CGRect(x: centerX - radius,
+                                       y: h * 0.494 - radius,
+                                       width: 2 * radius,
+                                       height: 2 * radius))
+        return exterior
+    }
+}
+
+// L'interno del ponte e la parte centrale sotto di esso restano
+// sempre liberi dal colore, anche dove si sovrappongono al quadrante.
+private struct GPSBridgeExteriorMask: Shape {
+    func path(in rect: CGRect) -> Path {
+        var exterior = Path(rect)
+        exterior.addPath(GPSLowerShade().path(in: rect))
+        return exterior
     }
 }
 
@@ -2028,8 +2059,12 @@ private struct GPSUpperGradientLayer: View {
                         style: FillStyle(eoFill: true))
                     .opacity(0.84)
             }
-            // Non usare GPSBridgeUpperMask: taglierebbe gli ultimi 6,3%
-            // del lato sinistro, esattamente il difetto segnato dall'utente.
+            // Entrambe le maschere si applicano DOPO blur e riempimento.
+            // Il quadrante e tutto il ponte sono esclusi in modo indipendente.
+            .mask(GPSDialExteriorMask().fill(style: FillStyle(eoFill: true)))
+            .mask(GPSBridgeExteriorMask().fill(style: FillStyle(eoFill: true)))
+            // GPSBridgeUpperMask NON va applicata: troncherebbe il lato
+            // sinistro prima del bordo basso, come nella build 88.
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)

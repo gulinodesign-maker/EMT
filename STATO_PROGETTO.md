@@ -1,5 +1,17 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 90 — layer esclusivamente ESTERNO al tachimetro e al ponte (16 novembre 2026)
+
+**Richiesta utente da screenshot build 89:** il layer bicolore della top bar continua a dipingere l'interno del tachimetro e del ponte, nascondendone gran parte. Il layer deve stare **solo all'esterno**, senza nessuna velatura o luce interna al cerchio o nel ponte. Conservare l'estensione fino al bordo basso del display a sinistra, la fascia a destra solo al di sopra della top bar, i tre colori editabili in Temi e il resto della build 89.
+
+**Causa tecnica:** nella 89 il foro ellittico veniva aggiunto al medesimo `Path` che conteneva due silhouette, `left` e `upper`. Il riempimento `even-odd` di sottopercorsi sovrapposti invertiva localmente l'esclusione, colorando il quadrante; inoltre il layer aveva `zIndex(27)`, superiore al disco e alle tacche (`zIndex(25)`).
+
+**Correzione nel codice:** il `GPSUpperLayerFootprint` non contiene più alcun foro; il layer completo, **inclusi bagliore e blur**, attraversa ora due maschere separate e successive: `GPSDialExteriorMask` (rettangolo meno ellisse più grande del disco del tachimetro, raggio `0.508*d+3`) e `GPSBridgeExteriorMask` (rettangolo meno `GPSLowerShade`, cioè l'intera area interna/inferiore del ponte). Ogni maschera usa `FillStyle(eoFill: true)` autonomamente, impedendo l'annullamento incrociato dei fori. Inoltre il layer è portato a `zIndex(4)`, dietro top bar, quadro, telemetria, mappa e ponte. Conservato il bordo inferiore sinistro a `y=h` e l'offset di 3 punti sul profilo metallico. Gli altri livelli grafici e i dati non cambiano.
+
+**Release:** nuova versione Xcode 1.0 (90), bundle ID `it.ecojumbo.battery` invariato. Test regressione `Tests/verify_build90_exterior_layer.py` aggiunto; risultati CI, merge e TestFlight vanno registrati separatamente dopo le verifiche. **Non confondere upload riuscito con elaborazione Apple, gruppo tester TE o installabilità.**
+
+
+
 ## Build 89 — correzione del layer dalla fotografia iPhone (16 novembre 2026)
 
 **Richiesta:** nello screenshot della build 88, l'utente indica in rosso una larga falda colorata a destra del tachimetro, sopra le schede telemetria, che non deve esistere; nell'area segnata sotto a sinistra, il layer deve invece proseguire senza interruzioni fino al bordo inferiore del display. Mantenere sfumatura a due colori, bagliore editabile, scostamento 3 pt dalle linee grigie e tutto il resto della build 88.
