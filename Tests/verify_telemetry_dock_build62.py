@@ -9,7 +9,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 source = cockpit.decode("utf-8")
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 97;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 98;") == 2
 
 # Preserve telemetry, dial and map source from the approved landscape cockpit.
 blob = b"blob " + str(len(cockpit)).encode() + b"\0" + cockpit
@@ -26,8 +26,8 @@ assert "let telemetryDock = selected == .gps && !mapEnabled" in dock
 assert "let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)" in dock
 assert "width - EcoCockpitDockGeometry.rightInset(width: width)" in dock
 assert "let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)" in dock
-assert "HStack(spacing: telemetryDock ? justifiedGap : gpsGap)" in dock
-assert ".frame(width: telemetryDock ? telemetryPanelWidth : nil, alignment: .leading)" in dock
+assert "HStack(spacing: musicDock ? musicGap : (telemetryDock ? justifiedGap : gpsGap))" in dock
+assert ".frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .leading)" in dock
 assert "ForEach([EcoTab.trips, .settings, .themes])" in dock
 assert 'gpsButton("map.fill", active: mapEnabled' in dock
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in dock

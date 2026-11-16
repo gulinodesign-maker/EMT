@@ -19,7 +19,7 @@ assert "path.addArc(tangent1End: safeTopRight, tangent2End: safeTopLeft," in c
 assert ".mask(GPSMapTopContourClip())" in map_source
 assert ".mask(GPSMapLowerContourClip())" in map_source
 assert ".mask(GPSMapDialClearanceClip()" in map_source  # exact 2pt circle
-assert "GPSMapTopContourClip()" not in c.split("private struct GPSCockpitMap: View {")[0]
+assert c.split("private struct GPSCockpitMap: View {")[0].count("GPSMapTopContourClip()") == 1  # shared by music
 
 # Exact conversion: global cockpit pixel coordinates -> local MapKit frame.
 for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),

@@ -1744,6 +1744,7 @@ struct GPSCockpitDashboard: View {
     let now: Date
     let mapEnabled: Bool
     let musicEnabled: Bool
+    @Binding var musicSearchVisible: Bool
 
     private var maneuverSymbol: String? {
         navigation.isNavigating
@@ -1757,7 +1758,7 @@ struct GPSCockpitDashboard: View {
             let h = geo.size.height
             let dialSize = GPSDialLayout.size(width: w, height: h)
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
-            let temperatureLayout = GPSHorizonSymmetry.temperatureFrame(width: w, height: h)
+            // La temperatura è ora dentro GPSHeader, senza overlay a sinistra.
             // Pulsante sotto/sinistra del quadrante: fuori dalla scala e dal ponte kW.
             let resetSide = max(42, min(58, h * 0.08))
             let resetX = max(resetSide / 2 + max(10, w * 0.008),
@@ -1796,10 +1797,22 @@ struct GPSCockpitDashboard: View {
                 // Mappa 3D a tutta area, senza riquadro: parte sotto il
                 // cruscotto e arriva fino al margine destro, con bordi sfumati.
                 if musicEnabled {
-                    EcoMusicCockpitPanel(theme: theme)
-                        .frame(width: panelWidth, height: cardsHeight)
-                        .position(x: panelLeft + panelWidth / 2, y: cardsCenterY)
-                        .zIndex(6)
+                    // Identica superficie MapKit (64% × 95.5%), stessi tre
+                    // tagli geometrici e dissolvenza inferiore, nessuna card.
+                    EcoMusicCockpitPanel(searchVisible: $musicSearchVisible, theme: theme)
+                        .frame(width: w * 0.64, height: h * 0.955)
+                        .mask(GPSMapDialClearanceClip()
+                            .fill(style: FillStyle(eoFill: true)))
+                        .mask(GPSMapTopContourClip())
+                        .mask(GPSMapLowerContourClip())
+                        .mask(LinearGradient(stops: [
+                            .init(color: .white, location: 0),
+                            .init(color: .white, location: 0.82),
+                            .init(color: .white.opacity(0.70), location: 0.91),
+                            .init(color: .clear, location: 1)
+                        ], startPoint: .top, endPoint: .bottom))
+                        .position(x: w * 0.68, y: h * 0.5225)
+                        .zIndex(5)
                 } else if mapEnabled {
                     GPSCockpitMap(theme: theme)
                         .frame(width: w * 0.64, height: h * 0.955)
@@ -1902,20 +1915,60 @@ struct GPSCockpitDashboard: View {
                     .frame(width: w, height: h * 0.125)
                     .position(x: w * 0.5, y: h * 0.0625)
                     .zIndex(40)
-                EcoOutsideTemperature(now: now)
-                    .frame(width: temperatureLayout.width)
-                    .position(x: temperatureLayout.centerX,
-                              y: h * 0.158)
+                // Siri e RESET hanno la stessa ascissa, speculari
+                // rispetto all'asse orizzontale del display.
+                GPSSiriControl(theme: theme)
+                    .frame(width: resetSide, height: resetSide)
+                    .position(x: resetX, y: h - resetY)
                     .zIndex(41)
             }
             .frame(width: w, height: h)
             .clipped()
+        }
+        // GPS e itinerario continuano a progredire anche mentre MapKit
+        // non è renderizzato sotto la copertina musicale.
+        .onReceive(gps.$lastGPSCoordinate) { coordinate in
+            if musicEnabled, let coordinate {
+                navigation.updateProgress(at: coordinate)
+            }
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(musicEnabled
             ? "Cruscotto Ecojumbo con lettore musicale"
             : (mapEnabled ? "Cruscotto Ecojumbo con mappa e percorso GPS"
                           : "Cruscotto Ecojumbo con letture della batteria"))
+    }
+}
+
+// iOS non espone una API pubblica per aprire l'interfaccia di Siri
+// da un pulsante di un'app. La posizione richiesta è attiva e spiega
+// il comando vocale hands-free senza aprire altre applicazioni.
+@MainActor
+private struct GPSSiriControl: View {
+    let theme: CockpitTheme
+    @State private var showInstructions = false
+
+    var body: some View {
+        Button { showInstructions = true } label: {
+            VStack(spacing: 2) {
+                Image(systemName: "waveform")
+                    .font(.system(size: 23, weight: .semibold))
+                Text("SIRI")
+                    .font(.system(size: 10, weight: .bold, design: .rounded))
+                    .tracking(0.8)
+            }
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.black.opacity(0.76), in: Circle())
+            .overlay(Circle().stroke(theme.accent.opacity(0.90), lineWidth: 1.5))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Come usare Siri senza uscire da EMT")
+        .alert("Siri sul tuo iPhone", isPresented: $showInstructions) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Pronuncia “Siri” o “Ehi Siri”, oppure tieni premuto il tasto laterale. iOS non consente a un'app di avviare direttamente Siri tramite un pulsante.")
+        }
     }
 }
 
@@ -2510,6 +2563,9 @@ private struct GPSHeader: View {
                 SystemClockText()
                     .font(.system(size: h * 0.44, weight: .bold))
                     .monospacedDigit()
+                // Lettura meteo reale dentro la top bar.
+                EcoOutsideTemperature(now: now)
+                    .frame(width: max(56, w * 0.066))
                 Spacer(minLength: 0)
                 Button { showGPSDiagnostics = true } label: {
                     HStack(spacing: max(5, h * 0.09)) {

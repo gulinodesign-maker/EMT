@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 97;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 98;") == 2
 symmetry = cockpit.split("private enum GPSHorizonSymmetry {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
@@ -49,9 +49,9 @@ assert "GPSUpperGradientLayer(theme: theme)" in dashboard and ".zIndex(4)" in da
 assert ".position(x: dialCenterX, y: h * 0.494)" in dashboard
 
 # Temperature shifts left when a mirrored bend reduces available space.
-assert "GPSHorizonSymmetry.temperatureFrame(width: w, height: h)" in dashboard
-assert ".frame(width: temperatureLayout.width)" in dashboard
-assert ".position(x: temperatureLayout.centerX," in dashboard
+assert "EcoOutsideTemperature(now: now)" in cockpit  # nel GPSHeader superiore
+assert "GPSSiriControl(theme: theme)" in dashboard
+assert ".position(x: resetX, y: h - resetY)" in dashboard
 assert "let lineX = points.leftKnee.x" in symmetry
 assert "let rightLimit = lineX - max(8, w * 0.012)" in symmetry
 assert ".minimumScaleFactor(0.68)" in cockpit

@@ -1,5 +1,16 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 98 — MusicKit nel cockpit e comandi contestuali (16 novembre 2026)
+
+**Richiesta:** in Musica sostituire tutti i comandi del dock con Telemetria, Precedente, Play/Pausa, Successivo, Cerca. Il tasto Musica rimane sia in Telemetria sia nella Mappa, il tasto Telemetria ha icona distinta. La copertina occupa il ritaglio completo di MapKit; temperatura dentro top bar; pulsante Siri simmetrico al RESET al posto della temperatura. Eliminare «Apri Apple Music» e cercare/riprodurre catalogo Apple senza uscire da EMT.
+
+**Implementazione:** ramo build-98-inapp-musickit-cockpit: EcojumboRootView.swift, CockpitComponents.swift, EcoMusicCockpitPanel.swift e setup. Il pannello Musica usa esattamente w*0.64, h*0.955, x=w*0.68 e y=h*0.5225, e le stesse maschere GPSMapDialClearanceClip, GPSMapTopContourClip, GPSMapLowerContourClip e dissolvenza inferiore della Mappa. EcoAppleMusicPlayback usa MusicCatalogSearchRequest e ApplicationMusicPlayer; comandi di riproduzione nel dock, ricerca e risultati selezionabili dentro EMT. Si preservano GPS, BMS, layout tachimetro, top bar, kW e rotta di navigazione. Spotify mantiene il controllo remoto della build 97, non promette ricerca interna; YouTube Music non supporta player interno.
+
+**Limitazione Siri:** iOS non espone API pubblica per invocare l'interfaccia generale di Siri tramite un tasto di un'app. Il pulsante Siri è collocato nell'area superiore sinistra, alla stessa ascissa del RESET e con quota speculare, e mostra istruzioni per pronunciare «Siri» o usare il tasto laterale, senza lasciare EMT. Il tap NON apre Siri direttamente.
+
+**Configurazione/validazione:** marketing 1.0, build Debug/Release 98, bundle invariato. Apple Music richiede autorizzazione, eventuale abbonamento per catalogo e abilitazione MusicKit sull'App ID Apple; funzionamento da verificare su iPhone reale. Dopo test PR/main seguire workflow TestFlight sino a Upload succeeded; processing App Store Connect, gruppo TE e installabilità sono stati separati da verificare.
+
+
 ## Build 97 — integrazione musica nel cockpit (16 novembre 2026)
 
 **Richiesta utente e autorizzazione:** aggiungere un sesto pulsante **Musica** nel dock del cockpit. Toccandolo, sostituire il pannello a destra (non il tachimetro) con copertina album, titolo, artista e precedente / play-pausa / successivo. Nella pagina **Setup → Musica** selezionare un provider persistente, inizialmente Apple Music, Spotify e YouTube Music (Google Play Music è stato dismesso). L'utente ha autorizzato sviluppo, test e pubblicazione TestFlight.

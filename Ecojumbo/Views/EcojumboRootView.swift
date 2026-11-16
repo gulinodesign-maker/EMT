@@ -100,6 +100,7 @@ struct EcojumboRootView: View {
     @State private var lastMenu: EcoTab = .trips
     @AppStorage("ecojumbo.mapEnabled") private var mapEnabled = true
     @State private var musicEnabled = false
+    @State private var musicSearchVisible = false
     @State private var tick = Date()
     // Il movimento fisico in portrait apre Impostazioni, anche con GPS bloccato landscape.
 
@@ -136,7 +137,8 @@ struct EcojumboRootView: View {
                         NavigationStack { TripsPanel() }
                     case .gps:
                         GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled,
-                                            musicEnabled: musicEnabled)
+                                            musicEnabled: musicEnabled,
+                                            musicSearchVisible: $musicSearchVisible)
                     case .battery:
                         NavigationStack { CellsView() }
                     case .bms:
@@ -154,6 +156,7 @@ struct EcojumboRootView: View {
                 // dipende dal bordo inferiore dello schermo, mai da padding esterni.
                 CockpitCornerControls(selected: $selected, mapEnabled: $mapEnabled,
                                       musicEnabled: $musicEnabled,
+                                      musicSearchVisible: $musicSearchVisible,
                                       appearanceMode: $appearanceMode, theme: theme,
                                       screenHeight: h)
                     .frame(width: w, height: dockHeight)
@@ -334,9 +337,13 @@ private struct CockpitCornerControls: View {
     @EnvironmentObject private var gps: GPSRideManager
     @StateObject private var mapControls = GPSMapControlStore.shared
     @StateObject private var navigation = EcoNavigationStore.shared
+    @StateObject private var music = EcoMusicManager.shared
+    @StateObject private var apple = EcoAppleMusicPlayback.shared
+    @AppStorage("ecojumbo.music.provider") private var providerName = EcoMusicProvider.apple.rawValue
     @Binding var selected: EcoTab
     @Binding var mapEnabled: Bool
     @Binding var musicEnabled: Bool
+    @Binding var musicSearchVisible: Bool
     @Binding var appearanceMode: String
     let theme: CockpitTheme
     let screenHeight: CGFloat
@@ -351,7 +358,7 @@ private struct CockpitCornerControls: View {
             let width = geo.size.width
             let height = geo.size.height
             let buttonSide = min(height * 0.96, width * 0.059)
-            let gpsSide = (mapEnabled && selected == .gps)
+            let gpsSide = (mapEnabled && selected == .gps && !musicEnabled)
                 ? min(buttonSide, width * 0.046)
                 : EcoCockpitDockGeometry.standardSide(width: width, height: screenHeight)
             let gpsGap = width * 0.008
@@ -364,67 +371,100 @@ private struct CockpitCornerControls: View {
             let telemetryPanelWidth = max(1, width - EcoCockpitDockGeometry.rightInset(width: width)
                                                - telemetryPanelLeft)
             let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)
+            let musicGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)
+            let musicDock = selected == .gps && musicEnabled
+            let fillsTelemetryWidth = telemetryDock || musicDock
             HStack(alignment: .center, spacing: 0) {
                 // Tachimetro: dock a destra. Altri menu: gruppo centrato.
                 Spacer(minLength: 0)
-                HStack(spacing: telemetryDock ? justifiedGap : gpsGap) {
-                    gpsButton("map.fill", active: mapEnabled,
-                              accessibility: mapEnabled ? "Disattiva la mappa" : "Attiva la mappa",
-                              side: gpsSide) {
+                HStack(spacing: musicDock ? musicGap : (telemetryDock ? justifiedGap : gpsGap)) {
+                    if musicDock {
+                        // Comandi musicali AL POSTO dei pulsanti standard:
+                        // Telemetria, precedente, play/pausa, successivo, cerca.
+                        gpsButton("chart.bar.xaxis", text: "Telemetria",
+                                  accessibility: "Torna alla telemetria", side: gpsSide) {
+                            musicEnabled = false
+                            mapEnabled = false
+                            musicSearchVisible = false
+                        }
+                        gpsButton("backward.end.fill", text: "Indietro",
+                                  accessibility: "Brano precedente", side: gpsSide) {
+                            if providerName == EcoMusicProvider.apple.rawValue && apple.hasChosenTrack {
+                                apple.previous()
+                            } else { music.previous() }
+                        }
+                        gpsButton((providerName == EcoMusicProvider.apple.rawValue && apple.hasChosenTrack
+                                   ? apple.isPlaying : music.isPlaying) ? "pause.fill" : "play.fill",
+                                  text: "Play/Pausa", accessibility: "Riproduci o metti in pausa",
+                                  side: gpsSide) {
+                            if providerName == EcoMusicProvider.apple.rawValue && apple.hasChosenTrack {
+                                apple.togglePlayback()
+                            } else { music.togglePlayback() }
+                        }
+                        gpsButton("forward.end.fill", text: "Avanti",
+                                  accessibility: "Brano successivo", side: gpsSide) {
+                            if providerName == EcoMusicProvider.apple.rawValue && apple.hasChosenTrack {
+                                apple.next()
+                            } else { music.next() }
+                        }
+                        gpsButton("magnifyingglass", text: "Cerca", active: musicSearchVisible,
+                                  accessibility: "Cerca musica dentro EMT", side: gpsSide) {
+                            musicSearchVisible.toggle()
+                        }
+                    } else {
+                        gpsButton("map.fill", active: mapEnabled,
+                                  accessibility: mapEnabled ? "Disattiva la mappa" : "Attiva la mappa",
+                                  side: gpsSide) {
+                            if selected == .gps { mapEnabled.toggle() }
+                            selected = .gps
+                        }
                         if selected == .gps {
-                            if musicEnabled {
-                                musicEnabled = false
-                                mapEnabled = true
-                            } else {
-                                mapEnabled.toggle()
+                            // Disponibile SIA in Telemetria SIA sulla Mappa.
+                            gpsButton("music.note", active: false,
+                                      accessibility: "Apri musica", side: gpsSide) {
+                                musicEnabled = true
+                                musicSearchVisible = false
+                                music.select(EcoMusicProvider(rawValue: providerName) ?? .apple)
+                                // Non cancellare mapEnabled né la rotta MapKit.
                             }
                         }
-                        selected = .gps
-                    }
-                    if selected == .gps {
-                        gpsButton("music.note", active: musicEnabled,
-                                  accessibility: musicEnabled ? "Chiudi musica" : "Apri musica",
+                        if mapEnabled && selected == .gps {
+                            gpsButton("play.fill", alternate: "stop.fill",
+                                      active: navigation.isNavigating,
+                                      enabled: navigation.isNavigating ||
+                                          (navigation.route != nil && gps.currentCoordinate() != nil),
+                                      accessibility: navigation.isNavigating
+                                          ? "Ferma navigazione GPS" : "Avvia navigazione GPS",
+                                      side: gpsSide) { mapControls.send(.toggleNavigation) }
+                            gpsButton("square.3.layers.3d", text: mapControls.is3D ? "2D" : "3D",
+                                      active: mapControls.is3D,
+                                      accessibility: mapControls.is3D
+                                          ? "Passa alla mappa 2D" : "Passa alla mappa 3D",
+                                      side: gpsSide) { mapControls.send(.toggleProjection) }
+                            gpsButton("location.north.line.fill", active: mapControls.headingUp,
+                                      accessibility: "Vista dal muso dello scooter, direzione di marcia",
+                                      side: gpsSide) { mapControls.send(.noseView) }
+                            gpsButton("scope", accessibility: "Ricentra sulla posizione GPS",
+                                      side: gpsSide) { mapControls.send(.recenter) }
+                            gpsButton("plus.magnifyingglass", accessibility: "Ingrandisci la mappa",
+                                      side: gpsSide) { mapControls.send(.zoomIn) }
+                            gpsButton("minus.magnifyingglass", accessibility: "Riduci zoom mappa",
+                                      side: gpsSide) { mapControls.send(.zoomOut) }
+                        } else {
+                            ForEach([EcoTab.trips, .settings, .themes]) { tab in
+                                iconButton(tab, side: gpsSide)
+                            }
+                        }
+                        gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill",
+                                  accessibility: isDay ? "Attiva modalità scura" : "Attiva modalità chiara",
                                   side: gpsSide) {
-                            musicEnabled.toggle()
-                            if musicEnabled { mapEnabled = false }
+                            appearanceMode = isDay
+                                ? EcoAppearanceMode.dark.rawValue
+                                : EcoAppearanceMode.light.rawValue
                         }
-                    }
-                    if mapEnabled && selected == .gps {
-                        gpsButton("play.fill", alternate: "stop.fill",
-                                  active: navigation.isNavigating,
-                                  enabled: navigation.isNavigating ||
-                                      (navigation.route != nil && gps.currentCoordinate() != nil),
-                                  accessibility: navigation.isNavigating
-                                      ? "Ferma navigazione GPS" : "Avvia navigazione GPS",
-                                  side: gpsSide) { mapControls.send(.toggleNavigation) }
-                        gpsButton("square.3.layers.3d", text: mapControls.is3D ? "2D" : "3D",
-                                  active: mapControls.is3D,
-                                  accessibility: mapControls.is3D
-                                      ? "Passa alla mappa 2D" : "Passa alla mappa 3D",
-                                  side: gpsSide) { mapControls.send(.toggleProjection) }
-                        gpsButton("location.north.line.fill", active: mapControls.headingUp,
-                                  accessibility: "Vista dal muso dello scooter, direzione di marcia",
-                                  side: gpsSide) { mapControls.send(.noseView) }
-                        gpsButton("scope", accessibility: "Ricentra sulla posizione GPS",
-                                  side: gpsSide) { mapControls.send(.recenter) }
-                        gpsButton("plus.magnifyingglass", accessibility: "Ingrandisci la mappa",
-                                  side: gpsSide) { mapControls.send(.zoomIn) }
-                        gpsButton("minus.magnifyingglass", accessibility: "Riduci zoom mappa",
-                                  side: gpsSide) { mapControls.send(.zoomOut) }
-                    } else {
-                        ForEach([EcoTab.trips, .settings, .themes]) { tab in
-                            iconButton(tab, side: gpsSide)
-                        }
-                    }
-                    gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill",
-                              accessibility: isDay ? "Attiva modalità scura" : "Attiva modalità chiara",
-                              side: gpsSide) {
-                        appearanceMode = isDay
-                            ? EcoAppearanceMode.dark.rawValue
-                            : EcoAppearanceMode.light.rawValue
                     }
                 }
-                .frame(width: telemetryDock ? telemetryPanelWidth : nil, alignment: .leading)
+                .frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .leading)
                 if selected != .gps {
                     Spacer(minLength: 0)
                 }
