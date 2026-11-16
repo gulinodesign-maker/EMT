@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43956678110:ATTEMPT:1 -->
+### 2026-11-16T21:06:37Z — CI #331 · build-102-dock-ten-power-weather-reset · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43956678110](https://github.com/gulinodesign-maker/EMT/actions/runs/43956678110); avvio 2026-11-16T21:06:37Z UTC; aggiornamento finale 2026-11-16T21:07:10Z UTC; registrazione 2026-11-16T21:07:23+00:00 UTC; evento pull_request.
+- **Commit:** [1a67a99d4ff8](https://github.com/gulinodesign-maker/EMT/commit/1a67a99d4ff8f98b0d5cab7e76459662f90c3386); versione **1.0**; build **102**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:43951128796:ATTEMPT:1 -->
 ### 2026-11-16T20:34:09Z — CI #330 · main · tentativo 1
 
