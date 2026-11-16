@@ -14,7 +14,7 @@ assert "decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
 assert "onSave(slot, palette)" in tabs
-assert "RIEMPIMENTO" in tabs
+assert "Layer top bar" in tabs
 
 # 70 removes only the colored fill layers; the historical 3x profile remains.
 assert "GPSTopBandShade" not in cockpit
