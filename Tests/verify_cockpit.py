@@ -130,11 +130,11 @@ assert 'private struct GPSSearchTopBand: Shape' not in c
 assert 'GPSSearchTopBand()' not in c
 assert 'private struct GPSSearchBottomFade: View' not in c
 assert '.mask(GPSSearchBottomFade())' not in c
-assert 'let dialMaskRadius = dialSize * 0.508' in c
-assert 'let dialMaskFeather = max(12, min(28, fullHeight * 0.032))' in c
+assert 'GPSDialLayout.mapExclusionRadius(for: d)' in c
+assert 'static let mapToDialClearance: CGFloat = 2' in c
 assert 'GPSSearchTopBand' not in c
 assert 'GPSSearchBottomFade' not in c
-assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
+assert '.mask(GPSMapDialClearanceClip()' in c
 assert '.background(Color.clear)' in c
 assert 'clipShape(RoundedRectangle(cornerRadius: 16' not in c
 assert 'GPSCompactReadings' not in c  # nessun pannello sopra la mappa
@@ -146,7 +146,7 @@ assert 'p.addLine(to: pt(' not in u
 assert 'CornerDockGlow' not in u and 'FooterLightContour' not in c
 assert 'private struct ContinuousHorizonLine: View' in c
 # Home conserva la sfumatura; nel GPS i due raccordi sono senza dissolvenza.
-assert c.count('.mask(RadialGradient(stops: [') == 3
+assert c.count('.mask(RadialGradient(stops: [') == 2
 assert 'startRadius: ringRadius, endRadius: ringRadius + max(18, h * 0.070)' in c
 gps_horizon = c.split('private struct GPSHorizonLine: View {', 1)[1].split('@MainActor', 1)[0]
 assert '.mask(RadialGradient(stops: [' not in gps_horizon
