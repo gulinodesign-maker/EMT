@@ -340,7 +340,8 @@ struct EcoThemePalette: Codable, Equatable {
         "Velocità GPS · limite superato",
         "Velocità GPS · fase accelerazione",
         "Layer top bar · sfumatura alta",
-        "Layer top bar · sfumatura bassa"
+        "Layer top bar · sfumatura bassa",
+        "Cerchio concentrico · sopra top bar"
     ]
     static let details = [
         "Fondo scuro dietro gli strumenti.",
@@ -363,7 +364,8 @@ struct EcoThemePalette: Codable, Equatable {
         "Colore della barra LED quando la velocità GPS raggiunge il limite attivato in Barre luminose.",
         "Colore dell’arco GPS quando la velocità aumenta di oltre 5 km/h nella finestra di osservazione.",
         "Sfumatura verticale dal bordo alto verso il centro del layer esterno; colore e intensità indipendenti.",
-        "Sfumatura verticale dal bordo basso verso il centro del layer esterno; colore e intensità indipendenti."
+        "Sfumatura verticale dal bordo basso verso il centro del layer esterno; colore e intensità indipendenti.",
+        "Colore del nuovo cerchio concentrico sopra la top bar. Il tracciato termina prima del ponte kW."
     ]
     // L'ordine visibile colloca le quattro fasi GPS in un'unica categoria,
     // senza duplicare il colore normale (indice 10) né il colore di decelerazione (14).
@@ -373,9 +375,9 @@ struct EcoThemePalette: Codable, Equatable {
         ("Anelli e numeri del tachimetro", [8, 9, 11]),
         ("Navigatore", [12, 13]),
         ("Velocità oltre soglia", [14, 10, 18, 17]),
-        ("Layer top bar", [15, 16, 19, 20, 2])
+        ("Layer top bar", [15, 16, 19, 20, 2, 21])
     ]
-    static let colorCount = 21
+    static let colorCount = 22
     static let extraDefaults = [
         "#FA2B2E", "#2BBAFF", "#FF7008", "#FA2B2E",
         "#FFFFFF", "#FFFFFF", "#FFB224"
@@ -403,7 +405,7 @@ struct EcoThemePalette: Codable, Equatable {
             colors: ["#040405", foreground.0, foreground.1, "#D9DEE3"]
                 + standardBarColors + extraDefaults
                 + [foreground.1, foreground.1, "#FF3B30", "#FF3B30",
-                   foreground.1, foreground.0]
+                   foreground.1, foreground.0, foreground.0]
         )
     }
 
@@ -413,7 +415,8 @@ struct EcoThemePalette: Codable, Equatable {
               let decoded = try? JSONDecoder().decode(EcoThemePalette.self, from: data),
               (decoded.colors.count == 8 || decoded.colors.count == 15 ||
                decoded.colors.count == 17 || decoded.colors.count == 18 ||
-               decoded.colors.count == 19 || decoded.colors.count == colorCount),
+               decoded.colors.count == 19 || decoded.colors.count == 21 ||
+               decoded.colors.count == colorCount),
               decoded.colors.allSatisfy({ validHex($0) }) else { return nil }
         // Migrazione non distruttiva: gli 8 colori delle build 63 restano identici.
         var migrated = decoded
@@ -442,6 +445,11 @@ struct EcoThemePalette: Codable, Equatable {
             migrated.colors.append(contentsOf: [
                 migrated.colors[15], migrated.colors[16]
             ])
+        }
+        // Build 95: 21→22, senza toccare alcuno dei colori esistenti.
+        // Il nuovo cerchio eredita il colore principale del tema salvato.
+        if migrated.colors.count == 21 {
+            migrated.colors.append(migrated.colors[1])
         }
         return migrated
     }

@@ -1,5 +1,18 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 95 — mappa a 2pt dall'anello esterno, cerchio concentrico editabile (16 novembre 2026)
+
+**Richiesta:** nel cockpit GPS, la cartografia deve arrivare da destra fino al profilo concentrico del tachimetro lasciando **solo 2 punti di separazione** (misura in coordinate SwiftUI, non una fascia sfumata). Aggiungere un **cerchio concentrico** al tachimetro, colorabile dai Temi, visibile **sopra** la top bar ma **mai** dentro il ponte kW. La versione già pubblicata su TestFlight per le correzioni della miniatura e del profilo nero è la **94**; questa richiesta è dunque la **build 95**, non una seconda 94.
+
+**Causa fascia mappa:** `GPSCockpitMap` della 94 usava una maschera `RadialGradient` intorno al vecchio diametro `0.508*d`, seguita da un feather di 12–28 punti. Dopo la riduzione del profilo nero di 10%, quel ritaglio allontanava la cartografia inutilmente dal bordo destro del tachimetro.
+
+**Implementazione:** la nuova `GPSMapDialClearanceClip` usa in coordinate MapKit il **medesimo centro, raggio e stroke** del nuovo `GPSConcentricAccentRing`. Sottrae l'ellisse a un rettangolo con `FillStyle(eoFill: true)` e impone `GPSDialLayout.mapExclusionRadius` = raggio anello + metà stroke + **2 pt**. Eliminata **solo** la maschera radial-feather della mappa; restano i ritagli `GPSMapTopContourClip`, `GPSMapLowerContourClip` e la dissolvenza in basso, così non si coprono né top bar né il ponte. Il nuovo `GPSConcentricAccentRing` è posto nello z-index 27, sopra la top bar (8) e MapKit (5), sotto il profilo del ponte (28), e mascherato con `GPSBridgeUpperMask`; il percorso termina quindi prima dell'area di testo e scala kW. Il centro coincide con il GPS e il cerchio non altera né dimensioni né scala velocità.
+
+**Temi:** nuovo ruolo colore all'indice **21** (`Cerchio concentrico · sopra top bar`), nel gruppo `Layer top bar`. Il popup rimane a **20 colori base** con cursore chiaro/scuro e applica solo quel ruolo. Palette `EcoThemePalette` estese da 21 a **22** con migrazione **non distruttiva**: gli slot precedenti 8/15/17/18/19/21 preservano ogni codice HEX, e solo il nuovo ruolo 21 eredita il colore principale `colors[1]`. La miniatura intera del cockpit riutilizza il medesimo componente del cerchio, con `tone(21)` dal draft, per l'anteprima immediata. GPS, JK BLE, mappa/navigazione 3D, dati reali, Home, kW singolo, barra 30/70 e layer esterno non cambiano.
+
+**Release:** Xcode **1.0 (95)** Debug/Release, bundle ID invariato. Nuovo `Tests/verify_build95_map_concentric.py`; aggiornata la suite storica per la palette a 22 colori e il nuovo ritaglio MapKit. **PR, CI e upload TestFlight da verificare**, poi registrare esiti con link e separare processing Apple / gruppo TE / installabilità. In particolare il bordo mappa e il contrasto del cerchio richiedono verifica su iPhone reale.
+
+
 ## Build 94 — anteprima cockpit senza icone sovrapposte, profilo nero GPS ridotto (16 novembre 2026)
 
 **Richiesta da due screenshot dell'utente (build 93):** l'anteprima tema presenta logo, freccia, icone e simboli del dock giganteschi e sovrapposti al tachimetro. Occorre una miniatura ordinata dell'intero cockpit, senza icone fuori posto. Nel cockpit GPS reale, dopo la riduzione dell'anello metallico della build 93, **ridurre anche il profilo/disco nero esterno** per massimizzare lo spazio disponibile per la top bar, soprattutto al raccordo superiore destro del tachimetro. Preservare scala velocità ampliata, layout GPS/BMS e tutti i colori modificabili.

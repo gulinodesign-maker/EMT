@@ -18,7 +18,7 @@ assert "path.addArc(tangent1End: elbow, tangent2End: start, radius: corner)" in 
 assert "path.addArc(tangent1End: safeTopRight, tangent2End: safeTopLeft," in c
 assert ".mask(GPSMapTopContourClip())" in map_source
 assert ".mask(GPSMapLowerContourClip())" in map_source
-assert ".mask(RadialGradient(stops: [" in map_source  # circular fade remains
+assert ".mask(GPSMapDialClearanceClip()" in map_source  # exact 2pt circle
 assert "GPSMapTopContourClip()" not in c.split("private struct GPSCockpitMap: View {")[0]
 
 # Exact conversion: global cockpit pixel coordinates -> local MapKit frame.

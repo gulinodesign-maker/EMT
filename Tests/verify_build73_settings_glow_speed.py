@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 94;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 95;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 
 # Setup exactly 3x3; the footer stays outside the scrolling cell grid.
@@ -47,7 +47,7 @@ assert "guard let speed, speed.isFinite, speed >= 0 else { return nil }" in spee
 assert "speed / 120" not in speed
 
 # Current palette persistence (8/15/17 -> 18) and defaulted Codable intensity.
-assert "static let colorCount = 21" in tabs
+assert "static let colorCount = 22" in tabs
 assert "decoded.colors.count == 17 || decoded.colors.count == 18 ||" in tabs
 assert "decoded.colors.count == colorCount" in tabs
 assert "migrated.colors.append(contentsOf: extraDefaults)" in tabs

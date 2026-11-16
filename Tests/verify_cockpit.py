@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 94;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 95;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -130,11 +130,11 @@ assert 'private struct GPSSearchTopBand: Shape' not in c
 assert 'GPSSearchTopBand()' not in c
 assert 'private struct GPSSearchBottomFade: View' not in c
 assert '.mask(GPSSearchBottomFade())' not in c
-assert 'let dialMaskRadius = dialSize * 0.508' in c
-assert 'let dialMaskFeather = max(12, min(28, fullHeight * 0.032))' in c
+assert 'GPSDialLayout.mapExclusionRadius(for: d)' in c
+assert 'static let mapToDialClearance: CGFloat = 2' in c
 assert 'GPSSearchTopBand' not in c
 assert 'GPSSearchBottomFade' not in c
-assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
+assert '.mask(GPSMapDialClearanceClip()' in c
 assert '.background(Color.clear)' in c
 assert 'clipShape(RoundedRectangle(cornerRadius: 16' not in c
 assert 'GPSCompactReadings' not in c  # nessun pannello sopra la mappa
@@ -146,7 +146,7 @@ assert 'p.addLine(to: pt(' not in u
 assert 'CornerDockGlow' not in u and 'FooterLightContour' not in c
 assert 'private struct ContinuousHorizonLine: View' in c
 # Home conserva la sfumatura; nel GPS i due raccordi sono senza dissolvenza.
-assert c.count('.mask(RadialGradient(stops: [') == 3
+assert c.count('.mask(RadialGradient(stops: [') == 2
 assert 'startRadius: ringRadius, endRadius: ringRadius + max(18, h * 0.070)' in c
 gps_horizon = c.split('private struct GPSHorizonLine: View {', 1)[1].split('@MainActor', 1)[0]
 assert '.mask(RadialGradient(stops: [' not in gps_horizon
@@ -381,12 +381,12 @@ assert '.position(x: panelLeft + panelWidth / 2, y: cardsCenterY)' in c
 assert '.frame(width: panelWidth, height: cardsHeight)' in c
 assert 'let cardsTop = h * 0.099 + outerMargin' in c
 assert 'let cardsBottom = h - dockBottom - dockHeight - outerMargin' in c
-assert 'let mapLocalDialX = dialCenterX - fullWidth * 0.36' in c
-assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
-assert '.mask(RadialGradient(stops: [' in c
-assert 'center: UnitPoint(x: mapLocalDialX / w, y: mapLocalDialY / h)' in c
-assert 'startRadius: dialMaskRadius' in c
-assert 'endRadius: dialMaskRadius + dialMaskFeather' in c
+# Build 95: geometria condivisa, 2pt oltre il nuovo cerchio.
+assert 'private struct GPSMapDialClearanceClip: Shape' in c
+assert 'GPSDialLayout.mapExclusionRadius(for: d)' in c
+assert 'static let mapToDialClearance: CGFloat = 2' in c
+assert '.mask(GPSMapDialClearanceClip()' in c
+assert '.mask(RadialGradient(stops: [' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello standard senza mappa')]
 assert 'private struct GPSMapTopContourClip: Shape' in c
 assert 'private struct GPSMapLowerContourClip: Shape' in c
 assert '.mask(GPSMapTopContourClip())' in c
@@ -475,15 +475,15 @@ assert 'CGPoint(x: w * 0.355, y: h * 0.252)' in c
 assert 'let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)' in c
 assert 'let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)' in c
 assert 'GPSMetalInnerRing()' in c
-assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
-assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
+assert 'GPSMapContourSpace.local(' in c
+assert 'GPSMapContourSpace.local(' in c
 assert '.padding(.top, h * 0.0565)' in c
 # Build 40: estensione della mappa, freccia GPS, contrasto daylight,
 # controlli minimal e avvio Core Location più rapido.
 assert '.frame(width: w * 0.64, height: h * 0.955)' in c
 assert '.position(x: w * 0.68, y: h * 0.5225)' in c
-assert 'let fullWidth = w / 0.64' in c
-assert 'let fullHeight = h / 0.955' in c
+assert 'CGSize(width: rect.width / 0.64, height: rect.height / 0.955)' in c
+assert 'GPSDialLayout.mapExclusionRadius(for: d)' in c
 assert '.init(color: .white.opacity(0.70), location: 0.91)' in c
 assert 'UserAnnotation()' not in c
 assert 'Annotation("", coordinate: coordinate, anchor: .center)' in c

@@ -181,7 +181,7 @@ for W,H in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     dg=min(H*.982,W*.50)
     rg=dg*.508
     assert max(18,H*.070)<dg*.25
-assert c.count('.mask(RadialGradient(stops: [') == 3
+assert c.count('.mask(RadialGradient(stops: [') == 2
 assert 'func retryLocation()' in (root/'Ecojumbo/Models/GPSRideManager.swift').read_text()
 # Build 37: frecce SF riconoscibili, più piccole di quelle della 35, lontane dalle tacche.
 # La distanza radiale dal centro resta inferiore alla pista LED (0.361d).
@@ -291,7 +291,8 @@ assert 'let leftKnee = CGPoint(x: 2 * axis - rightKnee.x, y: rightKnee.y)' in c
 assert 'let leftContact = CGPoint(x: 2 * axis - rightContact.x, y: rightContact.y)' in c
 assert 'GPSMetalInnerRing()' in c
 assert 'CGPoint(x: w * 0.54, y: h * 0.099)' in c
-assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
+assert 'GPSMapDialClearanceClip()' in c
+assert 'GPSMapContourSpace.local(' in c
 # La mappa occupa fino al bordo inferiore prima del fade, con la ricerca
 # ancora allineata al profilo della top bar.
 for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:

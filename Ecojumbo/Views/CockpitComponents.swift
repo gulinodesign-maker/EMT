@@ -207,6 +207,14 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     var topBarLowFadeIntensity: Double {
         savedPalette?.bottomFadeIntensity ?? 0.35
     }
+    // Build 95: colore separato del cerchio sopra la top bar. Il default
+    // coincide con l'accento del tema; i vecchi slot migrano senza perdite.
+    var concentricRingColor: Color {
+        if let savedPalette, savedPalette.colors.count > 21 {
+            return Color(themeHex: savedPalette.colors[21])
+        }
+        return accent
+    }
     // Le barre mantengono i ruoli storici, invariati.
     // Barre e recupero energia usano la palette attiva, non soltanto la preview.
     static var barDark: Color {
@@ -1491,6 +1499,20 @@ private enum GPSDialLayout {
     static let outerProfileDiameterFactor: CGFloat = 0.986 * 0.90
     static let carbonProfileDiameterFactor: CGFloat = 0.982 * 0.90
     static let speedScaleMagnification: CGFloat = 1.08
+    // Build 95: anello sopra top bar, ma fuori dal disco nero. La mappa
+    // si arresta esattamente 2 punti oltre il bordo ESTERNO dell'anello.
+    static let mapToDialClearance: CGFloat = 2
+
+    static func concentricRingRadius(for d: CGFloat) -> CGFloat {
+        d * outerProfileDiameterFactor / 2 + 1.5
+    }
+    static func concentricRingStroke(for d: CGFloat) -> CGFloat {
+        max(1.5, min(2.4, d * 0.003))
+    }
+    static func mapExclusionRadius(for d: CGFloat) -> CGFloat {
+        concentricRingRadius(for: d) + concentricRingStroke(for: d) / 2
+            + mapToDialClearance
+    }
 
     static func size(width: CGFloat, height: CGFloat) -> CGFloat {
         min(height * 0.965, width * 0.55)
@@ -1548,6 +1570,30 @@ private struct GPSMetalInnerRing: View {
                     .init(color: .white.opacity(0.73), location: 0.70),
                     .init(color: .clear, location: 0.80)
                 ], startPoint: .top, endPoint: .bottom))
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
+// Build 95 — cerchio decorativo concentrico, sopra top bar e mappa.
+// Colore tema dedicato, esterno al disco nero e senza penetrare il ponte kW.
+private struct GPSConcentricAccentRing: View {
+    let color: Color
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            let d = GPSDialLayout.size(width: w, height: h)
+            let radius = GPSDialLayout.concentricRingRadius(for: d)
+            Circle()
+                .stroke(color, style: StrokeStyle(
+                    lineWidth: GPSDialLayout.concentricRingStroke(for: d),
+                    lineCap: .round))
+                .frame(width: radius * 2, height: radius * 2)
+                .position(x: GPSDialLayout.centerX(width: w, height: h),
+                          y: h * 0.494)
+                .mask(GPSBridgeUpperMask())
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
@@ -1810,6 +1856,12 @@ struct GPSCockpitDashboard: View {
                 .frame(width: w, height: h)
                 .mask(GPSBridgeUpperMask())
                 .zIndex(25)
+
+                // Anello tematico davanti alla top bar (z8) e alla
+                // cartografia (z5), ma sotto al ponte kW (z28).
+                GPSConcentricAccentRing(color: theme.concentricRingColor)
+                    .frame(width: w, height: h)
+                    .zIndex(27)
 
                 // Il solo ponte luminoso si disegna sopra il ritaglio;
                 // nessun riempimento o cerchio è visibile al di sotto.
@@ -2200,6 +2252,9 @@ struct EcoCockpitThemeMiniature: View {
                 GPSMetalInnerRing()
                     .frame(width: d, height: d)
                     .position(x: cx, y: h * 0.494)
+                // Anche l'anteprima usa il cerchio e il colore del draft.
+                GPSConcentricAccentRing(color: tone(21))
+                    .frame(width: w, height: h)
 
                 // Solo il valore non disponibile: l'anteprima non inventa velocità.
                 Text("—")
@@ -2567,6 +2622,25 @@ private enum GPSMapContourSpace {
     }
 }
 
+// Build 95: MapKit passa fino al bordo concentrico del tachimetro,
+// con esattamente 2pt di luce tra bordo esterno dell'anello e mappa.
+// Ritaglio geometrico netto: elimina il vecchio fade radiale di 12–28pt,
+// che creava una larga fascia scura non richiesta.
+private struct GPSMapDialClearanceClip: Shape {
+    func path(in rect: CGRect) -> Path {
+        let cockpit = GPSMapContourSpace.cockpitSize(for: rect)
+        let d = GPSDialLayout.size(width: cockpit.width, height: cockpit.height)
+        let center = GPSMapContourSpace.local(
+            CGPoint(x: GPSDialLayout.centerX(width: cockpit.width, height: cockpit.height),
+                    y: cockpit.height * 0.494), cockpit: cockpit)
+        let radius = GPSDialLayout.mapExclusionRadius(for: d)
+        var visible = Path(rect)
+        visible.addEllipse(in: CGRect(x: center.x - radius, y: center.y - radius,
+                                      width: radius * 2, height: radius * 2))
+        return visible
+    }
+}
+
 private struct GPSMapTopContourClip: Shape {
     func path(in rect: CGRect) -> Path {
         let cockpit = GPSMapContourSpace.cockpitSize(for: rect)
@@ -2650,16 +2724,8 @@ private struct GPSCockpitMap: View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
-            // Stesso quadrante e centro di GPSHorizonLine. Il bordo della
-            // cartografia sfuma RADIALMENTE seguendo l'anello del tachimetro.
-            let fullWidth = w / 0.64
-            let fullHeight = h / 0.955
-            let dialSize = GPSDialLayout.size(width: fullWidth, height: fullHeight)
-            let dialCenterX = GPSDialLayout.centerX(width: fullWidth, height: fullHeight)
-            let mapLocalDialX = dialCenterX - fullWidth * 0.36
-            let mapLocalDialY = fullHeight * (0.494 - 0.045)
-            let dialMaskRadius = dialSize * 0.508
-            let dialMaskFeather = max(12, min(28, fullHeight * 0.032))
+            // Il ritaglio concentrico segue le coordinate reali del
+            // cockpit; il margine mappa/anello è di soli 2 punti.
             ZStack(alignment: .top) {
                 Map(position: $camera) {
                     // Freccia veicolo: niente indicatore blu rotondo di default.
@@ -2704,14 +2770,10 @@ private struct GPSCockpitMap: View {
                     // sulla posizione dello scooter.
                     if camera.positionedByUser { followsUser = false }
                 }
-                // Maschera circolare solo su MapKit: dentro il tachimetro
-                // trasparente, sfumatura breve oltre l'anello, poi mappa piena.
-                .mask(RadialGradient(stops: [
-                    .init(color: .clear, location: 0),
-                    .init(color: .white, location: 1)
-                ], center: UnitPoint(x: mapLocalDialX / w, y: mapLocalDialY / h),
-                   startRadius: dialMaskRadius,
-                   endRadius: dialMaskRadius + dialMaskFeather))
+                // La mappa è piena fino a 2pt fuori dall'anello,
+                // senza banda sfumata e senza coprire il tachimetro.
+                .mask(GPSMapDialClearanceClip()
+                    .fill(style: FillStyle(eoFill: true)))
                 // I segmenti arancioni sono veri bordi di clipping, anche
                 // nei raccordi obliqui e nei due triangoli di confine.
                 .mask(GPSMapTopContourClip())

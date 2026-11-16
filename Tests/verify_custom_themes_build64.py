@@ -9,12 +9,12 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 94;") == 2
-assert "static let colorCount = 21" in tabs
+assert project.count("CURRENT_PROJECT_VERSION = 95;") == 2
+assert "static let colorCount = 22" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 21
-assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 21
+assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 22
 for label in (
     "Sfondo del cockpit", "Colore principale · top bar e icone Setup",
     "Barre telemetria · colore scuro", "Numeri kW · energia in ingresso",
