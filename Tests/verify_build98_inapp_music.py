@@ -47,7 +47,7 @@ assert "MusicCatalogSearchRequest" in p
 assert "ApplicationMusicPlayer.shared" in p
 assert "MusicAuthorization.request()" in p
 assert "await apple.play(song)" in p
-assert 'TextField("Cerca brano o artista"' in p
+assert 'TextField("Cerca brano, artista o album"' in p
 assert "ForEach(results)" in p
 assert "AsyncImage(url: url)" in p
 assert "song.artwork?.url" in p
