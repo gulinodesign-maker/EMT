@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43899426821:ATTEMPT:1 -->
+### 2026-11-16T15:43:17Z — CI #295 · build-97-cockpit-music · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43899426821](https://github.com/gulinodesign-maker/EMT/actions/runs/43899426821); avvio 2026-11-16T15:43:17Z UTC; aggiornamento finale 2026-11-16T15:45:20Z UTC; registrazione 2026-11-16T15:45:37+00:00 UTC; evento pull_request.
+- **Commit:** [17aa582160e1](https://github.com/gulinodesign-maker/EMT/commit/17aa582160e1860021433722f6dc2c1b234e57d9); versione **1.0**; build **97**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build60_setup_navigation.py, Tests/verify_build61_setup_grid.py, Tests/verify_custom_themes_build63.py, Tests/verify_custom_themes_build64.py, Tests/verify_map_alignment_odo_keyboard52.py, Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py.
+
 <!-- EMT_RUN:43899717597:ATTEMPT:1 -->
 ### 2026-11-16T15:44:50Z — CI #297 · build-97-cockpit-music · tentativo 1
 
