@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43900452734:ATTEMPT:1 -->
+### 2026-11-16T15:48:44Z — CI #299 · build-97-cockpit-music · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43900452734](https://github.com/gulinodesign-maker/EMT/actions/runs/43900452734); avvio 2026-11-16T15:48:44Z UTC; aggiornamento finale 2026-11-16T15:49:35Z UTC; registrazione 2026-11-16T15:49:45+00:00 UTC; evento pull_request.
+- **Commit:** [d17b6ad2f499](https://github.com/gulinodesign-maker/EMT/commit/d17b6ad2f499f40d6a2d476c0613626c3b619528); versione **1.0**; build **97**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Ecojumbo/Views/EcoMusicCockpitPanel.swift.
+
 <!-- EMT_RUN:43900393744:ATTEMPT:1 -->
 ### 2026-11-16T15:48:25Z — CI #298 · build-97-cockpit-music · tentativo 1
 
