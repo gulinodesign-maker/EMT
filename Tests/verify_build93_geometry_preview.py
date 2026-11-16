@@ -49,7 +49,7 @@ for h in (390, 414, 510, 706, 831):
 layer = c.split("private struct GPSUpperGradientLayer: View {", 1)[1].split(
     "// Build 93 — anteprima", 1)[0]
 assert ".offset(x: d * 0.023, y: d * 0.012)" in layer
-assert "theme.topBarUnderGlow.opacity(" in layer
+assert "underGlow.opacity(" in layer
 assert ".mask(GPSDialExteriorMask().fill(style: FillStyle(eoFill: true)))" in layer
 assert ".mask(GPSBridgeExteriorMask().fill(style: FillStyle(eoFill: true)))" in layer
 
