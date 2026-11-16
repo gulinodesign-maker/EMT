@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43972260054:ATTEMPT:1 -->
+### 2026-11-16T22:40:11Z — CI #339 · build-104-global-gradient-and-square-power · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43972260054](https://github.com/gulinodesign-maker/EMT/actions/runs/43972260054); avvio 2026-11-16T22:40:11Z UTC; aggiornamento finale 2026-11-16T22:46:39Z UTC; registrazione 2026-11-16T22:46:49+00:00 UTC; evento pull_request.
+- **Commit:** [89da237fae9f](https://github.com/gulinodesign-maker/EMT/commit/89da237fae9f73d7d8bb578fbf79435e42d98d26); versione **1.0**; build **104**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_custom_themes_build63.py.
+
 <!-- EMT_RUN:43972087391:ATTEMPT:1 -->
 ### 2026-11-16T22:39:04Z — CI #338 · build-104-global-gradient-and-square-power · tentativo 1
 
