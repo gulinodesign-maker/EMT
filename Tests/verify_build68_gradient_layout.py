@@ -23,8 +23,8 @@ assert "let edge = migrated.colors[2]" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
 assert "+ standardBarColors + extraDefaults + [foreground.1, foreground.1, "#FF3B30"]" in tabs
 assert '("Sfumatura top bar e ponte kW", 15..<17)' not in tabs
-assert '"Top bar + ponte kW · sfumatura sinistra"' in tabs
-assert '"Top bar + ponte kW · sfumatura destra"' in tabs
+assert '"Layer top bar · sfumatura sinistra"' in tabs
+assert '"Layer top bar · sfumatura destra"' in tabs
 assert 'ForEach(0..<EcoThemePalette.groups.count, id:' in tabs
 assert 'ForEach(group.range, id:' in tabs
 assert 'draft.colors[selected.id] = hex' in tabs
