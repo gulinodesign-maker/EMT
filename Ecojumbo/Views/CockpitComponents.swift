@@ -2504,7 +2504,20 @@ struct EcoCockpitThemeMiniature: View {
         }
         .padding(5)
         .frame(maxWidth: .infinity, minHeight: height, maxHeight: height)
-        .background(.white.opacity(0.055), in: RoundedRectangle(cornerRadius: 5))
+        .background {
+            let daytime = colorScheme == .light
+            let from = daytime ? Color(themeHex: palette.dayTopBar.left) : tone(15)
+            let to = daytime ? Color(themeHex: palette.dayTopBar.right) : tone(16)
+            RoundedRectangle(cornerRadius: 5)
+                .fill(.white.opacity(0.055))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 5)
+                        .fill(LinearGradient(
+                            colors: [from.opacity(daytime ? 0.38 : 0.32),
+                                     to.opacity(daytime ? 0.38 : 0.32)],
+                            startPoint: .leading, endPoint: .trailing))
+                }
+        }
     }
 
     private func miniatureHeader(width: CGFloat, height: CGFloat) -> some View {
@@ -3377,6 +3390,27 @@ private struct GPSExpandedReadings: View {
         colorScheme == .light ? Color.white.opacity(0.36) : Color.white.opacity(0.038)
     }
 
+    // Esattamente gli stessi DUE colori configurabili della top bar.
+    // Anche le card reagiscono subito a Day/Night e ai temi personali;
+    // l'opacità lascia leggibili testo, grafico e dati BMS reali.
+    private var telemetryCardGradient: LinearGradient {
+        let day = colorScheme == .light
+        let from = day ? Color(themeHex: theme.dayTopBar.left) : theme.topBarGradientStart
+        let to = day ? Color(themeHex: theme.dayTopBar.right) : theme.topBarGradientEnd
+        return LinearGradient(colors: [from.opacity(day ? 0.38 : 0.32),
+                                       to.opacity(day ? 0.38 : 0.32)],
+                              startPoint: .leading, endPoint: .trailing)
+    }
+
+    private var telemetryCardBackground: some View {
+        RoundedRectangle(cornerRadius: 10)
+            .fill(tileBackground)
+            .overlay {
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(telemetryCardGradient)
+            }
+    }
+
     private func telemetryTile(_ label: String, value: String,
                                fraction: Double?, showsBar: Bool = false,
                                height: CGFloat) -> some View {
@@ -3411,7 +3445,7 @@ private struct GPSExpandedReadings: View {
         .padding(.vertical, max(5, height * 0.10))
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(height: height)
-        .background(tileBackground, in: RoundedRectangle(cornerRadius: 10))
+        .background(telemetryCardBackground)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(value)")
     }
@@ -3446,7 +3480,7 @@ private struct GPSExpandedReadings: View {
         .padding(.vertical, 4)
         .frame(maxWidth: .infinity)
         .frame(height: height)
-        .background(tileBackground, in: RoundedRectangle(cornerRadius: 10))
+        .background(telemetryCardBackground)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("DISL: " + (gps.tripElevationMeters.map {
             String(format: "%+.0f m", $0)
