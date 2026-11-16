@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43886034114:ATTEMPT:1 -->
+### 2026-11-16T14:28:09Z — CI #288 · build-95-map-2pt-concentric-ring · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43886034114](https://github.com/gulinodesign-maker/EMT/actions/runs/43886034114); avvio 2026-11-16T14:28:09Z UTC; aggiornamento finale 2026-11-16T14:28:41Z UTC; registrazione 2026-11-16T14:28:52+00:00 UTC; evento pull_request.
+- **Commit:** [defc4405280f](https://github.com/gulinodesign-maker/EMT/commit/defc4405280f3f3167c4ba6428249011b0d23b7e); versione **1.0**; build **95**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_cockpit.py.
+
 <!-- EMT_RUN:43885803302:ATTEMPT:1 -->
 ### 2026-11-16T14:26:51Z — CI #287 · build-95-map-2pt-concentric-ring · tentativo 1
 
