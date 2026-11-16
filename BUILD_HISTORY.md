@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43972087391:ATTEMPT:1 -->
+### 2026-11-16T22:39:04Z — CI #338 · build-104-global-gradient-and-square-power · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43972087391](https://github.com/gulinodesign-maker/EMT/actions/runs/43972087391); avvio 2026-11-16T22:39:04Z UTC; aggiornamento finale 2026-11-16T22:39:39Z UTC; registrazione 2026-11-16T22:39:49+00:00 UTC; evento pull_request.
+- **Commit:** [3ab71f314ba4](https://github.com/gulinodesign-maker/EMT/commit/3ab71f314ba4945c14aa0b9952668b274062f558); versione **1.0**; build **104**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:43962979637:ATTEMPT:1 -->
 ### 2026-11-16T21:43:38Z — CI #337 · main · tentativo 1
 
