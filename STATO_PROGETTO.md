@@ -10,7 +10,7 @@
 
 **Dipendenza esterna da risolvere nell'account Apple Developer:** Certificates, Identifiers & Profiles → Identifiers → App ID esplicito `it.ecojumbo.battery` → App Services → abilitare **MusicKit**, salvare, attendere propagazione e aggiornare profili di provisioning se richiesto. Fino alla conferma su account/iPhone reale **non dichiarare funzionante la ricerca in tutto il catalogo Apple Music**; la libreria iPhone può essere vuota se l'utente non ha aggiunto brani. Dati BMS e GPS invariati.
 
-**Rilascio:** progetto Debug/Release `1.0 (99)`, bundle invariato. Nuovo test sulle maschere e sulla ricerca locale, suite storica adeguata; riportare PR/CI, upload Apple e stati processing/TE separatamente solo dopo verifica.
+**Rilascio e verifiche effettuate:** progetto Debug/Release `1.0 (99)`, bundle invariato. [PR #87](https://github.com/gulinodesign-maker/EMT/pull/87) integrata su `main`, merge `b3c4161bbac695df3b0a18856c945e79a2e7d40f`. [CI PR 43920161379](https://github.com/gulinodesign-maker/EMT/actions/runs/43920161379) **SUCCESS** e [CI main 43920870463](https://github.com/gulinodesign-maker/EMT/actions/runs/43920870463) **SUCCESS**: regressioni Python (compresa 99), protocollo JK Bluetooth, barre e compilazione Xcode simulatore. [Workflow TestFlight 43920870547](https://github.com/gulinodesign-maker/EMT/actions/runs/43920870547) **avviato automaticamente dal merge ma ancora QUEUED, nessun log Apple di upload** al momento della verifica. NON dichiarare caricata o disponibile la 99 fino a `Upload succeeded`; restano da verificare il processing ASC, il gruppo TE e la ricerca/catalogo Apple su iPhone, oltre all'abilitazione del servizio MusicKit per l'App ID.
 
 ## Build 98 — MusicKit nel cockpit e comandi contestuali (16 novembre 2026)
 
