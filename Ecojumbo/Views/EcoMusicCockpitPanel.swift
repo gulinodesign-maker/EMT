@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import MusicKit
+import MediaPlayer
 
 // Catalogo e riproduzione Apple Music restano all'interno di EMT.
 // Nessun brano, album o artista fittizio.
@@ -15,14 +16,16 @@ final class EcoAppleMusicPlayback: ObservableObject {
     @Published private(set) var artworkURL: URL?
     @Published private(set) var isPlaying = false
     @Published private(set) var errorMessage = ""
+    @Published private(set) var authorized = MusicAuthorization.currentStatus == .authorized
 
     private init() {}
 
-    var isAuthorized: Bool { MusicAuthorization.currentStatus == .authorized }
+    var isAuthorized: Bool { authorized }
 
     func requestAuthorization() {
         Task {
             let status = await MusicAuthorization.request()
+            authorized = status == .authorized
             if status != .authorized {
                 errorMessage = "Consenti l'accesso ad Apple Music nelle impostazioni di iOS."
             } else {
@@ -71,6 +74,12 @@ final class EcoAppleMusicPlayback: ObservableObject {
             artworkURL = current.artwork?.url(width: 1100, height: 1100) ?? artworkURL
         }
         isPlaying = player.state.playbackStatus == .playing
+    }
+
+    func surrenderToSystemPlayer() {
+        if hasChosenTrack { player.pause() }
+        hasChosenTrack = false
+        errorMessage = ""
     }
 
     func togglePlayback() {
@@ -127,8 +136,12 @@ struct EcoMusicCockpitPanel: View {
     @Binding var searchVisible: Bool
     @State private var query = ""
     @State private var results: [Song] = []
+    @State private var libraryResults: [MPMediaItem] = []
     @State private var searchError = ""
     @State private var searching = false
+    @State private var catalogTokenUnavailable = false
+    @State private var searchRevision = 0
+    @FocusState private var searchFieldFocused: Bool
     let theme: CockpitTheme
 
     private var provider: EcoMusicProvider {
@@ -179,36 +192,76 @@ struct EcoMusicCockpitPanel: View {
             searchVisible = false
             query = ""
             results.removeAll()
+            libraryResults.removeAll()
+            catalogTokenUnavailable = false
+        }
+        .onChange(of: searchVisible) { _, visible in
+            searchFieldFocused = visible
+        }
+        .onChange(of: apple.authorized) { _, value in
+            if value { searchRevision += 1 }
+        }
+        .onChange(of: music.appleAuthorized) { _, value in
+            if value { searchRevision += 1 }
         }
         .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
             music.refresh()
             apple.refresh()
         }
-        .task(id: searchVisible ? query : "") {
+        .task(id: searchVisible ? "\(query)|\(searchRevision)" : "") {
             guard searchVisible, provider == .apple else {
-                results = []
+                results.removeAll()
+                libraryResults.removeAll()
                 searchError = ""
+                searching = false
                 return
             }
             let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
             guard term.count >= 2 else {
-                results = []
+                results.removeAll()
+                libraryResults.removeAll()
                 searchError = ""
+                searching = false
                 return
             }
             searching = true
+            do { try await Task.sleep(nanoseconds: 320_000_000) }
+            catch { searching = false; return }
+            guard !Task.isCancelled else { return }
+
+            // Ricerca realmente disponibile anche quando Apple non ha ancora
+            // abilitato il developer token per il catalogo MusicKit di EMT.
+            // I risultati locali sono veri MPMediaItem, mai dati di esempio.
+            libraryResults = music.searchLocalLibrary(term)
+            results.removeAll()
+            guard apple.isAuthorized else {
+                searchError = "Per cercare nel catalogo autorizza Apple Music; puoi già cercare nella libreria del tuo iPhone."
+                searching = false
+                return
+            }
+            guard !catalogTokenUnavailable else {
+                searching = false
+                searchError = "Catalogo online non disponibile: abilita MusicKit per it.ecojumbo.battery in Apple Developer → Identifiers → App Services. La ricerca nella libreria locale resta attiva."
+                return
+            }
+
             do {
-                try await Task.sleep(nanoseconds: 320_000_000)
                 let songs = try await apple.search(term)
                 guard !Task.isCancelled else { return }
                 results = songs
-                searchError = songs.isEmpty ? "Nessun risultato trovato." : ""
+                searchError = songs.isEmpty && libraryResults.isEmpty
+                    ? "Nessun brano trovato nel catalogo Apple Music." : ""
             } catch is CancellationError {
                 return
             } catch {
-                if !Task.isCancelled {
-                    results = []
-                    searchError = error.localizedDescription
+                guard !Task.isCancelled else { return }
+                let tokenFailure = (error as? MusicTokenRequestError) == .developerTokenRequestFailed
+                    || error.localizedDescription.localizedCaseInsensitiveContains("developer token")
+                if tokenFailure {
+                    catalogTokenUnavailable = true
+                    searchError = "Catalogo Apple Music non abilitato per EMT. Attiva MusicKit nell'App ID it.ecojumbo.battery su Apple Developer. Nel frattempo puoi cercare e riprodurre i brani presenti nella libreria iPhone."
+                } else {
+                    searchError = "Ricerca nel catalogo non disponibile: \(error.localizedDescription). I brani nella libreria iPhone restano utilizzabili."
                 }
             }
             searching = false
