@@ -1,42 +1,24 @@
-"""Build 72: the same narrow LED glow must face inward on all three GPS contours."""
+"""Build 72 regression carried into 87: speed LED preserved, GPS contours now gray."""
 from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 86;") == 2
-
-led = source.split("private enum GPSInnerLED {", 1)[1].split("private enum GPSDialLayout", 1)[0]
-for name in ("haloWidth", "haloBlur", "coreWidth", "coreBlur"):
-    assert name in led
-top = source.split("private struct GPSHorizonLine: View {", 1)[1].split("@MainActor", 1)[0]
-ring = source.split("private struct GPSGaugeHalo: View {", 1)[1].split("// EJ 1.23", 1)[0]
-lower = source.split("private struct GPSLowerGlow: View {", 1)[1].split("// EJ 1.22", 1)[0]
-for section in (top, ring, lower):
-    for method in ("haloWidth", "haloBlur", "coreWidth", "coreBlur"):
-        assert "GPSInnerLED." + method + "(" in section
-assert "GPSInnerLED.haloWidth(h)" in top
-assert "GPSInnerLED.highlightWidth(h)" in top
-assert "GPSInnerLED.outerOpacity(theme.glowIntensity)" in top
-assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in top
-assert "GPSHorizonSymmetry.corners(width: w, height: h)" in source
-assert ring.count("GPSInnerLED.haloWidth(d)") == 1
-assert "GPSInnerLED.highlightWidth(d)" in ring
-assert ".shadow(color: theme.accent.opacity(GPSInnerLED.outerOpacity(theme.glowIntensity))" in ring
-assert ".frame(width: d * 0.992, height: d * 0.992)" in ring
-for fade in ("location: 0.65", "location: 0.72", "location: 0.80"):
-    assert fade in ring
-assert "GPSInnerLED.haloWidth(h)" in lower
-assert "GPSInnerLED.highlightWidth(h)" in lower
+assert pbx.count("CURRENT_PROJECT_VERSION = 87;") == 2
+speed = source.split("private struct SpeedLEDStream: View {",1)[1].split("private struct SegmentedGaugeBar",1)[0]
+top = source.split("private struct GPSHorizonLine: View {",1)[1].split("@MainActor",1)[0]
+lower = source.split("private struct GPSLowerGlow: View {",1)[1].split("// EJ 1.22",1)[0]
+for key in ("haloWidth", "haloBlur", "coreWidth", "outerBlur"):
+    assert "GPSInnerLED."+key+"(d)" in speed
+assert "GPSGaugeHalo(theme: theme)" not in source
+assert "GPSMetalInnerRing()" in source
+assert "metalLine.stroke(GPSMetalContourStyle.gradient(for: colorScheme)" in top
+assert "line.stroke(theme.accent" not in top
+assert ".mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))" in top
+assert "GPSLowerContour()" in lower
+assert "GPSMetalContourStyle.gradient(for: colorScheme)" in lower
+assert "theme.accent" not in lower
 assert ".mask(GPSLowerTerminalFade())" in lower
 assert "GPSLowerShade()" not in lower
-assert "GPSLowerShade().path(in: rect)" in source
-assert "GPSMetalInnerRing()" in source
-assert "GPSGaugeHalo(theme: theme)" in source
-assert "GPSLowerGlow(theme: theme)" in source
 assert "GPSHorizonLine(theme: theme)" in source
-for prohibited in ("GPSOuterProfileReinforcement", "GPSTopBandShade",
-                   "GPSLowerAreaGradient", "GPSAreaGradientStyle"):
-    assert prohibited not in source
-assert "line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))" in top
-assert "StrokeStyle(lineWidth: GPSContourStroke.width(height: h)," in lower
-print("OK — build 72: inward LED on top bar, orange ring and kW bridge with fade preserved")
+assert "GPSLowerGlow(theme: theme)" in source
+print("OK — retained speed LED and gray metal GPS contours (87)")

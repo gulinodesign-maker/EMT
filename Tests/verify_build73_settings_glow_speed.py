@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 86;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 87;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 
 # Setup exactly 3x3; the footer stays outside the scrolling cell grid.
@@ -62,18 +62,16 @@ assert '"Velocità GPS · fase accelerazione"' in tabs
 assert "EcoThemePalette.active?.colors[17]" in cockpit
 assert "savedPalette?.glowIntensity ?? 0.60" in cockpit
 
-# The outward glow affects precisely the same top bar, orange ring and kW bridge.
+# Build 87 deliberately retires the GPS neon outlines, while leaving the
+# user-editable speed LED behavior and theme configuration available.
 led = cockpit.split("private enum GPSInnerLED {", 1)[1].split(
     "private enum GPSDialLayout", 1)[0]
 assert "outerOpacity(_ intensity: Double)" in led
 assert "outerBlur(_ size: CGFloat)" in led
-for shape, closing in (("GPSHorizonLine", "@MainActor"),
-                       ("GPSGaugeHalo", "// EJ 1.23"),
-                       ("GPSLowerGlow", "// EJ 1.22")):
-    section = cockpit.split("private struct " + shape + ": View {", 1)[1].split(closing, 1)[0]
-    assert "GPSInnerLED.outerOpacity(theme.glowIntensity)" in section
-    assert "GPSInnerLED.outerBlur(" in section
-    assert "theme.accent" in section
+assert "GPSGaugeHalo(theme: theme)" not in cockpit
+top = cockpit.split("private struct GPSHorizonLine: View {",1)[1].split("@MainActor",1)[0]
+assert "theme.accent" not in top
+assert "GPSMetalContourStyle.gradient(for: colorScheme)" in top
 assert "GPSOuterProfileReinforcement" not in cockpit
 assert "GPSTopBandShade" not in cockpit
 assert "GPSLowerAreaGradient" not in cockpit
