@@ -381,12 +381,12 @@ assert '.position(x: panelLeft + panelWidth / 2, y: cardsCenterY)' in c
 assert '.frame(width: panelWidth, height: cardsHeight)' in c
 assert 'let cardsTop = h * 0.099 + outerMargin' in c
 assert 'let cardsBottom = h - dockBottom - dockHeight - outerMargin' in c
-assert 'let mapLocalDialX = dialCenterX - fullWidth * 0.36' in c
-assert 'let mapLocalDialY = fullHeight * (0.494 - 0.045)' in c
-assert '.mask(RadialGradient(stops: [' in c
-assert 'center: UnitPoint(x: mapLocalDialX / w, y: mapLocalDialY / h)' in c
-assert 'startRadius: dialMaskRadius' in c
-assert 'endRadius: dialMaskRadius + dialMaskFeather' in c
+# Build 95: geometria condivisa, 2pt oltre il nuovo cerchio.
+assert 'private struct GPSMapDialClearanceClip: Shape' in c
+assert 'GPSDialLayout.mapExclusionRadius(for: d)' in c
+assert 'static let mapToDialClearance: CGFloat = 2' in c
+assert '.mask(GPSMapDialClearanceClip()' in c
+assert '.mask(RadialGradient(stops: [' not in c[c.index('private struct GPSCockpitMap: View'):c.index('// Pannello standard senza mappa')]
 assert 'private struct GPSMapTopContourClip: Shape' in c
 assert 'private struct GPSMapLowerContourClip: Shape' in c
 assert '.mask(GPSMapTopContourClip())' in c
