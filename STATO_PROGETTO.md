@@ -1,5 +1,18 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 94 — anteprima cockpit senza icone sovrapposte, profilo nero GPS ridotto (16 novembre 2026)
+
+**Richiesta da due screenshot dell'utente (build 93):** l'anteprima tema presenta logo, freccia, icone e simboli del dock giganteschi e sovrapposti al tachimetro. Occorre una miniatura ordinata dell'intero cockpit, senza icone fuori posto. Nel cockpit GPS reale, dopo la riduzione dell'anello metallico della build 93, **ridurre anche il profilo/disco nero esterno** per massimizzare lo spazio disponibile per la top bar, soprattutto al raccordo superiore destro del tachimetro. Preservare scala velocità ampliata, layout GPS/BMS e tutti i colori modificabili.
+
+**Causa miniatura identificata nel codice:** `EcoCockpitThemeMiniature` chiamava `miniatureHeader(width:w,height:h)` e `miniatureDock(height:h)`, ma poi disegnava header e dock in riquadri alti solo `0.10*h` e `0.082*h`. I simboli e l'immagine del logo calcolavano perciò la loro dimensione da `h` anziché dall'altezza della rispettiva barra (fino a ~10 volte troppo grandi), finendo sul quadrante e sulla telemetria. Il checkmark di selezione compariva inoltre sopra la preview.
+
+**Correzione anteprima:** il parametro `height` di header e dock coincide ora **esattamente con l'altezza effettiva dei rispettivi riquadri**; il logo, la freccia, lo stato Bluetooth/batteria e le cinque icone del dock ritornano proporzionati e confinati alle loro zone. Eliminata l'icona checkmark flottante dalle card: la selezione resta indicata dal bordo esterno. Nessuna lettura GPS/BMS artificiale.
+
+**Correzione tachimetro GPS:** oltre all'anello metallico già ridotto dalla 93, il fondo nero circolare del solo `OpenSpeedCluster` GPS, il tessuto carbonio e la sfumatura radiale ricevono fattore **0.90** sul diametro originario (rispettivamente `0.986*0.90` e `0.982*0.90`). La Home usa ancora i diametri precedenti. `GPSUpperLayerFootprint` e `GPSDialExteriorMask` seguono il **nuovo bordo nero** con margine di 3 pt, lasciando maggiore spazio utile per il layer e la top bar; `GPSHorizonLine` adatta il clipping al diametro dell'anello metallico ridotto. I due ritagli `GPSDialExteriorMask`/`GPSBridgeExteriorMask` restano indipendenti, così né gradiente né bagliore entrano nel disco o nel ponte. `SpeedScaleTicks` e `SpeedLEDStream` mantengono il fattore 1.08 della 93, senza comprimere la scala. Tutte le funzioni veicolo, palette, sfumature alta/bassa e barra kW 30/70 sono preservate.
+
+**Versione e verifica:** progetto Xcode `1.0 (94)` Debug/Release, bundle invariato. Aggiunta la regressione `Tests/verify_build94_preview_dial_geometry.py` e aggiornate le asserzioni storiche al nuovo valore. **CI PR, CI main e upload Apple vanno confermati prima di considerare rilasciata la build 94**; processing Apple, gruppo `TE`, installabilità e resa visiva reale sono verifiche distinte.
+
+
 ## Build 93 — miniatura cockpit completa, diagonale layer, anello -10% e scala GPS ampliata (16 novembre 2026)
 
 **Richiesta utente da screenshot:** il layer sfumato inferiore sinistro deve arrestarsi lungo il prolungamento della **diagonale gialla**, che coincide con il fianco sinistro del ponte kW fino al bordo inferiore. Rimpicciolire il **solo cerchio metallico esterno** del tachimetro GPS del **10%**, sfruttando lo spazio libero per **massimizzare la scala delle tacche e l'arco velocità**. Proiettare una luce interna al layer con offset verso il **centro dell'app**, senza invadere tachimetro o ponte. **Richiesta aggiuntiva:** la preview del tema deve mostrare un campione dell'intero cockpit, non cerchi e swatch separati. Pubblicare la build successiva su TestFlight secondo direttiva permanente.
