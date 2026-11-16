@@ -226,9 +226,9 @@ assert 'private enum GPSDialLayout' in c
 assert 'GPSDialLayout.centerX(width: w, height: h)' in c
 assert 'GPSGaugeHalo(theme: theme)' not in c
 assert 'private struct GPSGaugeHalo: View' not in c
-assert 'location: 0.80' in c and 'location: 0.65' in c
+assert 'location: 0.80' in c and 'GPSMetalInnerRing()' in c
 assert '.position(x: dialCenterX, y: h * 0.494)' in c
-assert 'CGRect(x: dialCenterX - dialSize * 0.508' in c
+assert 'CGRect(x: dialCenterX - metalRadius' in c
 # Il bordo della mappa non deve duplicare la linea arancione superiore.
 assert '.stroke(Color.white.opacity(0.16), lineWidth: 0.8)' not in c
 assert '.mask(LinearGradient(stops:' in c
