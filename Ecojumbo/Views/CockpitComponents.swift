@@ -183,7 +183,17 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     // Il bagliore è proprietà del tema salvato, non una preferenza globale.
     var glowIntensity: Double { savedPalette?.glowIntensity ?? 0.60 }
 
-    // I ruoli 15/16 restano nei dati salvati, ma non sono applicati nel cockpit 70.
+    // Build 88: ruoli colore salvati e riattivati sul nuovo layer GPS.
+    var topBarGradientStart: Color {
+        Color(themeHex: savedPalette?.colors[15] ?? "#173A59")
+    }
+    var topBarGradientEnd: Color {
+        Color(themeHex: savedPalette?.colors[16] ?? "#452452")
+    }
+    var topBarUnderGlow: Color {
+        Color(themeHex: savedPalette?.colors[2] ?? "#FF7008")
+    }
+    // Le barre mantengono i ruoli storici, invariati.
     // Barre e recupero energia usano la palette attiva, non soltanto la preview.
     static var barDark: Color {
         Color(themeHex: EcoThemePalette.active?.colors[4] ?? "#8C051F")
@@ -1719,7 +1729,10 @@ struct GPSCockpitDashboard: View {
                         .zIndex(6)
                 }
 
-                // Build 70: nessun riempimento colorato sotto il ponte kW.
+                // Build 88: layer sopra il quadrante, sotto le linee metalliche.
+                GPSUpperGradientLayer(theme: theme)
+                    .frame(width: w, height: h)
+                    .zIndex(27)
 
                 GPSHorizonLine(theme: theme)
                     .frame(width: w, height: h)
@@ -1910,6 +1923,57 @@ private struct GPSTopInteriorMask: Shape {
 }
 
 // Build 87: la top bar GPS conserva solo la linea metallica grigia destra.
+// Build 88 — superficie delimitata da bordi display, top bar, anello e ponte.
+private struct GPSUpperLayerFootprint: Shape {
+    func path(in rect: CGRect) -> Path {
+        let w = rect.width
+        let h = rect.height
+        let d = GPSDialLayout.size(width: w, height: h)
+        let centerX = GPSDialLayout.centerX(width: w, height: h)
+        let corners = GPSHorizonSymmetry.corners(width: w, height: h)
+        var region = Path()
+        region.move(to: CGPoint(x: 0, y: 0))
+        region.addLine(to: CGPoint(x: w, y: 0))
+        region.addLine(to: CGPoint(x: w, y: h * 0.099))
+        region.addLine(to: corners.rightKnee)
+        region.addLine(to: corners.rightContact)
+        region.addLine(to: CGPoint(x: corners.rightContact.x, y: h))
+        region.addLine(to: CGPoint(x: 0, y: h))
+        region.closeSubpath()
+        let radius = d * 0.965 / 2 + 3
+        region.addEllipse(in: CGRect(x: centerX - radius,
+                                     y: h * 0.494 - radius,
+                                     width: radius * 2, height: radius * 2))
+        return region
+    }
+}
+
+private struct GPSUpperGradientLayer: View {
+    let theme: CockpitTheme
+    var body: some View {
+        GeometryReader { geo in
+            let d = GPSDialLayout.size(width: geo.size.width, height: geo.size.height)
+            ZStack {
+                GPSUpperLayerFootprint()
+                    .fill(theme.topBarUnderGlow.opacity(theme.glowIntensity * 0.40),
+                          style: FillStyle(eoFill: true))
+                    .blur(radius: max(10, d * 0.036))
+                    .offset(y: 3)
+                GPSUpperLayerFootprint()
+                    .fill(LinearGradient(
+                        colors: [theme.topBarGradientStart, theme.topBarGradientEnd],
+                        startPoint: .leading, endPoint: .trailing),
+                        style: FillStyle(eoFill: true))
+                    .opacity(0.84)
+                    .offset(y: -3)
+            }
+            .mask(GPSBridgeUpperMask())
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
 private struct GPSHorizonLine: View {
     @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
