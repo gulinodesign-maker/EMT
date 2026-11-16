@@ -1,5 +1,15 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 88 — layer top bar con gradiente e luce sottostante (16 novembre 2026)
+
+**Richiesta:** superficie delimitata dal bordo alto/sinistro display, dalla top bar metallica, dal cerchio tachimetro e dal ponte kW; offset 3 punti rispetto ai profili grigi; due colori sfumati più luce sottostante modificabili in Temi. Pubblicare su TestFlight.
+
+**Implementazione:** `GPSUpperLayerFootprint` usa i raccordi `GPSHorizonSymmetry`, esclude l'anello tachimetro con fill even-odd e `GPSUpperGradientLayer` viene ritagliato dal `GPSBridgeUpperMask`. Superficie sfumata orizzontale offset -3, luce morbida sottostante offset +3. Nell'editor `Layer top bar` sono attivi i ruoli colore 15/16 già persistenti e il colore 2 per la luce sfumata. Preservati i contorni grigi, la barra kW 30/70, GPS, BMS, mappa e Home. Progetto Xcode 1.0 (88), bundle invariato.
+
+**Stato:** codice su `build-88-topbar-layer-gradient-glow`; test, merge e upload da verificare. L'upload non prova l'assegnazione ai tester TE.
+
+
+
 ## Build 87 — contorni GPS grigi e barra potenza orizzontale (16 novembre 2026)
 
 **Richiesta utente:** eliminare il LED luminoso sul lato destro della top bar, sul cerchio esterno del tachimetro e sul ponte kW, lasciando solo i contorni metallici grigi. Eliminare nel cockpit GPS le due scale graduate circolari di potenza e sostituirle con un'unica barra orizzontale **30% azzurra a sinistra e 70% rossa a destra**, sotto l'unico valore kW. Proseguire con la pubblicazione dopo CI verde secondo la direttiva permanente.

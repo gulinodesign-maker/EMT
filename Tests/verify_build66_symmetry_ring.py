@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 87;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 88;") == 2
 symmetry = cockpit.split("private enum GPSHorizonSymmetry {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 horizon = cockpit.split("private struct GPSHorizonLine: View {", 1)[1].split(
@@ -44,7 +44,7 @@ assert "accessibilityHidden(true)" in ring
 assert "GPSMetalInnerRing()" in dashboard
 assert ".zIndex(26)" in dashboard
 assert "GPSGaugeHalo(theme: theme)" not in dashboard
-assert ".zIndex(27)" not in dashboard
+assert "GPSUpperGradientLayer(theme: theme)" in dashboard and ".zIndex(27)" in dashboard
 assert ".position(x: dialCenterX, y: h * 0.494)" in dashboard
 
 # Temperature shifts left when a mirrored bend reduces available space.
