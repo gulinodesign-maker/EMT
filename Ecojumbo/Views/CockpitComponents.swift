@@ -1923,28 +1923,88 @@ private struct GPSTopInteriorMask: Shape {
 }
 
 // Build 87: la top bar GPS conserva solo la linea metallica grigia destra.
-// Build 88 — superficie delimitata da bordi display, top bar, anello e ponte.
+// Build 89 — due sole superfici contigue: fascia SOPRA la top bar destra
+// e area a SINISTRA del tachimetro. Niente settore colorato a destra
+// del quadrante: la fascia superiore si chiude sul cerchio metallico.
 private struct GPSUpperLayerFootprint: Shape {
     func path(in rect: CGRect) -> Path {
         let w = rect.width
         let h = rect.height
         let d = GPSDialLayout.size(width: w, height: h)
         let centerX = GPSDialLayout.centerX(width: w, height: h)
+        let centerY = h * 0.494
+        let center = CGPoint(x: centerX, y: centerY)
+        let circleRadius = d * 0.965 / 2
+            + GPSMetalContourStyle.strokeWidth(for: d) / 2 + 3
+
+        let bridge = GPSLowerLineGeometry.points(in: rect)
+        guard bridge.count == 4 else { return Path() }
+        let leftFoot = bridge[0]
+        let leftShoulder = bridge[1]
+
+        // Incrocio reale tra il lato sinistro del ponte e il cerchio.
+        // Segui la circonferenza, poi il ponte, fino al bordo BASSO.
+        func bridgePoint(_ fraction: CGFloat) -> CGPoint {
+            CGPoint(x: leftShoulder.x + (leftFoot.x - leftShoulder.x) * fraction,
+                    y: leftShoulder.y + (leftFoot.y - leftShoulder.y) * fraction)
+        }
+        var low: CGFloat = 0
+        var high: CGFloat = 1
+        for _ in 0..<40 {
+            let mid = (low + high) / 2
+            let sample = bridgePoint(mid)
+            let dx = sample.x - center.x
+            let dy = sample.y - center.y
+            if dx * dx + dy * dy < circleRadius * circleRadius {
+                low = mid
+            } else {
+                high = mid
+            }
+        }
+        let intersection = bridgePoint((low + high) / 2)
+        let terminalAngle = Darwin.atan2(Double(intersection.y - centerY),
+                                         Double(intersection.x - centerX)) - 2 * Double.pi
+
+        var left = Path()
+        left.move(to: .zero)
+        left.addLine(to: CGPoint(x: centerX, y: 0))
+        left.addLine(to: CGPoint(x: centerX, y: centerY - circleRadius))
+        // Arco esterno del lato sinistro, non una retta verticale sul disco.
+        for step in 1...96 {
+            let fraction = Double(step) / 96
+            let angle = -Double.pi / 2
+                + (terminalAngle + Double.pi / 2) * fraction
+            left.addLine(to: CGPoint(
+                x: centerX + circleRadius * CGFloat(Darwin.cos(angle)),
+                y: centerY + circleRadius * CGFloat(Darwin.sin(angle))))
+        }
+        left.addLine(to: CGPoint(x: leftFoot.x - 3, y: leftFoot.y))
+        // Il bordo sinistro della zona sotto il ponte prosegue sino
+        // al bordo inferiore del display, senza la maschera della 88.
+        left.addLine(to: CGPoint(x: leftFoot.x - 3, y: h))
+        left.addLine(to: CGPoint(x: 0, y: h))
+        left.closeSubpath()
+
+        // La fascia destra è SOLO la zona al di SOPRA del profilo grigio.
+        // Chiudere sul cerchio, mai scendere da rightContact fino al dock.
         let corners = GPSHorizonSymmetry.corners(width: w, height: h)
-        var region = Path()
-        region.move(to: CGPoint(x: 0, y: 0))
-        region.addLine(to: CGPoint(x: w, y: 0))
-        region.addLine(to: CGPoint(x: w, y: h * 0.099))
-        region.addLine(to: corners.rightKnee)
-        region.addLine(to: corners.rightContact)
-        region.addLine(to: CGPoint(x: corners.rightContact.x, y: h))
-        region.addLine(to: CGPoint(x: 0, y: h))
-        region.closeSubpath()
-        let radius = d * 0.965 / 2 + 3
-        region.addEllipse(in: CGRect(x: centerX - radius,
-                                     y: h * 0.494 - radius,
-                                     width: radius * 2, height: radius * 2))
-        return region
+        var upper = CockpitContourGeometry.roundedPath(points: [
+            CGPoint(x: corners.rightContact.x, y: corners.rightContact.y - 3),
+            CGPoint(x: corners.rightKnee.x, y: corners.rightKnee.y - 3),
+            CGPoint(x: w, y: h * 0.099 - 3)
+        ], corners: [1],
+           radius: CockpitContourGeometry.cornerRadius(in: rect.size))
+        upper.addLine(to: CGPoint(x: w, y: 0))
+        upper.addLine(to: CGPoint(x: centerX, y: 0))
+        upper.addLine(to: CGPoint(x: centerX, y: centerY - circleRadius))
+        upper.closeSubpath()
+        left.addPath(upper)
+
+        // Il foro conserva esattamente il tachimetro e il suo bordo metallico.
+        left.addEllipse(in: CGRect(x: centerX - circleRadius,
+                                   y: centerY - circleRadius,
+                                   width: 2 * circleRadius, height: 2 * circleRadius))
+        return left
     }
 }
 
@@ -1958,16 +2018,18 @@ private struct GPSUpperGradientLayer: View {
                     .fill(theme.topBarUnderGlow.opacity(theme.glowIntensity * 0.40),
                           style: FillStyle(eoFill: true))
                     .blur(radius: max(10, d * 0.036))
-                    .offset(y: 3)
+                    // Nessuna luce può invadere tachimetro, telemetria o dock.
+                    .mask(GPSUpperLayerFootprint()
+                        .fill(style: FillStyle(eoFill: true)))
                 GPSUpperLayerFootprint()
                     .fill(LinearGradient(
                         colors: [theme.topBarGradientStart, theme.topBarGradientEnd],
                         startPoint: .leading, endPoint: .trailing),
                         style: FillStyle(eoFill: true))
                     .opacity(0.84)
-                    .offset(y: -3)
             }
-            .mask(GPSBridgeUpperMask())
+            // Non usare GPSBridgeUpperMask: taglierebbe gli ultimi 6,3%
+            // del lato sinistro, esattamente il difetto segnato dall'utente.
         }
         .allowsHitTesting(false)
         .accessibilityHidden(true)
