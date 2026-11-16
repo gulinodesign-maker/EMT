@@ -1,5 +1,17 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 99 — mappa/cover sotto metallo, Siri rimosso, ricerca Apple Music di fallback (16 novembre 2026)
+
+**Segnalazione da due screenshot iPhone della build 98:** il disegno MapKit e la copertina musicale superano la linea grigia superiore; il tasto Siri a sinistra è inutile e va eliminato; il campo Cerca mostra il fallimento del developer token Apple Music e non presenta brani.
+
+**Intervento:** il ritaglio `GPSMapTopContourClip` usa la geometria effettiva `GPSHorizonSymmetry.corners` e il **bordo inferiore** dello stroke metallico `GPSMetalContourStyle.inset(for: d) + strokeWidth/2`, con 1,5 pt minimi aggiuntivi di sicurezza. Le stesse maschere ritagliano la copertina e il contenuto MapKit; la barra GPS è ora ritagliata anche a livello del componente composito, evitando che la ricerca indirizzi superi il metallo, e leggermente traslata sotto di esso. Il grigio resta davanti. Rimossi completamente GPSSiriControl e la sua posizione in GPSCockpitDashboard. La temperatura meteo rimane nella top bar. Mantenuti tachimetro/telemetria/potenza/MapKit/GPS, pulsante Musica in Mappa e il dock contestuale.
+
+**Ricerca:** il fallimento `MusicTokenRequestError.developerTokenRequestFailed` è dovuto a un'autorizzazione **server-side** Apple MusicKit dell'App ID e **non** può essere sanato cambiando soltanto lo Swift o l'Info.plist. `EcoMusicCockpitPanel` continua a tentare `MusicCatalogSearchRequest`; se il developer token manca, mostra indicazioni specifiche e cerca contemporaneamente i **veri MPMediaItem della libreria dell'iPhone** tramite `MPMediaQuery.songs()`, con ricerca titolo/artista/album, risultati e pulsante play in EMT usando `MPMusicPlayerController.systemMusicPlayer`. Non inventa risultati, non apre Music esternamente, distingue il catalogo completo dalla sola libreria. Un comando Riprova riabilita la ricerca catalogo dopo la correzione Apple. Permessi libreria e catalogo sono richiesti senza segreti nel repo.
+
+**Dipendenza esterna da risolvere nell'account Apple Developer:** Certificates, Identifiers & Profiles → Identifiers → App ID esplicito `it.ecojumbo.battery` → App Services → abilitare **MusicKit**, salvare, attendere propagazione e aggiornare profili di provisioning se richiesto. Fino alla conferma su account/iPhone reale **non dichiarare funzionante la ricerca in tutto il catalogo Apple Music**; la libreria iPhone può essere vuota se l'utente non ha aggiunto brani. Dati BMS e GPS invariati.
+
+**Rilascio:** progetto Debug/Release `1.0 (99)`, bundle invariato. Nuovo test sulle maschere e sulla ricerca locale, suite storica adeguata; riportare PR/CI, upload Apple e stati processing/TE separatamente solo dopo verifica.
+
 ## Build 98 — MusicKit nel cockpit e comandi contestuali (16 novembre 2026)
 
 **Richiesta:** in Musica sostituire tutti i comandi del dock con Telemetria, Precedente, Play/Pausa, Successivo, Cerca. Il tasto Musica rimane sia in Telemetria sia nella Mappa, il tasto Telemetria ha icona distinta. La copertina occupa il ritaglio completo di MapKit; temperatura dentro top bar; pulsante Siri simmetrico al RESET al posto della temperatura. Eliminare «Apri Apple Music» e cercare/riprodurre catalogo Apple senza uscire da EMT.
