@@ -4,7 +4,7 @@ root = Path(__file__).resolve().parents[1]
 c = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 p = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 101;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 102;") == 2
 assert "Build 87" in state
 gps = c.split("struct GPSCockpitDashboard: View {",1)[1].split("// Pulsante dedicato",1)[0]
 cluster = c.split("private struct OpenSpeedCluster: View {",1)[1].split("private struct CockpitPowerReadings: View {",1)[0]
@@ -24,7 +24,7 @@ assert "if showsCircularPowerGauges {" in cluster
 assert "SegmentedGaugeBar(d: d, fraction: outputFill" in cluster
 assert "SegmentedGaugeBar(d: d, fraction: inputFill" in cluster
 assert "SpeedLEDStream(d: d, speed: speed)" in cluster
-assert "let regenTacks = 9" in bar and "let dischargeTacks = 21" in bar
+assert "let regenTacks = 3" in bar and "let dischargeTacks = 7" in bar
 assert "0..<(regenTacks + dischargeTacks)" in bar
 assert "CockpitTheme.regenAccent" in bar and "CockpitTheme.dischargeAccent" in bar
 assert "powerWatts.isFinite" in bar
