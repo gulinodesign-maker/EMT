@@ -337,6 +337,21 @@ struct EcoDayTopBarPalette: Codable, Equatable {
     }
 }
 
+// Build 104: direzione unica della luce/ombra per top bar e tutte le card.
+// 0° sinistra→destra, 90° alto→basso, 180° destra→sinistra,
+// 270° basso→alto. SwiftUI usa coordinate verticali crescenti in basso.
+enum EcoGradientDirection {
+    static func points(angle: Double) -> (start: UnitPoint, end: UnitPoint) {
+        let radians = angle * .pi / 180
+        let dx = cos(radians) * 0.5
+        let dy = sin(radians) * 0.5
+        return (
+            start: UnitPoint(x: CGFloat(0.5 - dx), y: CGFloat(0.5 - dy)),
+            end: UnitPoint(x: CGFloat(0.5 + dx), y: CGFloat(0.5 + dy))
+        )
+    }
+}
+
 // Build 74: ruoli esistenti 10 (normale), 14 (decelerazione), 17 (limite); 18 (accelerazione).
 // I valori 15 e 16 rimangono riservati e salvati per compatibilità.
 struct EcoThemePalette: Codable, Equatable {
@@ -346,21 +361,26 @@ struct EcoThemePalette: Codable, Equatable {
     var topFadeIntensity: Double
     var bottomFadeIntensity: Double
     var dayTopBar: EcoDayTopBarPalette
+    // Un cursore globale condiviso da Night/Day e card di telemetria.
+    // Valori precedenti migrano a 0° (orizzontale sx → dx).
+    var gradientAngle: Double
 
     init(name: String, colors: [String], glowIntensity: Double = 0.60,
          topFadeIntensity: Double = 0.35, bottomFadeIntensity: Double = 0.35,
-         dayTopBar: EcoDayTopBarPalette? = nil) {
+         dayTopBar: EcoDayTopBarPalette? = nil, gradientAngle: Double = 0) {
         self.name = name
         self.colors = colors
         self.glowIntensity = glowIntensity.isFinite ? min(1, max(0, glowIntensity)) : 0.60
         self.topFadeIntensity = topFadeIntensity.isFinite ? min(1, max(0, topFadeIntensity)) : 0.35
         self.bottomFadeIntensity = bottomFadeIntensity.isFinite ? min(1, max(0, bottomFadeIntensity)) : 0.35
         self.dayTopBar = dayTopBar ?? EcoDayTopBarPalette.derived(from: colors)
+        self.gradientAngle = gradientAngle.isFinite
+            ? min(360, max(0, gradientAngle)) : 0
     }
 
     // Le palette 63–72 non contenevano intensità: default retrocompatibile.
     private enum CodingKeys: String, CodingKey {
-        case name, colors, glowIntensity, topFadeIntensity, bottomFadeIntensity, dayTopBar
+        case name, colors, glowIntensity, topFadeIntensity, bottomFadeIntensity, dayTopBar, gradientAngle
     }
 
     init(from decoder: Decoder) throws {
@@ -377,6 +397,8 @@ struct EcoThemePalette: Codable, Equatable {
         bottomFadeIntensity = low.isFinite ? min(1, max(0, low)) : 0.35
         dayTopBar = try data.decodeIfPresent(EcoDayTopBarPalette.self, forKey: .dayTopBar)
             ?? EcoDayTopBarPalette.derived(from: colors)
+        let angle = try data.decodeIfPresent(Double.self, forKey: .gradientAngle) ?? 0
+        gradientAngle = angle.isFinite ? min(360, max(0, angle)) : 0
     }
 
     func encode(to encoder: Encoder) throws {
@@ -387,6 +409,7 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(topFadeIntensity, forKey: .topFadeIntensity)
         try data.encode(bottomFadeIntensity, forKey: .bottomFadeIntensity)
         try data.encode(dayTopBar, forKey: .dayTopBar)
+        try data.encode(gradientAngle, forKey: .gradientAngle)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -398,7 +421,7 @@ struct EcoThemePalette: Codable, Equatable {
         "Barre telemetria · colore scuro",
         "Barre telemetria · colore intermedio",
         "Barre telemetria · colore luminoso",
-        "Numeri kW · energia in ingresso",
+        "Numeri kW · energia in ingresso (ruolo storico nascosto)",
         "Barre di potenza · energia in uscita",
         "Barre di potenza · energia in entrata",
         "Velocità GPS · fase normale",
@@ -406,12 +429,12 @@ struct EcoThemePalette: Codable, Equatable {
         "Navigatore · svolta a destra",
         "Navigatore · svolta a sinistra",
         "Velocità GPS · fase decelerazione",
-        "Layer top bar · sfumatura sinistra",
-        "Layer top bar · sfumatura destra",
+        "Sfumature · colore luce",
+        "Sfumature · colore ombra",
         "Velocità GPS · limite superato",
         "Velocità GPS · fase accelerazione",
-        "Layer top bar · sfumatura alta",
-        "Layer top bar · sfumatura bassa",
+        "Sfumature · velatura superiore",
+        "Sfumature · velatura inferiore",
         "Cerchio concentrico luminoso · tachimetro"
     ]
     static let details = [
@@ -422,7 +445,7 @@ struct EcoThemePalette: Codable, Equatable {
         "Prima tonalità delle barre di telemetria.",
         "Tonalità centrale delle barre di telemetria.",
         "Tonalità brillante delle barre di telemetria.",
-        "Numero della potenza che entra nella batteria (kW); non dimostra da sola che si sta frenando.",
+        "Ruolo kW storico conservato nei temi salvati, ora unificato con il colore Energia in entrata.",
         "Segmenti rossi della scala potenza nel ponte kW: energia in uscita.",
         "Segmenti azzurri della scala potenza nel ponte kW: energia in entrata o recupero.",
         "Colore normale dell’arco GPS quando la variazione resta entro ±5 km/h.",
@@ -430,22 +453,22 @@ struct EcoThemePalette: Codable, Equatable {
         "Freccia e distanza della prossima svolta verso destra.",
         "Freccia e distanza della prossima svolta verso sinistra.",
         "Colore dell’arco GPS quando la velocità cala di oltre 5 km/h nella finestra di osservazione; non indica il freno fisico.",
-        "Primo colore della superficie sfumata del nuovo layer superiore GPS.",
-        "Secondo colore della superficie sfumata del nuovo layer superiore GPS.",
+        "Colore luce della sfumatura condivisa da top bar e card Telemetria.",
+        "Colore ombra della sfumatura condivisa da top bar e card Telemetria.",
         "Colore della barra LED quando la velocità GPS raggiunge il limite attivato in Barre luminose.",
         "Colore dell’arco GPS quando la velocità aumenta di oltre 5 km/h nella finestra di osservazione.",
-        "Sfumatura verticale dal bordo alto verso il centro del layer esterno; colore e intensità indipendenti.",
-        "Sfumatura verticale dal bordo basso verso il centro del layer esterno; colore e intensità indipendenti.",
+        "Velatura aggiuntiva alta della top bar, personalizzabile senza modificare la direzione globale.",
+        "Velatura aggiuntiva bassa della top bar, personalizzabile senza modificare la direzione globale.",
         "Colore del cerchio luminoso rimasto attorno al tachimetro; bagliore regolabile qui, termina prima del ponte kW."
     ]
     // Ogni ruolo compare una sola volta. Barre in entrata/uscita e tutte
     // le fasi della velocità fanno parte del tachimetro, non della telemetria.
     static let groups: [(title: String, range: [Int])] = [
         ("Aspetto generale", [0]),
-        ("Anelli e numeri del tachimetro", [1, 3, 21, 11, 10, 14, 18, 17, 8, 9, 7]),
+        ("Anelli e numeri del tachimetro", [1, 3, 21, 11, 10, 14, 18, 17, 8, 9]),
         ("Barre telemetria", [4, 5, 6]),
         ("Navigatore", [12, 13]),
-        ("Layer top bar", [15, 16, 19, 20, 2])
+        ("Sfumature · luce e ombra", [15, 16, 19, 20, 2])
     ]
     static let colorCount = 22
     static let extraDefaults = [
@@ -536,6 +559,7 @@ struct EcoThemePalette: Codable, Equatable {
               palette.glowIntensity.isFinite, (0...1).contains(palette.glowIntensity),
               palette.topFadeIntensity.isFinite, (0...1).contains(palette.topFadeIntensity),
               palette.bottomFadeIntensity.isFinite, (0...1).contains(palette.bottomFadeIntensity),
+              palette.gradientAngle.isFinite, (0...360).contains(palette.gradientAngle),
               palette.dayTopBar.isValid,
               palette.colors.allSatisfy({ validHex($0) }),
               let data = try? JSONEncoder().encode(palette) else { return false }
@@ -828,7 +852,7 @@ private struct EcoThemeEditorView: View {
                         if selectedGroup == 1 {
                             colorRoleSection("Anelli e luci", roles: [1, 3, 21])
                             colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])
-                            colorRoleSection("Barre di potenza", roles: [8, 9, 7])
+                            colorRoleSection("Barre di potenza", roles: [8, 9])
                         } else {
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)],
                                       spacing: 10) {
@@ -860,10 +884,47 @@ private struct EcoThemeEditorView: View {
                         }
                     }
 
-                    // Build 91 — intensità indipendenti delle due sfumature
-                    // verticali; i colori si scelgono sopra nella categoria Layer top bar.
+                    // Build 104: luce/ombra condivise da top bar e Telemetria.
+                    // L'orientamento è UNICO per Day e Night; i colori restano
+                    // indipendenti e le velature verticali sono opzionali.
                     if selectedGroup == 4 {
                         VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack {
+                                    Label("Orientamento globale · luce → ombra",
+                                          systemImage: "arrow.up.left.and.arrow.down.right")
+                                        .font(.subheadline.weight(.semibold))
+                                    Spacer()
+                                    Text("\(Int(draft.gradientAngle.rounded()))°")
+                                        .font(.caption.monospacedDigit())
+                                        .foregroundStyle(.secondary)
+                                }
+                                Slider(value: $draft.gradientAngle, in: 0...360, step: 5)
+                                    .tint(Color(themeHex: roleHex(15)))
+                                    .accessibilityLabel("Ruota la sfumatura globale di top bar e telemetria")
+                                HStack {
+                                    Text("0° →")
+                                    Spacer()
+                                    Text("90° ↓")
+                                    Spacer()
+                                    Text("180° ←")
+                                    Spacer()
+                                    Text("270° ↑")
+                                }
+                                .font(.caption2.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                                let direction = EcoGradientDirection.points(angle: draft.gradientAngle)
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(LinearGradient(
+                                        colors: [Color(themeHex: roleHex(15)),
+                                                 Color(themeHex: roleHex(16))],
+                                        startPoint: direction.start, endPoint: direction.end))
+                                    .frame(height: 38)
+                                    .accessibilityLabel("Anteprima della direzione luce e ombra")
+                                Text("Un solo orientamento per top bar e tutte le card, in Giorno e Notte.")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                            Divider()
                             VStack(alignment: .leading, spacing: 7) {
                                 HStack {
                                     Label("Sfumatura alta · intensità", systemImage: "arrow.down.to.line")
@@ -888,7 +949,7 @@ private struct EcoThemeEditorView: View {
                                 Slider(value: bottomFadeBinding, in: 0...1, step: 0.05)
                                     .tint(Color(themeHex: roleHex(20)))
                             }
-                            Text("Entrambe le sfumature restano solo nel layer esterno, fuori da tachimetro e ponte.")
+                            Text("Le velature alte e basse sono aggiuntive alla sfumatura globale e restano fuori da tachimetro e ponte.")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -927,6 +988,8 @@ private struct EcoThemeEditorView: View {
                               !draft.glowIntensity.isFinite ||
                               !draft.topFadeIntensity.isFinite ||
                               !draft.bottomFadeIntensity.isFinite ||
+                              !draft.gradientAngle.isFinite ||
+                              !(0...360).contains(draft.gradientAngle) ||
                               !draft.dayTopBar.isValid ||
                               !draft.colors.allSatisfy({ EcoThemePalette.validHex($0) }))
                 }
@@ -990,7 +1053,7 @@ private struct EcoThemeEditorView: View {
         case 1: "speedometer"
         case 2: "chart.bar.fill"
         case 3: "arrow.triangle.turn.up.right.diamond"
-        case 4: "square.stack.3d.up"
+        case 4: "sun.horizon"
         default: "paintpalette"
         }
     }
