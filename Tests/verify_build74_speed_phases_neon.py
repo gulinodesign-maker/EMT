@@ -15,7 +15,7 @@ assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
 # Four independently selectable swatches, with the old 10/14/17 preserved.
 assert "static let colorCount = 22" in tabs
-assert '("Velocità oltre soglia", [14, 10, 18, 17])' in tabs
+assert 'colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])' in tabs
 for name in ("Velocità GPS · fase normale", "Velocità GPS · fase decelerazione",
              "Velocità GPS · fase accelerazione", "Velocità GPS · limite superato"):
     assert f'"{name}"' in tabs

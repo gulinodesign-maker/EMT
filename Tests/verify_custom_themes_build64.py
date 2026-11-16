@@ -32,7 +32,7 @@ for group in ("Aspetto generale", "Barre telemetria e potenza",
 assert "ForEach(group.range, id:" in tabs
 assert "EcoThemePalette.labels[index]" in tabs
 assert "EcoThemePalette.details[index]" in tabs
-assert "minimumDuration: 0.45" in tabs
+assert "minimumDuration: 0.45" not in tabs
 assert ".sheet(item: $colorID)" in tabs
 assert "onConfirm(selectedHex)" in tabs
 assert 'Button("Annulla", role: .cancel)' in tabs

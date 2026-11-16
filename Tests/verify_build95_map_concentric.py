@@ -17,7 +17,7 @@ assert "static let mapToDialClearance: CGFloat = 2" in dial
 assert "static func concentricRingRadius(for d: CGFloat)" in dial
 assert "static func concentricRingStroke(for d: CGFloat)" in dial
 assert "static func mapExclusionRadius(for d: CGFloat)" in dial
-assert "secondRingRadius(for: d) + secondRingStroke(for: d) / 2" in dial
+assert "concentricRingRadius(for: d) + concentricRingStroke(for: d) / 2" in dial
 assert "+ mapToDialClearance" in dial
 assert "outerProfileDiameterFactor: CGFloat = 0.986 * 0.90" in dial
 

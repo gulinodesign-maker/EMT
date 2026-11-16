@@ -83,6 +83,6 @@ for forbidden in ("Circle()", "swatch(", "ForEach(0..<EcoThemePalette.colorCount
 assert "EcoThemePreview(palette: palette, active: active)" in t
 assert "EcoThemePreview(palette: draft)" in t
 assert "draft.colors[selected.id] = hex" in t
-assert "minimumDuration: 0.45" in t
+assert "minimumDuration: 0.45" not in t
 assert "static let colorCount = 22" in t
 print("OK — build 93: diagonal exterior layer, -10% ring, larger GPS scale, complete live draft cockpit miniature")

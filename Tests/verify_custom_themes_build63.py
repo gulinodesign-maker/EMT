@@ -25,7 +25,7 @@ assert "private struct EcoThemeEditorView: View" in tabs
 assert "private struct EcoThemeColorPicker: View" in tabs
 assert "EcoThemePreview(palette: draft)" in tabs
 assert "EcoCockpitThemeMiniature(palette: palette)" in tabs
-assert "minimumDuration: 0.45" in tabs
+assert "minimumDuration: 0.45" not in tabs
 assert ".sheet(item: $colorID)" in tabs
 assert ".sheet(item: $editor)" in tabs
 assert "onConfirm(selectedHex)" in tabs
