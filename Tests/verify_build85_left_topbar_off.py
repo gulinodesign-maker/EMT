@@ -7,7 +7,7 @@ project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
 # The old fingerprint was specific to the 85 source; later builds extend it.
-assert project.count("CURRENT_PROJECT_VERSION = 86;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 87;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 85" in state and "Build 84" in state and "Build 83" in state
@@ -24,10 +24,10 @@ assert "let left = CockpitContourGeometry.roundedPath" not in top
 assert "metalLine.stroke(GPSMetalContourStyle.gradient(for: colorScheme)" in top
 # Only the right-side shape feeds all four orange/white LED strokes.
 assert "let line = Path { path in" not in top
-assert top.count("line.stroke(") == 4
-assert "line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))" in top
-assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in top
-assert "GPSGaugeHalo(theme: theme)" in code
+assert top.count("line.stroke(") == 0  # Nessuna traccia LED sul profilo
+assert "line.stroke(theme.accent" not in top
+assert ".mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))" in top
+assert "GPSGaugeHalo(theme: theme)" not in code
 assert "GPSLowerGlow(theme: theme)" in code
 assert "GPSHorizonSymmetry.temperatureFrame(width: w, height: h)" in code
 assert "private struct GPSBridgeUpperMask: Shape {" in code

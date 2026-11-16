@@ -7,11 +7,11 @@ source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 86;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 87;") == 2
 metal = source.split("private enum GPSMetalContourStyle {", 1)[1].split(
     "private struct GPSMetalInnerRing: View {", 1)[0]
 ring = source.split("private struct GPSMetalInnerRing: View {", 1)[1].split(
-    "private struct GPSGaugeHalo: View {", 1)[0]
+    "// Build 87: corona LED tachimetro GPS rimossa", 1)[0]
 top = source.split("private struct GPSHorizonLine: View {", 1)[1].split(
     "@MainActor", 1)[0]
 speed = source.split("Text(String(Int(speed.rounded())))", 1)[1].split(
@@ -26,8 +26,8 @@ assert ".frame(width: d * 0.965, height: d * 0.965)" in ring
 assert "dialSize * (0.992 - 0.965) / 2" in metal
 assert "CGAffineTransform(" in top and "GPSMetalContourStyle.inset(for: dialSize)" in top
 assert "metalLine.stroke(" in top and "visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true))" in top
-assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in top
-assert top.count("line.stroke(theme.accent, lineWidth: GPSContourStroke.width(height: h))") == 1
+assert ".mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))" in top
+assert "line.stroke(theme.accent" not in top
 assert "GPSOuterProfileReinforcement" not in source
 
 # The only added speed contrast is a downward shadow in light mode.

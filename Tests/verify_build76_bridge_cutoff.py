@@ -7,7 +7,7 @@ src = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 version = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert version.count("CURRENT_PROJECT_VERSION = 86;") == 2
+assert version.count("CURRENT_PROJECT_VERSION = 87;") == 2
 dashboard = src.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "// Pulsante dedicato", 1)[0]
 mask = src.split("private struct GPSBridgeUpperMask: Shape {", 1)[1].split(
@@ -23,9 +23,10 @@ speed = src.split("private struct OpenSpeedCluster: View {", 1)[1].split(
 a = dashboard.index("ZStack {\n                    OpenSpeedCluster(")
 b = dashboard.index(".mask(GPSBridgeUpperMask())", a)
 section = dashboard[a:b]
-for element in ("OpenSpeedCluster(", "GPSMetalInnerRing()", "GPSGaugeHalo(theme: theme)"):
+for element in ("OpenSpeedCluster(", "GPSMetalInnerRing()"):
     assert element in section
 assert "showsPowerReadings: false" in section
+assert "GPSGaugeHalo(theme: theme)" not in section
 assert ".frame(width: w, height: h)" in section
 assert dashboard.index("GPSLowerGlow(theme: theme)") > b
 assert dashboard.index("GPSCockpitPowerReading(d: dialSize") > dashboard.index("GPSLowerGlow(theme: theme)")

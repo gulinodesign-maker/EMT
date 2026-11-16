@@ -9,7 +9,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert pbx.count("CURRENT_PROJECT_VERSION = 86;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 87;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -75,7 +75,7 @@ for current, expected in ((50, "normal"), (55, "normal"), (55.001, "accelerating
     phase = "accelerating" if delta > 5 else ("decelerating" if delta < -5 else "normal")
     assert phase == expected
 
-# The neon styling is literally shared with SpeedLEDStream, not the JK power rings.
+# The actual speed LED remains active; decorative GPS outlines are removed.
 neon = cockpit.split("private enum GPSInnerLED {", 1)[1].split(
     "private enum GPSDialLayout {", 1)[0]
 for suffix in ("size * 0.034", "size * 0.027", "size * 0.015",
@@ -83,18 +83,16 @@ for suffix in ("size * 0.034", "size * 0.027", "size * 0.015",
     assert suffix in neon
 for key in ("haloWidth", "haloBlur", "coreWidth", "outerBlur", "highlightWidth"):
     assert "GPSInnerLED." + key + "(d)" in speed, key
-for shape, end, dim in (("GPSHorizonLine", "@MainActor", "h"),
-                        ("GPSGaugeHalo", "// EJ 1.23", "d"),
-                        ("GPSLowerGlow", "// EJ 1.22", "h")):
-    section = cockpit.split("private struct " + shape + ": View {", 1)[1].split(end, 1)[0]
-    for key in ("haloWidth", "haloBlur", "coreWidth", "outerBlur", "highlightWidth"):
-        assert "GPSInnerLED." + key + "(" + dim + ")" in section, (shape, key)
-    assert "Color.white.opacity(0.65)" in section
-    assert "GPSInnerLED.outerOpacity(theme.glowIntensity)" in section
+assert "GPSGaugeHalo(theme: theme)" not in cockpit
+top = cockpit.split("private struct GPSHorizonLine: View {",1)[1].split("@MainActor",1)[0]
+lower = cockpit.split("private struct GPSLowerGlow: View {",1)[1].split("// EJ 1.22",1)[0]
+assert "theme.accent" not in top and "theme.accent" not in lower
+assert "GPSMetalContourStyle.gradient(for: colorScheme)" in top
+assert "GPSMetalContourStyle.gradient(for: colorScheme)" in lower
 assert "GPSOuterProfileReinforcement" not in cockpit
 assert "GPSTopBandShade" not in cockpit
 assert "GPSLowerAreaGradient" not in cockpit
-assert ".mask(visibleOutsideRing.fill(style: FillStyle(eoFill: true)))" in cockpit
+assert ".mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))" in cockpit
 assert ".mask(GPSLowerTerminalFade())" in cockpit
 assert "GPSMetalInnerRing()" in cockpit
 assert "Build 74" in state

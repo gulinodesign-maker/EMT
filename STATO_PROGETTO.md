@@ -1,5 +1,14 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 87 — contorni GPS grigi e barra potenza orizzontale (16 novembre 2026)
+
+**Richiesta utente:** eliminare il LED luminoso sul lato destro della top bar, sul cerchio esterno del tachimetro e sul ponte kW, lasciando solo i contorni metallici grigi. Eliminare nel cockpit GPS le due scale graduate circolari di potenza e sostituirle con un'unica barra orizzontale **30% azzurra a sinistra e 70% rossa a destra**, sotto l'unico valore kW. Proseguire con la pubblicazione dopo CI verde secondo la direttiva permanente.
+
+**Implementazione:** nel solo GPS `GPSHorizonLine` conserva il tracciato metallico destro; `GPSMetalInnerRing` resta, ma la corona `GPSGaugeHalo` non è più renderizzata; `GPSLowerGlow` traccia il ponte solo con `GPSMetalContourStyle`. `OpenSpeedCluster` imposta `showsCircularPowerGauges: false` soltanto nel GPS, mantenendo in Home le corone originali. La nuova `GPSPowerHorizontalGauge` disegna **9 tacche azzurre su 30** e **21 rosse su 30** sotto il kW, attivando progressivamente soltanto le tacche corrispondenti a dati reali JK BMS, con scala grafica preesistente 13 kW. Il kW unico della 86, la scala km/h, il LED dinamico di velocità, ponte stretto, GPS, JK, mappa, temi e tasti restano invariati. Versione Xcode 1.0 (87), bundle ID invariato.
+
+**Stato:** codice in sviluppo su `build-87-gray-contours-horizontal-power`; CI, merge, archivio e upload Apple da verificare. Non confondere un eventuale upload con la disponibilità al gruppo tester `TE`.
+
+
 ## Build 86 — kW unico e ponte GPS accorciato del 40% (16 novembre 2026)
 
 **Richiesta utente:** nel cockpit GPS, sotto il tachimetro, sostituire la doppia lettura kW con un solo testo centrato nel ponte. Il valore deve essere **rosso** con potenza positiva (erogazione) e **azzurro** con potenza negativa (rigenerazione). Ridurre di **almeno il 40%** il segmento orizzontale superiore del ponte. Pubblicare la nuova versione su TestFlight.
