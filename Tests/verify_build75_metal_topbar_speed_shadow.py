@@ -22,7 +22,7 @@ assert "GPSMetalContourStyle.gradient(for: colorScheme)" in ring
 assert "GPSMetalContourStyle.gradient(for: colorScheme)" in top
 assert "GPSMetalContourStyle.strokeWidth(for: d)" in ring
 assert "GPSMetalContourStyle.strokeWidth(for: dialSize)" in top
-assert ".frame(width: d * 0.965, height: d * 0.965)" in ring
+assert ".frame(width: d * GPSDialLayout.metalRingDiameterFactor," in ring
 assert "dialSize * (0.992 - 0.965) / 2" in metal
 assert "CGAffineTransform(" in top and "GPSMetalContourStyle.inset(for: dialSize)" in top
 assert "metalLine.stroke(" in top and "visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true))" in top
@@ -39,7 +39,8 @@ assert "y: d * 0.007" in speed and "y: d * 0.012" in speed
 assert speed.index(".shadow(") < speed.index(".frame(")
 assert "Build 75" in state
 
-# The offset is the same radial inset as the concentric GPS metal ring.
+# The historic right top-bar offset is preserved; the GPS metal ring
+# is independently reduced by 10% in build 93.
 for width, height in ((736, 414), (844, 390), (932, 430), (1179, 510), (1536, 706)):
     d = min(height * 0.965, width * 0.55)
     gap = d * (0.992 - 0.965) / 2

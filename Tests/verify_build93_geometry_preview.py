@@ -61,7 +61,7 @@ for component in (
     "GPSBridgeExteriorMask()", "SpeedScaleTicks(d: d)",
     "GPSMetalInnerRing()", "GPSLowerGlow(theme: .copper)",
     'Text("ODO — km")', 'Text("km/h")', 'Text("— kW")',
-    'Text("SOC")', 'Text("V BAT")', 'Text("AUT")', 'Text("TRIP")',
+    'miniatureTile("SOC"', 'miniatureTile("V BAT"', 'miniatureTile("AUT"', 'miniatureTile("TRIP"',
     'Text("DISL")', '"Mappa"', '"Viaggi"', '"Setup"', '"Temi"', '"Tema"',
 ):
     assert component in preview, component
