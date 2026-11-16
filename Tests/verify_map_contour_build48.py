@@ -45,7 +45,7 @@ for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),
     top_y = min(h * 0.790, h * 0.494 + d * (0.889 - 0.50 - 0.065)
                 - max(12, h * 0.014))
     foot_y = h * 0.937
-    top_half = d * 0.325
+    top_half = d * 0.195
     control_height = max(51, min(83, h * 0.105))
     side = min(control_height * 0.96, w * 0.059, w * 0.052)
     button_start = w - max(12, w * 0.018) - 8 * side - 7 * w * 0.008
