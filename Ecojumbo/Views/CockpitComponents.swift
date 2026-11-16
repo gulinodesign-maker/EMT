@@ -1992,11 +1992,10 @@ struct GPSCockpitDashboard: View {
                     .zIndex(29)
 
                 // Barra orizzontale sotto il kW; non oltrepassa il ponte.
-                GPSPowerHorizontalGauge(
-                    d: dialSize,
-                    powerWatts: live.map { -$0.power },
-                    bridgeMaxWidth: GPSLowerLineGeometry.powerBarMaxWidth(
-                        in: CGSize(width: w, height: h)))
+                GPSPowerHorizontalGauge(d: dialSize,
+                                        powerWatts: live.map { -$0.power },
+                                        bridgeMaxWidth: GPSLowerLineGeometry.powerBarMaxWidth(
+                                            in: CGSize(width: w, height: h)))
                     .position(x: dialCenterX, y: h * 0.963)
                     .zIndex(30)
 
