@@ -9,12 +9,12 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert pbx.count("CURRENT_PROJECT_VERSION = 99;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 100;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
 # Four independently selectable swatches, with the old 10/14/17 preserved.
-assert "static let colorCount = 22" in tabs
+assert "static let colorCount = 23" in tabs
 assert '("Velocità oltre soglia", [14, 10, 18, 17])' in tabs
 for name in ("Velocità GPS · fase normale", "Velocità GPS · fase decelerazione",
              "Velocità GPS · fase accelerazione", "Velocità GPS · limite superato"):
@@ -28,8 +28,8 @@ assert "colorID = EcoThemeColorID(id: index)" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 22
-assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 23
 
 # Lossless migration of existing slots: 8, 15, 17, 18 -> 19.
 assert "(decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
