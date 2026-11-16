@@ -78,14 +78,22 @@ enum EcoCockpitDockGeometry {
         return min(idealSide, max(20, available / 7))
     }
 
-    // Build 68: la tangente destra al profilo reale del tachimetro
-    // (stesso raggio 0.508 usato dal ritaglio della mappa) definisce il
-    // limite sinistro. Inset simmetrico destra/sinistra: il CENTRO delle
-    // schede e dei cinque tasti coincide con quello dello spazio libero.
-    static func standardLeft(width: CGFloat, height: CGFloat) -> CGFloat {
+    // Build 103: il vecchio fattore 0.508 misurava il cerchio GPS
+    // PRIMA del ridimensionamento del 10% (build 94), spostando le card
+    // troppo a destra. La tangente usa ora la circonferenza LUMINOSA
+    // visibile realmente, centro e bordo esatti, inclusa metà stroke.
+    // Con un margine uguale a sinistra e a destra, il centro del pannello
+    // è (tangente + bordo fisico destro dello schermo) / 2.
+    static func visibleDialRightTangent(width: CGFloat, height: CGFloat) -> CGFloat {
         let dial = min(height * 0.965, width * 0.55)
         let dialX = max(dial * 0.51 + width * 0.010, width * 0.168 + dial * 0.30)
-        return dialX + dial * 0.508 + rightInset(width: width)
+        let radius = dial * (0.986 * 0.90) / 2 + 1.5
+        let neonStroke = max(2.4, min(4.2, dial * 0.0051))
+        return dialX + radius + neonStroke / 2
+    }
+
+    static func standardLeft(width: CGFloat, height: CGFloat) -> CGFloat {
+        visibleDialRightTangent(width: width, height: height) + rightInset(width: width)
     }
 }
 
