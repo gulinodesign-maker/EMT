@@ -56,7 +56,7 @@ assert 'migrated.colors.append("#FF3B30")' in tabs
 assert "decodeIfPresent(Double.self, forKey: .glowIntensity)" in tabs
 assert "try data.encode(glowIntensity, forKey: .glowIntensity)" in tabs
 assert "Slider(value: $draft.glowIntensity, in: 0...1, step: 0.05)" in tabs
-assert '("Velocità oltre soglia", [14, 10, 18, 17])' in tabs
+assert 'colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])' in tabs
 assert '"Velocità GPS · limite superato"' in tabs
 assert '"Velocità GPS · fase accelerazione"' in tabs
 assert "EcoThemePalette.active?.colors[17]" in cockpit
