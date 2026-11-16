@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43898945313:ATTEMPT:1 -->
+### 2026-11-16T15:40:41Z — CI #294 · build-97-cockpit-music · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43898945313](https://github.com/gulinodesign-maker/EMT/actions/runs/43898945313); avvio 2026-11-16T15:40:41Z UTC; aggiornamento finale 2026-11-16T15:41:15Z UTC; registrazione 2026-11-16T15:41:27+00:00 UTC; evento pull_request.
+- **Commit:** [942a1566a778](https://github.com/gulinodesign-maker/EMT/commit/942a1566a7784695fe63ea435b2ecbf13ac94b1c); versione **1.0**; build **97**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** STATO_PROGETTO.md.
+
 <!-- EMT_RUN:43894439872:ATTEMPT:1 -->
 ### 2026-11-16T15:15:47Z — CI #293 · main · tentativo 1
 
