@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43851420309:ATTEMPT:1 -->
+### 2026-11-16T10:43:40Z — CI #271 · build-90-exclude-layer-from-dial-bridge · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43851420309](https://github.com/gulinodesign-maker/EMT/actions/runs/43851420309); avvio 2026-11-16T10:43:40Z UTC; aggiornamento finale 2026-11-16T10:45:53Z UTC; registrazione 2026-11-16T10:46:05+00:00 UTC; evento pull_request.
+- **Commit:** [46fcf8341fb2](https://github.com/gulinodesign-maker/EMT/commit/46fcf8341fb27bcf549eaf4caacdad5c9750fb48); versione **1.0**; build **90**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:43848354579:ATTEMPT:1 -->
 ### 2026-11-16T10:23:12Z — CI #270 · main · tentativo 1
 
