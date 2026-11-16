@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 // Pannello musicale nel medesimo rettangolo della Telemetria;
 // non copre il tachimetro, la top bar, la lettura kW o il dock.
