@@ -190,6 +190,8 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
 
     // Il bagliore è proprietà del tema salvato, non una preferenza globale.
     var glowIntensity: Double { savedPalette?.glowIntensity ?? 0.60 }
+    // Un solo angolo per la luce/ombra di top bar e Telemetria.
+    var gradientAngle: Double { savedPalette?.gradientAngle ?? 0 }
 
     // Build 101: configurazione Day indipendente dai 5 ruoli Night.
     // Per i kit predefiniti (senza slot) ricava una tavolozza diurna chiara.
@@ -242,7 +244,10 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
         Color(themeHex: EcoThemePalette.active?.colors[6] ?? "#FC3352")
     }
     static var regenAccent: Color {
-        Color(themeHex: EcoThemePalette.active?.colors[7] ?? "#2BBAFF")
+        // Build 104: la cifra kW in rigenerazione usa lo stesso colore
+        // dei segmenti energia in entrata; ruolo storico 7 conservato
+        // solo per migrazione dei temi, non più selezionabile.
+        Color(themeHex: EcoThemePalette.active?.colors[9] ?? "#2BBAFF")
     }
     // Le corone sono indipendenti dai testi e dai numeri.
     static var dischargeAccent: Color {
@@ -2238,6 +2243,7 @@ private struct GPSUpperGradientLayer: View {
             let day = theme.dayTopBar
             let from = daylight ? Color(themeHex: day.left) : theme.topBarGradientStart
             let to = daylight ? Color(themeHex: day.right) : theme.topBarGradientEnd
+            let direction = EcoGradientDirection.points(angle: theme.gradientAngle)
             let high = daylight ? Color(themeHex: day.high) : theme.topBarHighFade
             let low = daylight ? Color(themeHex: day.low) : theme.topBarLowFade
             let underGlow = daylight ? Color(themeHex: day.underGlow) : theme.topBarUnderGlow
@@ -2254,7 +2260,7 @@ private struct GPSUpperGradientLayer: View {
                 GPSUpperLayerFootprint()
                     .fill(LinearGradient(
                         colors: [from, to],
-                        startPoint: .leading, endPoint: .trailing),
+                        startPoint: direction.start, endPoint: direction.end),
                         style: FillStyle(eoFill: true))
                     .opacity(daylight ? 0.72 : 0.84)
 
@@ -2365,7 +2371,7 @@ struct EcoCockpitThemeMiniature: View {
                     .frame(width: w, height: h)
                 Text("— kW")
                     .font(.system(size: d * 0.066, weight: .bold))
-                    .foregroundStyle(tone(7))
+                    .foregroundStyle(tone(9))
                     .position(x: cx, y: h * 0.875)
                 miniaturePowerBar(d: d,
                                  bridgeMaxWidth: GPSLowerLineGeometry.powerBarMaxWidth(
@@ -2401,6 +2407,7 @@ struct EcoCockpitThemeMiniature: View {
         let day = palette.dayTopBar
         let from = daylight ? Color(themeHex: day.left) : tone(15)
         let to = daylight ? Color(themeHex: day.right) : tone(16)
+        let direction = EcoGradientDirection.points(angle: palette.gradientAngle)
         let high = daylight ? Color(themeHex: day.high) : tone(19)
         let low = daylight ? Color(themeHex: day.low) : tone(20)
         let underGlow = daylight ? Color(themeHex: day.underGlow) : tone(2)
@@ -2410,7 +2417,7 @@ struct EcoCockpitThemeMiniature: View {
             GPSUpperLayerFootprint()
                 .fill(LinearGradient(
                     colors: [from, to],
-                    startPoint: .leading, endPoint: .trailing),
+                    startPoint: direction.start, endPoint: direction.end),
                     style: FillStyle(eoFill: true))
                 .opacity(daylight ? 0.72 : 0.84)
             GPSUpperLayerFootprint()
@@ -2508,6 +2515,7 @@ struct EcoCockpitThemeMiniature: View {
             let daytime = colorScheme == .light
             let from = daytime ? Color(themeHex: palette.dayTopBar.left) : tone(15)
             let to = daytime ? Color(themeHex: palette.dayTopBar.right) : tone(16)
+            let direction = EcoGradientDirection.points(angle: palette.gradientAngle)
             RoundedRectangle(cornerRadius: 5)
                 .fill(.white.opacity(0.055))
                 .overlay {
@@ -2515,7 +2523,7 @@ struct EcoCockpitThemeMiniature: View {
                         .fill(LinearGradient(
                             colors: [from.opacity(daytime ? 0.38 : 0.32),
                                      to.opacity(daytime ? 0.38 : 0.32)],
-                            startPoint: .leading, endPoint: .trailing))
+                            startPoint: direction.start, endPoint: direction.end))
                 }
         }
     }
@@ -3397,9 +3405,10 @@ private struct GPSExpandedReadings: View {
         let day = colorScheme == .light
         let from = day ? Color(themeHex: theme.dayTopBar.left) : theme.topBarGradientStart
         let to = day ? Color(themeHex: theme.dayTopBar.right) : theme.topBarGradientEnd
+        let direction = EcoGradientDirection.points(angle: theme.gradientAngle)
         return LinearGradient(colors: [from.opacity(day ? 0.38 : 0.32),
                                        to.opacity(day ? 0.38 : 0.32)],
-                              startPoint: .leading, endPoint: .trailing)
+                              startPoint: direction.start, endPoint: direction.end)
     }
 
     private var telemetryCardBackground: some View {
