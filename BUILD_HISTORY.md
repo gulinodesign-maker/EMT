@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43961729864:ATTEMPT:1 -->
+### 2026-11-16T21:36:06Z — CI #335 · build-103-telemetry-visual-layout · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43961729864](https://github.com/gulinodesign-maker/EMT/actions/runs/43961729864); avvio 2026-11-16T21:36:06Z UTC; aggiornamento finale 2026-11-16T21:36:50Z UTC; registrazione 2026-11-16T21:37:02+00:00 UTC; evento pull_request.
+- **Commit:** [662339c33204](https://github.com/gulinodesign-maker/EMT/commit/662339c3320486a266e4b6db4dc4b5a950384a21); versione **1.0**; build **103**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build74_speed_phases_neon.py, Tests/verify_build85_left_topbar_off.py, Tests/verify_build94_preview_dial_geometry.py, Tests/verify_telemetry_dock_build62.py.
+
 <!-- EMT_RUN:43961402211:ATTEMPT:1 -->
 ### 2026-11-16T21:34:11Z — CI #334 · build-103-telemetry-visual-layout · tentativo 1
 
