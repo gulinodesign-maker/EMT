@@ -6,7 +6,7 @@
 
 **Implementazione:** `GPSUpperLayerFootprint` usa i raccordi `GPSHorizonSymmetry`, esclude l'anello tachimetro con fill even-odd e `GPSUpperGradientLayer` viene ritagliato dal `GPSBridgeUpperMask`. Superficie sfumata orizzontale offset -3, luce morbida sottostante offset +3. Nell'editor `Layer top bar` sono attivi i ruoli colore 15/16 già persistenti e il colore 2 per la luce sfumata. Preservati i contorni grigi, la barra kW 30/70, GPS, BMS, mappa e Home. Progetto Xcode 1.0 (88), bundle invariato.
 
-**Stato:** codice su `build-88-topbar-layer-gradient-glow`; test, merge e upload da verificare. L'upload non prova l'assegnazione ai tester TE.
+**Verificato (16 novembre 2026):** [PR #76](https://github.com/gulinodesign-maker/EMT/pull/76) integrata su `main` con commit `38ccecf05df824d037e29b7c4297115fbfa6ceff`. [CI PR 43845274220](https://github.com/gulinodesign-maker/EMT/actions/runs/43845274220) **SUCCESS** (test Python, JK Bluetooth, barre, compilazione simulatore). [CI `main` 43845607976](https://github.com/gulinodesign-maker/EMT/actions/runs/43845607976) **SUCCESS**. [Workflow TestFlight 43845607876](https://github.com/gulinodesign-maker/EMT/actions/runs/43845607876) **SUCCESS**: `Numero build TestFlight: 88`, `ARCHIVE SUCCEEDED` alle 10:06:33 UTC, `Upload succeeded` ed `EXPORT SUCCEEDED` alle **10:08:35 UTC** (11:08:35 in Italia). Apple comunica `Uploaded package is processing`. **Non verificati:** fine elaborazione App Store Connect, assegnazione gruppo `TE`, installabilità iPhone e risultato visivo reale. **Nuova base: build 88.**
 
 
 
