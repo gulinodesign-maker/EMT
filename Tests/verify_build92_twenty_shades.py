@@ -53,7 +53,7 @@ assert "onConfirm(" not in picker.split('accessibilityLabel("Annulla modifica")'
 assert "static let colorCount = 22" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
 assert "initialHex: draft.colors[selected.id]" in tabs
-assert '("Layer top bar", [15, 16, 19, 20, 2, 21])' in tabs
+assert '("Layer top bar", [15, 16, 19, 20, 2])' in tabs
 assert "Slider(value: $draft.topFadeIntensity" in tabs
 assert "Slider(value: $draft.bottomFadeIntensity" in tabs
 assert "try data.encode(colors, forKey: .colors)" in tabs

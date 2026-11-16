@@ -57,7 +57,7 @@ assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
 assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
 assert '"Layer top bar · sfumatura alta"' in tabs
 assert '"Layer top bar · sfumatura bassa"' in tabs
-assert '("Layer top bar", [15, 16, 19, 20, 2, 21])' in tabs
+assert '("Layer top bar", [15, 16, 19, 20, 2])' in tabs
 assert "Slider(value: $draft.topFadeIntensity, in: 0...1, step: 0.05)" in tabs
 assert "Slider(value: $draft.bottomFadeIntensity, in: 0...1, step: 0.05)" in tabs
 assert "Color(themeHex: draft.colors[19])" in tabs
