@@ -1925,6 +1925,13 @@ struct GPSCockpitDashboard: View {
             .frame(width: w, height: h)
             .clipped()
         }
+        // GPS e itinerario continuano a progredire anche mentre MapKit
+        // non è renderizzato sotto la copertina musicale.
+        .onReceive(gps.$lastGPSCoordinate) { coordinate in
+            if musicEnabled, let coordinate {
+                navigation.updateProgress(at: coordinate)
+            }
+        }
         .accessibilityElement(children: .contain)
         .accessibilityLabel(musicEnabled
             ? "Cruscotto Ecojumbo con lettore musicale"
