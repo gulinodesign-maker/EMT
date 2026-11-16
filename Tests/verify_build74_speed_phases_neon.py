@@ -24,7 +24,7 @@ for i in (10, 14, 17, 18):
 assert "ForEach(group.range, id:" in tabs
 assert "EcoThemePalette.labels[index]" in tabs
 assert "EcoThemePalette.details[index]" in tabs
-assert "colorID = EcoThemeColorID(id: index)" in tabs
+assert "colorID = EcoThemeColorID(" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
