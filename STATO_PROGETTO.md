@@ -1,5 +1,13 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 86 — kW unico e ponte GPS accorciato del 40% (16 novembre 2026)
+
+**Richiesta utente:** nel cockpit GPS, sotto il tachimetro, sostituire la doppia lettura kW con un solo testo centrato nel ponte. Il valore deve essere **rosso** con potenza positiva (erogazione) e **azzurro** con potenza negativa (rigenerazione). Ridurre di **almeno il 40%** il segmento orizzontale superiore del ponte. Pubblicare la nuova versione su TestFlight.
+
+**Modifica prevista nella 1.0 (86):** il GPS usa `GPSCockpitPowerReading` con l'unico valore netto reale JK BMS (segno invertito rispetto a `snapshot.power` per presentare positivo=erogazione e negativo=rigenerazione). Colori `CockpitTheme.dischargeAccent` rosso, `CockpitTheme.regenAccent` azzurro, neutralità per zero/dato assente. Resta invariato `CockpitPowerReadings` della Home con i due valori storici. Nel `GPSLowerLineGeometry`, `topHalfWidth` passa da `0.325 * d` a `0.195 * d`: il tratto superiore passa da `0.65 * d` a `0.39 * d` (40% di riduzione), senza spostare il centro o alterare la quota del ponte; le curve e la maschera condividono la stessa geometria. Versione Xcode 1.0 (86), bundle ID invariato.
+
+**Stato iniziale:** ramo `build-86-single-kw-shorter-bridge`, controlli strutturali e geometria da verificare in CI prima del merge. **Non dichiarare ancora eseguito** upload ad Apple: servono conferma dei job e log `Upload succeeded`. Disponibilità gruppo TE e verifica su iPhone restano separatamente non confermate.
+
 ## Build 85 — elimina anche la guida grigia a sinistra del tachimetro (15 novembre 2026)
 
 **Richiesta:** sullo screenshot della build 84 l'utente indica la linea grigia residua a sinistra del tachimetro, già privata del neon arancione, e chiede di eliminarla e pubblicare su TestFlight. La versione nuova è **1.0 (85)**, basata esattamente sulla 84.

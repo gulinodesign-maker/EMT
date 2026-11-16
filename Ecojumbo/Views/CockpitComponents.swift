@@ -1308,8 +1308,8 @@ private struct OpenSpeedCluster: View {
 
 
 
-// Le letture kW restano identiche nella Home e nel cockpit GPS.
-// Nel GPS vengono sovrapposte DOPO il ritaglio geometrico del quadrante.
+// La Home mantiene le due letture storiche; il cockpit GPS usa un unico kW.
+// Entrambe le viste sono sovrapposte dopo il ritaglio del proprio quadrante.
 private struct CockpitPowerReadings: View {
     @Environment(\.colorScheme) private var colorScheme
     let d: CGFloat
@@ -1336,6 +1336,41 @@ private struct CockpitPowerReadings: View {
         .frame(width: d * 0.66, height: d * 0.13)
         .position(x: d * 0.50, y: d * 0.889)
         .frame(width: d, height: d)
+    }
+}
+
+// Nel cockpit GPS mostriamo una sola potenza netta, positiva in erogazione
+// e negativa in rigenerazione, senza alterare le due letture della Home.
+private struct GPSCockpitPowerReading: View {
+    @Environment(\.colorScheme) private var colorScheme
+    let d: CGFloat
+    let powerWatts: Double?
+
+    private var powerKW: Double? {
+        guard let powerWatts, powerWatts.isFinite else { return nil }
+        return powerWatts / 1_000.0
+    }
+
+    private var readingColor: Color {
+        guard let powerKW else {
+            return colorScheme == .light ? Color(white: 0.28) : .white.opacity(0.85)
+        }
+        if powerKW > 0 { return CockpitTheme.dischargeAccent }
+        if powerKW < 0 { return CockpitTheme.regenAccent }
+        return colorScheme == .light ? Color(white: 0.28) : .white.opacity(0.85)
+    }
+
+    var body: some View {
+        Text(powerKW.map { String(format: "%.2f kW", $0) } ?? "— kW")
+            .font(.system(size: d * 0.066, weight: .semibold))
+            .monospacedDigit()
+            .foregroundStyle(readingColor)
+            .lineLimit(1)
+            .minimumScaleFactor(0.45)
+            .frame(width: d * 0.66, height: d * 0.13)
+            .position(x: d * 0.50, y: d * 0.889)
+            .frame(width: d, height: d)
+            .accessibilityLabel("Potenza netta istantanea")
     }
 }
 
@@ -1467,7 +1502,7 @@ private struct GPSGaugeHalo: View {
 }
 
 
-// EJ 1.23 — linea A/kW specifica del cockpit GPS, larga quanto i due valori.
+// Build 86 — ponte GPS con tratto superiore ridotto del 40%, centrato sul kW unico.
 // Due raccordi con lo stesso raggio della top bar; terminali dritti, lontani
 // dal testo e dai pulsanti di navigazione. Mai sovrapporre il disco del tachimetro.
 // Stessa inclinazione fisica dei fianchi della Home standard
@@ -1483,7 +1518,7 @@ private enum GPSLowerLineGeometry {
         let textTop = h * 0.494 + d * (0.889 - 0.50 - 0.065)
         let topY = min(h * 0.790, textTop - max(12, h * 0.014))
         let footY = h * 0.937
-        let topHalfWidth = d * 0.325
+        let topHalfWidth = d * 0.195
         let leftTopX = center - topHalfWidth
         let controlsHeight = max(51, min(83, h * 0.105))
         let controlSide = min(controlsHeight * 0.96, w * 0.059, w * 0.052)
@@ -1748,11 +1783,10 @@ struct GPSCockpitDashboard: View {
                     .allowsHitTesting(false)
                     .zIndex(28)
 
-                // Valori kW slegati dalla maschera ma nella STESSA posizione,
-                // con font, scala, colori e contenuti precedenti.
-                CockpitPowerReadings(d: dialSize,
-                                     incomingPower: live.map { Swift.max(0, $0.power) },
-                                     outgoingPower: live.map { Swift.max(0, -$0.power) })
+                // Un solo kW sotto il ponte: la misura JK ha segno opposto alla
+                // convenzione visualizzata (positivo = erogazione, negativo = recupero).
+                GPSCockpitPowerReading(d: dialSize,
+                                       powerWatts: live.map { -$0.power })
                     .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(29)
 

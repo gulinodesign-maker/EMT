@@ -7,7 +7,7 @@ src = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 version = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert version.count("CURRENT_PROJECT_VERSION = 85;") == 2
+assert version.count("CURRENT_PROJECT_VERSION = 86;") == 2
 dashboard = src.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "// Pulsante dedicato", 1)[0]
 mask = src.split("private struct GPSBridgeUpperMask: Shape {", 1)[1].split(
@@ -28,7 +28,7 @@ for element in ("OpenSpeedCluster(", "GPSMetalInnerRing()", "GPSGaugeHalo(theme:
 assert "showsPowerReadings: false" in section
 assert ".frame(width: w, height: h)" in section
 assert dashboard.index("GPSLowerGlow(theme: theme)") > b
-assert dashboard.index("CockpitPowerReadings(d: dialSize") > dashboard.index("GPSLowerGlow(theme: theme)")
+assert dashboard.index("GPSCockpitPowerReading(d: dialSize") > dashboard.index("GPSLowerGlow(theme: theme)")
 
 # The same geometric curve draws the bridge and defines the cutoff; after the
 # two feet it is horizontal to the screen edges, leaving no protruding arcs.

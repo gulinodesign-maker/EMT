@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 85;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 86;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -120,7 +120,7 @@ assert 'location: 0.17' in c and 'location: 0.83' in c
 assert 'GPSLowerShade()' in c
 assert 'GPSLowerContour()' in c
 assert 'textTop - max(12, h * 0.014)' in c
-assert 'let topHalfWidth = d * 0.325' in c
+assert 'let topHalfWidth = d * 0.195' in c
 assert 'let footY = h * 0.937' in c
 assert 'MapCamera(centerCoordinate: center' in c
 assert '.mapStyle(.standard(elevation: mapControls.is3D ? .realistic : .flat))' in c
@@ -284,8 +284,9 @@ assert 'Link("Meteo · Open-Meteo"' not in c
 assert 'Temperatura meteo esterna stimata' not in c
 assert 'Licenza dati (CC BY 4.0)' in o
 assert 'coordinate geografiche approssimate' in info['NSLocationWhenInUseUsageDescription']
-assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 3  # kW duplicate outside GPS mask
-assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 3  # kW duplicate outside GPS mask
+assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 2  # Home unchanged
+assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2  # Home unchanged
+assert 'GPSCockpitPowerReading(d: dialSize,' in c and 'powerWatts: live.map { -$0.power }' in c
 assert 'Text(incomingPower.map { String(format: "%.2f kW"' in c
 assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in c
 assert 'private var ledOrange: Color {' in c and 'CockpitTheme.speedLEDAccent' in c
