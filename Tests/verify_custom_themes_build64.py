@@ -87,6 +87,6 @@ assert "let railCenterY = (railTopBound + railBottomBound) / 2" in cockpit
 assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)" in cockpit
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
-assert "let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)" in home
+assert "let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)" in home
 assert "UIDevice.current.orientation == .portrait" in home
 print("OK — build 64: 15 named colors, 8→15 migration, Setup accent and GPS layout intact")

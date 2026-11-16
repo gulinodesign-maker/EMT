@@ -37,8 +37,8 @@ assert "EcojumboOrientationPolicy.update(for: newTab)" in home
 assert "if selected != .gps && w < h {" in home
 assert "} else if selected == .gps && w < h {" in home
 assert "landscapeDashboardGuard(width: w, height: h)" in home
-assert 'GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)' in home
-assert home.count("GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)") == 1
+assert 'GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled,' in home
+assert home.count("GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled,") == 1
 assert "PortraitCockpitDashboard" not in home
 assert "PortraitServiceTabBar(selected: $selected, theme: theme)" in home
 assert "ForEach([EcoTab.gps, .trips, .settings, .themes])" in home
