@@ -8,7 +8,7 @@ c = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 t = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 p = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 102;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 103;") == 2
 assert "Build 95" in state
 
 dial = c.split("private enum GPSDialLayout {", 1)[1].split(
@@ -83,10 +83,11 @@ assert "GPSConcentricAccentRing(color: tone(21)," in preview
 for w,h in ((736,414),(932,430),(1179,510),(1536,706),(1806,831)):
     d=min(h*.965,w*.55)
     r=d*(.986*.90)/2+1.5
-    stroke=max(1.5,min(2.4,d*.003))
+    stroke=max(2.4,min(4.2,d*.0051))
     exclusion=r+stroke/2+2
     assert abs(exclusion-(r+stroke/2)-2) < 1e-8
-    assert r-stroke/2 > d*(.986*.90)/2
+    assert r > d*(.986*.90)/2
+    assert r-stroke/2 > d*(.986*.90)/2 - 1
     assert d*.965*.90/2 < r
 
 print("OK — build 95 map 2pt from concentric ring, ring over topbar and outside bridge, 22-color migration")

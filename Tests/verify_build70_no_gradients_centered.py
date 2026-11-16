@@ -8,7 +8,7 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 102;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 103;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -37,7 +37,8 @@ assert "GPSContourStroke.width(height: h) * 3" not in cockpit
 # Same geometry functions for telemetry cards and five no-map controls.
 geometry = home.split("enum EcoCockpitDockGeometry {", 1)[1].split(
     "struct EcojumboRootView: View {", 1)[0]
-assert "return dialX + dial * 0.508 + rightInset(width: width)" in geometry
+assert "return dialX + radius + neonStroke / 2" in geometry
+assert "visibleDialRightTangent(width: width, height: height) + rightInset(width: width)" in geometry
 assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)" in cockpit
 assert "let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) - panelLeft)" in cockpit
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit
@@ -50,7 +51,7 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
              (1179, 510), (1536, 706), (1648, 928), (1806, 831)):
     d = min(h * 0.965, w * 0.55)
     cx = max(d * 0.51 + w * 0.010, w * 0.168 + d * 0.30)
-    tangent = cx + d * 0.508
+    tangent = cx + d * (.986 * .90) / 2 + 1.5 + max(2.4, min(4.2, d * .0051)) / 2
     margin = max(12, w * 0.018)
     left, right = tangent + margin, w - margin
     width = right - left
@@ -70,7 +71,7 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
     assert isclose((button_left + button_right) / 2, (left + right) / 2, abs_tol=1e-8)
     assert left <= button_left <= button_right <= right
     # The original dial remains outside the aligned telemetry panel.
-    assert cx + d * 0.508 < left
+    assert tangent < left
 
 assert "Build 70" in state
 assert "senza applicare le sfumature" in state

@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 102;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 103;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -81,7 +81,7 @@ assert 'func setOdometer(_ kilometers: Double)' in g and 'track: [RouteCoordinat
 for a in ('AppIcon.appiconset/AppIcon.png','EcojumboMark.imageset/EcojumboMark.png'):
     assert (r/'Ecojumbo/Assets.xcassets'/a).stat().st_size>10000
 assert (r/'Ecojumbo/Assets.xcassets/CarbonWeave.imageset/CarbonWeave.png').exists()
-assert 'Image("CarbonWeave")' in c and 'Image("EcojumboMark")' in c
+assert 'Image("CarbonWeave")' not in c and 'Image("EcojumboMark")' in c
 assert (r/'RiferimentoGrafico/Cockpit_1_09_utente.jpg').stat().st_size>100000
 
 # Sei schede indipendenti, con sei icone e soltanto tre barre reali.
