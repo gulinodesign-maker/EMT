@@ -14,7 +14,7 @@ assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 91" in state
 
 layer = source.split("private struct GPSUpperGradientLayer: View {", 1)[1].split(
-    "private struct GPSHorizonLine: View {", 1)[0]
+    "// Build 93 — anteprima", 1)[0]
 accessors = source.split("var topBarGradientStart: Color {", 1)[1].split(
     "// Le barre mantengono", 1)[0]
 dashboard = source.split("struct GPSCockpitDashboard: View {", 1)[1].split(
