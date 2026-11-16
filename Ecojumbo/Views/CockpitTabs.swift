@@ -307,7 +307,7 @@ struct EcoThemePalette: Codable, Equatable {
     static let labels = [
         "Sfondo del cockpit",
         "Colore principale · top bar e icone Setup",
-        "Ombra delle linee luminose",
+        "Luce sfumata sotto il layer della top bar",
         "Dettagli metallici del quadrante",
         "Barre telemetria · colore scuro",
         "Barre telemetria · colore intermedio",
@@ -320,15 +320,15 @@ struct EcoThemePalette: Codable, Equatable {
         "Navigatore · svolta a destra",
         "Navigatore · svolta a sinistra",
         "Velocità GPS · fase decelerazione",
-        "Top bar + ponte kW · sfumatura sinistra",
-        "Top bar + ponte kW · sfumatura destra",
+        "Layer top bar · sfumatura sinistra",
+        "Layer top bar · sfumatura destra",
         "Velocità GPS · limite superato",
         "Velocità GPS · fase accelerazione"
     ]
     static let details = [
         "Fondo scuro dietro gli strumenti.",
         "Stesso colore per linee della top bar, contorni e tutte le icone della griglia 3×4 in Impostazioni.",
-        "Luminosità secondaria e ombre colorate dei contorni.",
+        "Colore modificabile della luce diffusa che traspare sotto il layer GPS.",
         "Colore dei dettagli effetto acciaio.",
         "Prima tonalità delle barre di telemetria.",
         "Tonalità centrale delle barre di telemetria.",
@@ -341,8 +341,8 @@ struct EcoThemePalette: Codable, Equatable {
         "Freccia e distanza della prossima svolta verso destra.",
         "Freccia e distanza della prossima svolta verso sinistra.",
         "Colore dell’arco GPS quando la velocità cala di oltre 5 km/h nella finestra di osservazione; non indica il freno fisico.",
-        "Colore a sinistra del RIEMPIMENTO tra bordo alto e linea top bar e dell'area sotto il ponte kW; non cambia i contorni luminosi.",
-        "Colore a destra degli stessi RIEMPIMENTI; al centro la sfumatura usa il colore principale del tema.",
+        "Primo colore della superficie sfumata del nuovo layer superiore GPS.",
+        "Secondo colore della superficie sfumata del nuovo layer superiore GPS.",
         "Colore della barra LED quando la velocità GPS raggiunge il limite attivato in Barre luminose.",
         "Colore dell’arco GPS quando la velocità aumenta di oltre 5 km/h nella finestra di osservazione."
     ]
@@ -353,7 +353,8 @@ struct EcoThemePalette: Codable, Equatable {
         ("Barre telemetria e potenza", Array(4..<8)),
         ("Anelli e numeri del tachimetro", [8, 9, 11]),
         ("Navigatore", [12, 13]),
-        ("Velocità oltre soglia", [14, 10, 18, 17])
+        ("Velocità oltre soglia", [14, 10, 18, 17]),
+        ("Layer top bar", [15, 16, 2])
         // I ruoli 15/16 rimangono salvati e non vengono mostrati.
     ]
     static let colorCount = 19
@@ -877,6 +878,7 @@ private struct EcoThemeEditorView: View {
         case 1: "chart.bar.fill"
         case 2: "speedometer"
         case 3: "arrow.triangle.turn.up.right.diamond"
+        case 5: "square.stack.3d.up"
         default: "speedometer"
         }
     }
