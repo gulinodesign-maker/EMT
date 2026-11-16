@@ -18,7 +18,7 @@ assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 22
 for label in (
     "Sfondo del cockpit", "Colore principale · top bar e icone Setup",
     "Barre telemetria · colore scuro", "Numeri kW · energia in ingresso",
-    "Anello esterno · potenza erogata", "Anello interno · recupero energia",
+    "Barre di potenza · energia in uscita", "Barre di potenza · energia in entrata",
     "Velocità GPS · fase normale", "Numeri del tachimetro · km/h",
     "Navigatore · svolta a destra", "Navigatore · svolta a sinistra",
     "Velocità GPS · fase decelerazione",
@@ -26,7 +26,7 @@ for label in (
     assert f'"{label}"' in labels, label
 
 # Five named groups and long-press on each color; color picker keeps cancel/confirm.
-for group in ("Aspetto generale", "Barre telemetria e potenza",
+for group in ("Aspetto generale", "Barre telemetria",
               "Anelli e numeri del tachimetro", "Navigatore"):
     assert f'"{group}"' in tabs
 assert "ForEach(group.range, id:" in tabs
