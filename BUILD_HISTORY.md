@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43860729581:ATTEMPT:1 -->
+### 2026-11-16T11:46:47Z — CI #276 · build-92-color-picker-20-base-shades · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43860729581](https://github.com/gulinodesign-maker/EMT/actions/runs/43860729581); avvio 2026-11-16T11:46:47Z UTC; aggiornamento finale 2026-11-16T11:49:36Z UTC; registrazione 2026-11-16T11:49:48+00:00 UTC; evento pull_request.
+- **Commit:** [0098f423ab63](https://github.com/gulinodesign-maker/EMT/commit/0098f423ab63906b794319c2abbf5aa64d295658); versione **1.0**; build **92**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_custom_themes_build63.py.
+
 <!-- EMT_RUN:43856374450:ATTEMPT:1 -->
 ### 2026-11-16T11:17:03Z — CI #275 · main · tentativo 1
 
