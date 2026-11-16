@@ -1,5 +1,14 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 92 — selettore temi: 20 colori base e un cursore chiaro/scuro (16 novembre 2026)
+
+**Richiesta:** nel popup per cambiare ciascun colore del tema mostrare **esattamente 20 colori base**, eliminando la grande tavolozza con filtri e selettore di sistema; ogni campione deve poter essere schiarito o scurito **singolarmente** tramite un cursore. I colori già salvati nei temi non devono cambiare se l'utente non li modifica esplicitamente.
+
+**Implementazione:** riscritto solo il popup SwiftUI `EcoThemeColorPicker` in `Ecojumbo/Views/CockpitTabs.swift`. La griglia contiene **20 campioni fissi** in 5 colonne × 4 righe, senza vecchi filtri Tutti/Chiari/Accesi/Grigi e senza il `ColorPicker` secondario. Toccando una base, questa diventa il colore selezionato e il cursore `Scuro — Chiaro` torna al punto centrale. Il cursore modifica solo il campione selezionato con interpolazione RGB: estremità scura nero, centro colore base, estremità chiara bianco, anteprima e codice HEX aggiornati. Alla riapertura, qualsiasi colore personalizzato precedentemente salvato resta inizialmente intatto ed è modificabile col cursore anche senza scegliere una nuova base. L'azione conferma invia un solo HEX al ruolo tema aperto; annulla non salva. Nessuna modifica a `EcoThemePalette`, ai 21 ruoli colore, alla migrazione e persistenza, al layer top bar con sfumature alta/bassa, alle maschere esterne del tachimetro/ponte o a dati Bluetooth/GPS e altre UI.
+
+**Release:** versione Xcode 1.0 (92) Debug/Release, bundle `it.ecojumbo.battery` invariato. Test `Tests/verify_build92_twenty_shades.py` e regressioni storiche aggiornate. CI PR, CI main, archivio e upload Apple da verificare; il caricamento non prova processing completato, assegnazione al gruppo TE o installabilità.
+
+
 ## Build 91 — sfumature alta e bassa indipendenti sul layer esterno (16 novembre 2026)
 
 **Richiesta:** aggiungere, oltre alla sfumatura bicolore orizzontale e alla luce esistenti, una **sfumatura alta** e una **sfumatura bassa**, ciascuna con **colore e intensità modificabili** in Temi. Conservare le correzioni della 90: nessun colore o bagliore all'interno del tachimetro o del ponte e continuità del layer a sinistra fino al bordo inferiore.
