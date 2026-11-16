@@ -1,5 +1,16 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 91 — sfumature alta e bassa indipendenti sul layer esterno (16 novembre 2026)
+
+**Richiesta:** aggiungere, oltre alla sfumatura bicolore orizzontale e alla luce esistenti, una **sfumatura alta** e una **sfumatura bassa**, ciascuna con **colore e intensità modificabili** in Temi. Conservare le correzioni della 90: nessun colore o bagliore all'interno del tachimetro o del ponte e continuità del layer a sinistra fino al bordo inferiore.
+
+**Implementazione:** `GPSUpperGradientLayer` mantiene il gradiente laterale e la luce sottostante, poi aggiunge due `LinearGradient(stops:...)` verticali indipendenti sulla medesima `GPSUpperLayerFootprint`: alto (opacità piena al bordo superiore, 28% a quota 20%, zero a 45%), basso (zero al 55%, 28% all'80%, opacità piena al bordo inferiore). Due nuovi colori `EcoThemePalette.colors[19]` e `colors[20]` e due nuove intensità `topFadeIntensity` e `bottomFadeIntensity` (0–100%) sono modificabili in **Temi → Layer top bar**, con selezione colore e cursori separati. `EcoThemePalette` migra senza perdere alcun colore gli slot storici 8/15/17/18/19→21: i due nuovi colori ereditano le tonalità laterali 15/16, le intensità mancanti hanno default 35%. Persistenza in Codable con `decodeIfPresent`, controlli per i valori non finiti e salvataggio nello slot originale. Nessun cambiamento ai 19 ruoli precedenti.
+
+**Sicurezza grafica:** tutti e quattro gli strati (luce, sfumatura laterale, alta e bassa) sono ritagliati **insieme, dopo la composizione**, dalle due maschere indipendenti `GPSDialExteriorMask` e `GPSBridgeExteriorMask`, mantenute dalla build 90. Il layer resta dietro gli strumenti con `zIndex(4)`. Nessun cambiamento a linee grigie, kW e barra 30/70, GPS, BMS, telemetria, mappa, Home e gestione dei temi standard.
+
+**Build e pubblicazione:** Xcode 1.0 (91) Debug/Release, bundle ID invariato. Regressione nuova `Tests/verify_build91_top_bottom_fades.py`; esiti PR, CI main, upload Apple e stato gruppo TE **da verificare**. Non dichiarare TestFlight disponibile/installabile sulla sola base di un upload.
+
+
 ## Build 90 — layer esclusivamente ESTERNO al tachimetro e al ponte (16 novembre 2026)
 
 **Richiesta utente da screenshot build 89:** il layer bicolore della top bar continua a dipingere l'interno del tachimetro e del ponte, nascondendone gran parte. Il layer deve stare **solo all'esterno**, senza nessuna velatura o luce interna al cerchio o nel ponte. Conservare l'estensione fino al bordo basso del display a sinistra, la fascia a destra solo al di sopra della top bar, i tre colori editabili in Temi e il resto della build 89.
