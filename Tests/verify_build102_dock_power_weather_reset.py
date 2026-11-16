@@ -7,7 +7,7 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 103;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 104;") == 2
 assert "## Build 102" in (root / "STATO_PROGETTO.md").read_text()
 
 dock = home.split("private struct CockpitCornerControls: View {", 1)[1].split(
@@ -25,8 +25,8 @@ bar = cockpit.split("private struct GPSPowerHorizontalGauge: View {", 1)[1].spli
     "// Costanti LED storiche", 1)[0]
 for item in (
     "private let regenTacks = 3", "private let dischargeTacks = 7",
-    "0..<(regenTacks + dischargeTacks)", "CGFloat(count - 1)",
-    "tickWidth = min(max(2, d * 0.018)", 
+    "0..<(regenTacks + dischargeTacks)", "HStack(spacing: 0)",
+    "tickSide = min(geo.size.width / CGFloat(count), geo.size.height)", 
     "min(d * 0.54, max(1, bridgeMaxWidth))",
     "height: max(16, d * 0.045)",
     "CockpitTheme.regenAccent", "CockpitTheme.dischargeAccent",
@@ -91,12 +91,12 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1179,510),(1536,706),(1806,
     assert group_width<=panel_width+1e-6
     assert center-group_width/2>=panel_left-1e-6
     assert center+group_width/2<=w-inset+1e-6
-    # 10 slim power ticks fit inside a bridge-clamped 0.54d frame.
+    # Ten contiguous squares fit within the bridge-limited frame.
     width=dial*.54
-    tick=min(max(2,dial*.018),width/10)
-    gap=max(0,(width-10*tick)/9)
-    assert isclose(10*tick+9*gap,width,abs_tol=1e-7)
-    assert 10*tick<width
+    height=max(16,dial*.045)
+    side=min(width/10,height)
+    assert 10*side<=width
+    assert side<=height
     assert max(16,dial*.045)>2*max(5,dial*.014)
 
 print("OK — build 102 dock center, 10 taller slim power ticks, 2x temperature, icon-only reset")
