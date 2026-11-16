@@ -640,17 +640,11 @@ private struct EcoThemePreview: View {
 
     var body: some View {
         VStack(spacing: 8) {
+            // Build 94: l'anteprima mostra SOLO il cruscotto.
+            // Lo stato selezionato è espresso dal bordo esterno, mai da
+            // icone flottanti che coprano il disegno del cockpit.
             EcoCockpitThemeMiniature(palette: palette)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(alignment: .topTrailing) {
-                    if active {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(Color(themeHex: palette.colors[1]))
-                            .shadow(color: .black.opacity(0.8), radius: 3)
-                            .padding(8)
-                    }
-                }
             Text(palette.name.isEmpty ? "Il mio tema" : palette.name)
                 .font(.headline)
                 .foregroundStyle(.primary)

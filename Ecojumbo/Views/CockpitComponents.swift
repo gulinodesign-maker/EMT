@@ -1163,6 +1163,12 @@ private struct OpenSpeedCluster: View {
     var showsPowerReadings: Bool = true
     var showsCircularPowerGauges: Bool = true // La Home conserva le corone.
     var maximizesGPSSpeedScale: Bool = false // Solo GPS, senza alterare la Home.
+    private var outerDiameterFactor: CGFloat {
+        maximizesGPSSpeedScale ? GPSDialLayout.outerProfileDiameterFactor : 0.986
+    }
+    private var carbonDiameterFactor: CGFloat {
+        maximizesGPSSpeedScale ? GPSDialLayout.carbonProfileDiameterFactor : 0.982
+    }
     // Layout unico per Home e GPS. Freccia visibile solo se la rotta è attiva.
     var navigationArrow: String? = nil
     var navigationInstruction: String? = nil
@@ -1193,30 +1199,31 @@ private struct OpenSpeedCluster: View {
                 if colorScheme == .light {
                     Circle()
                         .fill(Color(red: 0.94, green: 0.96, blue: 0.985).opacity(0.95))
-                        .frame(width: d * 0.986, height: d * 0.986)
+                        .frame(width: d * outerDiameterFactor, height: d * outerDiameterFactor)
                         .mask(RadialGradient(stops: [
                             .init(color: .white, location: 0),
                             .init(color: .white, location: 0.77),
                             .init(color: .white.opacity(0.58), location: 0.91),
                             .init(color: .clear, location: 1)
-                        ], center: .center, startRadius: 0, endRadius: d * 0.493))
+                        ], center: .center, startRadius: 0, endRadius: d * outerDiameterFactor / 2))
                 } else {
                     Circle()
                         .fill(theme.backdrop)
-                        .frame(width: d * 0.986, height: d * 0.986)
+                        .frame(width: d * outerDiameterFactor, height: d * outerDiameterFactor)
                         .shadow(color: .black.opacity(0.88), radius: d * 0.025)
                 }
                 Image("CarbonWeave")
                     .resizable(resizingMode: .tile)
                     .opacity(colorScheme == .light ? 0 : 0.74)
-                    .frame(width: d * 0.982, height: d * 0.982)
+                    .frame(width: d * carbonDiameterFactor, height: d * carbonDiameterFactor)
                     .clipShape(Circle())
                 Circle()
                     .fill(RadialGradient(colors: colorScheme == .light
                         ? [Color(white: 0.85).opacity(0.20), .clear, Color(white: 0.72).opacity(0.11)]
                         : [.black.opacity(0.36), .clear, .black.opacity(0.55)], center: .center,
                                          startRadius: d * 0.06, endRadius: d * 0.49))
-                    .frame(width: d * 0.98, height: d * 0.98)
+                    .frame(width: d * (outerDiameterFactor - 0.006),
+                           height: d * (outerDiameterFactor - 0.006))
                     .opacity(colorScheme == .light ? 0 : 1)
 
                 // Scale di potenza circolari: solo nella Home.
@@ -1479,6 +1486,10 @@ private enum GPSInnerLED {
 private enum GPSDialLayout {
     // Build 93: cerchio metallico GPS più piccolo del 10%; scala km/h ampliata.
     static let metalRingDiameterFactor: CGFloat = 0.965 * 0.90
+    // Build 94: il disco NERO esterno del solo cockpit GPS si riduce
+    // dello stesso 10% dell'anello metallico. La Home non viene alterata.
+    static let outerProfileDiameterFactor: CGFloat = 0.986 * 0.90
+    static let carbonProfileDiameterFactor: CGFloat = 0.982 * 0.90
     static let speedScaleMagnification: CGFloat = 1.08
 
     static func size(width: CGFloat, height: CGFloat) -> CGFloat {
@@ -1963,7 +1974,7 @@ private struct GPSUpperLayerFootprint: Shape {
         let centerX = GPSDialLayout.centerX(width: w, height: h)
         let centerY = h * 0.494
         let center = CGPoint(x: centerX, y: centerY)
-        let circleRadius = d * 0.965 / 2
+        let circleRadius = d * GPSDialLayout.outerProfileDiameterFactor / 2
             + GPSMetalContourStyle.strokeWidth(for: d) / 2 + 3
 
         let bridge = GPSLowerLineGeometry.points(in: rect)
@@ -2048,9 +2059,10 @@ private struct GPSDialExteriorMask: Shape {
         let h = rect.height
         let d = GPSDialLayout.size(width: w, height: h)
         let centerX = GPSDialLayout.centerX(width: w, height: h)
-        // Copri l'intero diametro visibile del quadrante (0.986 d)
-        // e il margine esterno, non solo la pista metallica (0.965 d).
-        let radius = d * 0.508 + 3
+        // Build 94: il foro del layer segue il nuovo bordo NERO ridotto,
+        // senza lasciare una fascia inutilizzata intorno al tachimetro.
+        // La traccia metallica e la scala restano entrambe all'interno.
+        let radius = d * GPSDialLayout.outerProfileDiameterFactor / 2 + 3
         var exterior = Path(rect)
         exterior.addEllipse(in: CGRect(x: centerX - radius,
                                        y: h * 0.494 - radius,
@@ -2170,12 +2182,14 @@ struct EcoCockpitThemeMiniature: View {
 
                 Circle()
                     .fill(tone(0))
-                    .frame(width: d * 0.986, height: d * 0.986)
+                    .frame(width: d * GPSDialLayout.outerProfileDiameterFactor,
+                           height: d * GPSDialLayout.outerProfileDiameterFactor)
                     .position(x: cx, y: h * 0.494)
                 Image("CarbonWeave")
                     .resizable(resizingMode: .tile)
                     .opacity(0.72)
-                    .frame(width: d * 0.982, height: d * 0.982)
+                    .frame(width: d * GPSDialLayout.carbonProfileDiameterFactor,
+                           height: d * GPSDialLayout.carbonProfileDiameterFactor)
                     .clipShape(Circle())
                     .position(x: cx, y: h * 0.494)
 
@@ -2214,10 +2228,14 @@ struct EcoCockpitThemeMiniature: View {
                     .frame(width: panelWidth, height: h * 0.60)
                     .position(x: panelLeft + panelWidth / 2, y: h * 0.44)
 
-                miniatureHeader(width: w, height: h)
+                // Ogni icona deve misurarsi sull'ALTEZZA DELLA BARRA,
+                // non su tutta l'altezza del cockpit come nella 93.
+                miniatureHeader(width: w, height: h * 0.10)
                     .frame(width: w, height: h * 0.10)
                     .position(x: w / 2, y: h * 0.05)
-                miniatureDock(height: h)
+                // Le cinque icone del dock usano la loro vera altezza;
+                // mai scalate sull'altezza totale dell'anteprima.
+                miniatureDock(height: h * 0.082)
                     .frame(width: panelWidth, height: h * 0.082)
                     .position(x: panelLeft + panelWidth / 2, y: h * 0.925)
             }
@@ -2385,7 +2403,7 @@ private struct GPSHorizonLine: View {
             let dialCenterX = GPSDialLayout.centerX(width: w, height: h)
             let metalLine = line.applying(CGAffineTransform(
                 translationX: 0, y: GPSMetalContourStyle.inset(for: dialSize)))
-            let metalRadius = dialSize * 0.965 / 2
+            let metalRadius = dialSize * GPSDialLayout.metalRingDiameterFactor / 2
                 + GPSMetalContourStyle.strokeWidth(for: dialSize) / 2
             let visibleOutsideMetalRing = Path { path in
                 path.addRect(CGRect(x: 0, y: 0, width: w, height: h))

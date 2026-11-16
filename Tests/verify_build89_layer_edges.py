@@ -8,7 +8,7 @@ theme = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 proj = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert proj.count("CURRENT_PROJECT_VERSION = 93;") == 2
+assert proj.count("CURRENT_PROJECT_VERSION = 94;") == 2
 assert "Build 89" in state
 footprint = src.split("private struct GPSUpperLayerFootprint: Shape {", 1)[1].split(
     "private struct GPSUpperGradientLayer: View {", 1)[0]
@@ -36,7 +36,7 @@ assert "left.addLine(to: CGPoint(x: 0, y: h))" in footprint
 assert "left.addEllipse(in: CGRect(" not in footprint
 assert "GPSDialExteriorMask()" in layer
 assert "GPSBridgeExteriorMask()" in layer
-assert "circleRadius = d * 0.965 / 2" in footprint
+assert "circleRadius = d * GPSDialLayout.outerProfileDiameterFactor / 2" in footprint
 assert "+ GPSMetalContourStyle.strokeWidth(for: d) / 2 + 3" in footprint
 
 # No translation of the entire surface: 3pt applies only at gray contours.

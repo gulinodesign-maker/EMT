@@ -6,7 +6,7 @@ src = (root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 themes = (root/"Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root/"STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 93;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 94;") == 2
 assert "Build 90" in state
 footprint = src.split("private struct GPSUpperLayerFootprint: Shape {",1)[1].split(
     "private struct GPSDialExteriorMask: Shape {",1)[0]
@@ -30,7 +30,7 @@ assert "CGPoint(x: corners.rightContact.x, y: h)" not in footprint
 # One independent full-screen-minus-circle mask for the *whole* dial.
 assert "var exterior = Path(rect)" in dial_mask
 assert "exterior.addEllipse(in: CGRect(" in dial_mask
-assert "let radius = d * 0.508 + 3" in dial_mask
+assert "let radius = d * GPSDialLayout.outerProfileDiameterFactor / 2 + 3" in dial_mask
 assert "GPSDialLayout.size(width: w, height: h)" in dial_mask
 assert "GPSDialLayout.centerX(width: w, height: h)" in dial_mask
 assert "y: h * 0.494 - radius" in dial_mask
