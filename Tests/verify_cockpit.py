@@ -496,7 +496,7 @@ assert 'foregroundStyle(active ? theme.accent : Color.secondary)' in u
 assert 'if selected != .gps {\n                    Spacer(minLength: 0)' in u
 assert 'if selected == .gps {' in u
 assert 'mapEnabled.toggle()' in u
-assert 'if musicEnabled {' in u
+assert 'if musicDock {' in u
 assert 'mapEnabled = true' in u
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBest\n' not in g
 assert 'manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation' in g

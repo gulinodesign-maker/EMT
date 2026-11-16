@@ -26,7 +26,7 @@ assert "let telemetryDock = selected == .gps && !mapEnabled" in dock
 assert "let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)" in dock
 assert "width - EcoCockpitDockGeometry.rightInset(width: width)" in dock
 assert "let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)" in dock
-assert "HStack(spacing: telemetryDock ? justifiedGap : gpsGap)" in dock
+assert "HStack(spacing: musicDock ? musicGap : (telemetryDock ? justifiedGap : gpsGap))" in dock
 assert ".frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .leading)" in dock
 assert "ForEach([EcoTab.trips, .settings, .themes])" in dock
 assert 'gpsButton("map.fill", active: mapEnabled' in dock
