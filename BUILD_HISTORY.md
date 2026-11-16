@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:43886515367:ATTEMPT:1 -->
+### 2026-11-16T14:30:52Z — CI #290 · build-95-map-2pt-concentric-ring · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 43886515367](https://github.com/gulinodesign-maker/EMT/actions/runs/43886515367); avvio 2026-11-16T14:30:52Z UTC; aggiornamento finale 2026-11-16T14:34:30Z UTC; registrazione 2026-11-16T14:34:43+00:00 UTC; evento pull_request.
+- **Commit:** [02ffe581756a](https://github.com/gulinodesign-maker/EMT/commit/02ffe581756a4a93effe814189b837e24aecc3db); versione **1.0**; build **95**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_landscape_geometry.py.
+
 <!-- EMT_RUN:43886248948:ATTEMPT:1 -->
 ### 2026-11-16T14:29:23Z — CI #289 · build-95-map-2pt-concentric-ring · tentativo 1
 
