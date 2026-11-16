@@ -193,6 +193,20 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     var topBarUnderGlow: Color {
         Color(themeHex: savedPalette?.colors[2] ?? "#FF7008")
     }
+    // Build 91: le due dissolvenze verticali hanno colori e
+    // intensità autonomi, persistenti nel tema personalizzato.
+    var topBarHighFade: Color {
+        Color(themeHex: savedPalette?.colors[19] ?? "#173A59")
+    }
+    var topBarLowFade: Color {
+        Color(themeHex: savedPalette?.colors[20] ?? "#452452")
+    }
+    var topBarHighFadeIntensity: Double {
+        savedPalette?.topFadeIntensity ?? 0.35
+    }
+    var topBarLowFadeIntensity: Double {
+        savedPalette?.bottomFadeIntensity ?? 0.35
+    }
     // Le barre mantengono i ruoli storici, invariati.
     // Barre e recupero energia usano la palette attiva, non soltanto la preview.
     static var barDark: Color {
@@ -2058,6 +2072,30 @@ private struct GPSUpperGradientLayer: View {
                         startPoint: .leading, endPoint: .trailing),
                         style: FillStyle(eoFill: true))
                     .opacity(0.84)
+
+                // Build 91: due velature verticali indipendenti.
+                // La prima si dissolve dal bordo alto verso il centro;
+                // la seconda dal bordo basso verso il centro.
+                // Le maschere esterne applicate alla ZStack escludono
+                // ENTRAMBE, insieme al glow, da tachimetro e ponte.
+                GPSUpperLayerFootprint()
+                    .fill(LinearGradient(stops: [
+                        .init(color: theme.topBarHighFade.opacity(
+                            theme.topBarHighFadeIntensity), location: 0),
+                        .init(color: theme.topBarHighFade.opacity(
+                            theme.topBarHighFadeIntensity * 0.28), location: 0.20),
+                        .init(color: .clear, location: 0.45)
+                    ], startPoint: .top, endPoint: .bottom),
+                    style: FillStyle(eoFill: true))
+                GPSUpperLayerFootprint()
+                    .fill(LinearGradient(stops: [
+                        .init(color: .clear, location: 0.55),
+                        .init(color: theme.topBarLowFade.opacity(
+                            theme.topBarLowFadeIntensity * 0.28), location: 0.80),
+                        .init(color: theme.topBarLowFade.opacity(
+                            theme.topBarLowFadeIntensity), location: 1)
+                    ], startPoint: .top, endPoint: .bottom),
+                    style: FillStyle(eoFill: true))
             }
             // Entrambe le maschere si applicano DOPO blur e riempimento.
             // Il quadrante e tutto il ponte sono esclusi in modo indipendente.

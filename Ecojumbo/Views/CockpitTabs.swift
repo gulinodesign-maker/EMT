@@ -278,15 +278,22 @@ struct EcoThemePalette: Codable, Equatable {
     var name: String
     var colors: [String]
     var glowIntensity: Double
+    var topFadeIntensity: Double
+    var bottomFadeIntensity: Double
 
-    init(name: String, colors: [String], glowIntensity: Double = 0.60) {
+    init(name: String, colors: [String], glowIntensity: Double = 0.60,
+         topFadeIntensity: Double = 0.35, bottomFadeIntensity: Double = 0.35) {
         self.name = name
         self.colors = colors
-        self.glowIntensity = min(1, max(0, glowIntensity))
+        self.glowIntensity = glowIntensity.isFinite ? min(1, max(0, glowIntensity)) : 0.60
+        self.topFadeIntensity = topFadeIntensity.isFinite ? min(1, max(0, topFadeIntensity)) : 0.35
+        self.bottomFadeIntensity = bottomFadeIntensity.isFinite ? min(1, max(0, bottomFadeIntensity)) : 0.35
     }
 
     // Le palette 63–72 non contenevano intensità: default retrocompatibile.
-    private enum CodingKeys: String, CodingKey { case name, colors, glowIntensity }
+    private enum CodingKeys: String, CodingKey {
+        case name, colors, glowIntensity, topFadeIntensity, bottomFadeIntensity
+    }
 
     init(from decoder: Decoder) throws {
         let data = try decoder.container(keyedBy: CodingKeys.self)
@@ -294,6 +301,12 @@ struct EcoThemePalette: Codable, Equatable {
         colors = try data.decode([String].self, forKey: .colors)
         let saved = try data.decodeIfPresent(Double.self, forKey: .glowIntensity) ?? 0.60
         glowIntensity = saved.isFinite ? min(1, max(0, saved)) : 0.60
+        // Migrazione automatica e non distruttiva degli slot fino alla 90:
+        // gli antichi JSON non contengono queste proprietà.
+        let high = try data.decodeIfPresent(Double.self, forKey: .topFadeIntensity) ?? 0.35
+        let low = try data.decodeIfPresent(Double.self, forKey: .bottomFadeIntensity) ?? 0.35
+        topFadeIntensity = high.isFinite ? min(1, max(0, high)) : 0.35
+        bottomFadeIntensity = low.isFinite ? min(1, max(0, low)) : 0.35
     }
 
     func encode(to encoder: Encoder) throws {
@@ -301,6 +314,8 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(name, forKey: .name)
         try data.encode(colors, forKey: .colors)
         try data.encode(glowIntensity, forKey: .glowIntensity)
+        try data.encode(topFadeIntensity, forKey: .topFadeIntensity)
+        try data.encode(bottomFadeIntensity, forKey: .bottomFadeIntensity)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -323,7 +338,9 @@ struct EcoThemePalette: Codable, Equatable {
         "Layer top bar · sfumatura sinistra",
         "Layer top bar · sfumatura destra",
         "Velocità GPS · limite superato",
-        "Velocità GPS · fase accelerazione"
+        "Velocità GPS · fase accelerazione",
+        "Layer top bar · sfumatura alta",
+        "Layer top bar · sfumatura bassa"
     ]
     static let details = [
         "Fondo scuro dietro gli strumenti.",
@@ -344,7 +361,9 @@ struct EcoThemePalette: Codable, Equatable {
         "Primo colore della superficie sfumata del nuovo layer superiore GPS.",
         "Secondo colore della superficie sfumata del nuovo layer superiore GPS.",
         "Colore della barra LED quando la velocità GPS raggiunge il limite attivato in Barre luminose.",
-        "Colore dell’arco GPS quando la velocità aumenta di oltre 5 km/h nella finestra di osservazione."
+        "Colore dell’arco GPS quando la velocità aumenta di oltre 5 km/h nella finestra di osservazione.",
+        "Sfumatura verticale dal bordo alto verso il centro del layer esterno; colore e intensità indipendenti.",
+        "Sfumatura verticale dal bordo basso verso il centro del layer esterno; colore e intensità indipendenti."
     ]
     // L'ordine visibile colloca le quattro fasi GPS in un'unica categoria,
     // senza duplicare il colore normale (indice 10) né il colore di decelerazione (14).
@@ -354,10 +373,9 @@ struct EcoThemePalette: Codable, Equatable {
         ("Anelli e numeri del tachimetro", [8, 9, 11]),
         ("Navigatore", [12, 13]),
         ("Velocità oltre soglia", [14, 10, 18, 17]),
-        ("Layer top bar", [15, 16, 2])
-        // I ruoli 15/16 rimangono salvati e non vengono mostrati.
+        ("Layer top bar", [15, 16, 19, 20, 2])
     ]
-    static let colorCount = 19
+    static let colorCount = 21
     static let extraDefaults = [
         "#FA2B2E", "#2BBAFF", "#FF7008", "#FA2B2E",
         "#FFFFFF", "#FFFFFF", "#FFB224"
@@ -383,7 +401,9 @@ struct EcoThemePalette: Codable, Equatable {
         return EcoThemePalette(
             name: "Il mio tema",
             colors: ["#040405", foreground.0, foreground.1, "#D9DEE3"]
-                + standardBarColors + extraDefaults + [foreground.1, foreground.1, "#FF3B30", "#FF3B30"]
+                + standardBarColors + extraDefaults
+                + [foreground.1, foreground.1, "#FF3B30", "#FF3B30",
+                   foreground.1, foreground.0]
         )
     }
 
@@ -393,7 +413,7 @@ struct EcoThemePalette: Codable, Equatable {
               let decoded = try? JSONDecoder().decode(EcoThemePalette.self, from: data),
               (decoded.colors.count == 8 || decoded.colors.count == 15 ||
                decoded.colors.count == 17 || decoded.colors.count == 18 ||
-               decoded.colors.count == colorCount),
+               decoded.colors.count == 19 || decoded.colors.count == colorCount),
               decoded.colors.allSatisfy({ validHex($0) }) else { return nil }
         // Migrazione non distruttiva: gli 8 colori delle build 63 restano identici.
         var migrated = decoded
@@ -416,6 +436,13 @@ struct EcoThemePalette: Codable, Equatable {
         if migrated.colors.count == 18 {
             migrated.colors.append("#FF3B30")
         }
+        // Build 91: 19 → 21 (e anche le palette 8/15/17/18): aggiungere
+        // due nuovi colori senza modificare nessuno dei 19 precedenti.
+        if migrated.colors.count == 19 {
+            migrated.colors.append(contentsOf: [
+                migrated.colors[15], migrated.colors[16]
+            ])
+        }
         return migrated
     }
 
@@ -423,6 +450,8 @@ struct EcoThemePalette: Codable, Equatable {
     static func save(_ palette: EcoThemePalette, slot: Int) -> Bool {
         guard (1...3).contains(slot), palette.colors.count == colorCount,
               palette.glowIntensity.isFinite, (0...1).contains(palette.glowIntensity),
+              palette.topFadeIntensity.isFinite, (0...1).contains(palette.topFadeIntensity),
+              palette.bottomFadeIntensity.isFinite, (0...1).contains(palette.bottomFadeIntensity),
               palette.colors.allSatisfy({ validHex($0) }),
               let data = try? JSONEncoder().encode(palette) else { return false }
         UserDefaults.standard.set(data, forKey: storagePrefix + String(slot))
@@ -795,6 +824,42 @@ private struct EcoThemeEditorView: View {
                         }
                     }
 
+                    // Build 91 — intensità indipendenti delle due sfumature
+                    // verticali; i colori si scelgono sopra nella categoria Layer top bar.
+                    if selectedGroup == 5 {
+                        VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 7) {
+                                HStack {
+                                    Label("Sfumatura alta · intensità", systemImage: "arrow.down.to.line")
+                                        .font(.subheadline.weight(.semibold))
+                                    Spacer()
+                                    Text("\(Int((draft.topFadeIntensity * 100).rounded()))%")
+                                        .font(.caption.monospacedDigit())
+                                        .foregroundStyle(.secondary)
+                                }
+                                Slider(value: $draft.topFadeIntensity, in: 0...1, step: 0.05)
+                                    .tint(Color(themeHex: draft.colors[19]))
+                            }
+                            VStack(alignment: .leading, spacing: 7) {
+                                HStack {
+                                    Label("Sfumatura bassa · intensità", systemImage: "arrow.up.to.line")
+                                        .font(.subheadline.weight(.semibold))
+                                    Spacer()
+                                    Text("\(Int((draft.bottomFadeIntensity * 100).rounded()))%")
+                                        .font(.caption.monospacedDigit())
+                                        .foregroundStyle(.secondary)
+                                }
+                                Slider(value: $draft.bottomFadeIntensity, in: 0...1, step: 0.05)
+                                    .tint(Color(themeHex: draft.colors[20]))
+                            }
+                            Text("Entrambe le sfumature restano solo nel layer esterno, fuori da tachimetro e ponte.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(12)
+                        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+                    }
+
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
                             Label("Bagliore esterno dei contorni", systemImage: "sun.max")
@@ -822,6 +887,8 @@ private struct EcoThemeEditorView: View {
                     .buttonStyle(.borderedProminent)
                     .disabled(draft.colors.count != EcoThemePalette.colorCount ||
                               !draft.glowIntensity.isFinite ||
+                              !draft.topFadeIntensity.isFinite ||
+                              !draft.bottomFadeIntensity.isFinite ||
                               !draft.colors.allSatisfy({ EcoThemePalette.validHex($0) }))
                 }
                 .padding(16)

@@ -4,7 +4,7 @@ root = Path(__file__).resolve().parents[1]
 c = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 p = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 90;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 91;") == 2
 assert "Build 87" in state
 gps = c.split("struct GPSCockpitDashboard: View {",1)[1].split("// Pulsante dedicato",1)[0]
 cluster = c.split("private struct OpenSpeedCluster: View {",1)[1].split("private struct CockpitPowerReadings: View {",1)[0]
