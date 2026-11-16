@@ -76,6 +76,7 @@ private struct EcoOutsideTemperature: View {
     @EnvironmentObject private var gps: GPSRideManager
     @StateObject private var weather = EcoOutsideWeather.shared
     let now: Date
+    var plain: Bool = false
 
     private var currentTemperature: Double? {
         guard let updatedAt = weather.updatedAt,
@@ -93,10 +94,15 @@ private struct EcoOutsideTemperature: View {
                 .foregroundStyle(colorScheme == .light ? Color(white: 0.14) : .white)
         }
         .font(.system(size: 15, weight: .semibold))
-        .padding(.horizontal, 5)
-        .padding(.vertical, 3)
-        .background(colorScheme == .light ? Color.white.opacity(0.85) : Color.black.opacity(0.58),
-                    in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+        .padding(.horizontal, plain ? 0 : 5)
+        .padding(.vertical, plain ? 0 : 3)
+        .background {
+            if !plain {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(colorScheme == .light
+                          ? Color.white.opacity(0.85) : Color.black.opacity(0.58))
+            }
+        }
         .accessibilityElement(children: .combine)
         .accessibilityLabel(currentTemperature.map {
             "Temperatura esterna: \(Int($0.rounded())) gradi Celsius."
@@ -212,6 +218,13 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     var concentricRingColor: Color {
         if let savedPalette, savedPalette.colors.count > 21 {
             return Color(themeHex: savedPalette.colors[21])
+        }
+        return accent
+    }
+    // Ruolo 22: secondo cerchio, indipendente dal precedente.
+    var secondRingColor: Color {
+        if let savedPalette, savedPalette.colors.count > 22 {
+            return Color(themeHex: savedPalette.colors[22])
         }
         return accent
     }
@@ -1437,6 +1450,7 @@ private enum GPSContourStroke {
 private struct GPSPowerHorizontalGauge: View {
     let d: CGFloat
     let powerWatts: Double?
+    let bridgeMaxWidth: CGFloat
     private let regenTacks = 9
     private let dischargeTacks = 21
     private var normalizedPower: Double? {
@@ -1465,7 +1479,10 @@ private struct GPSPowerHorizontalGauge: View {
                 }
             }
         }
-        .frame(width: d * 0.39, height: max(5, d * 0.014))
+        // Due volte lo spessore e fino a due volte la larghezza della
+        // barra 99; il piede più stretto del ponte limita l'estensione.
+        .frame(width: min(d * 0.78, max(1, bridgeMaxWidth)),
+               height: 2 * max(5, d * 0.014))
         .animation(.easeOut(duration: 0.30), value: normalizedPower)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Potenza: 30 percento recupero azzurro, 70 percento erogazione rossa")
@@ -1509,8 +1526,16 @@ private enum GPSDialLayout {
     static func concentricRingStroke(for d: CGFloat) -> CGFloat {
         max(1.5, min(2.4, d * 0.003))
     }
+    // Build 100: un secondo anello concentrico, esterno e spesso il
+    // doppio del precedente. Il suo ingombro protegge anche la mappa.
+    static func secondRingRadius(for d: CGFloat) -> CGFloat {
+        concentricRingRadius(for: d) + max(6, d * 0.018)
+    }
+    static func secondRingStroke(for d: CGFloat) -> CGFloat {
+        concentricRingStroke(for: d) * 2
+    }
     static func mapExclusionRadius(for d: CGFloat) -> CGFloat {
-        concentricRingRadius(for: d) + concentricRingStroke(for: d) / 2
+        secondRingRadius(for: d) + secondRingStroke(for: d) / 2
             + mapToDialClearance
     }
 
@@ -1576,21 +1601,74 @@ private struct GPSMetalInnerRing: View {
     }
 }
 
-// Build 95 — cerchio decorativo concentrico, sopra top bar e mappa.
-// Colore tema dedicato, esterno al disco nero e senza penetrare il ponte kW.
+// Build 100: gli anelli tematici ricevono un nucleo nitido e due
+// aloni luminosi. L'intensità usa il cursore Bagliore del tema.
+private struct GPSLuminousCircleStroke: View {
+    let color: Color
+    let diameter: CGFloat
+    let stroke: CGFloat
+    let glowIntensity: Double
+
+    var body: some View {
+        let intensity = min(1, max(0, glowIntensity))
+        ZStack {
+            Circle()
+                .stroke(color.opacity(0.42 * intensity),
+                        lineWidth: stroke * 4.0)
+                .blur(radius: max(2, stroke * 2.8))
+            Circle()
+                .stroke(color.opacity(0.62 * intensity),
+                        lineWidth: stroke * 2.1)
+                .blur(radius: max(1.5, stroke * 1.3))
+            Circle()
+                .stroke(color, style: StrokeStyle(lineWidth: stroke,
+                                                 lineCap: .round))
+                .shadow(color: color.opacity(0.75 * intensity),
+                        radius: max(2, stroke * 1.8))
+        }
+        .frame(width: diameter, height: diameter)
+    }
+}
+
+// Il primo anello (ruolo tema 21) resta alla sua posizione e ora
+// emette luce oltre al colore. Il ponte maschera anche il bagliore.
 private struct GPSConcentricAccentRing: View {
     let color: Color
+    let glowIntensity: Double
     var body: some View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
             let d = GPSDialLayout.size(width: w, height: h)
             let radius = GPSDialLayout.concentricRingRadius(for: d)
-            Circle()
-                .stroke(color, style: StrokeStyle(
-                    lineWidth: GPSDialLayout.concentricRingStroke(for: d),
-                    lineCap: .round))
-                .frame(width: radius * 2, height: radius * 2)
+            GPSLuminousCircleStroke(
+                color: color, diameter: radius * 2,
+                stroke: GPSDialLayout.concentricRingStroke(for: d),
+                glowIntensity: glowIntensity)
+                .position(x: GPSDialLayout.centerX(width: w, height: h),
+                          y: h * 0.494)
+                .mask(GPSBridgeUpperMask())
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+}
+
+// Secondo anello esterno — ruolo indipendente 22 nei Temi.
+// Spessore ESATTAMENTE 2× il primo, centro identico e clipping kW.
+private struct GPSSecondOuterRing: View {
+    let color: Color
+    let glowIntensity: Double
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            let d = GPSDialLayout.size(width: w, height: h)
+            let radius = GPSDialLayout.secondRingRadius(for: d)
+            GPSLuminousCircleStroke(
+                color: color, diameter: radius * 2,
+                stroke: GPSDialLayout.secondRingStroke(for: d),
+                glowIntensity: glowIntensity)
                 .position(x: GPSDialLayout.centerX(width: w, height: h),
                           y: h * 0.494)
                 .mask(GPSBridgeUpperMask())
@@ -1638,6 +1716,18 @@ private enum GPSLowerLineGeometry {
             CGPoint(x: rightTopX, y: topY),
             CGPoint(x: rightTopX + run, y: footY)
         ]
+    }
+
+    // Spazio massimo simmetrico rispetto al centro del tachimetro fra i
+    // piedi reali del ponte: la barra ingrandita non invade mai i fianchi.
+    static func powerBarMaxWidth(in size: CGSize) -> CGFloat {
+        let rect = CGRect(origin: .zero, size: size)
+        let ends = points(in: rect)
+        let center = GPSDialLayout.centerX(width: size.width, height: size.height)
+        let d = GPSDialLayout.size(width: size.width, height: size.height)
+        let safety = max(6, d * 0.014)
+        let halfSpace = min(center - ends[0].x, ends[3].x - center) - safety
+        return max(1, 2 * halfSpace)
     }
 }
 
@@ -1877,9 +1967,15 @@ struct GPSCockpitDashboard: View {
 
                 // Anello tematico davanti alla top bar (z8) e alla
                 // cartografia (z5), ma sotto al ponte kW (z28).
-                GPSConcentricAccentRing(color: theme.concentricRingColor)
+                GPSConcentricAccentRing(color: theme.concentricRingColor,
+                                        glowIntensity: theme.glowIntensity)
                     .frame(width: w, height: h)
                     .zIndex(27)
+
+                GPSSecondOuterRing(color: theme.secondRingColor,
+                                   glowIntensity: theme.glowIntensity)
+                    .frame(width: w, height: h)
+                    .zIndex(27.5)
 
                 // Il solo ponte luminoso si disegna sopra il ritaglio;
                 // nessun riempimento o cerchio è visibile al di sotto.
@@ -1897,7 +1993,9 @@ struct GPSCockpitDashboard: View {
 
                 // Barra orizzontale sotto il kW; non oltrepassa il ponte.
                 GPSPowerHorizontalGauge(d: dialSize,
-                                        powerWatts: live.map { -$0.power })
+                                        powerWatts: live.map { -$0.power },
+                                        bridgeMaxWidth: GPSLowerLineGeometry.powerBarMaxWidth(
+                                            in: CGSize(width: w, height: h)))
                     .position(x: dialCenterX, y: h * 0.963)
                     .zIndex(30)
 
@@ -2278,7 +2376,11 @@ struct EcoCockpitThemeMiniature: View {
                     .frame(width: d, height: d)
                     .position(x: cx, y: h * 0.494)
                 // Anche l'anteprima usa il cerchio e il colore del draft.
-                GPSConcentricAccentRing(color: tone(21))
+                GPSConcentricAccentRing(color: tone(21),
+                                        glowIntensity: palette.glowIntensity)
+                    .frame(width: w, height: h)
+                GPSSecondOuterRing(color: tone(22),
+                                   glowIntensity: palette.glowIntensity)
                     .frame(width: w, height: h)
 
                 // Solo il valore non disponibile: l'anteprima non inventa velocità.
@@ -2301,7 +2403,9 @@ struct EcoCockpitThemeMiniature: View {
                     .font(.system(size: d * 0.066, weight: .bold))
                     .foregroundStyle(tone(7))
                     .position(x: cx, y: h * 0.875)
-                miniaturePowerBar(d: d)
+                miniaturePowerBar(d: d,
+                                 bridgeMaxWidth: GPSLowerLineGeometry.powerBarMaxWidth(
+                                    in: CGSize(width: w, height: h)))
                     .position(x: cx, y: h * 0.963)
 
                 miniatureTelemetry(width: panelWidth, height: h * 0.60)
@@ -2359,14 +2463,15 @@ struct EcoCockpitThemeMiniature: View {
         .mask(GPSBridgeExteriorMask().fill(style: FillStyle(eoFill: true)))
     }
 
-    private func miniaturePowerBar(d: CGFloat) -> some View {
+    private func miniaturePowerBar(d: CGFloat, bridgeMaxWidth: CGFloat) -> some View {
         HStack(spacing: max(0.7, d * 0.0021)) {
             ForEach(0..<30, id: \.self) { i in
                 RoundedRectangle(cornerRadius: 1)
                     .fill((i < 9 ? tone(9) : tone(8)).opacity(0.28))
             }
         }
-        .frame(width: d * 0.39, height: max(3, d * 0.014))
+        .frame(width: min(d * 0.78, max(1, bridgeMaxWidth)),
+               height: 2 * max(3, d * 0.014))
     }
 
     private func miniatureTelemetry(width: CGFloat, height: CGFloat) -> some View {
@@ -2515,18 +2620,22 @@ private struct GPSHeader: View {
             let w = geo.size.width
             let h = geo.size.height
             HStack(spacing: max(7, h * 0.20)) {
-                Image("EcojumboMark")
-                    .resizable().scaledToFit()
-                    .frame(width: h * 0.73, height: h * 0.72)
+                // Logo sopra, temperatura reale sotto, SENZA pill.
+                // Il testo resta a sinistra dell'anello del tachimetro.
+                VStack(spacing: 1) {
+                    Image("EcojumboMark")
+                        .resizable().scaledToFit()
+                        .frame(width: h * 0.75, height: h * 0.54)
+                    EcoOutsideTemperature(now: now, plain: true)
+                        .frame(width: h * 0.86, height: h * 0.20)
+                }
+                .frame(width: h * 0.90, height: h * 0.88)
                 Rectangle().fill(colorScheme == .light
                                  ? Color.black.opacity(0.33) : .white.opacity(0.55))
                     .frame(width: 1, height: h * 0.40)
                 SystemClockText()
                     .font(.system(size: h * 0.44, weight: .bold))
                     .monospacedDigit()
-                // Lettura meteo reale dentro la top bar.
-                EcoOutsideTemperature(now: now)
-                    .frame(width: max(56, w * 0.066))
                 Spacer(minLength: 0)
                 Button { showGPSDiagnostics = true } label: {
                     HStack(spacing: max(5, h * 0.09)) {

@@ -1,5 +1,17 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 100 — due anelli luminosi, meteo sotto il logo, scala kW maggiorata (16 novembre 2026)
+
+**Richiesta da screenshot utente della build 99:** il cerchio esterno arancione del GPS deve essere sia colorato sia illuminato; un nuovo secondo cerchio più esterno, concentrico, deve avere il **doppio esatto dello spessore**, con colore selezionabile autonomamente in Temi. Riportare la temperatura sotto l'icona Ecojumbo senza pill/riquadro, soltanto testo. Ingrandire 2× la scala potenza blu/rossa sotto kW senza uscire dai fianchi del ponte. Pubblicare la versione successiva su TestFlight.
+
+**Implementazione su ramo `build-100-luminous-double-ring-power-temp`:**
+- `GPSConcentricAccentRing` mantiene il raggio e il ruolo colore 21 esistenti, ma disegna insieme stroke pieno e due aloni esterni (blur) regolati dal persistente `theme.glowIntensity`. Il nuovo `GPSSecondOuterRing` ha centro identico, raggio maggiore (`+max(6,d*0.018)`), spessore esattamente `2 * concentricRingStroke`, bagliore equivalente e nuovo colore dedicato (`theme.secondRingColor`, ruolo 22). Entrambi sono mascherati da `GPSBridgeUpperMask` e disegnati sopra la top bar; nessuna traccia nuova dentro il ponte. Il clipping MapKit `mapExclusionRadius` segue il bordo esterno del secondo cerchio, più 2pt, per evitare sovrapposizioni.
+- `EcoThemePalette.colorCount` passa da **22 a 23**, senza modificare indici 0–21. Nuovo ruolo `Secondo cerchio esterno · spessore doppio` nella categoria Anelli. Le palette salvate 8/15/17/18/19/21/22 migrano a 23 senza perdere alcun valore, il nuovo ruolo eredita inizialmente il colore principale e può poi essere modificato indipendentemente. La preview dell'intero cockpit mostra entrambi i nuovi bagliori e il colore del draft 22.
+- Il solo `GPSHeader` presenta `EcoOutsideTemperature(now: now, plain: true)` sotto `EcojumboMark` in `VStack`, senza il fondo pill; la vista termometro nel vecchio header Home conserva la presentazione originale. Restano refresh reali Open-Meteo e permessi GPS esistenti, nessun dato simulato.
+- `GPSPowerHorizontalGauge` raddoppia lo spessore delle tacche (`2 * max(5, d*0.014)`) e mira a raddoppiare la larghezza (`d*0.78` invece di `d*0.39`), ma la limita alla larghezza simmetrica effettivamente disponibile tra i piedi di `GPSLowerLineGeometry`, con margine interno di sicurezza. Non si allarga il ponte né si coprono i pulsanti. La miniatura tema riproduce la stessa proporzione.
+
+**Rilascio:** Debug e Release versione **1.0 (100)**, bundle `it.ecojumbo.battery` invariato. Test automatici della geometria e palette da eseguire con PR e compilazione Xcode simulator, poi merge/CI main e workflow Apple TestFlight. Upload Apple, elaborazione ASC, assegnazione al gruppo TE e resa su iPhone sono stati separati; non dare per completati gli ultimi senza conferma. Gli strumenti GPS/BMS, musica, ricerca MusicKit, mappe, navigazione, dock e telemetria restano invariati.
+
 ## Build 99 — mappa/cover sotto metallo, Siri rimosso, ricerca Apple Music di fallback (16 novembre 2026)
 
 **Segnalazione da due screenshot iPhone della build 98:** il disegno MapKit e la copertina musicale superano la linea grigia superiore; il tasto Siri a sinistra è inutile e va eliminato; il campo Cerca mostra il fallimento del developer token Apple Music e non presenta brani.

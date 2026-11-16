@@ -7,7 +7,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 99;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 100;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 92" in state
@@ -50,7 +50,7 @@ assert "onConfirm(" not in picker.split('accessibilityLabel("Annulla modifica")'
 
 # The established theme editor still commits ONLY the tapped role on
 # explicit confirmation, with existing 21-color palettes untouched.
-assert "static let colorCount = 22" in tabs
+assert "static let colorCount = 23" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
 assert "initialHex: draft.colors[selected.id]" in tabs
 assert '("Layer top bar", [15, 16, 19, 20, 2, 21])' in tabs

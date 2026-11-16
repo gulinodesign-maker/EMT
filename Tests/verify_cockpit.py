@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 99;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 100;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -268,7 +268,8 @@ assert 'UIApplication.shared.isIdleTimerDisabled = false' in (r/'Ecojumbo/Ecojum
 # Valore meteo reale da coordinate GPS approssimate; niente termometro iPhone.
 assert 'final class EcoOutsideWeather: ObservableObject' in c
 assert 'private struct EcoOutsideTemperature: View' in c
-assert c.count('EcoOutsideTemperature(now: now)') == 2
+assert c.count('EcoOutsideTemperature(now: now)') == 1
+assert 'EcoOutsideTemperature(now: now, plain: true)' in c
 assert 'api.open-meteo.com/v1/forecast' in c
 assert 'URLQueryItem(name: "current", value: "temperature_2m")' in c
 assert 'URLQueryItem(name: "temperature_unit", value: "celsius")' in c

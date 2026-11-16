@@ -7,7 +7,7 @@ project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
 # The old fingerprint was specific to the 85 source; later builds extend it.
-assert project.count("CURRENT_PROJECT_VERSION = 99;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 100;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 85" in state and "Build 84" in state and "Build 83" in state
@@ -29,6 +29,6 @@ assert "line.stroke(theme.accent" not in top
 assert ".mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))" in top
 assert "GPSGaugeHalo(theme: theme)" not in code
 assert "GPSLowerGlow(theme: theme)" in code
-assert "EcoOutsideTemperature(now: now)" in code.split("private struct GPSHeader: View",1)[1]
+assert "EcoOutsideTemperature(now: now, plain: true)" in code.split("private struct GPSHeader: View",1)[1]
 assert "private struct GPSBridgeUpperMask: Shape {" in code
 print("OK — build 85: left gray and neon top-bar traces removed; right contour and cockpit preserved")

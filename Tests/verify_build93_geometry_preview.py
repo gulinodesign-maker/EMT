@@ -7,7 +7,7 @@ c = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 t = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 p = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 99;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 100;") == 2
 assert p.count("MARKETING_VERSION = 1.0;") == 2
 assert "Build 93" in state
 
@@ -84,5 +84,5 @@ assert "EcoThemePreview(palette: palette, active: active)" in t
 assert "EcoThemePreview(palette: draft)" in t
 assert "draft.colors[selected.id] = hex" in t
 assert "minimumDuration: 0.45" in t
-assert "static let colorCount = 22" in t
+assert "static let colorCount = 23" in t
 print("OK — build 93: diagonal exterior layer, -10% ring, larger GPS scale, complete live draft cockpit miniature")
