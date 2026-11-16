@@ -27,7 +27,8 @@ for symbol in ("paintpalette", "chart.bar.fill", "speedometer",
                "arrow.triangle.turn.up.right.diamond"):
     assert '"' + symbol + '"' in editor
 assert "ForEach(group.range, id:" in editor  # swatch previews & detail
-assert "minimumDuration: 0.45" in editor
+assert "minimumDuration: 0.45" not in editor
+assert "colorID = EcoThemeColorID(" in editor
 assert ".sheet(item: $colorID)" in editor
 assert "draft.colors[selected.id] = hex" in editor
 assert "onSave(slot, palette)" in editor
