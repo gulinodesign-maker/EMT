@@ -21,7 +21,7 @@ assert "migrated.colors[9] = decoded.colors[7]" in tabs
 assert "if migrated.colors.count == 15 {" in tabs
 assert "let edge = migrated.colors[2]" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
-assert "foreground.1, foreground.0, foreground.0]" in tabs
+assert "foreground.1, foreground.0, foreground.0, foreground.0]" in tabs
 assert '("Sfumatura top bar e ponte kW", 15..<17)' not in tabs
 assert '"Layer top bar · sfumatura sinistra"' in tabs
 assert '"Layer top bar · sfumatura destra"' in tabs
