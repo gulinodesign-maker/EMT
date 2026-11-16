@@ -70,7 +70,7 @@ assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)
 assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in cockpit
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
-assert "let justifiedGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)" in home
+assert "let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)" in home
 assert "GPSCockpitMap(theme: theme)" in cockpit
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in cockpit
 assert 'onLongPressGesture(minimumDuration: 0.5)' in cockpit

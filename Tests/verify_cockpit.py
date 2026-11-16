@@ -26,7 +26,7 @@ assert 'ForEach([EcoTab.trips, .settings, .themes])' in u
 assert 'if mapEnabled && selected == .gps {' in u
 assert 'EcoMinimalNavigationLabel(' in u and 'CockpitCornerControls' in u
 # GPS è una modalità del cockpit, non una NavigationStack separata.
-assert 'GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)' in u
+assert 'GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled,' in u
 assert 'NavigationStack { AppleMapsPanel() }' not in u
 assert 'NavigationStack { RoutesPanel() }' not in u
 assert 'case .gps: "GPS"' in u

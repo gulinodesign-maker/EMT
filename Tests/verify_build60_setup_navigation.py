@@ -61,5 +61,5 @@ for width, height in ((736, 414), (844, 390), (932, 430), (956, 440), (1536, 706
 # Portrait rotation still selects Setup; GPS-only landscape is retained.
 assert "if selected == .gps && UIDevice.current.orientation == .portrait" in home
 assert "selected = .settings" in home
-assert "GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled)" in home
+assert "GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled," in home
 print("OK — build 61: Batteria/BMS only in Setup, GPS dock and telemetry vertically aligned")
