@@ -1,4 +1,4 @@
-"""Build 62: the six GPS buttons align to both edges of the telemetry panel."""
+"""Build 102: six standard GPS buttons form a compact centered group under telemetry."""
 from pathlib import Path
 from math import isclose
 import hashlib
@@ -9,7 +9,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 source = cockpit.decode("utf-8")
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 101;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 102;") == 2
 
 # Preserve telemetry, dial and map source from the approved landscape cockpit.
 blob = b"blob " + str(len(cockpit)).encode() + b"\0" + cockpit
@@ -20,14 +20,15 @@ assert "let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) 
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in source
 assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in source
 
-# Only when the GPS map is hidden: distribute the six buttons under telemetry.
+# Only in Telemetry: centre the compact group inside the exact telemetry panel bounds.
 dock = home.split("private struct CockpitCornerControls: View", 1)[1].split("/// EJ 1.19:", 1)[0]
 assert "let telemetryDock = selected == .gps && !mapEnabled" in dock
 assert "let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)" in dock
 assert "width - EcoCockpitDockGeometry.rightInset(width: width)" in dock
 assert "let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)" in dock
-assert "HStack(spacing: musicDock ? musicGap : (telemetryDock ? justifiedGap : gpsGap))" in dock
-assert ".frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .leading)" in dock
+assert "let standardGap = min(justifiedGap, max(8, width * 0.013))" in dock
+assert "HStack(spacing: musicDock ? musicGap : (telemetryDock ? standardGap : gpsGap))" in dock
+assert ".frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .center)" in dock
 assert "ForEach([EcoTab.trips, .settings, .themes])" in dock
 assert 'gpsButton("map.fill", active: mapEnabled' in dock
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in dock
@@ -51,14 +52,16 @@ for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),
     panel_left = dial_x + dial * 0.508 + right
     panel_width = w - right - panel_left
     justified_gap = max(0, (panel_width - 6 * side) / 5)
-    button_left = panel_left
-    button_right = button_left + 6 * side + 5 * justified_gap
+    standard_gap = min(justified_gap, max(8, w * 0.013))
+    group_width = 6 * side + 5 * standard_gap
+    button_left = panel_left + (panel_width - group_width) / 2
+    button_right = button_left + group_width
     assert justified_gap >= gap
-    assert isclose(button_left, panel_left, abs_tol=1e-7)
-    assert isclose(button_right, w - right, abs_tol=1e-7)
+    assert button_left >= panel_left
+    assert button_right <= w - right + 1e-7
     assert panel_left > safe_left - 5, (w, h, panel_left, safe_left)
     dial_tangent = dial_x + dial * 0.508
     assert isclose(panel_left - dial_tangent, right, abs_tol=1e-7)
     assert isclose((button_left + button_right) / 2,
                    (dial_tangent + w) / 2, abs_tol=1e-7)
-print("OK — build 62: six GPS buttons justified to telemetry left/right edges")
+print("OK — build 102: six GPS buttons compact and centred under telemetry")
