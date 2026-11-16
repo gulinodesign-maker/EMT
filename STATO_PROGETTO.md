@@ -1,5 +1,17 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 101 — sfumatura Day/Night indipendente, menu temi corretti, tap singolo e rimozione anello esterno (16 novembre 2026)
+
+**Richiesta:** la top bar deve adattare sfumature/luce al Day Mode e Night Mode con valori distinti; in Anelli e numeri del tachimetro concentrare tutti i colori e la luce ancora realmente usati, comprese le barre potenza energia in uscita/entrata; lasciare in Barre telemetria solo i ruoli della telemetria, senza voci obsolete; eliminare il secondo anello esterno aggiunto nella build 100, mantenendo l'unico anello luminoso precedente; il campione colore deve aprirsi al semplice tocco. Pubblicare il risultato su TestFlight.
+
+**Codice:** nel cockpit eliminati GPSSecondOuterRing, il suo ruolo colore 22 e i calcoli di raggio aggiuntivo; GPSDialLayout.mapExclusionRadius ritorna a raggio dell'anello rimasto + metà stroke + 2 punti, recuperando il margine MapKit. L'unico GPSConcentricAccentRing conserva glow e colore editabile. GPSUpperGradientLayer seleziona secondo il vero schema colore i cinque colori Day o Night del layer e le intensità indipendenti di sfumatura alta/bassa; in Day colori chiari e minore opacità, con identiche maschere protettive di tachimetro e ponte. Anche EcoCockpitThemeMiniature usa la versione Day/Night selezionata e il solo anello rimasto.
+
+**Temi persistenti:** EcoThemePalette torna ai 22 ruoli 0...21 e aggiunge il campo Codable dayTopBar, costituito da cinque colori (sinistra, destra, alto, basso, luce) e due intensità indipendenti. I temi esistenti senza dayTopBar ricevono valori diurni chiari derivati dalle tonalità Night salvate senza sovrascrivere nessun colore storico. Le vecchie palette da 8/15/17/18/19/21/22 colori migrano senza perdite; nelle palette 100 da 23 colori è eliminato soltanto l'indice obsoleto 22 dell'anello rimosso. Day/Night si può selezionare nel pannello Layer top bar, con anteprima della modalità scelta.
+
+**Menu:** Aspetto generale [0]; Anelli e numeri del tachimetro [1,3,21,11,10,14,18,17,8,9,7] suddiviso in anelli/luci, velocità/numeri, barre di potenza; Barre telemetria [4,5,6]; Navigatore [12,13]; Layer top bar [15,16,19,20,2]. Ciascun indice appare una sola volta. Le voci 8/9 ora dicono Barre di potenza, rispettivamente energia in uscita ed entrata, poiché colorano davvero la scala del ponte. Intensità bagliore sotto il tachimetro. Campione colore ora Button con semplice tocco e accessibilità corretta, senza gesture long press; preservati 20 colori base e slider chiaro/scuro.
+
+**Verifiche/rilascio:** marketing 1.0, numero Debug/Release 101, bundle it.ecojumbo.battery invariato. Test e build Xcode Simulator da verificare su PR/main prima del merge; seguire TestFlight fino a Upload succeeded. Processing App Store Connect, associazione gruppo TE e resa reale su iPhone sono stati separati e non vanno inventati. Non modificati GPS, JK BMS, mappa, musica e telemetria.
+
 ## Build 100 — due anelli luminosi, meteo sotto il logo, scala kW maggiorata (16 novembre 2026)
 
 **Richiesta da screenshot utente della build 99:** il cerchio esterno arancione del GPS deve essere sia colorato sia illuminato; un nuovo secondo cerchio più esterno, concentrico, deve avere il **doppio esatto dello spessore**, con colore selezionabile autonomamente in Temi. Riportare la temperatura sotto l'icona Ecojumbo senza pill/riquadro, soltanto testo. Ingrandire 2× la scala potenza blu/rossa sotto kW senza uscire dai fianchi del ponte. Pubblicare la versione successiva su TestFlight.

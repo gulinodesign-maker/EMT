@@ -8,7 +8,7 @@ c = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 t = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 p = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 100;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 101;") == 2
 assert "Build 95" in state
 
 dial = c.split("private enum GPSDialLayout {", 1)[1].split(
@@ -17,7 +17,7 @@ assert "static let mapToDialClearance: CGFloat = 2" in dial
 assert "static func concentricRingRadius(for d: CGFloat)" in dial
 assert "static func concentricRingStroke(for d: CGFloat)" in dial
 assert "static func mapExclusionRadius(for d: CGFloat)" in dial
-assert "secondRingRadius(for: d) + secondRingStroke(for: d) / 2" in dial
+assert "concentricRingRadius(for: d) + concentricRingStroke(for: d) / 2" in dial
 assert "+ mapToDialClearance" in dial
 assert "outerProfileDiameterFactor: CGFloat = 0.986 * 0.90" in dial
 
@@ -63,16 +63,16 @@ assert "savedPalette.colors[21]" in theme
 assert "return accent" in theme
 
 # All existing 21 colors survive, and the new role starts from old accent.
-assert "static let colorCount = 23" in t
-assert '"Cerchio concentrico · sopra top bar"' in t
-assert '("Layer top bar", [15, 16, 19, 20, 2, 21])' in t
+assert "static let colorCount = 22" in t
+assert '"Cerchio concentrico luminoso · tachimetro"' in t
+assert '("Layer top bar", [15, 16, 19, 20, 2])' in t
 assert "decoded.colors.count == 21 ||" in t
 assert "if migrated.colors.count == 21 {" in t
 assert "migrated.colors.append(migrated.colors[1])" in t
 labels = t.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = t.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 23
-assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
 assert "Scegli uno dei 20 colori base" in t
 preview = c.split("struct EcoCockpitThemeMiniature: View {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]

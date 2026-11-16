@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 100;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 101;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 
 # Setup exactly 3x3; the footer stays outside the scrolling cell grid.
@@ -47,16 +47,16 @@ assert "guard let speed, speed.isFinite, speed >= 0 else { return nil }" in spee
 assert "speed / 120" not in speed
 
 # Current palette persistence (8/15/17 -> 18) and defaulted Codable intensity.
-assert "static let colorCount = 23" in tabs
+assert "static let colorCount = 22" in tabs
 assert "decoded.colors.count == 17 || decoded.colors.count == 18 ||" in tabs
-assert "decoded.colors.count == colorCount" in tabs
+assert "decoded.colors.count == 22 || decoded.colors.count == 23" in tabs
 assert "migrated.colors.append(contentsOf: extraDefaults)" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
 assert 'migrated.colors.append("#FF3B30")' in tabs
 assert "decodeIfPresent(Double.self, forKey: .glowIntensity)" in tabs
 assert "try data.encode(glowIntensity, forKey: .glowIntensity)" in tabs
 assert "Slider(value: $draft.glowIntensity, in: 0...1, step: 0.05)" in tabs
-assert '("Velocità oltre soglia", [14, 10, 18, 17])' in tabs
+assert 'colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])' in tabs
 assert '"Velocità GPS · limite superato"' in tabs
 assert '"Velocità GPS · fase accelerazione"' in tabs
 assert "EcoThemePalette.active?.colors[17]" in cockpit

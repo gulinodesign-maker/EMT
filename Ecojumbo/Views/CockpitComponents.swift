@@ -189,6 +189,13 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     // Il bagliore è proprietà del tema salvato, non una preferenza globale.
     var glowIntensity: Double { savedPalette?.glowIntensity ?? 0.60 }
 
+    // Build 101: configurazione Day indipendente dai 5 ruoli Night.
+    // Per i kit predefiniti (senza slot) ricava una tavolozza diurna chiara.
+    var dayTopBar: EcoDayTopBarPalette {
+        savedPalette?.dayTopBar
+            ?? EcoDayTopBarPalette.derived(from: EcoThemePalette.template(self).colors)
+    }
+
     // Build 88: ruoli colore salvati e riattivati sul nuovo layer GPS.
     var topBarGradientStart: Color {
         Color(themeHex: savedPalette?.colors[15] ?? "#173A59")
@@ -218,13 +225,6 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     var concentricRingColor: Color {
         if let savedPalette, savedPalette.colors.count > 21 {
             return Color(themeHex: savedPalette.colors[21])
-        }
-        return accent
-    }
-    // Ruolo 22: secondo cerchio, indipendente dal precedente.
-    var secondRingColor: Color {
-        if let savedPalette, savedPalette.colors.count > 22 {
-            return Color(themeHex: savedPalette.colors[22])
         }
         return accent
     }
@@ -1526,16 +1526,10 @@ private enum GPSDialLayout {
     static func concentricRingStroke(for d: CGFloat) -> CGFloat {
         max(1.5, min(2.4, d * 0.003))
     }
-    // Build 100: un secondo anello concentrico, esterno e spesso il
-    // doppio del precedente. Il suo ingombro protegge anche la mappa.
-    static func secondRingRadius(for d: CGFloat) -> CGFloat {
-        concentricRingRadius(for: d) + max(6, d * 0.018)
-    }
-    static func secondRingStroke(for d: CGFloat) -> CGFloat {
-        concentricRingStroke(for: d) * 2
-    }
+    // Build 101: dopo la rimozione del cerchio aggiuntivo la mappa
+    // torna a 2pt dal SOLO anello concentrico rimasto.
     static func mapExclusionRadius(for d: CGFloat) -> CGFloat {
-        secondRingRadius(for: d) + secondRingStroke(for: d) / 2
+        concentricRingRadius(for: d) + concentricRingStroke(for: d) / 2
             + mapToDialClearance
     }
 
@@ -1644,30 +1638,6 @@ private struct GPSConcentricAccentRing: View {
             GPSLuminousCircleStroke(
                 color: color, diameter: radius * 2,
                 stroke: GPSDialLayout.concentricRingStroke(for: d),
-                glowIntensity: glowIntensity)
-                .position(x: GPSDialLayout.centerX(width: w, height: h),
-                          y: h * 0.494)
-                .mask(GPSBridgeUpperMask())
-        }
-        .allowsHitTesting(false)
-        .accessibilityHidden(true)
-    }
-}
-
-// Secondo anello esterno — ruolo indipendente 22 nei Temi.
-// Spessore ESATTAMENTE 2× il primo, centro identico e clipping kW.
-private struct GPSSecondOuterRing: View {
-    let color: Color
-    let glowIntensity: Double
-    var body: some View {
-        GeometryReader { geo in
-            let w = geo.size.width
-            let h = geo.size.height
-            let d = GPSDialLayout.size(width: w, height: h)
-            let radius = GPSDialLayout.secondRingRadius(for: d)
-            GPSLuminousCircleStroke(
-                color: color, diameter: radius * 2,
-                stroke: GPSDialLayout.secondRingStroke(for: d),
                 glowIntensity: glowIntensity)
                 .position(x: GPSDialLayout.centerX(width: w, height: h),
                           y: h * 0.494)
@@ -1972,10 +1942,6 @@ struct GPSCockpitDashboard: View {
                     .frame(width: w, height: h)
                     .zIndex(27)
 
-                GPSSecondOuterRing(color: theme.secondRingColor,
-                                   glowIntensity: theme.glowIntensity)
-                    .frame(width: w, height: h)
-                    .zIndex(27.5)
 
                 // Il solo ponte luminoso si disegna sopra il ritaglio;
                 // nessun riempimento o cerchio è visibile al di sotto.
@@ -2258,13 +2224,23 @@ private struct GPSBridgeExteriorMask: Shape {
 }
 
 private struct GPSUpperGradientLayer: View {
+    @Environment(\.colorScheme) private var colorScheme
     let theme: CockpitTheme
     var body: some View {
         GeometryReader { geo in
             let d = GPSDialLayout.size(width: geo.size.width, height: geo.size.height)
+            let daylight = colorScheme == .light
+            let day = theme.dayTopBar
+            let from = daylight ? Color(themeHex: day.left) : theme.topBarGradientStart
+            let to = daylight ? Color(themeHex: day.right) : theme.topBarGradientEnd
+            let high = daylight ? Color(themeHex: day.high) : theme.topBarHighFade
+            let low = daylight ? Color(themeHex: day.low) : theme.topBarLowFade
+            let underGlow = daylight ? Color(themeHex: day.underGlow) : theme.topBarUnderGlow
+            let highStrength = daylight ? day.highIntensity : theme.topBarHighFadeIntensity
+            let lowStrength = daylight ? day.lowIntensity : theme.topBarLowFadeIntensity
             ZStack {
                 GPSUpperLayerFootprint()
-                    .fill(theme.topBarUnderGlow.opacity(theme.glowIntensity * 0.40),
+                    .fill(underGlow.opacity(theme.glowIntensity * (daylight ? 0.22 : 0.40)),
                           style: FillStyle(eoFill: true))
                     .blur(radius: max(10, d * 0.036))
                     // Nessuna luce può invadere tachimetro, telemetria o dock.
@@ -2272,10 +2248,10 @@ private struct GPSUpperGradientLayer: View {
                         .fill(style: FillStyle(eoFill: true)))
                 GPSUpperLayerFootprint()
                     .fill(LinearGradient(
-                        colors: [theme.topBarGradientStart, theme.topBarGradientEnd],
+                        colors: [from, to],
                         startPoint: .leading, endPoint: .trailing),
                         style: FillStyle(eoFill: true))
-                    .opacity(0.84)
+                    .opacity(daylight ? 0.72 : 0.84)
 
                 // Build 91: due velature verticali indipendenti.
                 // La prima si dissolve dal bordo alto verso il centro;
@@ -2284,20 +2260,16 @@ private struct GPSUpperGradientLayer: View {
                 // ENTRAMBE, insieme al glow, da tachimetro e ponte.
                 GPSUpperLayerFootprint()
                     .fill(LinearGradient(stops: [
-                        .init(color: theme.topBarHighFade.opacity(
-                            theme.topBarHighFadeIntensity), location: 0),
-                        .init(color: theme.topBarHighFade.opacity(
-                            theme.topBarHighFadeIntensity * 0.28), location: 0.20),
+                        .init(color: high.opacity(highStrength), location: 0),
+                        .init(color: high.opacity(highStrength * 0.28), location: 0.20),
                         .init(color: .clear, location: 0.45)
                     ], startPoint: .top, endPoint: .bottom),
                     style: FillStyle(eoFill: true))
                 GPSUpperLayerFootprint()
                     .fill(LinearGradient(stops: [
                         .init(color: .clear, location: 0.55),
-                        .init(color: theme.topBarLowFade.opacity(
-                            theme.topBarLowFadeIntensity * 0.28), location: 0.80),
-                        .init(color: theme.topBarLowFade.opacity(
-                            theme.topBarLowFadeIntensity), location: 1)
+                        .init(color: low.opacity(lowStrength * 0.28), location: 0.80),
+                        .init(color: low.opacity(lowStrength), location: 1)
                     ], startPoint: .top, endPoint: .bottom),
                     style: FillStyle(eoFill: true))
 
@@ -2305,8 +2277,8 @@ private struct GPSUpperGradientLayer: View {
                 // dell'app. Resta confinata al layer esterno: non può
                 // invadere tachimetro o ponte grazie alle due maschere.
                 GPSUpperLayerFootprint()
-                    .stroke(theme.topBarUnderGlow.opacity(
-                        theme.glowIntensity * 0.72),
+                    .stroke(underGlow.opacity(
+                        theme.glowIntensity * (daylight ? 0.36 : 0.72)),
                         lineWidth: max(2, d * 0.015))
                     .blur(radius: max(5, d * 0.028))
                     .offset(x: d * 0.023, y: d * 0.012)
@@ -2379,9 +2351,6 @@ struct EcoCockpitThemeMiniature: View {
                 GPSConcentricAccentRing(color: tone(21),
                                         glowIntensity: palette.glowIntensity)
                     .frame(width: w, height: h)
-                GPSSecondOuterRing(color: tone(22),
-                                   glowIntensity: palette.glowIntensity)
-                    .frame(width: w, height: h)
 
                 // Solo il valore non disponibile: l'anteprima non inventa velocità.
                 Text("—")
@@ -2433,27 +2402,36 @@ struct EcoCockpitThemeMiniature: View {
     }
 
     private func miniatureLayer(d: CGFloat) -> some View {
-        ZStack {
+        let daylight = colorScheme == .light
+        let day = palette.dayTopBar
+        let from = daylight ? Color(themeHex: day.left) : tone(15)
+        let to = daylight ? Color(themeHex: day.right) : tone(16)
+        let high = daylight ? Color(themeHex: day.high) : tone(19)
+        let low = daylight ? Color(themeHex: day.low) : tone(20)
+        let underGlow = daylight ? Color(themeHex: day.underGlow) : tone(2)
+        let highStrength = daylight ? day.highIntensity : palette.topFadeIntensity
+        let lowStrength = daylight ? day.lowIntensity : palette.bottomFadeIntensity
+        return ZStack {
             GPSUpperLayerFootprint()
                 .fill(LinearGradient(
-                    colors: [tone(15), tone(16)],
+                    colors: [from, to],
                     startPoint: .leading, endPoint: .trailing),
                     style: FillStyle(eoFill: true))
-                .opacity(0.84)
+                .opacity(daylight ? 0.72 : 0.84)
             GPSUpperLayerFootprint()
                 .fill(LinearGradient(stops: [
-                    .init(color: tone(19).opacity(palette.topFadeIntensity), location: 0),
+                    .init(color: high.opacity(highStrength), location: 0),
                     .init(color: .clear, location: 0.45)
                 ], startPoint: .top, endPoint: .bottom),
                 style: FillStyle(eoFill: true))
             GPSUpperLayerFootprint()
                 .fill(LinearGradient(stops: [
                     .init(color: .clear, location: 0.55),
-                    .init(color: tone(20).opacity(palette.bottomFadeIntensity), location: 1)
+                    .init(color: low.opacity(lowStrength), location: 1)
                 ], startPoint: .top, endPoint: .bottom),
                 style: FillStyle(eoFill: true))
             GPSUpperLayerFootprint()
-                .stroke(tone(2).opacity(palette.glowIntensity * 0.72),
+                .stroke(underGlow.opacity(palette.glowIntensity * (daylight ? 0.36 : 0.72)),
                         lineWidth: max(2, d * 0.015))
                 .blur(radius: max(5, d * 0.028))
                 .offset(x: d * 0.023, y: d * 0.012)

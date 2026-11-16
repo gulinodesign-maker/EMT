@@ -32,7 +32,14 @@ jobs:
       - name: Controlli strutturali Python
         run: |
           set -euo pipefail
-          for f in Tests/verify_*.py; do python3 "$f"; done
+          failed=0
+          for f in Tests/verify_*.py; do
+            if ! python3 "$f"; then
+              echo "::error file=$f::Regressione fallita in $f"
+              failed=1
+            fi
+          done
+          if [[ "$failed" -ne 0 ]]; then exit 1; fi
           plutil -lint Ecojumbo.xcodeproj/project.pbxproj
           plutil -lint Ecojumbo/Info.plist
 

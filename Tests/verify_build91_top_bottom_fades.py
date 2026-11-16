@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 100;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 101;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 91" in state
@@ -35,8 +35,8 @@ assert layer.count("], startPoint: .top, endPoint: .bottom)") == 2
 for location in ("location: 0)", "location: 0.20)", "location: 0.45)",
                  "location: 0.55)", "location: 0.80)", "location: 1)"):
     assert location in layer
-assert "theme.topBarHighFadeIntensity * 0.28" in layer
-assert "theme.topBarLowFadeIntensity * 0.28" in layer
+assert "highStrength * 0.28" in layer
+assert "lowStrength * 0.28" in layer
 
 # Both masks are OUTSIDE the ZStack and AFTER all four fills.
 assert layer.index("topBarLowFadeIntensity") < layer.index(
@@ -50,20 +50,20 @@ assert "GPSLowerGlow(theme: theme)" in dashboard
 assert "GPSPowerHorizontalGauge(d: dialSize," in dashboard
 
 # Two new palette roles, each with color and independent adjustable intensity.
-assert "static let colorCount = 23" in tabs
+assert "static let colorCount = 22" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 23
-assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
 assert '"Layer top bar · sfumatura alta"' in tabs
 assert '"Layer top bar · sfumatura bassa"' in tabs
-assert '("Layer top bar", [15, 16, 19, 20, 2, 21])' in tabs
-assert "Slider(value: $draft.topFadeIntensity, in: 0...1, step: 0.05)" in tabs
-assert "Slider(value: $draft.bottomFadeIntensity, in: 0...1, step: 0.05)" in tabs
-assert "Color(themeHex: draft.colors[19])" in tabs
-assert "Color(themeHex: draft.colors[20])" in tabs
+assert '("Layer top bar", [15, 16, 19, 20, 2])' in tabs
+assert "Slider(value: topFadeBinding, in: 0...1, step: 0.05)" in tabs
+assert "Slider(value: bottomFadeBinding, in: 0...1, step: 0.05)" in tabs
+assert "Color(themeHex: roleHex(19))" in tabs
+assert "Color(themeHex: roleHex(20))" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
-assert "if selectedGroup == 5 {" in tabs
+assert "if selectedGroup == 4 {" in tabs
 
 # Old custom slots of every previously supported size upgrade to 21 colors
 # without overwriting original indexes 0..18.
@@ -75,7 +75,7 @@ for prop in ("topFadeIntensity", "bottomFadeIntensity"):
     assert f"decodeIfPresent(Double.self, forKey: .{prop})" in tabs
     assert f"data.encode({prop}, forKey: .{prop})" in tabs
     assert f"palette.{prop}.isFinite" in tabs
-assert "foreground.1, foreground.0, foreground.0, foreground.0]" in tabs
+assert "foreground.1, foreground.0, foreground.0]" in tabs
 assert "EcoThemePalette.save(palette, slot: slot)" in tabs
 
 print("OK — build 91: independent high/low color and opacity, migrated slots, dial/bridge masks")

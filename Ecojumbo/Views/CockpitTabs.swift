@@ -272,6 +272,71 @@ final class EcoNavigationStore: ObservableObject {
 // EcoNavigationStore resta condiviso e mantiene la rotta quando si cambia modalità.
 
 
+// Build 101: cinque colori indipendenti e due intensità per il layer diurno.
+// I ruoli della palette notturna rimangono negli indici storici 2/15/16/19/20.
+struct EcoDayTopBarPalette: Codable, Equatable {
+    var left: String
+    var right: String
+    var high: String
+    var low: String
+    var underGlow: String
+    var highIntensity: Double
+    var lowIntensity: Double
+
+    static func derived(from colors: [String]) -> EcoDayTopBarPalette {
+        func pastel(_ hex: String, white: CGFloat = 0.72) -> String {
+            let original = UIColor(Color(themeHex: hex))
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            guard original.getRed(&r, green: &g, blue: &b, alpha: &a) else {
+                return "#DDE5EE"
+            }
+            return EcoThemePalette.colorHex(UIColor(red: r * (1 - white) + white,
+                                                     green: g * (1 - white) + white,
+                                                     blue: b * (1 - white) + white,
+                                                     alpha: 1))
+        }
+        let left = colors.indices.contains(15) ? colors[15] : (colors.indices.contains(2) ? colors[2] : "#173A59")
+        let right = colors.indices.contains(16) ? colors[16] : left
+        let high = colors.indices.contains(19) ? colors[19] : left
+        let low = colors.indices.contains(20) ? colors[20] : right
+        let glow = colors.indices.contains(2) ? colors[2] : "#FF7008"
+        return EcoDayTopBarPalette(
+            left: pastel(left), right: pastel(right),
+            high: pastel(high), low: pastel(low),
+            underGlow: pastel(glow, white: 0.55),
+            highIntensity: 0.22, lowIntensity: 0.22
+        )
+    }
+
+    func hex(for role: Int) -> String {
+        switch role {
+        case 15: left
+        case 16: right
+        case 19: high
+        case 20: low
+        case 2: underGlow
+        default: "#FFFFFF"
+        }
+    }
+
+    mutating func set(_ hex: String, for role: Int) {
+        switch role {
+        case 15: left = hex
+        case 16: right = hex
+        case 19: high = hex
+        case 20: low = hex
+        case 2: underGlow = hex
+        default: break
+        }
+    }
+
+    var isValid: Bool {
+        [left, right, high, low, underGlow].allSatisfy(EcoThemePalette.validHex)
+            && highIntensity.isFinite && (0...1).contains(highIntensity)
+            && lowIntensity.isFinite && (0...1).contains(lowIntensity)
+    }
+}
+
 // Build 74: ruoli esistenti 10 (normale), 14 (decelerazione), 17 (limite); 18 (accelerazione).
 // I valori 15 e 16 rimangono riservati e salvati per compatibilità.
 struct EcoThemePalette: Codable, Equatable {
@@ -280,19 +345,22 @@ struct EcoThemePalette: Codable, Equatable {
     var glowIntensity: Double
     var topFadeIntensity: Double
     var bottomFadeIntensity: Double
+    var dayTopBar: EcoDayTopBarPalette
 
     init(name: String, colors: [String], glowIntensity: Double = 0.60,
-         topFadeIntensity: Double = 0.35, bottomFadeIntensity: Double = 0.35) {
+         topFadeIntensity: Double = 0.35, bottomFadeIntensity: Double = 0.35,
+         dayTopBar: EcoDayTopBarPalette? = nil) {
         self.name = name
         self.colors = colors
         self.glowIntensity = glowIntensity.isFinite ? min(1, max(0, glowIntensity)) : 0.60
         self.topFadeIntensity = topFadeIntensity.isFinite ? min(1, max(0, topFadeIntensity)) : 0.35
         self.bottomFadeIntensity = bottomFadeIntensity.isFinite ? min(1, max(0, bottomFadeIntensity)) : 0.35
+        self.dayTopBar = dayTopBar ?? EcoDayTopBarPalette.derived(from: colors)
     }
 
     // Le palette 63–72 non contenevano intensità: default retrocompatibile.
     private enum CodingKeys: String, CodingKey {
-        case name, colors, glowIntensity, topFadeIntensity, bottomFadeIntensity
+        case name, colors, glowIntensity, topFadeIntensity, bottomFadeIntensity, dayTopBar
     }
 
     init(from decoder: Decoder) throws {
@@ -307,6 +375,8 @@ struct EcoThemePalette: Codable, Equatable {
         let low = try data.decodeIfPresent(Double.self, forKey: .bottomFadeIntensity) ?? 0.35
         topFadeIntensity = high.isFinite ? min(1, max(0, high)) : 0.35
         bottomFadeIntensity = low.isFinite ? min(1, max(0, low)) : 0.35
+        dayTopBar = try data.decodeIfPresent(EcoDayTopBarPalette.self, forKey: .dayTopBar)
+            ?? EcoDayTopBarPalette.derived(from: colors)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -316,6 +386,7 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(glowIntensity, forKey: .glowIntensity)
         try data.encode(topFadeIntensity, forKey: .topFadeIntensity)
         try data.encode(bottomFadeIntensity, forKey: .bottomFadeIntensity)
+        try data.encode(dayTopBar, forKey: .dayTopBar)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -328,8 +399,8 @@ struct EcoThemePalette: Codable, Equatable {
         "Barre telemetria · colore intermedio",
         "Barre telemetria · colore luminoso",
         "Numeri kW · energia in ingresso",
-        "Anello esterno · potenza erogata",
-        "Anello interno · recupero energia",
+        "Barre di potenza · energia in uscita",
+        "Barre di potenza · energia in entrata",
         "Velocità GPS · fase normale",
         "Numeri del tachimetro · km/h",
         "Navigatore · svolta a destra",
@@ -341,8 +412,7 @@ struct EcoThemePalette: Codable, Equatable {
         "Velocità GPS · fase accelerazione",
         "Layer top bar · sfumatura alta",
         "Layer top bar · sfumatura bassa",
-        "Cerchio concentrico · sopra top bar",
-        "Secondo cerchio esterno · spessore doppio"
+        "Cerchio concentrico luminoso · tachimetro"
     ]
     static let details = [
         "Fondo scuro dietro gli strumenti.",
@@ -353,8 +423,8 @@ struct EcoThemePalette: Codable, Equatable {
         "Tonalità centrale delle barre di telemetria.",
         "Tonalità brillante delle barre di telemetria.",
         "Numero della potenza che entra nella batteria (kW); non dimostra da sola che si sta frenando.",
-        "Corona segmentata esterna: potenza in uscita dal BMS.",
-        "Corona segmentata interna: energia in ingresso alla batteria, da carica o recupero.",
+        "Segmenti rossi della scala potenza nel ponte kW: energia in uscita.",
+        "Segmenti azzurri della scala potenza nel ponte kW: energia in entrata o recupero.",
         "Colore normale dell’arco GPS quando la variazione resta entro ±5 km/h.",
         "Cifre grandi della velocità GPS al centro.",
         "Freccia e distanza della prossima svolta verso destra.",
@@ -366,20 +436,18 @@ struct EcoThemePalette: Codable, Equatable {
         "Colore dell’arco GPS quando la velocità aumenta di oltre 5 km/h nella finestra di osservazione.",
         "Sfumatura verticale dal bordo alto verso il centro del layer esterno; colore e intensità indipendenti.",
         "Sfumatura verticale dal bordo basso verso il centro del layer esterno; colore e intensità indipendenti.",
-        "Colore del nuovo cerchio concentrico sopra la top bar. Il tracciato termina prima del ponte kW.",
-        "Colore indipendente del secondo anello più esterno, spesso il doppio; bagliore editabile con il cursore generale, ponte kW rispettato."
+        "Colore del cerchio luminoso rimasto attorno al tachimetro; bagliore regolabile qui, termina prima del ponte kW."
     ]
-    // L'ordine visibile colloca le quattro fasi GPS in un'unica categoria,
-    // senza duplicare il colore normale (indice 10) né il colore di decelerazione (14).
+    // Ogni ruolo compare una sola volta. Barre in entrata/uscita e tutte
+    // le fasi della velocità fanno parte del tachimetro, non della telemetria.
     static let groups: [(title: String, range: [Int])] = [
-        ("Aspetto generale", Array(0..<4)),
-        ("Barre telemetria e potenza", Array(4..<8)),
-        ("Anelli e numeri del tachimetro", [8, 9, 11, 22]),
+        ("Aspetto generale", [0]),
+        ("Anelli e numeri del tachimetro", [1, 3, 21, 11, 10, 14, 18, 17, 8, 9, 7]),
+        ("Barre telemetria", [4, 5, 6]),
         ("Navigatore", [12, 13]),
-        ("Velocità oltre soglia", [14, 10, 18, 17]),
-        ("Layer top bar", [15, 16, 19, 20, 2, 21])
+        ("Layer top bar", [15, 16, 19, 20, 2])
     ]
-    static let colorCount = 23
+    static let colorCount = 22
     static let extraDefaults = [
         "#FA2B2E", "#2BBAFF", "#FF7008", "#FA2B2E",
         "#FFFFFF", "#FFFFFF", "#FFB224"
@@ -407,7 +475,7 @@ struct EcoThemePalette: Codable, Equatable {
             colors: ["#040405", foreground.0, foreground.1, "#D9DEE3"]
                 + standardBarColors + extraDefaults
                 + [foreground.1, foreground.1, "#FF3B30", "#FF3B30",
-                   foreground.1, foreground.0, foreground.0, foreground.0]
+                   foreground.1, foreground.0, foreground.0]
         )
     }
 
@@ -418,7 +486,7 @@ struct EcoThemePalette: Codable, Equatable {
               (decoded.colors.count == 8 || decoded.colors.count == 15 ||
                decoded.colors.count == 17 || decoded.colors.count == 18 ||
                decoded.colors.count == 19 || decoded.colors.count == 21 ||
-               decoded.colors.count == 22 || decoded.colors.count == colorCount),
+               decoded.colors.count == 22 || decoded.colors.count == 23),
               decoded.colors.allSatisfy({ validHex($0) }) else { return nil }
         // Migrazione non distruttiva: gli 8 colori delle build 63 restano identici.
         var migrated = decoded
@@ -453,10 +521,11 @@ struct EcoThemePalette: Codable, Equatable {
         if migrated.colors.count == 21 {
             migrated.colors.append(migrated.colors[1])
         }
-        // Build 100: 22→23; secondo anello eredita solo inizialmente
-        // l'accento salvato, poi rimane indipendente. Nessun colore perso.
-        if migrated.colors.count == 22 {
-            migrated.colors.append(migrated.colors[1])
+        // Build 101: il ruolo 22 è orfano dopo la rimozione del
+        // secondo anello. Troncamento dell'UNICO valore non più usato;
+        // tutti i colori 0...21 e il nuovo layer Day restano intatti.
+        if migrated.colors.count == 23 {
+            migrated.colors.removeLast()
         }
         return migrated
     }
@@ -467,6 +536,7 @@ struct EcoThemePalette: Codable, Equatable {
               palette.glowIntensity.isFinite, (0...1).contains(palette.glowIntensity),
               palette.topFadeIntensity.isFinite, (0...1).contains(palette.topFadeIntensity),
               palette.bottomFadeIntensity.isFinite, (0...1).contains(palette.bottomFadeIntensity),
+              palette.dayTopBar.isValid,
               palette.colors.allSatisfy({ validHex($0) }),
               let data = try? JSONEncoder().encode(palette) else { return false }
         UserDefaults.standard.set(data, forKey: storagePrefix + String(slot))
@@ -520,6 +590,7 @@ private struct EcoThemeEditorSession: Identifiable {
 
 private struct EcoThemeColorID: Identifiable {
     let id: Int
+    let isDay: Bool
 }
 
 struct ThemePickerView: View {
@@ -536,7 +607,7 @@ struct ThemePickerView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Tre temi personali con anteprima dell'intero cockpit. Nel configuratore scegli una categoria e tieni premuto il colore da modificare; poi salva nello slot.")
+                Text("Tre temi personali con anteprima dell'intero cockpit. Nel configuratore scegli una categoria, tocca il campione da modificare e salva nello slot.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
@@ -678,6 +749,7 @@ private struct EcoThemeEditorView: View {
     @State private var draft: EcoThemePalette
     @State private var colorID: EcoThemeColorID?
     @State private var selectedGroup: Int?
+    @State private var editingDayTopBar = false
     @State private var chooseSlot = false
     @State private var overwriteSlot: Int?
     let initialSlot: Int?
@@ -714,13 +786,15 @@ private struct EcoThemeEditorView: View {
                             .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 10))
                     }
 
-                    Text("Anteprima completa del cockpit · aggiornamento immediato. Seleziona una categoria e tieni premuto il colore da modificare.")
+                    Text("Anteprima completa del cockpit · aggiornamento immediato. Tocca un colore per modificarlo.")
                         .font(.subheadline).foregroundStyle(.secondary)
 
                     EcoThemePreview(palette: draft)
+                        .preferredColorScheme(selectedGroup == 4
+                            ? (editingDayTopBar ? .light : .dark) : nil)
 
-                    // Categoria velocità: quattro controlli distinti (fasi + limite).
-                    // Gli slot storici e la griglia delle categorie non cambiano.
+                    // Il gruppo tachimetro contiene tutte le fasi GPS,
+                    // gli anelli luminosi e le barre di potenza del ponte.
                     if let selectedGroup {
                         let group = EcoThemePalette.groups[selectedGroup]
                         Button {
@@ -738,10 +812,29 @@ private struct EcoThemeEditorView: View {
                             .font(.headline)
                             .foregroundStyle(.primary)
 
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)],
-                                  spacing: 10) {
-                            ForEach(group.range, id: \.self) { index in
-                                colorRoleTile(index)
+                        if selectedGroup == 4 {
+                            Picker("Modalità della sfumatura", selection: $editingDayTopBar) {
+                                Text("☀️ Day Mode").tag(true)
+                                Text("🌙 Night Mode").tag(false)
+                            }
+                            .pickerStyle(.segmented)
+                            .accessibilityLabel("Modifica la top bar per giorno o notte")
+                            Text(editingDayTopBar
+                                 ? "Colori e intensità del giorno, indipendenti dalla notte."
+                                 : "Colori e intensità della notte, indipendenti dal giorno.")
+                                .font(.caption).foregroundStyle(.secondary)
+                        }
+
+                        if selectedGroup == 1 {
+                            colorRoleSection("Anelli e luci", roles: [1, 3, 21])
+                            colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])
+                            colorRoleSection("Barre di potenza", roles: [8, 9, 7])
+                        } else {
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)],
+                                      spacing: 10) {
+                                ForEach(group.range, id: \.self) { index in
+                                    colorRoleTile(index)
+                                }
                             }
                         }
                     } else {
@@ -769,31 +862,31 @@ private struct EcoThemeEditorView: View {
 
                     // Build 91 — intensità indipendenti delle due sfumature
                     // verticali; i colori si scelgono sopra nella categoria Layer top bar.
-                    if selectedGroup == 5 {
+                    if selectedGroup == 4 {
                         VStack(alignment: .leading, spacing: 12) {
                             VStack(alignment: .leading, spacing: 7) {
                                 HStack {
                                     Label("Sfumatura alta · intensità", systemImage: "arrow.down.to.line")
                                         .font(.subheadline.weight(.semibold))
                                     Spacer()
-                                    Text("\(Int((draft.topFadeIntensity * 100).rounded()))%")
+                                    Text("\(Int((topFadeBinding.wrappedValue * 100).rounded()))%")
                                         .font(.caption.monospacedDigit())
                                         .foregroundStyle(.secondary)
                                 }
-                                Slider(value: $draft.topFadeIntensity, in: 0...1, step: 0.05)
-                                    .tint(Color(themeHex: draft.colors[19]))
+                                Slider(value: topFadeBinding, in: 0...1, step: 0.05)
+                                    .tint(Color(themeHex: roleHex(19)))
                             }
                             VStack(alignment: .leading, spacing: 7) {
                                 HStack {
                                     Label("Sfumatura bassa · intensità", systemImage: "arrow.up.to.line")
                                         .font(.subheadline.weight(.semibold))
                                     Spacer()
-                                    Text("\(Int((draft.bottomFadeIntensity * 100).rounded()))%")
+                                    Text("\(Int((bottomFadeBinding.wrappedValue * 100).rounded()))%")
                                         .font(.caption.monospacedDigit())
                                         .foregroundStyle(.secondary)
                                 }
-                                Slider(value: $draft.bottomFadeIntensity, in: 0...1, step: 0.05)
-                                    .tint(Color(themeHex: draft.colors[20]))
+                                Slider(value: bottomFadeBinding, in: 0...1, step: 0.05)
+                                    .tint(Color(themeHex: roleHex(20)))
                             }
                             Text("Entrambe le sfumature restano solo nel layer esterno, fuori da tachimetro e ponte.")
                                 .font(.caption)
@@ -803,9 +896,10 @@ private struct EcoThemeEditorView: View {
                         .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
                     }
 
+                    if selectedGroup == 1 {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Label("Bagliore esterno dei contorni", systemImage: "sun.max")
+                            Label("Intensità delle luci del tachimetro", systemImage: "sun.max")
                                 .font(.subheadline.weight(.semibold))
                             Spacer()
                             Text("\(Int((draft.glowIntensity * 100).rounded()))%")
@@ -820,6 +914,7 @@ private struct EcoThemeEditorView: View {
                     }
                     .padding(12)
                     .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+                    }
 
                     Button {
                         chooseSlot = true
@@ -832,6 +927,7 @@ private struct EcoThemeEditorView: View {
                               !draft.glowIntensity.isFinite ||
                               !draft.topFadeIntensity.isFinite ||
                               !draft.bottomFadeIntensity.isFinite ||
+                              !draft.dayTopBar.isValid ||
                               !draft.colors.allSatisfy({ EcoThemePalette.validHex($0) }))
                 }
                 .padding(16)
@@ -846,10 +942,17 @@ private struct EcoThemeEditorView: View {
             }
             .sheet(item: $colorID) { selected in
                 EcoThemeColorPicker(
-                    title: EcoThemePalette.labels[selected.id],
-                    initialHex: draft.colors[selected.id]
+                    title: EcoThemePalette.labels[selected.id]
+                        + (selected.isDay ? " · Day Mode" : ""),
+                    initialHex: selected.isDay
+                        ? draft.dayTopBar.hex(for: selected.id)
+                        : draft.colors[selected.id]
                 ) { hex in
-                    draft.colors[selected.id] = hex
+                    if selected.isDay {
+                        draft.dayTopBar.set(hex, for: selected.id)
+                    } else {
+                        draft.colors[selected.id] = hex
+                    }
                 }
             }
             .confirmationDialog("In quale slot vuoi salvare il tema?",
@@ -881,15 +984,14 @@ private struct EcoThemeEditorView: View {
     }
 
 
-    // La quinta categoria presenta le quattro fasi luminose della velocità.
     private func categorySymbol(_ index: Int) -> String {
         switch index {
         case 0: "paintpalette"
-        case 1: "chart.bar.fill"
-        case 2: "speedometer"
+        case 1: "speedometer"
+        case 2: "chart.bar.fill"
         case 3: "arrow.triangle.turn.up.right.diamond"
-        case 5: "square.stack.3d.up"
-        default: "speedometer"
+        case 4: "square.stack.3d.up"
+        default: "paintpalette"
         }
     }
 
@@ -928,37 +1030,76 @@ private struct EcoThemeEditorView: View {
         .contentShape(RoundedRectangle(cornerRadius: 14))
     }
 
-    // I colori del gruppo hanno etichette esplicite e long press come nella 64.
-    private func colorRoleTile(_ index: Int) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .center, spacing: 9) {
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(themeHex: draft.colors[index]))
-                    .frame(width: 36, height: 36)
-                    .overlay(RoundedRectangle(cornerRadius: 6)
-                        .strokeBorder(.white.opacity(0.25), lineWidth: 1))
-                Text(EcoThemePalette.labels[index])
-                    .font(.system(size: 13, weight: .semibold))
-                    .fixedSize(horizontal: false, vertical: true)
-                    .multilineTextAlignment(.leading)
-                Spacer(minLength: 0)
-            }
-            Text(EcoThemePalette.details[index])
-                .font(.caption)
+    // Lo stesso ruolo 2/15/16/19/20 si modifica senza duplicazioni:
+    // Day Mode ha 5 colori propri, Night Mode mantiene gli indici storici.
+    private func roleHex(_ index: Int) -> String {
+        selectedGroup == 4 && editingDayTopBar
+            ? draft.dayTopBar.hex(for: index) : draft.colors[index]
+    }
+
+    private var topFadeBinding: Binding<Double> {
+        Binding(get: {
+            editingDayTopBar ? draft.dayTopBar.highIntensity : draft.topFadeIntensity
+        }, set: { value in
+            if editingDayTopBar { draft.dayTopBar.highIntensity = value }
+            else { draft.topFadeIntensity = value }
+        })
+    }
+
+    private var bottomFadeBinding: Binding<Double> {
+        Binding(get: {
+            editingDayTopBar ? draft.dayTopBar.lowIntensity : draft.bottomFadeIntensity
+        }, set: { value in
+            if editingDayTopBar { draft.dayTopBar.lowIntensity = value }
+            else { draft.bottomFadeIntensity = value }
+        })
+    }
+
+    private func colorRoleSection(_ title: String, roles: [Int]) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Text(title).font(.subheadline.weight(.semibold))
                 .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)],
+                      spacing: 10) {
+                ForEach(roles, id: \.self) { index in
+                    colorRoleTile(index)
+                }
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 11))
-        .contentShape(RoundedRectangle(cornerRadius: 11))
-        .onLongPressGesture(minimumDuration: 0.45) {
-            colorID = EcoThemeColorID(id: index)
+    }
+
+    // Build 101: un semplice tocco apre il selettore; nessun long press.
+    private func colorRoleTile(_ index: Int) -> some View {
+        Button {
+            colorID = EcoThemeColorID(
+                id: index, isDay: selectedGroup == 4 && editingDayTopBar)
+        } label: {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .center, spacing: 9) {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color(themeHex: roleHex(index)))
+                        .frame(width: 36, height: 36)
+                        .overlay(RoundedRectangle(cornerRadius: 6)
+                            .strokeBorder(.white.opacity(0.25), lineWidth: 1))
+                    Text(EcoThemePalette.labels[index])
+                        .font(.system(size: 13, weight: .semibold))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .multilineTextAlignment(.leading)
+                    Spacer(minLength: 0)
+                }
+                Text(EcoThemePalette.details[index])
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 11))
+            .contentShape(RoundedRectangle(cornerRadius: 11))
         }
-        .accessibilityElement(children: .combine)
+        .buttonStyle(.plain)
         .accessibilityLabel(EcoThemePalette.labels[index])
-        .accessibilityHint(EcoThemePalette.details[index] + " Tieni premuto per cambiare colore.")
-        .accessibilityAction { colorID = EcoThemeColorID(id: index) }
+        .accessibilityHint("Tocca per cambiare il colore.")
     }
 
     private func save(slot: Int) {

@@ -1,4 +1,4 @@
-"""Build 100 — LED glow + 2× outer ring, plain GPS weather, power bar within bridge."""
+"""Build 100/101 — preserved LED glow and bridge-safe double power bar; obsolete extra ring removed."""
 from pathlib import Path
 from math import isclose
 import re
@@ -9,7 +9,7 @@ tabs = (r / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (r / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (r / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 100;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 101;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert "## Build 100" in state
 
@@ -21,40 +21,35 @@ dashboard = cockpit.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "// Pulsante dedicato per azzerare trip", 1)[0]
 preview = cockpit.split("struct EcoCockpitThemeMiniature: View {", 1)[1].split(
     "private struct GPSHorizonLine: View", 1)[0]
-assert "static func secondRingRadius(for d: CGFloat)" in layout
-assert "concentricRingRadius(for: d) + max(6, d * 0.018)" in layout
-assert "static func secondRingStroke(for d: CGFloat)" in layout
-assert "concentricRingStroke(for: d) * 2" in layout
-assert "secondRingRadius(for: d) + secondRingStroke(for: d) / 2" in layout
+# The primary luminous ring of build 100 is retained; the later extra
+# second ring is deliberately removed in 101.
 assert "static let mapToDialClearance: CGFloat = 2" in layout
 assert "private struct GPSConcentricAccentRing: View" in cockpit
-assert "private struct GPSSecondOuterRing: View" in cockpit
+assert "private struct GPSSecondOuterRing: View" not in cockpit
+assert "secondRingRadius" not in layout
 assert "GPSLuminousCircleStroke(" in ring
 assert ".blur(radius:" in ring and ".shadow(color: color.opacity(" in ring
 assert "lineWidth: stroke * 4.0" in ring
 assert "lineWidth: stroke * 2.1" in ring
-assert ring.count(".mask(GPSBridgeUpperMask())") == 2
+assert ring.count(".mask(GPSBridgeUpperMask())") == 1
 assert "color: theme.concentricRingColor" in dashboard
-assert "color: theme.secondRingColor" in dashboard
 assert "glowIntensity: theme.glowIntensity" in dashboard
-assert ".zIndex(27.5)" in dashboard and ".zIndex(27)" in dashboard
+assert ".zIndex(27)" in dashboard
 assert "GPSConcentricAccentRing(color: tone(21)," in preview
-assert "GPSSecondOuterRing(color: tone(22)," in preview
+assert "GPSSecondOuterRing" not in preview
 assert "glowIntensity: palette.glowIntensity" in preview
 
-# New palette value persists without corrupting the first 22 slot colours.
-assert "static let colorCount = 23" in tabs
-assert "decoded.colors.count == 22 || decoded.colors.count == colorCount" in tabs
-assert "if migrated.colors.count == 22 {" in tabs
-assert "migrated.colors.append(migrated.colors[1])" in tabs
-assert "var secondRingColor: Color" in cockpit
-assert "savedPalette.colors[22]" in cockpit
-assert '"Secondo cerchio esterno · spessore doppio"' in tabs
-assert '("Anelli e numeri del tachimetro", [8, 9, 11, 22])' in tabs
+# Build 100 palette compatibility: first 22 colors survive, last orphaned
+# extra-ring color of 23-value themes is removed.
+assert "static let colorCount = 22" in tabs
+assert "decoded.colors.count == 22 || decoded.colors.count == 23" in tabs
+assert "if migrated.colors.count == 23 {" in tabs
+assert "migrated.colors.removeLast()" in tabs
+assert "var secondRingColor: Color" not in cockpit
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 23
-assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
 
 # Only GPS header has text-only meteo under the brand mark; other Home unchanged.
 weather = cockpit.split("private struct EcoOutsideTemperature: View {", 1)[1].split(
@@ -112,11 +107,5 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
     assert width > 0 and cx - width / 2 > left_foot
     assert cx + width / 2 < right_foot
     assert isclose(2 * max(5, d * .014) / max(5, d * .014), 2)
-    first_stroke = max(1.5, min(2.4, d * .003))
-    second_stroke = first_stroke * 2
-    first_radius = d * (.986 * .90) / 2 + 1.5
-    second_radius = first_radius + max(6, d * .018)
-    assert second_radius - second_stroke / 2 > first_radius + first_stroke / 2
-    assert isclose(second_stroke, 2 * first_stroke)
 
-print("OK — build 100: luminous dual rings with saved independent color, plain logo weather and bridge-safe 2× power scale")
+print("OK — retained build 100 primary glow, plain logo weather and safe 2× power scale; extra ring removed")

@@ -9,16 +9,16 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 100;") == 2
-assert "static let colorCount = 23" in tabs
+assert project.count("CURRENT_PROJECT_VERSION = 101;") == 2
+assert "static let colorCount = 22" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 23
-assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 22
 for label in (
     "Sfondo del cockpit", "Colore principale · top bar e icone Setup",
     "Barre telemetria · colore scuro", "Numeri kW · energia in ingresso",
-    "Anello esterno · potenza erogata", "Anello interno · recupero energia",
+    "Barre di potenza · energia in uscita", "Barre di potenza · energia in entrata",
     "Velocità GPS · fase normale", "Numeri del tachimetro · km/h",
     "Navigatore · svolta a destra", "Navigatore · svolta a sinistra",
     "Velocità GPS · fase decelerazione",
@@ -26,13 +26,13 @@ for label in (
     assert f'"{label}"' in labels, label
 
 # Five named groups and long-press on each color; color picker keeps cancel/confirm.
-for group in ("Aspetto generale", "Barre telemetria e potenza",
+for group in ("Aspetto generale", "Barre telemetria",
               "Anelli e numeri del tachimetro", "Navigatore"):
     assert f'"{group}"' in tabs
 assert "ForEach(group.range, id:" in tabs
 assert "EcoThemePalette.labels[index]" in tabs
 assert "EcoThemePalette.details[index]" in tabs
-assert "minimumDuration: 0.45" in tabs
+assert "minimumDuration: 0.45" not in tabs
 assert ".sheet(item: $colorID)" in tabs
 assert "onConfirm(selectedHex)" in tabs
 assert 'Button("Annulla", role: .cancel)' in tabs
@@ -40,7 +40,7 @@ assert "EcoThemePalette.colorCount" in tabs
 
 # Do not wipe existing custom palettes: old 8-color slots become 15 colors.
 assert "(decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
-assert "decoded.colors.count == colorCount)" in tabs
+assert "decoded.colors.count == 22 || decoded.colors.count == 23)" in tabs
 assert "migrated.colors.append(contentsOf: extraDefaults)" in tabs
 assert "migrated.colors[9] = decoded.colors[7]" in tabs
 assert "guard (1...3).contains(slot)" in tabs
