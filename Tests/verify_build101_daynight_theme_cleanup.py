@@ -35,14 +35,14 @@ for text in ('("Aspetto generale", [0])',
              '("Anelli e numeri del tachimetro", [1, 3, 21, 11, 10, 14, 18, 17, 8, 9])',
              '("Barre telemetria", [4, 5, 6])',
              '("Navigatore", [12, 13])',
-             '("Sfumature · luce e ombra", [15, 16, 19, 20, 2])'):
+             '("Sfumature · luce e ombra", [15, 16, 19, 20])'):
     assert text in groups
 indices=[int(v) for v in re.findall(r"\d+", groups)]
 assert sorted(indices)==[i for i in range(22) if i != 7],indices
 assert '"Barre di potenza · energia in uscita"' in tabs
 assert '"Barre di potenza · energia in entrata"' in tabs
 assert 'colorRoleSection("Barre di potenza", roles: [8, 9])' in tabs
-assert 'colorRoleSection("Anelli e luci", roles: [1, 3, 21])' in tabs
+assert 'colorRoleSection("Anelli e luci", roles: [1, 3, 21, 2])' in tabs
 assert 'colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])' in tabs
 labels=tabs.split("static let labels = [",1)[1].split("]",1)[0]
 details=tabs.split("static let details = [",1)[1].split("]",1)[0]
@@ -97,7 +97,7 @@ assert 'Text("☀️ Day Mode").tag(true)' in editor
 assert 'Text("🌙 Night Mode").tag(false)' in editor
 assert "initialHex: selected.isDay" in editor
 assert "draft.dayTopBar.set(hex, for: selected.id)" in editor
-assert "topFadeBinding" in editor and "bottomFadeBinding" in editor
+assert "gradientIntensityBinding(for role: Int)" in editor
 assert ".preferredColorScheme(selectedGroup == 4" in editor
 
 # User's original 20-swatch colour picker and brightness slider still exist.
