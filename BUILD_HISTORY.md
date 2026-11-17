@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44038761928:ATTEMPT:1 -->
+### 2026-11-17T07:26:46Z — CI #343 · build-105-gradient-opacity-music-gauge · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44038761928](https://github.com/gulinodesign-maker/EMT/actions/runs/44038761928); avvio 2026-11-17T07:26:46Z UTC; aggiornamento finale 2026-11-17T07:27:16Z UTC; registrazione 2026-11-17T07:27:27+00:00 UTC; evento pull_request.
+- **Commit:** [ee7be4f09a37](https://github.com/gulinodesign-maker/EMT/commit/ee7be4f09a37502c73a10b6e79b94a083fdfdf1c); versione **1.0**; build **105**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Ecojumbo/Models/EcoMusicManager.swift.
+
 <!-- EMT_RUN:44038393549:ATTEMPT:1 -->
 ### 2026-11-17T07:23:57Z — CI #342 · build-105-gradient-opacity-music-gauge · tentativo 1
 
