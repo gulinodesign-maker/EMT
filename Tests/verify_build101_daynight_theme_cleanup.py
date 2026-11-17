@@ -35,13 +35,13 @@ for text in ('("Aspetto generale", [0])',
              '("Anelli e numeri del tachimetro", [1, 3, 21, 2, 11, 10, 14, 18, 17, 8, 9])',
              '("Barre telemetria", [4, 5, 6])',
              '("Navigatore", [12, 13])',
-             '("Sfumature · luce e ombra", [15, 16, 19, 20])'):
+             '("Sfumature", [15, 16, 19, 20])'):
     assert text in groups
 indices=[int(v) for v in re.findall(r"\d+", groups)]
 assert sorted(indices)==[i for i in range(22) if i != 7],indices
-assert '"Barre di potenza · energia in uscita"' in tabs
-assert '"Barre di potenza · energia in entrata"' in tabs
-assert 'colorRoleSection("Barre di potenza", roles: [8, 9])' in tabs
+assert '"Cursore potenza · uscita"' in tabs
+assert '"Cursore potenza · ingresso"' in tabs
+assert 'colorRoleSection("LED potenza", roles: [8, 9])' in tabs
 assert 'colorRoleSection("Anelli e luci", roles: [1, 3, 21, 2])' in tabs
 assert 'colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])' in tabs
 labels=tabs.split("static let labels = [",1)[1].split("]",1)[0]
