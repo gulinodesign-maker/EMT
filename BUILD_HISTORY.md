@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44062974792:ATTEMPT:1 -->
+### 2026-11-17T10:14:29Z — CI #375 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44062974792](https://github.com/gulinodesign-maker/EMT/actions/runs/44062974792); avvio 2026-11-17T10:14:29Z UTC; aggiornamento finale 2026-11-17T10:14:53Z UTC; registrazione 2026-11-17T10:15:04+00:00 UTC; evento pull_request.
+- **Commit:** [89c0bb1d42b2](https://github.com/gulinodesign-maker/EMT/commit/89c0bb1d42b21f2f007586fd37fd64ddcc9bd2a4); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build73_settings_glow_speed.py, Tests/verify_build74_speed_phases_neon.py, Tests/verify_build87_gray_horizontal_power.py, Tests/verify_build91_top_bottom_fades.py, Tests/verify_build92_twenty_shades.py, Tests/verify_build93_geometry_preview.py, Tests/verify_build95_map_concentric.py, Tests/verify_cockpit.py, Tests/verify_custom_themes_build64.py, Tests/verify_odo_reset_51.py, Tests/verify_speed_font_build53.py.
+
 <!-- EMT_RUN:44062899428:ATTEMPT:1 -->
 ### 2026-11-17T10:14:02Z — CI #374 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
 
