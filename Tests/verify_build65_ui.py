@@ -17,7 +17,7 @@ assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: 12)," in editor
 assert "ForEach(0..<EcoThemePalette.groups.count, id:" in editor
 assert "selectedGroup = groupIndex" in editor
 assert "categoryTile(groupIndex)" in editor
-assert 'Label("Tutte le categorie", systemImage: "chevron.left")' in editor
+assert 'Label("Categorie", systemImage: "chevron.left")' in editor
 assert "self.selectedGroup = nil" in editor
 assert "ForEach(group.range, id:" in editor
 assert "colorRoleTile(index)" in editor
