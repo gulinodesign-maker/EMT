@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44063597034:ATTEMPT:1 -->
+### 2026-11-17T10:18:25Z — CI #381 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44063597034](https://github.com/gulinodesign-maker/EMT/actions/runs/44063597034); avvio 2026-11-17T10:18:25Z UTC; aggiornamento finale 2026-11-17T10:18:52Z UTC; registrazione 2026-11-17T10:19:02+00:00 UTC; evento pull_request.
+- **Commit:** [465486dbec80](https://github.com/gulinodesign-maker/EMT/commit/465486dbec80d7b2b5c9c67b7c27d8a1777cd71d); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build101_daynight_theme_cleanup.py.
+
 <!-- EMT_RUN:44063406785:ATTEMPT:1 -->
 ### 2026-11-17T10:17:12Z — CI #380 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
 
