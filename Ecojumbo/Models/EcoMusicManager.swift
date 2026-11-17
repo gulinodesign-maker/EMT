@@ -86,8 +86,8 @@ final class EcoMusicManager: ObservableObject {
         appleAuthorized = MPMediaLibrary.authorizationStatus() == .authorized
         applePlayer.beginGeneratingPlaybackNotifications()
         // Gli eventi di iOS cambiano brano e stato senza dover fare Pausa/Play.
-        for name in [MPMusicPlayerController.nowPlayingItemDidChangeNotification,
-                     MPMusicPlayerController.playbackStateDidChangeNotification] {
+        for name in [Notification.Name.MPMusicPlayerControllerNowPlayingItemDidChange,
+                     Notification.Name.MPMusicPlayerControllerPlaybackStateDidChange] {
             NotificationCenter.default.publisher(for: name)
                 .sink { [weak self] _ in
                     Task { @MainActor [weak self] in
