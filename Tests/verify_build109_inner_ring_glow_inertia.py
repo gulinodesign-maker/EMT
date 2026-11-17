@@ -6,7 +6,7 @@ tabs = read("Ecojumbo/Views/CockpitTabs.swift")
 cockpit = read("Ecojumbo/Views/CockpitComponents.swift")
 motion = read("Ecojumbo/Models/GPSRideManager.swift")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 114;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 115;") == 2
 palette = tabs.split("struct EcoThemePalette: Codable, Equatable {", 1)[1].split("extension Color {", 1)[0]
 assert "static let colorCount = 23" in palette
 assert '"Anello interno · tachimetro"' in palette
@@ -67,7 +67,7 @@ assert "case 18: return CockpitTheme.accelerationAccent" in speed
 assert "CockpitTheme.glowForRole(colorRole)" in speed
 assert "ledColor.opacity(0.80 * illumination)" in speed
 assert "ledColor.opacity(0.94 * illumination)" in speed
-assert "let usesBMS = powerSource == EcoPowerSource.bms.rawValue" in cockpit
+assert "let usesBMS = vehicleMode == EcoVehicleMode.bms.rawValue" in cockpit
 assert "powerFlowUsesBMS: usesBMS" in cockpit
 assert "GPSSpeedMovement" not in cockpit
 assert "speedHistory" not in cockpit

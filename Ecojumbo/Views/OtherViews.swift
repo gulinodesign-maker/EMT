@@ -173,7 +173,7 @@ struct BluetoothView: View {
 
 private enum EcoSetupSection: String, CaseIterable, Identifiable {
     case battery, bms, appearance, scooter, bluetooth, charging
-    case odometer, bars, power, weather, music
+    case odometer, bars, power, weather, music, vehicle
 
     var id: Self { self }
 
@@ -190,6 +190,7 @@ private enum EcoSetupSection: String, CaseIterable, Identifiable {
         case .power: "Scala potenza"
         case .weather: "Meteo"
         case .music: "Musica"
+        case .vehicle: "Veicolo"
         }
     }
 
@@ -206,6 +207,7 @@ private enum EcoSetupSection: String, CaseIterable, Identifiable {
         case .power: "gauge.with.dots.needle.67percent"
         case .weather: "cloud.sun"
         case .music: "music.note"
+        case .vehicle: "car.side.fill"
         }
     }
 }
@@ -218,6 +220,8 @@ struct EcoSettingsView: View {
     @State private var activeSection: EcoSetupSection?
     @State private var odometerText = ""
     @State private var odometerStatus: String?
+    @State private var fullRangeText = ""
+    @State private var fullRangeStatus: String?
     @FocusState private var odometerFieldFocused: Bool
     @AppStorage("ecojumbo.cellCount") private var cellCount = 20
     @AppStorage("ecojumbo.capacity") private var capacity = 206
@@ -228,12 +232,26 @@ struct EcoSettingsView: View {
     @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
     @AppStorage("ecojumbo.bars.speedLimitColorEnabled") private var speedLimitColorEnabled = true
     @AppStorage("ecojumbo.power.source") private var powerSource = EcoPowerSource.inertia.rawValue
+    @AppStorage("ecojumbo.vehicle.mode") private var vehicleMode = EcoVehicleMode.bms.rawValue
+    @AppStorage("ecojumbo.vehicle.fullRangeKm") private var fullRangeKm = 0.0
+    @AppStorage("ecojumbo.vehicle.averageSpeedScaleKmh") private var averageSpeedScaleKmh = 130.0
     @AppStorage("ecojumbo.power.motionSensitivity") private var motionSensitivity = 0.5
     @AppStorage("ecojumbo.power.motionAxis") private var motionAxis = "z"
     @AppStorage("ecojumbo.power.reverseMotion") private var reverseMotion = false
     @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
     @AppStorage("ecojumbo.theme") private var themeName = CockpitTheme.copper.rawValue
     @AppStorage("ecojumbo.themeRevision") private var themeRevision = 0
+
+    private var visibleSections: [EcoSetupSection] {
+        guard vehicleMode == EcoVehicleMode.universal.rawValue else {
+            return EcoSetupSection.allCases
+        }
+        // Non presentare configurazioni di celle/ricarica/JK quando il
+        // cockpit usa solo iPhone: i dati BMS restano salvati per il ritorno.
+        return EcoSetupSection.allCases.filter {
+            ![.battery, .bms, .scooter, .bluetooth, .charging].contains($0)
+        }
+    }
 
     private var setupIconColor: Color {
         _ = themeRevision // aggiornamento anche quando si risalva lo slot già attivo
@@ -250,7 +268,7 @@ struct EcoSettingsView: View {
                 ScrollView {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 3),
                           spacing: 10) {
-                    ForEach(EcoSetupSection.allCases) { section in
+                    ForEach(visibleSections) { section in
                         Button {
                             activeSection = section
                         } label: {
@@ -296,7 +314,14 @@ struct EcoSettingsView: View {
         .onAppear {
             bluetooth.applyFormat(JKFrameFormat(rawValue: rawFormat) ?? .automatic, cells: cellCount)
             odometerText = gps.hasOdometer ? String(format: "%.1f", gps.totalKm) : ""
+            fullRangeText = fullRangeKm >= 10 ? String(format: "%.0f", fullRangeKm) : ""
+            powerSource = vehicleMode == EcoVehicleMode.universal.rawValue
+                ? EcoPowerSource.inertia.rawValue : EcoPowerSource.bms.rawValue
             speedColorThresholdKmh = min(max(10, speedColorThresholdKmh), vehicleSpeedMaxKmh)
+        }
+        .onChange(of: vehicleMode) { _, mode in
+            powerSource = mode == EcoVehicleMode.universal.rawValue
+                ? EcoPowerSource.inertia.rawValue : EcoPowerSource.bms.rawValue
         }
         .onChange(of: vehicleSpeedMaxKmh) { _, newMax in
             speedColorThresholdKmh = min(speedColorThresholdKmh, newMax)
@@ -331,7 +356,10 @@ struct EcoSettingsView: View {
                 // Il tastierino decimale iOS non offre il tasto Invio in landscape.
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
-                    Button("Conferma e salva", action: saveOdometer)
+                    Button("Conferma e salva") {
+                        if section == .vehicle { saveFullRange() }
+                        else if section == .odometer { saveOdometer() }
+                    }
                         .fontWeight(.semibold)
                 }
             }
@@ -342,6 +370,53 @@ struct EcoSettingsView: View {
         switch section {
         case .battery, .bms:
             EmptyView()
+        case .vehicle:
+            Section("Tipo di cockpit") {
+                Picker("Modalità veicolo", selection: $vehicleMode) {
+                    Label("BMS", systemImage: "battery.100percent")
+                        .tag(EcoVehicleMode.bms.rawValue)
+                    Label("Universale", systemImage: "car.side.fill")
+                        .tag(EcoVehicleMode.universal.rawValue)
+                }
+                .pickerStyle(.segmented)
+                EcoInfoIcon(title: "Modalità", message:
+                    "BMS: letture elettriche JK reali e segnale di potenza del BMS, se disponibile. " +
+                    "Universale: GPS e sensori inerziali iPhone, senza letture elettriche. " +
+                    "Le impostazioni restano salvate quando cambi modalità.")
+            }
+            if vehicleMode == EcoVehicleMode.universal.rawValue {
+                Section("Carburante stimato") {
+                    HStack {
+                        TextField("Autonomia con un pieno", text: $fullRangeText)
+                            .keyboardType(.decimalPad)
+                            .submitLabel(.done)
+                            .onSubmit(saveFullRange)
+                        Text("km").foregroundStyle(.secondary)
+                        Button("Salva", action: saveFullRange)
+                            .buttonStyle(.borderedProminent)
+                    }
+                    LabeledContent("Autonomia configurata",
+                        value: fullRangeKm >= 10 ? String(format: "%.0f km", fullRangeKm) : "—")
+                    LabeledContent("Distanza dal pieno",
+                        value: gps.universalHasFull
+                            ? String(format: "%.1f km", gps.universalKmSinceFull)
+                            : "Pieno non registrato")
+                    if let fullRangeStatus {
+                        Text(fullRangeStatus).font(.caption).foregroundStyle(.secondary)
+                    }
+                    EcoInfoIcon(title: "Stima, non sensore carburante", message:
+                        "Inserisci la distanza media percorribile con un pieno e premi Pieno nel cockpit " +
+                        "solo dopo un vero rifornimento. Il GPS sottrae i chilometri registrati; " +
+                        "viaggi a app chiusa, consumi variabili e rifornimenti parziali non sono rilevati.")
+                }
+                Section("Velocità media") {
+                    Stepper("Fondoscala: \(Int(averageSpeedScaleKmh)) km/h",
+                        value: $averageSpeedScaleKmh, in: 30...240, step: 10)
+                    EcoInfoIcon(title: "Media viaggio GPS", message:
+                        "Distanza del TRIP divisa per il tempo di movimento GPS registrato. " +
+                        "Senza dati sufficienti appare un trattino. La barra è solo indicativa.")
+                }
+            }
         case .appearance:
             Section("Aspetto dell'app") {
                 Picker("Modalità schermo", selection: $appearanceMode) {
@@ -391,8 +466,9 @@ struct EcoSettingsView: View {
                     .font(.footnote).foregroundStyle(.secondary)
             }
         case .odometer:
-            Section("Chilometri totali dello scooter") {
-                EcoInfoIcon(title: "Contachilometri", message: "Inserisci il chilometraggio originale. EMT aggiunge poi i km GPS senza azzerare il totale.")
+            Section(vehicleMode == EcoVehicleMode.universal.rawValue
+                    ? "Chilometri totali veicolo" : "Chilometri totali dello scooter") {
+                EcoInfoIcon(title: "Contachilometri", message: "Inserisci il chilometraggio originale. Ecojumbo aggiunge poi i km GPS senza azzerare il totale.")
                     .font(.footnote).foregroundStyle(.secondary)
                 HStack {
                     TextField("Chilometri attuali", text: $odometerText)
@@ -411,10 +487,15 @@ struct EcoSettingsView: View {
             Section("Scale delle barre luminose") {
                 EcoInfoIcon(title: "Barre luminose", message: "Le scale sono grafiche, non limitano la velocità. Il tachimetro legge la velocità GPS reale.")
                     .font(.footnote).foregroundStyle(.secondary)
-                LabeledContent("SOC", value: "0–100%")
-                LabeledContent("Tensione 20S", value: "50–73 V")
-                Stepper("Potenza istantanea: 0–\(Int(averagePowerMaxKW)) kW",
-                        value: $averagePowerMaxKW, in: 1...20, step: 1)
+                if vehicleMode == EcoVehicleMode.universal.rawValue {
+                    LabeledContent("Carburante", value: "0–100% stimato")
+                    LabeledContent("Velocità media GPS", value: "0–\(Int(averageSpeedScaleKmh)) km/h")
+                } else {
+                    LabeledContent("SOC", value: "0–100%")
+                    LabeledContent("Tensione 20S", value: "50–73 V")
+                    Stepper("Potenza istantanea: 0–\(Int(averagePowerMaxKW)) kW",
+                            value: $averagePowerMaxKW, in: 1...20, step: 1)
+                }
                 Stepper("Velocità massima veicolo: \(Int(vehicleSpeedMaxKmh)) km/h",
                         value: $vehicleSpeedMaxKmh, in: 30...240, step: 5)
                 Toggle("Colore speciale oltre il limite", isOn: $speedLimitColorEnabled)
@@ -428,26 +509,26 @@ struct EcoSettingsView: View {
                         : "Avviso limite spento. Il LED segue i sensori inerziali o i watt BMS reali.")
             }
         case .power:
-            Section("Sorgente") {
-                Picker("Controllo", selection: $powerSource) {
-                    Label("Inerzia", systemImage: "iphone.gen3").tag(EcoPowerSource.inertia.rawValue)
-                    Label("BMS", systemImage: "battery.100percent").tag(EcoPowerSource.bms.rawValue)
-                }
-                .pickerStyle(.segmented)
-                .accessibilityLabel("Sorgente della scala potenza")
+            Section("Sorgente automatica") {
+                LabeledContent("Controllo",
+                    value: vehicleMode == EcoVehicleMode.universal.rawValue ? "Inerzia" : "BMS")
+                EcoInfoIcon(title: "Sorgente", message:
+                    "La sorgente è determinata dalla modalità Veicolo. " +
+                    "In Universale l'inerzia non misura watt; in BMS i watt si mostrano " +
+                    "solo con campioni JK recenti, con fallback visivo all'inerzia.")
                 HStack {
-                    Label(powerSource == EcoPowerSource.bms.rawValue ? "BMS" : "Sensori",
-                          systemImage: powerSource == EcoPowerSource.bms.rawValue
+                    Label(vehicleMode == EcoVehicleMode.bms.rawValue ? "BMS" : "Sensori",
+                          systemImage: vehicleMode == EcoVehicleMode.bms.rawValue
                             ? "battery.100percent" : "gyroscope")
                     Spacer()
-                    Text(powerSource == EcoPowerSource.bms.rawValue
+                    Text(vehicleMode == EcoVehicleMode.bms.rawValue
                          && bluetooth.isConnected
                          && bluetooth.snapshot.map({ abs($0.date.timeIntervalSinceNow) < 10 }) == true
                          ? "Connesso" : (powerMotion.available ? "Inerzia" : "Non disponibile"))
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 EcoInfoIcon(title: "Scala potenza",
-                    message: "Il LED del cursore velocità mostra in azzurro l'ingresso, in rosso l'uscita. Con BMS collegato usa watt reali; senza BMS passa all'inerzia, che non misura i watt.")
+                    message: "In modalità BMS i colori seguono ingresso/uscita dell'energia misurata; senza un BMS recente si usa l'inerzia. In Universale azzurro indica decelerazione e arancione accelerazione. I sensori non misurano watt.")
             }
             Section("Sensori inerziali") {
                 HStack(spacing: 12) {
@@ -484,6 +565,19 @@ struct EcoSettingsView: View {
                 }
             }
         }
+    }
+
+    private func saveFullRange() {
+        let normalized = fullRangeText.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: ",", with: ".")
+        guard let kilometers = Double(normalized), kilometers.isFinite,
+              (10...2500).contains(kilometers) else {
+            fullRangeStatus = "Inserisci un'autonomia valida da 10 a 2500 km."
+            return
+        }
+        fullRangeKm = kilometers
+        fullRangeText = String(format: "%.0f", kilometers)
+        fullRangeStatus = "Autonomia salvata. Per iniziare la stima premi Pieno nel cockpit."
     }
 
     private func saveOdometer() {

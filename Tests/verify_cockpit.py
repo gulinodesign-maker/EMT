@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 114;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 115;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -87,13 +87,13 @@ assert (r/'RiferimentoGrafico/Cockpit_1_09_utente.jpg').stat().st_size>100000
 # Sei schede indipendenti, con sei icone e soltanto tre barre reali.
 assert 'private struct PremiumWing: View' in c and 'metricTile(reading, width: w, height: tileHeight)' in c
 assert 'ForEach(readings.indices' in c
-assert c.count('WingReading(value:')==6
+assert c.count('WingReading(value:')==12
 legacy = c[:c.index('private struct GPSExpandedReadings: View {')]
-assert legacy.count('showsBar: true')==3 and legacy.count('showsBar: false')==3
+assert legacy.count('showsBar: true')==5 and legacy.count('showsBar: false')==7
 for sym in ('bolt.fill','voltage','road.lanes','chart.bar.fill','mappin','speedometer'):
     assert f'icon: "{sym}"' in c
 assert 'if reading.showsBar {' in c and 'MetricGlowBar(fraction: reading.fraction' in c
-assert c.count('CockpitBarMath.unit(')==4
+assert c.count('CockpitBarMath.unit(')==6
 assert 'CockpitBarMath.odometerCycle(' not in c
 assert 'rangeKm.map' in c and 'gps.tripKm' in c and 'gps.totalKm' in c
 assert 'let instantKW = live.map { -($0.power) / 1000.0 }' in c
@@ -313,7 +313,7 @@ assert 'private func toggleProjection()' in c
 assert 'Passa alla mappa 2D' in u and 'Passa alla mappa 3D' in u
 assert 'private func activateNoseView()' in c
 assert 'private func followCamera(at coordinate: CLLocationCoordinate2D)' in c
-assert 'Vista dal muso dello scooter, direzione di marcia' in u
+assert 'Vista in direzione di marcia del veicolo' in u
 assert 'let lookAhead = mapControls.headingUp' in c
 assert 'private(set) var courseDegrees: CLLocationDirection?' in g
 assert 'fix.speed >= 1.3, fix.course >= 0, fix.course < 360' in g
@@ -399,8 +399,8 @@ assert 'Color(white: 0.92).opacity(0.035)' not in c
 assert '.init(color: .clear, location: 0.62)' not in c
 expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
 assert 'LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap),' in expanded
-assert expanded.count('telemetryTile("') == 4
-assert expanded.count('showsBar: true') == 4
+assert expanded.count('telemetryTile("') == 7
+assert expanded.count('showsBar: true') == 7
 assert 'telemetryTile("SOC"' in expanded and 'telemetryTile("V BAT"' in expanded
 assert 'telemetryTile("AUT"' in expanded and 'telemetryTile("TRIP"' in expanded
 assert 'let dislHeight = 2 * cardHeight' in expanded

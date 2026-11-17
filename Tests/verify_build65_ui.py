@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 114;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 115;") == 2
 
 editor = tabs.split("private struct EcoThemeEditorView: View {", 1)[1].split(
     "private struct EcoThemeColorPicker: View {", 1)[0]
@@ -41,7 +41,7 @@ panel = cockpit.split("private struct GPSExpandedReadings: View {", 1)[1].split(
     "// Progressi sottili e luminosi, soltanto per SOC", 1)[0]
 assert 'Text("TELEMETRIA")' in panel
 assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in panel
-assert panel.count('telemetryTile("') == 4
+assert panel.count('telemetryTile("') == 7
 for label in ("SOC", "V BAT", "AUT", "TRIP"):
     assert f'telemetryTile("{label}"' in panel
 assert "let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 4)" in panel
@@ -49,7 +49,7 @@ assert "let dislHeight = 2 * cardHeight" in panel
 assert "dislevelCard(height: dislHeight)" in panel
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile," in panel
 assert "color: theme.altitudeGraphColor, glowIntensity: theme.altitudeGraphGlow" in panel
-assert "live = bluetooth.isConnected && snapshot.map" in panel
+assert "live = vehicleMode == EcoVehicleMode.bms.rawValue &&" in panel
 assert "abs(now.timeIntervalSince($0.date)) < 10" in panel
 assert "EcoRangeEstimate(snapshot: live, session: bluetooth.session)" in panel
 assert 'Text("DISL")' in panel

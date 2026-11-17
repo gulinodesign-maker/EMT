@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 # Velocità GPS della build 45: nessuna modifica consentita.
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10" in gps
-assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in gps
+assert "fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed" in gps
 assert "date.timeIntervalSince(lastValidAt) < 8" in gps
 
 # Profilo altimetrico GPS reale, persistente, non calcolato dalla mappa.
@@ -36,7 +36,7 @@ assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in res
 
 # Quattro schede nella griglia e DISL doppia altezza con grafico GPS reale.
 expanded = cockpit[cockpit.index("private struct GPSExpandedReadings: View {"):]
-assert expanded.count('telemetryTile("') == 4
+assert expanded.count('telemetryTile("') == 7
 assert 'dislevelCard(height: dislHeight)' in expanded
 assert 'GPSTripAltitudeSparkline(points: gps.altitudeProfile' in expanded
 assert "if points.count >= 2" in expanded

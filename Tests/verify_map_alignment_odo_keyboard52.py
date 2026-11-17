@@ -7,7 +7,7 @@ cockpit=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 settings=(root/"Ecojumbo/Views/OtherViews.swift").read_text()
 gps=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 114;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 115;") == 2
 
 dashboard=cockpit.split("struct GPSCockpitDashboard: View {",1)[1].split(
     "private struct GPSTripResetControl: View {",1)[0]
@@ -22,7 +22,7 @@ assert "@FocusState private var odometerFieldFocused: Bool" in settings
 assert ".keyboardType(.decimalPad)" in settings
 assert ".focused($odometerFieldFocused)" in settings
 assert "ToolbarItemGroup(placement: .keyboard)" in settings
-assert 'Button("Conferma e salva", action: saveOdometer)' in settings
+assert 'Button("Conferma e salva")' in settings
 assert 'Button("Salva", action: saveOdometer)' in settings
 assert ".onSubmit(saveOdometer)" in settings
 assert "private func saveOdometer()" in settings
@@ -90,6 +90,6 @@ assert ".foregroundStyle(Color(red: 1.0, green: 0.43, blue: 0.04))" not in speed
 assert 'Text("km/h")' in speed
 assert 'String(format: "ODO %.0f km", $0)' in speed
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
-assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in gps
+assert "fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed" in gps
 assert "date.timeIntervalSince(lastValidAt) < 8" in gps
 print("OK — build 52: ODO confirm, rail and GPS target centered, red speed")

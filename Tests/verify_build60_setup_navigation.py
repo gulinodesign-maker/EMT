@@ -8,7 +8,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 cockpit_text = cockpit.decode("utf-8")
-assert project.count("CURRENT_PROJECT_VERSION = 114;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 115;") == 2
 
 # Only driving-relevant navigation is shown: technical screens are still accessible via Setup.
 portrait = home.split("private struct PortraitServiceTabBar: View", 1)[1].split(
@@ -23,7 +23,7 @@ for region in (portrait, dock):
     assert "ForEach(EcoTab.allCases)" not in region
     assert "ForEach([EcoTab.trips, .battery" not in region
 # Build 61: access to both technical pages is modal inside the 3x4 grid.
-assert "ForEach(EcoSetupSection.allCases)" in settings
+assert "ForEach(visibleSections)" in settings
 assert "LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 3)" in settings
 assert ".sheet(item: $activeSection)" in settings
 assert "CellsView(portrait: space.size.height > space.size.width)" in settings

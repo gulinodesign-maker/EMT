@@ -462,7 +462,7 @@ private struct CockpitCornerControls: View {
                                           ? "Passa alla mappa 2D" : "Passa alla mappa 3D",
                                       side: gpsSide) { mapControls.send(.toggleProjection) }
                             gpsButton("location.north.line.fill", active: mapControls.headingUp,
-                                      accessibility: "Vista dal muso dello scooter, direzione di marcia",
+                                      accessibility: "Vista in direzione di marcia del veicolo",
                                       side: gpsSide) { mapControls.send(.noseView) }
                             gpsButton("scope", accessibility: "Ricentra sulla posizione GPS",
                                       side: gpsSide) { mapControls.send(.recenter) }

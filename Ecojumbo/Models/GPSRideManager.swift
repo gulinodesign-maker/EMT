@@ -11,6 +11,13 @@ enum EcoPowerSource: String, CaseIterable {
     case inertia, bms
 }
 
+// Build 115: modalità persistente indipendente dal vecchio selettore potenza.
+enum EcoVehicleMode: String, CaseIterable, Identifiable {
+    case bms = "BMS"
+    case universal = "Universale"
+    var id: String { rawValue }
+}
+
 // Build 109: classificazione inerziale senza contributo della velocità GPS.
 // Core Motion combina accelerometro e giroscopio per rimuovere la gravità;
 // il giroscopio puro misura rotazione, non accelerazione longitudinale.
@@ -195,6 +202,9 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         return last.altitudeMeters - first.altitudeMeters
     }
     @Published private(set) var movingSeconds: TimeInterval = 0
+    // Distanza GPS dal pieno, distinta dal TRIP e dal contachilometri.
+    @Published private(set) var universalKmSinceFull: Double
+    @Published private(set) var universalHasFull: Bool
     @Published private(set) var state: String = "GPS non avviato"
     @Published private(set) var isReceiving = false
 
@@ -225,6 +235,10 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             altitudeProfile = []
         }
         movingSeconds = UserDefaults.standard.double(forKey: "ecojumbo.gps.movingSeconds")
+        let storedFullKm = UserDefaults.standard.double(forKey: "ecojumbo.vehicle.kmSinceFull")
+        universalKmSinceFull = storedFullKm.isFinite && storedFullKm >= 0 && storedFullKm <= 1_000_000
+            ? storedFullKm : 0
+        universalHasFull = UserDefaults.standard.bool(forKey: "ecojumbo.vehicle.hasFull")
         // Le vecchie installazioni partono senza storico: nessun dato sintetico.
         let savedTrips: [EcoCompletedTrip]
         if let bytes = UserDefaults.standard.data(forKey: "ecojumbo.gps.completedTrips.v1"),
@@ -360,6 +374,42 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         return recent.reduce(0) { $0 + $1.distanceKm } / Double(recent.count)
     }
 
+    // Solo velocità media di movimento: distanza GPS valida / tempo in
+    // movimento registrato. Nessuna velocità ricavata in assenza di fix.
+    var averageMovingSpeedKmh: Double? {
+        guard movingSeconds.isFinite, movingSeconds >= 60,
+              tripKm.isFinite, tripKm >= 0.05 else { return nil }
+        let average = tripKm / (movingSeconds / 3600)
+        guard average.isFinite, average >= 0, average <= 300 else { return nil }
+        return average
+    }
+
+    // Nessun "pieno" fittizio all'installazione o al cambio di modalità.
+    // La conferma dell'utente calibra a pieno la stima solo dopo aver
+    // indicato quanti chilometri può percorrere con un pieno.
+    @discardableResult
+    func recordUniversalFull() -> Bool {
+        guard UserDefaults.standard.string(forKey: "ecojumbo.vehicle.mode") == EcoVehicleMode.universal.rawValue,
+              let fullRange = UserDefaults.standard.object(forKey: "ecojumbo.vehicle.fullRangeKm") as? Double,
+              fullRange.isFinite, (10...2500).contains(fullRange) else { return false }
+        universalKmSinceFull = 0
+        universalHasFull = true
+        UserDefaults.standard.set(0.0, forKey: "ecojumbo.vehicle.kmSinceFull")
+        UserDefaults.standard.set(true, forKey: "ecojumbo.vehicle.hasFull")
+        return true
+    }
+
+    func universalEstimatedRemainingKm(fullRange: Double) -> Double? {
+        guard universalHasFull, fullRange.isFinite, (10...2500).contains(fullRange),
+              universalKmSinceFull.isFinite, universalKmSinceFull >= 0 else { return nil }
+        return max(0, fullRange - universalKmSinceFull)
+    }
+
+    func universalEstimatedFuelFraction(fullRange: Double) -> Double? {
+        guard let remaining = universalEstimatedRemainingKm(fullRange: fullRange) else { return nil }
+        return min(1, max(0, remaining / fullRange))
+    }
+
     func resetTrip() {
         // Un viaggio è completato solo al reset esplicito; non contare
         // reset ripetuti a 0 km o letture GPS invalide.
@@ -440,12 +490,16 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
                 ? "Posizione approssimata (±\(Int(fix.horizontalAccuracy)) m)"
                 : "GPS attivo"
             isReceiving = true
-            // Identici criteri di validazione velocità GPS della build 33.
+            // La modalità Universale accetta anche velocità automobilistiche
+            // superiori a 180 km/h; precisione e limiti anti-salto restano.
+            let maxTrustedSpeed: Double = UserDefaults.standard.string(
+                forKey: "ecojumbo.vehicle.mode") == EcoVehicleMode.universal.rawValue ? 80 : 50
+            // Identici criteri di precisione GPS della build 33.
             // Nessuna stima da coordinate e nessuna lettura simulata.
             let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10
                 && fix.horizontalAccuracy >= 0 && fix.horizontalAccuracy <= 35
                 && fix.speed >= 0 && fix.speedAccuracy >= 0
-                && fix.speedAccuracy <= 5 && fix.speed <= 50
+                && fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed
             if usableSpeed {
                 let kmh = fix.speed * 3.6
                 speedKmh = kmh < 1.5 ? 0 : kmh
@@ -466,7 +520,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             guard abs(fix.timestamp.timeIntervalSinceNow) < 10,
                   fix.horizontalAccuracy >= 0, fix.horizontalAccuracy <= 35,
                   fix.speed >= 0, fix.speedAccuracy >= 0, fix.speedAccuracy <= 5,
-                  fix.speed <= 50 else { continue }
+                  fix.speed <= maxTrustedSpeed else { continue }
 
             // Primo campione attendibile del viaggio, anche prima di partire.
             if altitudeProfile.isEmpty { recordTripAltitude(fix) }
@@ -476,10 +530,20 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
                 if dt > 0 && dt <= 30 {
                     let meters = fix.distance(from: previous)
                     // Rifiuta i salti dovuti al rumore GPS, soprattutto a veicolo fermo.
-                    if fix.speed > 1.2 && meters >= 2 && meters <= dt * 50 + 4 {
+                    if fix.speed > 1.2 && meters >= 2 && meters <= dt * maxTrustedSpeed + 4 {
                         let increment = meters / 1000
                         tripKm += increment
                         if hasOdometer { totalKm += increment }
+                        // Accumula solo km realmente osservati DOPO il pieno.
+                        // Non viene azzerato dal reset TRIP, né aggiornato in
+                        // modalità BMS o prima della calibrazione esplicita.
+                        if universalHasFull,
+                           UserDefaults.standard.string(forKey: "ecojumbo.vehicle.mode")
+                               == EcoVehicleMode.universal.rawValue {
+                            universalKmSinceFull += increment
+                            UserDefaults.standard.set(universalKmSinceFull,
+                                forKey: "ecojumbo.vehicle.kmSinceFull")
+                        }
                         UserDefaults.standard.set(tripKm, forKey: "ecojumbo.gps.tripKm")
                         if hasOdometer {
                             UserDefaults.standard.set(totalKm, forKey: "ecojumbo.gps.totalKm")

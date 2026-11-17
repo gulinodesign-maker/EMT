@@ -10,7 +10,7 @@ settings = read("Ecojumbo/Views/OtherViews.swift")
 app = read("Ecojumbo/EcojumboApp.swift")
 plist = read("Ecojumbo/Info.plist")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 114;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 115;") == 2
 assert 'NSMotionUsageDescription' in plist
 palette = tabs.split("struct EcoThemePalette: Codable, Equatable {", 1)[1].split("extension Color", 1)[0]
 assert '("Sfumature", [15, 16, 19, 20])' in palette
@@ -73,7 +73,7 @@ assert "powerWatts: live.map { -$0.power }" in dashboard
 assert "speed: gps.currentSpeed(at: now)" in dashboard
 assert "powerFlow: flow" in dashboard
 assert "abs(now.timeIntervalSince(sample.date)) < 10" in dashboard
-assert "if powerSource == EcoPowerSource.bms.rawValue, let snapshot" in dashboard
+assert "if vehicleMode == EcoVehicleMode.bms.rawValue, let snapshot" in dashboard
 assert "if watts > 30 { return .incoming }" in dashboard
 assert "if watts < -30 { return .outgoing }" in dashboard
 assert "return powerMotion.currentFlow(at: now)" in dashboard
@@ -95,7 +95,7 @@ assert "let enterThreshold = 0.21 - sensitivity * 0.16" in motion
 assert "time.timeIntervalSince(lastUpdate) < 1" in motion
 assert 'private var powerSource = EcoPowerSource.inertia.rawValue' in settings
 assert 'case .power: "Scala potenza"' in settings
-assert 'Picker("Controllo", selection: $powerSource)' in settings
+assert 'LabeledContent("Controllo",' in settings
 assert 'Slider(value: $motionSensitivity, in: 0...1, step: 0.01)' in settings
 assert 'Picker("Asse iPhone", selection: $motionAxis)' in settings
 assert 'Toggle("Inverti direzione", isOn: $reverseMotion)' in settings

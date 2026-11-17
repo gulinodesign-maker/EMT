@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 114;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 115;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 
 # Setup exactly 3x3; the footer stays outside the scrolling cell grid.
@@ -17,7 +17,7 @@ assert "case battery, bms, appearance, scooter, bluetooth, charging" in cases
 assert "case odometer, bars, power, weather" in cases
 assert "gps, weather, privacy, version" not in cases
 assert "LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 3)" in settings
-assert "ForEach(EcoSetupSection.allCases)" in settings
+assert "ForEach(visibleSections)" in settings
 assert 'Text("Ecojumbo \\(EcojumboBuildStamp.display) · build \\(EcojumboBuildStamp.buildNumber)")' in settings
 for obsolete in ('case .gps:', 'case .privacy:', 'case .version:',
                  'Section("GPS e viaggi")', 'Section("Sicurezza e privacy")',

@@ -16,7 +16,7 @@ app = read("Ecojumbo/EcojumboApp.swift")
 plist = read("Ecojumbo/Info.plist")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
 
-assert project.count("CURRENT_PROJECT_VERSION = 114;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 115;") == 2
 assert 'case apple = "Apple Music"' in manager
 assert "case spotify =" not in manager
 assert "case youtube =" not in manager

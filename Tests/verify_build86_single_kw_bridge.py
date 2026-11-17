@@ -8,7 +8,7 @@ code = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 114;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 115;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 86" in state
@@ -23,7 +23,7 @@ assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in home
 # The GPS cockpit draws ONE net signed reading, not two columns or a divider.
 single = code.split("private struct GPSCockpitPowerReading: View {", 1)[1].split(
     "// Calcola la posizione", 1)[0]
-assert single.count('Text(powerKW.map { String(format: "%.2f kW"') == 1
+assert single.count('return powerKW.map { String(format: "%.2f kW"') == 1
 assert "HStack(" not in single
 assert "Rectangle()" not in single
 assert "powerWatts / 1_000.0" in single

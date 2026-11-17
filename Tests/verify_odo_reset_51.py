@@ -7,7 +7,7 @@ source=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 114;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 115;") == 2
 dashboard=source.split("struct GPSCockpitDashboard: View {",1)[1].split(
     "private struct GPSHorizonLine: View {",1)[0]
 speed=source.split("private struct OpenSpeedCluster: View {",1)[1].split(
@@ -22,8 +22,8 @@ telemetry=source.split("private struct GPSExpandedReadings: View {",1)[1].split(
 assert "VStack(spacing: tileGap)" in telemetry
 assert 'Text("TELEMETRIA")' in telemetry
 assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in telemetry
-assert telemetry.count('telemetryTile("') == 4
-assert telemetry.count("showsBar: true") == 4
+assert telemetry.count('telemetryTile("') == 7
+assert telemetry.count("showsBar: true") == 7
 assert "let dislHeight = 2 * cardHeight" in telemetry
 assert "dislevelCard(height: dislHeight)" in telemetry
 assert "TelemetrySlimBar(fraction: fraction, theme: theme)" in telemetry
@@ -70,7 +70,7 @@ assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in fn
 # Speeds must remain measured, not estimated. Do not regress build 45.
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10" in gps
-assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in gps
+assert "fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed" in gps
 assert "date.timeIntervalSince(lastValidAt) < 8" in gps
 assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow," in speed
 
