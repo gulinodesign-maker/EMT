@@ -67,45 +67,14 @@ assert ".position(x: temperatureX, y: temperatureY)" in dashboard
 assert cockpit.count("EcoOutsideTemperature(now: now)") == 1
 assert "GPSSiriControl" not in cockpit
 
-# The requested doubling is exact for height and desired full width;
-# width is limited to the actual bridge feet (without changing its contour).
-bar = cockpit.split("private struct GPSPowerHorizontalGauge: View {", 1)[1].split(
-    "// Costanti LED storiche", 1)[0]
-bridge = cockpit.split("private enum GPSLowerLineGeometry {", 1)[1].split(
-    "private struct GPSLowerContour: Shape {", 1)[0]
-assert "let bridgeMaxWidth: CGFloat" in bar
-assert "min(d * 0.54, max(1, bridgeMaxWidth))" in bar
-assert "height: max(16, d * 0.045)" in bar
-assert "let regenTacks = 3" in bar and "let dischargeTacks = 7" in bar
-assert "let halfSpace = min(center - ends[0].x, ends[3].x - center) - safety" in bridge
-assert "static func powerBarMaxWidth(in size: CGSize)" in bridge
-assert "bridgeMaxWidth: GPSLowerLineGeometry.powerBarMaxWidth(" in dashboard
-assert "max(16, d * 0.045)" in preview
-assert "min(d * 0.54, max(1, bridgeMaxWidth))" in preview
-assert "let live = bluetooth.snapshot" in dashboard
+# Build 108 retires only the separate kW tick bar. The net kW text,
+# the original bridge contours and the Home gauges remain intact.
+bridge = cockpit.split("private enum GPSLowerLineGeometry {",1)[1].split(
+    "private struct GPSLowerContour: Shape {",1)[0]
+assert "static func powerBarMaxWidth(in size: CGSize)" in bridge  # legacy geometry API
+assert "GPSPowerHorizontalGauge" not in cockpit
+assert "miniaturePowerBar" not in cockpit
+assert "GPSCockpitPowerReading(d: dialSize" in dashboard
 assert "powerWatts: live.map { -$0.power }" in dashboard
-
-# Analytic check: the twice-thick bar ends strictly before both bridge feet.
-for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
-             (1179, 510), (1536, 706), (1648, 928), (1806, 831)):
-    d = min(h * .965, w * .55)
-    cx = max(d * .51 + w * .010, w * .168 + d * .30)
-    text_top = h * .494 + d * (.889 - .50 - .065)
-    top_y = min(h * .790, text_top - max(12, h * .014))
-    foot_y = h * .937
-    left_top = cx - d * .195
-    controls_height = max(51, min(83, h * .105))
-    side = min(controls_height * .96, w * .059, w * .052)
-    button_start = w - max(12, w * .018) - 8 * side - 7 * w * .008
-    ideal_run = w * (.385 - .323) * ((foot_y - top_y) / (h * (.985 - .790)))
-    max_right = button_start - max(9, w * .012)
-    right_top = min(cx + d * .195, max_right - ideal_run)
-    run = min(ideal_run, max(0, max_right - right_top))
-    left_foot, right_foot = left_top - run, right_top + run
-    width = min(d * .54,
-                max(1, 2 * (min(cx-left_foot, right_foot-cx)-max(6,d*.014))))
-    assert width > 0 and cx - width / 2 > left_foot
-    assert cx + width / 2 < right_foot
-    assert max(16, d * .045) > 2 * max(5, d * .014)
-
-print("OK — retained build 100 primary glow, plain logo weather and safe 2× power scale; extra ring removed")
+assert "SegmentedGaugeBar(d: d, fraction: outputFill" in cockpit
+print("OK — retained build 100 primary glow, plain logo weather and text-only kW bridge; extra ring removed")
