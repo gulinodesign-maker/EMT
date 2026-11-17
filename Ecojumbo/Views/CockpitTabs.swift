@@ -961,8 +961,8 @@ private struct EcoThemeColorID: Identifiable {
     let isDay: Bool
 }
 
-// I marchi sono asset locali SVG. Gli stemmi restano riconoscibili in
-// Day/Night e la cornice chiara protegge il contrasto dei loghi originali.
+// Sei stemmi originali Ecojumbo: stessa forma e fulmine dell'app,
+// iniziale e colore diversi. Nessun logo ufficiale dei produttori.
 private struct EcoAutomotiveBrandLogo: View {
     let brand: String
     let size: CGFloat
@@ -994,8 +994,8 @@ private struct EcoAutomotiveBrandLogo: View {
             }
         }
         .frame(width: size, height: size)
-        .background(.white, in: RoundedRectangle(cornerRadius: 9))
-        .accessibilityLabel("Logo " + brand)
+        .background(.black, in: RoundedRectangle(cornerRadius: 9))
+        .accessibilityLabel("Stemma Ecojumbo " + brand)
     }
 }
 
