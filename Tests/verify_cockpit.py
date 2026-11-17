@@ -400,7 +400,7 @@ assert '.init(color: .clear, location: 0.62)' not in c
 expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
 assert 'LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap),' in expanded
 assert expanded.count('telemetryTile("') == 7
-assert expanded.count('showsBar: true') == 4
+assert expanded.count('showsBar: true') == 7
 assert 'telemetryTile("SOC"' in expanded and 'telemetryTile("V BAT"' in expanded
 assert 'telemetryTile("AUT"' in expanded and 'telemetryTile("TRIP"' in expanded
 assert 'let dislHeight = 2 * cardHeight' in expanded
