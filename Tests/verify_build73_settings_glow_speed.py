@@ -14,7 +14,7 @@ assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 # Setup exactly 3x3; the footer stays outside the scrolling cell grid.
 cases = settings.split("private enum EcoSetupSection:", 1)[1].split("var id: Self", 1)[0]
 assert "case battery, bms, appearance, scooter, bluetooth, charging" in cases
-assert "case odometer, bars, weather" in cases
+assert "case odometer, bars, power, weather" in cases
 assert "gps, weather, privacy, version" not in cases
 assert "LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 3)" in settings
 assert "ForEach(EcoSetupSection.allCases)" in settings
@@ -38,11 +38,10 @@ speed = cockpit.split("private struct SpeedLEDStream: View {", 1)[1].split(
     "private struct SegmentedGaugeBar: View {", 1)[0]
 assert "speed / max(30, vehicleSpeedMaxKmh)" in speed
 assert "return CockpitTheme.speedLimitAccent" in speed
-assert "case .decelerating: return CockpitTheme.decelerationAccent" in speed
-assert "case .accelerating: return CockpitTheme.accelerationAccent" in speed
-assert "case .normal: return CockpitTheme.speedLEDAccent" in speed
+assert "case .incoming: return CockpitTheme.recoveryRingAccent" in speed
+assert "case .outgoing: return CockpitTheme.dischargeAccent" in speed
+assert "case .neutral:" in speed
 assert "if speedLimitColorEnabled, let speed" in speed
-assert speed.index("return CockpitTheme.speedLimitAccent") < speed.index("switch movement")
 assert "guard let speed, speed.isFinite, speed >= 0 else { return nil }" in speed
 assert "speed / 120" not in speed
 
