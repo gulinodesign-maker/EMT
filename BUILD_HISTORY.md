@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44065399443:ATTEMPT:1 -->
+### 2026-11-17T10:30:10Z — CI #390 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44065399443](https://github.com/gulinodesign-maker/EMT/actions/runs/44065399443); avvio 2026-11-17T10:30:10Z UTC; aggiornamento finale 2026-11-17T10:30:33Z UTC; registrazione 2026-11-17T10:30:53+00:00 UTC; evento pull_request.
+- **Commit:** [28c9f351b220](https://github.com/gulinodesign-maker/EMT/commit/28c9f351b2209a4625ffe9ba8111f7eded8b9b11); versione **1.0**; build **110**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:44065333804:ATTEMPT:1 -->
 ### 2026-11-17T10:29:45Z — CI #389 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
 
