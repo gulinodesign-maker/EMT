@@ -9,7 +9,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert pbx.count("CURRENT_PROJECT_VERSION = 107;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 108;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -50,30 +50,16 @@ assert "speedLimitColorEnabled = true" in cockpit
 speed = cockpit.split("private struct SpeedLEDStream: View {", 1)[1].split(
     "private struct SegmentedGaugeBar: View {", 1)[0]
 assert "if speedLimitColorEnabled, let speed, speed.isFinite," in speed
-assert speed.index("return CockpitTheme.speedLimitAccent") < speed.index("switch movement")
-assert "case .accelerating: return CockpitTheme.accelerationAccent" in speed
-assert "case .decelerating: return CockpitTheme.decelerationAccent" in speed
-assert "case .normal: return CockpitTheme.speedLEDAccent" in speed
+assert "case .incoming: return CockpitTheme.recoveryRingAccent" in speed
+assert "case .outgoing: return CockpitTheme.dischargeAccent" in speed
+assert "case .neutral:" in speed
 assert "speed / max(30, vehicleSpeedMaxKmh)" in speed
 assert "guard let speed, speed.isFinite, speed >= 0 else { return nil }" in speed
-assert "speed / 120" not in speed
-
-# Finite 4s window, strict +/-5 km/h tolerance; no synthetic speed readings.
-phase = cockpit.split("private enum GPSSpeedMovement {", 1)[1].split(
-    "private struct SpeedLEDStream: View {", 1)[0]
-assert "if deltaKmh > 5 { return .accelerating }" in phase
-assert "if deltaKmh < -5 { return .decelerating }" in phase
-assert "return .normal" in phase
-assert "deltaKmh.isFinite" in phase
-assert "speedHistory.removeAll { now.timeIntervalSince($0.time) > 4 }" in speed
-assert "now.timeIntervalSince(reference.time) >= 0.2" in speed
-assert "GPSSpeedMovement.classify(deltaKmh: current - reference.value)" in speed
-assert "now.timeIntervalSince(lastSpeedUpdate) > 4" in speed
-for current, expected in ((50, "normal"), (55, "normal"), (55.001, "accelerating"),
-                          (44.999, "decelerating"), (45, "normal")):
-    delta = current - 50
-    phase = "accelerating" if delta > 5 else ("decelerating" if delta < -5 else "normal")
-    assert phase == expected
+assert "GPSSpeedMovement" not in cockpit
+assert "speedHistory" not in cockpit
+motion=(root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
+assert "motion.userAcceleration.z" in motion
+assert "sensor.startDeviceMotionUpdates(to: .main)" in motion
 
 # The actual speed LED remains active; decorative GPS outlines are removed.
 neon = cockpit.split("private enum GPSInnerLED {", 1)[1].split(
@@ -96,4 +82,4 @@ assert ".mask(visibleOutsideMetalRing.fill(style: FillStyle(eoFill: true)))" in 
 assert ".mask(GPSLowerTerminalFade())" in cockpit
 assert "GPSMetalInnerRing()" in cockpit
 assert "Build 74" in state
-print("OK — build 74: four independent speed-phase colors, 5-km/h GPS tolerance, optional limit and speed-arc neon")
+print("OK — build 74: colors and neon preserved; power flow now Core Motion/BMS")

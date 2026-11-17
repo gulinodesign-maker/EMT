@@ -7,7 +7,7 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 107;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 108;") == 2
 assert "## Build 102" in (root / "STATO_PROGETTO.md").read_text()
 
 dock = home.split("private struct CockpitCornerControls: View {", 1)[1].split(
@@ -21,31 +21,10 @@ assert 'gpsButton("music.note", active: false' in dock
 assert "if mapEnabled && selected == .gps {" in dock
 assert "if musicDock {" in dock
 
-bar = cockpit.split("private struct GPSPowerHorizontalGauge: View {", 1)[1].split(
-    "// Costanti LED storiche", 1)[0]
-for item in (
-    "private let regenTacks = 3", "private let dischargeTacks = 7",
-    "0..<(regenTacks + dischargeTacks)", "HStack(spacing: 0)",
-    "tickSide = min(geo.size.width / CGFloat(count), geo.size.height)", 
-    "min(d * 0.54, max(1, bridgeMaxWidth))",
-    "height: max(16, d * 0.045)",
-    "CockpitTheme.regenAccent", "CockpitTheme.dischargeAccent",
-    "powerWatts.isFinite", "alignment: .center"
-):
-    assert item in bar, item
-assert "private let regenTacks = 9" not in bar
-assert "private let dischargeTacks = 21" not in bar
-
-preview = cockpit.split("struct EcoCockpitThemeMiniature: View {", 1)[1].split(
-    "private struct GPSHorizonLine: View", 1)[0]
-mini = preview.split("private func miniaturePowerBar(d: CGFloat, bridgeMaxWidth: CGFloat)", 1)[1].split(
-    "private func miniatureTelemetry", 1)[0]
-assert "ForEach(0..<10" in mini
-assert "i < 3 ? tone(9) : tone(8)" in mini
-assert "width = min(d * 0.54, max(1, bridgeMaxWidth))" in mini
-assert "max(16, d * 0.045)" in mini
-assert "ForEach(0..<30" not in mini
-
+# Build 108: ten-square meter deliberately removed; actual kW remains.
+assert "GPSPowerHorizontalGauge" not in cockpit
+assert "miniaturePowerBar" not in cockpit
+assert "GPSCockpitPowerReading(d: dialSize" in cockpit
 temp = cockpit.split("private struct EcoOutsideTemperature: View {", 1)[1].split(
     "// EJ 1.19", 1)[0]
 header = cockpit.split("private struct GPSHeader: View {", 1)[1].split(
@@ -91,12 +70,7 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1179,510),(1536,706),(1806,
     assert group_width<=panel_width+1e-6
     assert center-group_width/2>=panel_left-1e-6
     assert center+group_width/2<=w-inset+1e-6
-    # Ten contiguous squares fit within the bridge-limited frame.
-    width=dial*.54
-    height=max(16,dial*.045)
-    side=min(width/10,height)
-    assert 10*side<=width
-    assert side<=height
-    assert max(16,dial*.045)>2*max(5,dial*.014)
-
-print("OK — build 102 dock center, 10 taller slim power ticks, 2x temperature, icon-only reset")
+    # The telemetry dock keeps its verified centered geometry; the bridge
+    # no longer contains the obsolete 10-square bar.
+    assert panel_width > 0
+print("OK — build 102 dock center, obsolete 10-square bridge meter removed, 2x temperature, icon-only reset")

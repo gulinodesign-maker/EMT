@@ -173,7 +173,7 @@ struct BluetoothView: View {
 
 private enum EcoSetupSection: String, CaseIterable, Identifiable {
     case battery, bms, appearance, scooter, bluetooth, charging
-    case odometer, bars, weather, music
+    case odometer, bars, power, weather, music
 
     var id: Self { self }
 
@@ -187,6 +187,7 @@ private enum EcoSetupSection: String, CaseIterable, Identifiable {
         case .charging: "Ricarica"
         case .odometer: "Chilometri"
         case .bars: "Barre luminose"
+        case .power: "Scala potenza"
         case .weather: "Meteo"
         case .music: "Musica"
         }
@@ -202,6 +203,7 @@ private enum EcoSetupSection: String, CaseIterable, Identifiable {
         case .charging: "bolt.circle"
         case .odometer: "road.lanes"
         case .bars: "chart.bar.fill"
+        case .power: "gauge.with.dots.needle.67percent"
         case .weather: "cloud.sun"
         case .music: "music.note"
         }
@@ -211,6 +213,7 @@ private enum EcoSetupSection: String, CaseIterable, Identifiable {
 struct EcoSettingsView: View {
     @EnvironmentObject private var gps: GPSRideManager
     @EnvironmentObject private var bluetooth: JKBluetoothManager
+    @EnvironmentObject private var powerMotion: EcoPowerMotionManager
     @StateObject private var music = EcoMusicManager.shared
     @State private var activeSection: EcoSetupSection?
     @State private var odometerText = ""
@@ -224,6 +227,10 @@ struct EcoSettingsView: View {
     @AppStorage("ecojumbo.bars.vehicleSpeedMaxKmh") private var vehicleSpeedMaxKmh = 120.0
     @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
     @AppStorage("ecojumbo.bars.speedLimitColorEnabled") private var speedLimitColorEnabled = true
+    @AppStorage("ecojumbo.power.source") private var powerSource = EcoPowerSource.inertia.rawValue
+    @AppStorage("ecojumbo.power.motionSensitivity") private var motionSensitivity = 0.5
+    @AppStorage("ecojumbo.power.motionAxis") private var motionAxis = "z"
+    @AppStorage("ecojumbo.power.reverseMotion") private var reverseMotion = false
     @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
     @AppStorage("ecojumbo.music.provider") private var musicProvider = EcoMusicProvider.apple.rawValue
     @AppStorage("ecojumbo.spotifyClientID") private var spotifyClientID = ""
@@ -452,7 +459,48 @@ struct EcoSettingsView: View {
                 EcoInfoIcon(title: "Limite velocità",
                     message: speedLimitColorEnabled
                         ? "Al limite prevale il colore scelto nel tema. È un avviso grafico, non un limitatore."
-                        : "Avviso limite spento. Restano i colori normale, accelerazione e decelerazione.")
+                        : "Avviso limite spento. Il LED segue i sensori inerziali o i watt BMS reali.")
+            }
+        case .power:
+            Section("Sorgente") {
+                Picker("Controllo", selection: $powerSource) {
+                    Label("Inerzia", systemImage: "iphone.gen3").tag(EcoPowerSource.inertia.rawValue)
+                    Label("BMS", systemImage: "battery.100percent").tag(EcoPowerSource.bms.rawValue)
+                }
+                .pickerStyle(.segmented)
+                .accessibilityLabel("Sorgente della scala potenza")
+                HStack {
+                    Label(powerSource == EcoPowerSource.bms.rawValue ? "BMS" : "Sensori",
+                          systemImage: powerSource == EcoPowerSource.bms.rawValue
+                            ? "battery.100percent" : "gyroscope")
+                    Spacer()
+                    Text(powerSource == EcoPowerSource.bms.rawValue
+                         && bluetooth.isConnected
+                         && bluetooth.snapshot.map({ abs($0.date.timeIntervalSinceNow) < 10 }) == true
+                         ? "Connesso" : (powerMotion.available ? "Inerzia" : "Non disponibile"))
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+                EcoInfoIcon(title: "Scala potenza",
+                    message: "Il LED del cursore velocità mostra in azzurro l'ingresso, in rosso l'uscita. Con BMS collegato usa watt reali; senza BMS passa all'inerzia, che non misura i watt.")
+            }
+            Section("Sensori inerziali") {
+                HStack(spacing: 12) {
+                    Image(systemName: "gyroscope")
+                        .foregroundStyle(.secondary)
+                    Slider(value: $motionSensitivity, in: 0...1, step: 0.01)
+                        .accessibilityLabel("Sensibilità inerziale")
+                    Text("\(Int((motionSensitivity * 100).rounded()))%")
+                        .font(.caption.monospacedDigit()).frame(width: 44)
+                }
+                Picker("Asse iPhone", selection: $motionAxis) {
+                    Text("Z").tag("z")
+                    Text("X").tag("x")
+                    Text("Y").tag("y")
+                }
+                .pickerStyle(.segmented)
+                Toggle("Inverti direzione", isOn: $reverseMotion)
+                EcoInfoIcon(title: "Orientamento iPhone",
+                    message: "Fissa il telefono al supporto: Z è l'asse perpendicolare allo schermo, X/Y sono assi laterali. Se accelerazione e frenata hanno colori invertiti, usa Inverti. I sensori rilevano movimento, non watt o frenata rigenerativa.")
             }
         case .weather:
             Section("Temperatura esterna") {

@@ -382,6 +382,8 @@ struct EcoThemePalette: Codable, Equatable {
     var dayShadowOpacity: Double
     var dayHighOpacity: Double
     var dayLowOpacity: Double
+    // 108: riassegna una sola volta le vecchie intensità nelle opacità.
+    var directionalVersion: Int
 
     init(name: String, colors: [String], glowIntensity: Double = 0.60,
          topFadeIntensity: Double = 0.35, bottomFadeIntensity: Double = 0.35,
@@ -415,6 +417,29 @@ struct EcoThemePalette: Codable, Equatable {
         self.dayShadowOpacity = dayShadowOpacity.isFinite ? min(1, max(0, dayShadowOpacity)) : 1
         self.dayHighOpacity = dayHighOpacity.isFinite ? min(1, max(0, dayHighOpacity)) : 1
         self.dayLowOpacity = dayLowOpacity.isFinite ? min(1, max(0, dayLowOpacity)) : 1
+        directionalVersion = 108
+        // I vecchi preset mantengono visivamente i livelli 107: da ora
+        // esiste un solo fattore per lato, indipendente dai campi legacy.
+        self.lightOpacity *= self.lightIntensity
+        self.shadowOpacity *= self.shadowIntensity
+        self.highOpacity *= self.topFadeIntensity
+        self.lowOpacity *= self.bottomFadeIntensity
+        self.dayLightOpacity *= self.dayLightIntensity
+        self.dayShadowOpacity *= self.dayShadowIntensity
+        self.dayHighOpacity *= self.dayTopBar.highIntensity
+        self.dayLowOpacity *= self.dayTopBar.lowIntensity
+        normalizeLegacyFadeIntensities()
+    }
+
+    private mutating func normalizeLegacyFadeIntensities() {
+        lightIntensity = 1
+        shadowIntensity = 1
+        dayLightIntensity = 1
+        dayShadowIntensity = 1
+        topFadeIntensity = 1
+        bottomFadeIntensity = 1
+        dayTopBar.highIntensity = 1
+        dayTopBar.lowIntensity = 1
     }
 
     // Le palette 63–72 non contenevano intensità: default retrocompatibile.
@@ -423,7 +448,8 @@ struct EcoThemePalette: Codable, Equatable {
              gradientOpacity, dayGradientOpacity,
              lightIntensity, shadowIntensity, dayLightIntensity, dayShadowIntensity,
              lightOpacity, shadowOpacity, highOpacity, lowOpacity,
-             dayLightOpacity, dayShadowOpacity, dayHighOpacity, dayLowOpacity
+             dayLightOpacity, dayShadowOpacity, dayHighOpacity, dayLowOpacity,
+             directionalVersion
     }
 
     init(from decoder: Decoder) throws {
@@ -480,6 +506,21 @@ struct EcoThemePalette: Codable, Equatable {
         dayShadowOpacity = try opacity(.dayShadowOpacity)
         dayHighOpacity = try opacity(.dayHighOpacity)
         dayLowOpacity = try opacity(.dayLowOpacity)
+        // 107: l'opacità e l'intensità erano due fattori moltiplicati.
+        // 108: una sola trasparenza finale per lato; migrazione una volta.
+        let legacyLayout = (try data.decodeIfPresent(Int.self, forKey: .directionalVersion) ?? 0) < 108
+        if legacyLayout {
+            lightOpacity *= lightIntensity
+            shadowOpacity *= shadowIntensity
+            highOpacity *= topFadeIntensity
+            lowOpacity *= bottomFadeIntensity
+            dayLightOpacity *= dayLightIntensity
+            dayShadowOpacity *= dayShadowIntensity
+            dayHighOpacity *= dayTopBar.highIntensity
+            dayLowOpacity *= dayTopBar.lowIntensity
+        }
+        directionalVersion = 108
+        normalizeLegacyFadeIntensities()
     }
 
     func encode(to encoder: Encoder) throws {
@@ -505,6 +546,7 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(dayShadowOpacity, forKey: .dayShadowOpacity)
         try data.encode(dayHighOpacity, forKey: .dayHighOpacity)
         try data.encode(dayLowOpacity, forKey: .dayLowOpacity)
+        try data.encode(directionalVersion, forKey: .directionalVersion)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -517,19 +559,19 @@ struct EcoThemePalette: Codable, Equatable {
         "Barre telemetria · colore intermedio",
         "Barre telemetria · colore luminoso",
         "Numeri kW · energia in ingresso (ruolo storico nascosto)",
-        "Barre di potenza · energia in uscita",
-        "Barre di potenza · energia in entrata",
+        "Cursore potenza · uscita",
+        "Cursore potenza · ingresso",
         "Velocità GPS · fase normale",
         "Numeri del tachimetro · km/h",
         "Navigatore · svolta a destra",
         "Navigatore · svolta a sinistra",
         "Velocità GPS · fase decelerazione",
-        "Sfumature · colore luce",
-        "Sfumature · colore ombra",
+        "Sfumatura sinistra",
+        "Sfumatura destra",
         "Velocità GPS · limite superato",
         "Velocità GPS · fase accelerazione",
-        "Sfumature · velatura superiore",
-        "Sfumature · velatura inferiore",
+        "Sfumatura alto",
+        "Sfumatura basso",
         "Cerchio concentrico luminoso · tachimetro"
     ]
     static let details = [
@@ -541,19 +583,19 @@ struct EcoThemePalette: Codable, Equatable {
         "Tonalità centrale delle barre di telemetria.",
         "Tonalità brillante delle barre di telemetria.",
         "Ruolo kW storico conservato nei temi salvati, ora unificato con il colore Energia in entrata.",
-        "Segmenti rossi della scala potenza nel ponte kW: energia in uscita.",
-        "Segmenti azzurri della scala potenza nel ponte kW: energia in entrata o recupero.",
+        "Colore B del LED cursore velocità quando il BMS scarica o l'iPhone accelera.",
+        "Colore A del LED cursore velocità quando il BMS carica o l'iPhone decelera.",
         "Colore normale dell’arco GPS quando la variazione resta entro ±5 km/h.",
         "Cifre grandi della velocità GPS al centro.",
         "Freccia e distanza della prossima svolta verso destra.",
         "Freccia e distanza della prossima svolta verso sinistra.",
         "Colore dell’arco GPS quando la velocità cala di oltre 5 km/h nella finestra di osservazione; non indica il freno fisico.",
-        "Colore luce della sfumatura condivisa da top bar e card Telemetria.",
-        "Colore ombra della sfumatura condivisa da top bar e card Telemetria.",
+        "Sfumatura dal bordo sinistro verso il centro.",
+        "Sfumatura dal bordo destro verso il centro.",
         "Colore della barra LED quando la velocità GPS raggiunge il limite attivato in Barre luminose.",
         "Colore dell’arco GPS quando la velocità aumenta di oltre 5 km/h nella finestra di osservazione.",
-        "Velatura aggiuntiva alta della top bar, con colore e intensità indipendenti.",
-        "Velatura aggiuntiva bassa della top bar, con colore e intensità indipendenti.",
+        "Sfumatura dal bordo alto verso il centro.",
+        "Sfumatura dal bordo basso verso il centro.",
         "Colore del cerchio luminoso rimasto attorno al tachimetro; bagliore regolabile qui, termina prima del ponte kW."
     ]
     // Ogni ruolo compare una sola volta. Barre in entrata/uscita e tutte
@@ -563,7 +605,7 @@ struct EcoThemePalette: Codable, Equatable {
         ("Anelli e numeri del tachimetro", [1, 3, 21, 2, 11, 10, 14, 18, 17, 8, 9]),
         ("Barre telemetria", [4, 5, 6]),
         ("Navigatore", [12, 13]),
-        ("Sfumature · luce e ombra", [15, 16, 19, 20])
+        ("Sfumature", [15, 16, 19, 20])
     ]
     static let colorCount = 22
     static let extraDefaults = [
@@ -964,7 +1006,7 @@ private struct EcoThemeEditorView: View {
                         if selectedGroup == 1 {
                             colorRoleSection("Anelli e luci", roles: [1, 3, 21, 2])
                             colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])
-                            colorRoleSection("Barre di potenza", roles: [8, 9])
+                            colorRoleSection("LED potenza", roles: [8, 9])
                         } else if selectedGroup != 4 {
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)],
                                       spacing: 10) {
@@ -1143,35 +1185,6 @@ private struct EcoThemeEditorView: View {
             ? draft.dayTopBar.hex(for: index) : draft.colors[index]
     }
 
-    // Ogni ruolo 15/16/19/20 ha una singola intensità Day e Night.
-    private func gradientIntensityBinding(for role: Int) -> Binding<Double> {
-        Binding(get: {
-            switch role {
-            case 15: return editingDayTopBar ? draft.dayLightIntensity : draft.lightIntensity
-            case 16: return editingDayTopBar ? draft.dayShadowIntensity : draft.shadowIntensity
-            case 19: return editingDayTopBar ? draft.dayTopBar.highIntensity : draft.topFadeIntensity
-            case 20: return editingDayTopBar ? draft.dayTopBar.lowIntensity : draft.bottomFadeIntensity
-            default: return 1
-            }
-        }, set: { value in
-            switch role {
-            case 15:
-                if editingDayTopBar { draft.dayLightIntensity = value }
-                else { draft.lightIntensity = value }
-            case 16:
-                if editingDayTopBar { draft.dayShadowIntensity = value }
-                else { draft.shadowIntensity = value }
-            case 19:
-                if editingDayTopBar { draft.dayTopBar.highIntensity = value }
-                else { draft.topFadeIntensity = value }
-            case 20:
-                if editingDayTopBar { draft.dayTopBar.lowIntensity = value }
-                else { draft.bottomFadeIntensity = value }
-            default: break
-            }
-        })
-    }
-
     private func gradientOpacityBinding(for role: Int) -> Binding<Double> {
         Binding(get: {
             switch role {
@@ -1200,70 +1213,60 @@ private struct EcoThemeEditorView: View {
         })
     }
 
-    private func gradientShortName(_ role: Int) -> String {
+    private func gradientDirectionName(_ role: Int) -> String {
         switch role {
-        case 15: return "Luce"
-        case 16: return "Ombra"
-        case 19: return "Superiore"
-        case 20: return "Inferiore"
+        case 15: return "Sinistra"
+        case 16: return "Destra"
+        case 19: return "Alto"
+        case 20: return "Basso"
         default: return "Sfumatura"
         }
     }
 
+    private func gradientArrow(_ role: Int) -> String {
+        switch role {
+        case 15: return "arrow.left"
+        case 16: return "arrow.right"
+        case 19: return "arrow.up"
+        case 20: return "arrow.down"
+        default: return "arrow.left.and.right"
+        }
+    }
+
+    // Build 108: colore / freccia / trasparenza / percentuale sulla stessa riga.
     private func gradientRoleTile(_ role: Int) -> some View {
-        let binding = gradientIntensityBinding(for: role)
-        let opacity = gradientOpacityBinding(for: role)
-        return VStack(alignment: .leading, spacing: 9) {
+        let transparency = gradientOpacityBinding(for: role)
+        return HStack(spacing: 9) {
             Button {
                 colorID = EcoThemeColorID(id: role, isDay: editingDayTopBar)
             } label: {
-                HStack(spacing: 10) {
-                    RoundedRectangle(cornerRadius: 7)
-                        .fill(Color(themeHex: roleHex(role)))
-                        .frame(width: 40, height: 40)
-                        .overlay(RoundedRectangle(cornerRadius: 7)
-                            .strokeBorder(.secondary.opacity(0.25), lineWidth: 1))
-                    Text(gradientShortName(role))
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
-                        .multilineTextAlignment(.leading)
-                    Spacer(minLength: 0)
-                    Image(systemName: "paintpalette")
-                        .foregroundStyle(.secondary)
-                }
-                .contentShape(Rectangle())
+                RoundedRectangle(cornerRadius: 7)
+                    .fill(Color(themeHex: roleHex(role)))
+                    .frame(width: 38, height: 38)
+                    .overlay(RoundedRectangle(cornerRadius: 7)
+                        .strokeBorder(.secondary.opacity(0.30), lineWidth: 1))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Modifica colore: " + EcoThemePalette.labels[role])
-            HStack(spacing: 10) {
-                Image(systemName: "sun.max")
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
-                Slider(value: binding, in: 0...1, step: 0.01)
-                    .tint(Color(themeHex: roleHex(role)))
-                    .accessibilityLabel("Intensità " + gradientShortName(role))
-                    .accessibilityValue("\(Int((binding.wrappedValue * 100).rounded()))%")
-                Text("\(Int((binding.wrappedValue * 100).rounded()))%")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .frame(width: 42, alignment: .trailing)
-            }
-            HStack(spacing: 10) {
-                Image(systemName: "circle.lefthalf.filled")
-                    .foregroundStyle(.secondary)
-                    .accessibilityHidden(true)
-                Slider(value: opacity, in: 0...1, step: 0.01)
-                    .tint(Color(themeHex: roleHex(role)))
-                    .accessibilityLabel("Opacità " + gradientShortName(role))
-                    .accessibilityValue("\(Int((opacity.wrappedValue * 100).rounded()))%")
-                Text("\(Int((opacity.wrappedValue * 100).rounded()))%")
-                    .font(.caption.monospacedDigit())
-                    .foregroundStyle(.secondary)
-                    .frame(width: 42, alignment: .trailing)
-            }
+            .accessibilityLabel("Colore " + gradientDirectionName(role))
+
+            Image(systemName: gradientArrow(role))
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 22)
+                .accessibilityHidden(true)
+
+            Slider(value: transparency, in: 0...1, step: 0.01)
+                .tint(Color(themeHex: roleHex(role)))
+                .accessibilityLabel("Trasparenza " + gradientDirectionName(role))
+                .accessibilityValue("\(Int((transparency.wrappedValue * 100).rounded()))%")
+
+            Text("\(Int((transparency.wrappedValue * 100).rounded()))%")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(width: 42, alignment: .trailing)
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10)
+        .frame(maxWidth: .infinity)
         .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
     }
 

@@ -9,7 +9,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 107;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 108;") == 2
 assert "static let colorCount = 22" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
@@ -18,7 +18,7 @@ assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 22
 for label in (
     "Sfondo del cockpit", "Colore principale · top bar e icone Setup",
     "Barre telemetria · colore scuro", "Numeri kW · energia in ingresso (ruolo storico nascosto)",
-    "Barre di potenza · energia in uscita", "Barre di potenza · energia in entrata",
+    "Cursore potenza · uscita", "Cursore potenza · ingresso",
     "Velocità GPS · fase normale", "Numeri del tachimetro · km/h",
     "Navigatore · svolta a destra", "Navigatore · svolta a sinistra",
     "Velocità GPS · fase decelerazione",
@@ -62,7 +62,7 @@ for i in range(8, 15):
 assert "activeColor: CockpitTheme.dischargeAccent" in cockpit
 assert "activeColor: CockpitTheme.recoveryRingAccent" in cockpit
 assert "CockpitTheme.speedLEDAccent" in cockpit
-assert "CockpitTheme.decelerationAccent" in cockpit
+assert "case .incoming: return CockpitTheme.recoveryRingAccent" in cockpit
 assert ".foregroundStyle(CockpitTheme.speedDigitsAccent)" in cockpit
 assert "navigationArrow.contains(\"right\")" in cockpit
 assert "navigationArrow.contains(\"left\")" in cockpit
@@ -72,13 +72,11 @@ assert "navigationDistance: navigation.isNavigating &&" in cockpit
 assert 'Text(navigationDistance)' in cockpit
 assert "navigation.guidanceDistanceLabel" in cockpit
 
-# A reduction of actual GPS speed is not the brake signal; never claim it is.
-assert ".onChange(of: speed)" in cockpit
-assert "GPSSpeedMovement.classify(deltaKmh: current - reference.value)" in cockpit
-assert "if deltaKmh > 5" in cockpit
-assert "if deltaKmh < -5" in cockpit
-assert "speedHistory.removeAll()" in cockpit
-assert "Una variazione GPS non è la lettura di un accelerometro/freno." in cockpit
+# Build 108: acceleration now comes only from device motion or verified BMS.
+assert "GPSSpeedMovement" not in cockpit
+assert "speedHistory" not in cockpit
+assert "selectedPowerFlow(snapshot: JKSnapshot?" in cockpit
+assert "motion.userAcceleration" in (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 assert "Velocità GPS · fase decelerazione" in tabs
 
 # Critical GPS and telemetry measurements and geometry remain unchanged.

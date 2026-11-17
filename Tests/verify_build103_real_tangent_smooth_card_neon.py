@@ -8,7 +8,7 @@ home=(root/"Ecojumbo/Views/EcojumboRootView.swift").read_text()
 proj=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 status=(root/"STATO_PROGETTO.md").read_text()
 
-assert proj.count("CURRENT_PROJECT_VERSION = 107;")==2
+assert proj.count("CURRENT_PROJECT_VERSION = 108;")==2
 assert "## Build 103" in status
 assert 'Image("CarbonWeave")' not in cockpit
 assert "private struct CarbonBackdrop: View" in cockpit # smooth backdrop still shared
@@ -59,9 +59,9 @@ telemetry=cockpit.split("private struct GPSExpandedReadings: View {",1)[1].split
 assert "private var telemetryCardGradient: LinearGradient" in telemetry
 assert "theme.dayTopBar.left" in telemetry and "theme.dayTopBar.right" in telemetry
 assert "theme.topBarGradientStart" in telemetry and "theme.topBarGradientEnd" in telemetry
-assert "startPoint: direction.start, endPoint: direction.end" in telemetry
-assert "EcoGradientDirection.points(angle: 0)" in telemetry
-assert "from.opacity((day ? 0.38 : 0.32) * lightStrength * lightOpacity)" in telemetry
+assert "startPoint: direction.start, endPoint: direction.end" not in telemetry
+assert "startPoint: .leading, endPoint: .trailing" in telemetry
+assert "from.opacity((day ? 0.38 : 0.32) * lightOpacity)" in telemetry
 assert telemetry.count(".background(telemetryCardBackground)")==2
 assert "telemetryTile(\"SOC\"" in telemetry
 assert "dislevelCard(height: dislHeight)" in telemetry

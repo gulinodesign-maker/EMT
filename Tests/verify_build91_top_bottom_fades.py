@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 107;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 108;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 91" in state
@@ -26,20 +26,17 @@ assert "colors[19]" in accessors and "colors[20]" in accessors
 assert "savedPalette?.topFadeIntensity ?? 0.35" in accessors
 assert "savedPalette?.bottomFadeIntensity ?? 0.35" in accessors
 for prop in ("topBarGradientStart", "topBarGradientEnd", "topBarUnderGlow",
-             "topBarHighFade", "topBarLowFade",
-             "topBarHighFadeIntensity", "topBarLowFadeIntensity"):
+             "topBarHighFade", "topBarLowFade"):
     assert "theme." + prop in layer, prop
-assert layer.count("GPSUpperLayerFootprint()") == 7
-assert "LinearGradient(stops: [" in layer
+assert layer.count("GPSUpperLayerFootprint()") >= 7
+assert "from.opacity(lightOpacity)" in layer
+assert "to.opacity(shadowOpacity)" in layer
+assert "high.opacity(highOpacity)" in layer
+assert "low.opacity(lowOpacity)" in layer
 assert layer.count("], startPoint: .top, endPoint: .bottom)") == 2
-for location in ("location: 0)", "location: 0.20)", "location: 0.45)",
-                 "location: 0.55)", "location: 0.80)", "location: 1)"):
-    assert location in layer
-assert "highStrength * 0.28" in layer
-assert "lowStrength * 0.28" in layer
 
 # Both masks are OUTSIDE the ZStack and AFTER all four fills.
-assert layer.index("topBarLowFadeIntensity") < layer.index(
+assert layer.index("low.opacity(lowOpacity)") < layer.index(
     ".mask(GPSDialExteriorMask().fill(style: FillStyle(eoFill: true)))")
 assert layer.index(".mask(GPSDialExteriorMask()") < layer.index(
     ".mask(GPSBridgeExteriorMask()")
@@ -47,7 +44,7 @@ assert "GPSUpperGradientLayer(theme: theme)" in dashboard
 assert ".zIndex(4)" in dashboard
 assert "GPSMetalInnerRing()" in dashboard
 assert "GPSLowerGlow(theme: theme)" in dashboard
-assert "GPSPowerHorizontalGauge(d: dialSize," in dashboard
+assert "GPSPowerHorizontalGauge" not in dashboard
 
 # Two new palette roles, each with color and independent adjustable intensity.
 assert "static let colorCount = 22" in tabs
@@ -55,11 +52,11 @@ labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
 assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
 assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
-assert '"Sfumature · velatura superiore"' in tabs
-assert '"Sfumature · velatura inferiore"' in tabs
-assert '("Sfumature · luce e ombra", [15, 16, 19, 20])' in tabs
-assert "gradientIntensityBinding(for role: Int)" in tabs
-assert "Slider(value: binding, in: 0...1, step: 0.01)" in tabs
+assert '"Sfumatura alto"' in tabs
+assert '"Sfumatura basso"' in tabs
+assert '("Sfumature", [15, 16, 19, 20])' in tabs
+assert "gradientOpacityBinding(for role: Int)" in tabs
+assert "Slider(value: transparency, in: 0...1, step: 0.01)" in tabs
 assert "Color(themeHex: roleHex(role))" in tabs and "ForEach([15, 16, 19, 20]" in tabs
 assert "case 19:" in tabs and "case 20:" in tabs
 assert "draft.colors[selected.id] = hex" in tabs

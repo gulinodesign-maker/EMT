@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 status = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 107;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 108;") == 2
 assert "## Build 104" in status
 
 # A single angle, never a second setting for the cards or for Day Mode.
@@ -44,9 +44,9 @@ assert "try data.encode(gradientAngle, forKey: .gradientAngle)" in palette
 assert "palette.gradientAngle.isFinite, (0...360).contains(palette.gradientAngle)" in palette
 assert "static let colorCount = 22" in palette # all 22 old saved slot values survive
 assert "if migrated.colors.count == 23 {" in palette
-assert '("Sfumature · luce e ombra", [15, 16, 19, 20])' in palette
-assert '"Sfumature · colore luce"' in palette
-assert '"Sfumature · colore ombra"' in palette
+assert '("Sfumature", [15, 16, 19, 20])' in palette
+assert '"Sfumatura sinistra"' in palette
+assert '"Sfumatura destra"' in palette
 assert '("Anelli e numeri del tachimetro", [1, 3, 21, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
 labels=palette.split("static let labels = [",1)[1].split("]",1)[0]
 details=palette.split("static let details = [",1)[1].split("]",1)[0]
@@ -57,7 +57,7 @@ listed = list(map(int,re.findall(r'\d+',groups)))
 assert sorted(listed)==[i for i in range(22) if i!=7], listed
 assert '"Numeri kW · energia in ingresso (ruolo storico nascosto)"' in labels
 assert "[8, 9, 7]" not in tabs
-assert 'colorRoleSection("Barre di potenza", roles: [8, 9])' in tabs
+assert 'colorRoleSection("LED potenza", roles: [8, 9])' in tabs
 assert "EcoThemePalette.active?.colors[9]" in cockpit
 assert "EcoThemePalette.active?.colors[7]" not in cockpit
 assert ".foregroundStyle(tone(9))" in cockpit
@@ -73,7 +73,7 @@ assert 'EcoGradientDirection.points(angle: draft.gradientAngle)' not in editor
 assert '.preferredColorScheme(selectedGroup == 4' in editor
 assert 'colorID = EcoThemeColorID(' in editor
 assert ".onLongPressGesture" not in editor
-assert "gradientIntensityBinding(for role: Int)" in editor
+assert "gradientOpacityBinding(for role: Int)" in editor
 
 upper=cockpit.split("private struct GPSUpperGradientLayer: View {",1)[1].split(
     "struct EcoCockpitThemeMiniature:",1)[0]
@@ -81,32 +81,17 @@ telemetry=cockpit.split("private struct GPSExpandedReadings: View {",1)[1].split
     "// Progressi sottili",1)[0]
 preview=cockpit.split("struct EcoCockpitThemeMiniature: View {",1)[1].split(
     "private struct GPSHorizonLine",1)[0]
-assert "EcoGradientDirection.points(angle: 0)" in upper
-assert "startPoint: direction.start, endPoint: direction.end" in upper
-assert "EcoGradientDirection.points(angle: 0)" in telemetry
-assert "startPoint: direction.start, endPoint: direction.end" in telemetry
-assert telemetry.count(".background(telemetryCardBackground)") == 2
+# Four directional fades instead of a single rotatable light-shadow wash.
+for surface in (upper, preview):
+    assert "startPoint: .leading, endPoint: .trailing" in surface
+    assert "from.opacity(lightOpacity)" in surface
+    assert "to.opacity(shadowOpacity)" in surface
+    assert "high.opacity(highOpacity)" in surface
+    assert "low.opacity(lowOpacity)" in surface
 assert "theme.dayTopBar.left" in telemetry and "theme.dayTopBar.right" in telemetry
+assert telemetry.count(".background(telemetryCardBackground)") == 2
 assert "theme.topBarGradientStart" in telemetry and "theme.topBarGradientEnd" in telemetry
-assert preview.count("EcoGradientDirection.points(angle: 0)") == 2
-assert preview.count("startPoint: direction.start, endPoint: direction.end") == 2
+assert "GPSPowerHorizontalGauge" not in cockpit
+assert "miniaturePowerBar" not in cockpit
 
-bar=cockpit.split("private struct GPSPowerHorizontalGauge: View {",1)[1].split(
-    "// Costanti LED storiche",1)[0]
-mini=preview.split("private func miniaturePowerBar(d: CGFloat, bridgeMaxWidth: CGFloat)",1)[1].split(
-    "private func miniatureTelemetry",1)[0]
-assert "private let regenTacks = 3" in bar and "private let dischargeTacks = 7" in bar
-assert "let tickSide = min(geo.size.width / CGFloat(count), geo.size.height)" in bar
-assert "HStack(spacing: 0)" in bar and "Rectangle()" in bar
-assert ".frame(width: tickSide, height: tickSide)" in bar
-assert "RoundedRectangle(cornerRadius:" not in bar
-assert "let tickSide = min(width / 10, height)" in mini
-assert "HStack(spacing: 0)" in mini and "Rectangle()" in mini
-assert ".frame(width: tickSide, height: tickSide)" in mini
-assert "ForEach(0..<10" in mini and "i < 3 ? tone(9) : tone(8)" in mini
-for width,height in [(190,18),(240,22),(300,29),(400,36)]:
-    side=min(width/10,height)
-    assert side>0 and side*10<=width
-    assert math.isclose(side,side) and 10*side<=width
-
-print("OK — build 104: shared 360° day/night angle and ten contiguous square kW cells, old themes preserved")
+print("OK — build 104: legacy theme migration and four directional gradients with kW text, old themes preserved")

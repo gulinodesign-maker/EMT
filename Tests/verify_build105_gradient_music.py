@@ -9,7 +9,7 @@ panel = read("Ecojumbo/Views/EcoMusicCockpitPanel.swift")
 manager = read("Ecojumbo/Models/EcoMusicManager.swift")
 dock = read("Ecojumbo/Views/EcojumboRootView.swift")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 107;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 108;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 editor = tabs.split("private struct EcoThemeEditorView: View {", 1)[1].split(
@@ -35,17 +35,14 @@ mini = cockpit.split("struct EcoCockpitThemeMiniature: View {", 1)[1].split(
     "private struct GPSHorizonLine:", 1)[0]
 telemetry = cockpit.split("private struct GPSExpandedReadings: View {", 1)[1].split(
     "// Progressi sottili", 1)[0]
-bar = cockpit.split("private struct GPSPowerHorizontalGauge: View {", 1)[1].split(
-    "// Costanti LED storiche", 1)[0]
+# Build 108 replaces the obsolete tick scale with a single kW text.
 for part in (upper, mini, telemetry):
-    assert "lightStrength" in part and "shadowStrength" in part
-assert "highStrength" in upper and "lowStrength" in upper
+    assert "lightOpacity" in part and "shadowOpacity" in part
 assert "Color(red: 0.94, green: 0.96, blue: 0.985) : tone(0)" in mini
-assert bar.count("strokeBorder") >= 1
-miniPower = mini.split("private func miniaturePowerBar", 1)[1].split(
-    "private func miniatureTelemetry", 1)[0]
-assert "strokeBorder" in miniPower
-assert "HStack(spacing: 0)" in miniPower and "HStack(spacing: 0)" in bar
+assert "GPSPowerHorizontalGauge" not in cockpit
+assert "miniaturePowerBar" not in cockpit
+assert 'Text("— kW")' in mini
+assert "GPSCockpitPowerReading(d: dialSize" in cockpit
 
 # Cover and Play/Pause follow the real player and current item.
 assert "Notification.Name.MPMusicPlayerControllerNowPlayingItemDidChange" in manager
@@ -58,4 +55,4 @@ assert "Timer.publish(every: 1" in panel
 assert "if usesInAppPlayer {" in panel and ".id(url)" in panel
 assert '? apple.isPlaying : music.isPlaying) ? "pause.fill" : "play.fill"' in dock
 
-print("OK — build 105: retained Day preview, segmented power and live music after build 106 UI refresh")
+print("OK — build 105: retained Day preview, text-only kW and live music after build 106 UI refresh")

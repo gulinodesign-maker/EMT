@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 107;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 108;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Existing 3 slots retain old shades. Both old 8- and 15-colour palettes migrate.
@@ -23,8 +23,8 @@ assert "let edge = migrated.colors[2]" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
 assert "foreground.1, foreground.0, foreground.0]" in tabs
 assert '("Sfumatura top bar e ponte kW", 15..<17)' not in tabs
-assert '"Sfumature · colore luce"' in tabs
-assert '"Sfumature · colore ombra"' in tabs
+assert '"Sfumatura sinistra"' in tabs
+assert '"Sfumatura destra"' in tabs
 assert 'ForEach(0..<EcoThemePalette.groups.count, id:' in tabs
 assert 'ForEach(group.range, id:' in tabs
 assert 'draft.colors[selected.id] = hex' in tabs
@@ -90,6 +90,6 @@ for width, height in ((736, 414), (844, 390), (932, 430), (956, 440),
 
 # UI changes do not alter real GPS/JK BMS measurement sources.
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in cockpit
-assert "let live = bluetooth.snapshot" in cockpit
+assert "let live: JKSnapshot? = {" in cockpit
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in cockpit
 print("OK — build 68/70: lossless palette migration and tangent-centered panels and dock without colored gradients")

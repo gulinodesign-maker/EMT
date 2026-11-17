@@ -6,7 +6,7 @@ src = (root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 themes = (root/"Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root/"STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 107;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 108;") == 2
 assert "Build 90" in state
 footprint = src.split("private struct GPSUpperLayerFootprint: Shape {",1)[1].split(
     "private struct GPSDialExteriorMask: Shape {",1)[0]
@@ -63,8 +63,8 @@ assert "GPSMetalInnerRing()" in dashboard
 assert "GPSHorizonLine(theme: theme)" in dashboard
 assert "GPSLowerGlow(theme: theme)" in dashboard
 assert "GPSCockpitPowerReading(d: dialSize," in dashboard
-assert "GPSPowerHorizontalGauge(d: dialSize," in dashboard
-assert '("Sfumature · luce e ombra", [15, 16, 19, 20])' in themes
+assert "GPSPowerHorizontalGauge(d: dialSize," not in dashboard
+assert '("Sfumature", [15, 16, 19, 20])' in themes
 assert "powerWatts: live.map { -$0.power }" in dashboard
 
 # Mathematically the dial mask clears every point on and inside the entire

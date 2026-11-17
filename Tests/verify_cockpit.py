@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 107;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 108;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -102,7 +102,7 @@ assert '48 A' not in c and '62 km/h' not in c and '400 V' not in c
 assert '— V' in c and '— kW' in c and '— km' in c
 assert 'Text(String(Int(speed.rounded())))' in c and 'Text("km/h")' in c
 assert 'Label("GPS", systemImage: "location.north.fill")' in c and 'Text("P")' not in c
-assert 'SpeedLEDStream(d: d, speed: speed)' in c and 'SpeedScaleTicks(d: d)' in c
+assert 'SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow)' in c and 'SpeedScaleTicks(d: d)' in c
 assert 'SegmentedGaugeBar(d:' in c
 
 # Le linee usano lo stesso raggio effettivo; angoli inferiori retti.
@@ -292,7 +292,7 @@ assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2  # Ho
 assert 'GPSCockpitPowerReading(d: dialSize,' in c and 'powerWatts: live.map { -$0.power }' in c
 assert 'Text(incomingPower.map { String(format: "%.2f kW"' in c
 assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in c
-assert 'private var ledOrange: Color {' in c and 'CockpitTheme.speedLEDAccent' in c
+assert 'private var ledColor: Color {' in c and 'CockpitTheme.speedLEDAccent' in c
 assert 'let idealRun = standardHorizontalRun * ((footY - topY) / standardVerticalRun)' in c
 assert 'GPSLowerLineGeometry.points(in: rect)' in c
 assert 'Text("Ecojumbo \\(EcojumboBuildStamp.display) · build \\(EcojumboBuildStamp.buildNumber)")' in o
@@ -462,7 +462,7 @@ assert 'if usableSpeed {' in g
 assert 'date.timeIntervalSince(lastValidAt) < 8' in g
 assert 'if speedKmh < 1.5 {' not in g
 assert 'fix.horizontalAccuracy <= 35' in g and 'fix.speedAccuracy <= 5' in g
-assert 'if phase == .active { gps.retryLocation() }' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
+assert 'gps.retryLocation()' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
 assert 'Text(gps.speedStatus(at: now))' not in c
 assert 'gps.speedStatus()' in c  # diagnostica solo su richiesta
 assert 'if liveSpeed == nil {' not in c

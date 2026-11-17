@@ -4,10 +4,10 @@ import re
 root = Path(__file__).resolve().parents[1]
 settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 107;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 108;") == 2
 en = settings.split("private enum EcoSetupSection:", 1)[1].split("struct EcoSettingsView:", 1)[0]
 assert "case battery, bms, appearance, scooter, bluetooth, charging" in en
-assert "case odometer, bars, weather" in en
+assert "case odometer, bars, power, weather" in en
 assert "LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 3)" in settings
 assert "ForEach(EcoSetupSection.allCases)" in settings
 assert "Image(systemName: section.symbol)" in settings

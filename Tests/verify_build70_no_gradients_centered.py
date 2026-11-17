@@ -8,7 +8,7 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 107;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 108;") == 2
 assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
@@ -77,5 +77,5 @@ assert "Build 70" in state
 assert "senza applicare le sfumature" in state
 assert "GPSCockpitMap(theme: theme)" in cockpit
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in cockpit
-assert "let live = bluetooth.snapshot" in cockpit
+assert "let live: JKSnapshot? = {" in cockpit
 print("OK — build 70/71: no colored gradients, 18 palette colors, originals kept, centered telemetry and five dock controls")
