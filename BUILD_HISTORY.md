@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44075754751:ATTEMPT:1 -->
+### 2026-11-17T11:37:54Z — CI #397 · build-112-automotive-brands-theme-json · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44075754751](https://github.com/gulinodesign-maker/EMT/actions/runs/44075754751); avvio 2026-11-17T11:37:54Z UTC; aggiornamento finale 2026-11-17T11:41:51Z UTC; registrazione 2026-11-17T11:42:05+00:00 UTC; evento pull_request.
+- **Commit:** [8d4e8a5220da](https://github.com/gulinodesign-maker/EMT/commit/8d4e8a5220dad432caa69d835690d5567ddd0d2d); versione **1.0**; build **112**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build68_gradient_layout.py, Tests/verify_build91_top_bottom_fades.py.
+
 <!-- EMT_RUN:44075520942:ATTEMPT:1 -->
 ### 2026-11-17T11:36:16Z — CI #396 · build-112-automotive-brands-theme-json · tentativo 1
 
