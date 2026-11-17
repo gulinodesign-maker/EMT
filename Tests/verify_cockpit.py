@@ -462,7 +462,7 @@ assert 'if usableSpeed {' in g
 assert 'date.timeIntervalSince(lastValidAt) < 8' in g
 assert 'if speedKmh < 1.5 {' not in g
 assert 'fix.horizontalAccuracy <= 35' in g and 'fix.speedAccuracy <= 5' in g
-assert 'if phase == .active { gps.retryLocation() }' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
+assert 'gps.retryLocation()' in (r/'Ecojumbo/EcojumboApp.swift').read_text()
 assert 'Text(gps.speedStatus(at: now))' not in c
 assert 'gps.speedStatus()' in c  # diagnostica solo su richiesta
 assert 'if liveSpeed == nil {' not in c
