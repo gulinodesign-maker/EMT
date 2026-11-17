@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44090172121:ATTEMPT:1 -->
+### 2026-11-17T13:11:01Z — CI #403 · build-113-original-automotive-emblems-apple-only · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44090172121](https://github.com/gulinodesign-maker/EMT/actions/runs/44090172121); avvio 2026-11-17T13:11:01Z UTC; aggiornamento finale 2026-11-17T13:14:06Z UTC; registrazione 2026-11-17T13:14:16+00:00 UTC; evento pull_request.
+- **Commit:** [8e8030b262f5](https://github.com/gulinodesign-maker/EMT/commit/8e8030b262f5bfebf43dfa5d819b954eba123a86); versione **1.0**; build **113**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build113_apple_only_emblems_json.py.
+
 <!-- EMT_RUN:44089921466:ATTEMPT:1 -->
 ### 2026-11-17T13:09:30Z — CI #402 · build-113-original-automotive-emblems-apple-only · tentativo 1
 
