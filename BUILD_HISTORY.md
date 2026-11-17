@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44038160517:ATTEMPT:1 -->
+### 2026-11-17T07:22:11Z — CI #341 · build-105-gradient-opacity-music-gauge · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44038160517](https://github.com/gulinodesign-maker/EMT/actions/runs/44038160517); avvio 2026-11-17T07:22:11Z UTC; aggiornamento finale 2026-11-17T07:22:43Z UTC; registrazione 2026-11-17T07:22:51+00:00 UTC; evento pull_request.
+- **Commit:** [438358af47df](https://github.com/gulinodesign-maker/EMT/commit/438358af47dfcf9744cc9f736ca3106145b9baaf); versione **1.0**; build **105**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** STATO_PROGETTO.md.
+
 <!-- EMT_RUN:43973318040:ATTEMPT:1 -->
 ### 2026-11-16T22:47:02Z — CI #340 · main · tentativo 1
 
