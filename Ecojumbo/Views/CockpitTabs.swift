@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import MapKit
 
 struct TripsPanel: View {
@@ -904,6 +905,44 @@ private struct EcoThemeColorID: Identifiable {
     let isDay: Bool
 }
 
+// I marchi sono asset locali SVG. Gli stemmi restano riconoscibili in
+// Day/Night e la cornice chiara protegge il contrasto dei loghi originali.
+private struct EcoAutomotiveBrandLogo: View {
+    let brand: String
+    let size: CGFloat
+
+    private var assetName: String? {
+        switch brand {
+        case "BMW": return "AutoBMW"
+        case "Ferrari": return "AutoFerrari"
+        case "Mercedes": return "AutoMercedes"
+        case "Alfa Romeo": return "AutoAlfaRomeo"
+        case "Lamborghini": return "AutoLamborghini"
+        case "Cupra": return "AutoCupra"
+        default: return nil
+        }
+    }
+
+    var body: some View {
+        Group {
+            if let assetName {
+                Image(assetName)
+                    .resizable()
+                    .scaledToFit()
+                    .padding(5)
+            } else {
+                Image(systemName: "car.side.fill")
+                    .resizable()
+                    .scaledToFit()
+                    .padding(7)
+            }
+        }
+        .frame(width: size, height: size)
+        .background(.white, in: RoundedRectangle(cornerRadius: 9))
+        .accessibilityLabel("Logo " + brand)
+    }
+}
+
 struct ThemePickerView: View {
     var portrait: Bool = false
     @Environment(\.colorScheme) private var colorScheme
@@ -921,6 +960,46 @@ struct ThemePickerView: View {
                 EcoInfoIcon(title: "Temi", message: "Puoi salvare tre temi. Tocca un campione colore e salva nello slot.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+
+                VStack(alignment: .leading, spacing: 10) {
+                    Label("Temi automobilistici", systemImage: "car.side.fill")
+                        .font(.headline)
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 132), spacing: 10)],
+                              spacing: 10) {
+                        ForEach(CockpitTheme.allCases.filter { $0.slotIndex == nil }) { theme in
+                            let active = selection == theme.rawValue
+                            Button {
+                                selection = theme.rawValue
+                                revision += 1
+                            } label: {
+                                VStack(spacing: 6) {
+                                    EcoAutomotiveBrandLogo(brand: theme.displayName, size: 50)
+                                    Text(theme.displayName)
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(.primary)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.75)
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .fill(theme.accent)
+                                        .frame(height: 6)
+                                    if active {
+                                        Label("Attivo", systemImage: "checkmark.circle.fill")
+                                            .font(.caption2)
+                                    }
+                                }
+                                .frame(maxWidth: .infinity, minHeight: 114)
+                                .padding(8)
+                                .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12)
+                                    .strokeBorder(active ? theme.accent : .secondary.opacity(0.2),
+                                                  lineWidth: active ? 2 : 1))
+                                .contentShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Attiva tema " + theme.displayName)
+                        }
+                    }
+                }
 
                 LazyVGrid(columns: portrait ? portraitColumns : landscapeColumns, spacing: 13) {
                     ForEach(1...3, id: \.self) { slot in
@@ -1042,10 +1121,15 @@ private struct EcoThemePreview: View {
             // icone flottanti che coprano il disegno del cockpit.
             EcoCockpitThemeMiniature(palette: palette)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-            Text(palette.name.isEmpty ? "Il mio tema" : palette.name)
-                .font(.headline)
-                .foregroundStyle(.primary)
-                .lineLimit(1)
+            HStack(spacing: 8) {
+                if let brand = palette.brandID {
+                    EcoAutomotiveBrandLogo(brand: brand, size: 34)
+                }
+                Text(palette.name.isEmpty ? "Il mio tema" : palette.name)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+            }
         }
         .padding(10)
         .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 14))
@@ -1094,16 +1178,12 @@ private struct EcoThemeEditorView: View {
                                   spacing: 8) {
                             ForEach(CockpitTheme.allCases.filter { $0.slotIndex == nil }) { theme in
                                 Button {
-                                    let name = draft.name
                                     draft = EcoThemePalette.template(theme)
-                                    draft.name = name
                                     selectedKit = theme
                                 } label: {
                                     HStack(spacing: 8) {
-                                        Circle()
-                                            .fill(theme.accent)
-                                            .frame(width: 16, height: 16)
-                                        Text(theme.rawValue)
+                                        EcoAutomotiveBrandLogo(brand: theme.displayName, size: 36)
+                                        Text(theme.displayName)
                                             .font(.subheadline.weight(.medium))
                                             .lineLimit(1)
                                         Spacer(minLength: 0)
@@ -1121,7 +1201,7 @@ private struct EcoThemeEditorView: View {
                                     .contentShape(RoundedRectangle(cornerRadius: 10))
                                 }
                                 .buttonStyle(.plain)
-                                .accessibilityLabel("Seleziona kit " + theme.rawValue)
+                                .accessibilityLabel("Seleziona kit " + theme.displayName)
                                 .accessibilityAddTraits(selectedKit == theme ? .isSelected : [])
                             }
                         }
