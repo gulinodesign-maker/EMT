@@ -33,7 +33,7 @@ assert 'selectedKit = theme' in editor
 assert 'draft = EcoThemePalette.template(theme)' in editor
 assert 'draft = EcoThemePalette.template(theme)' in editor
 assert '.accessibilityLabel("Seleziona kit " + theme.displayName)' in editor
-assert "if selectedKit == theme" in editor
+assert "let active = selectedKit == theme" in editor
 assert 'EcoThemePreview(palette: draft)' in editor
 assert 'chooseSlot = true' in editor
 print("OK — build 109: Cockpit return and direct one-tap kit selection")
