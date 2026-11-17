@@ -388,6 +388,9 @@ struct EcoThemePalette: Codable, Equatable {
     // Ruolo 22: nuovo anello interno al neon GPS.
     var glowLevels: [Double]
     var lightingVersion: Int
+    // Build 111: grafico DISL indipendente dai 23 ruoli storici.
+    var altitudeGraphColor: String
+    var altitudeGraphGlow: Double
 
     static let luminousRoles: [Int] = [1, 2, 4, 5, 6, 8, 9, 10, 14, 17, 18, 21, 22]
 
@@ -414,7 +417,8 @@ struct EcoThemePalette: Codable, Equatable {
          highOpacity: Double = 1, lowOpacity: Double = 1,
          dayLightOpacity: Double = 1, dayShadowOpacity: Double = 1,
          dayHighOpacity: Double = 1, dayLowOpacity: Double = 1,
-         glowLevels: [Double]? = nil) {
+         glowLevels: [Double]? = nil,
+         altitudeGraphColor: String? = nil, altitudeGraphGlow: Double = 0.55) {
         self.name = name
         self.colors = colors
         self.glowIntensity = glowIntensity.isFinite ? min(1, max(0, glowIntensity)) : 0.60
@@ -452,6 +456,11 @@ struct EcoThemePalette: Codable, Equatable {
             ? glowLevels!.map { $0.isFinite ? min(1, max(0, $0)) : 1 }
             : Self.defaultGlowLevels(legacyGlow: self.glowIntensity)
         self.lightingVersion = 109
+        let defaultGraphColor = colors.indices.contains(1) ? colors[1] : "#FF7008"
+        self.altitudeGraphColor = altitudeGraphColor.flatMap { Self.validHex($0) ? $0 : nil }
+            ?? defaultGraphColor
+        self.altitudeGraphGlow = altitudeGraphGlow.isFinite
+            ? min(1, max(0, altitudeGraphGlow)) : 0.55
         normalizeLegacyFadeIntensities()
     }
 
@@ -473,7 +482,8 @@ struct EcoThemePalette: Codable, Equatable {
              lightIntensity, shadowIntensity, dayLightIntensity, dayShadowIntensity,
              lightOpacity, shadowOpacity, highOpacity, lowOpacity,
              dayLightOpacity, dayShadowOpacity, dayHighOpacity, dayLowOpacity,
-             directionalVersion, glowLevels, lightingVersion
+             directionalVersion, glowLevels, lightingVersion,
+              altitudeGraphColor, altitudeGraphGlow
     }
 
     init(from decoder: Decoder) throws {
@@ -549,6 +559,12 @@ struct EcoThemePalette: Codable, Equatable {
             ? levels!.map { $0.isFinite ? min(1, max(0, $0)) : 1 }
             : Self.defaultGlowLevels(legacyGlow: glowIntensity)
         lightingVersion = try data.decodeIfPresent(Int.self, forKey: .lightingVersion) ?? 0
+        let legacyGraphColor = colors.indices.contains(1) ? colors[1] : "#FF7008"
+        let storedGraphColor = try data.decodeIfPresent(String.self, forKey: .altitudeGraphColor)
+        altitudeGraphColor = storedGraphColor.flatMap { Self.validHex($0) ? $0 : nil }
+            ?? legacyGraphColor
+        let storedGlow = try data.decodeIfPresent(Double.self, forKey: .altitudeGraphGlow) ?? 0.55
+        altitudeGraphGlow = storedGlow.isFinite ? min(1, max(0, storedGlow)) : 0.55
         normalizeLegacyFadeIntensities()
     }
 
@@ -578,6 +594,8 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(directionalVersion, forKey: .directionalVersion)
         try data.encode(glowLevels, forKey: .glowLevels)
         try data.encode(lightingVersion, forKey: .lightingVersion)
+        try data.encode(altitudeGraphColor, forKey: .altitudeGraphColor)
+        try data.encode(altitudeGraphGlow, forKey: .altitudeGraphGlow)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -635,7 +653,7 @@ struct EcoThemePalette: Codable, Equatable {
     // le fasi della velocità fanno parte del tachimetro, non della telemetria.
     static let groups: [(title: String, range: [Int])] = [
         ("Aspetto generale", [0]),
-        ("Anelli e numeri del tachimetro", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9]),
+        ("Cockpit", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9]),
         ("Barre telemetria", [4, 5, 6]),
         ("Navigatore", [12, 13]),
         ("Sfumature", [15, 16, 19, 20])
@@ -759,7 +777,9 @@ struct EcoThemePalette: Codable, Equatable {
               palette.dayHighOpacity.isFinite, (0...1).contains(palette.dayHighOpacity),
               palette.dayLowOpacity.isFinite, (0...1).contains(palette.dayLowOpacity),
               palette.dayTopBar.isValid,
-              palette.glowLevels.count == colorCount,
+              validHex(palette.altitudeGraphColor),
+               palette.altitudeGraphGlow.isFinite, (0...1).contains(palette.altitudeGraphGlow),
+               palette.glowLevels.count == colorCount,
               palette.glowLevels.allSatisfy({ $0.isFinite && (0...1).contains($0) }),
               palette.colors.allSatisfy({ validHex($0) }),
               let data = try? JSONEncoder().encode(palette) else { return false }
