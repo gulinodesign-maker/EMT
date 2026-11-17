@@ -36,7 +36,7 @@ assert 'glowRoleSection("LED velocità · inerzia", roles: [10, 14, 18, 17])' in
 assert 'glowRoleSection("LED potenza · BMS", roles: [8, 9])' in editor
 assert 'glowRoleSection("Barre telemetria", roles: [4, 5, 6])' in editor
 glow_tile = editor.split("private func glowRoleTile(_ role: Int) -> some View {",1)[1].split(
-    "private func glowRoleSection",1)[0]
+    "private func altitudeGraphTile",1)[0]
 assert glow_tile.index("RoundedRectangle(cornerRadius: 7)") < glow_tile.index(
     "Image(systemName:") < glow_tile.index("Slider(value: illumination") < glow_tile.index(
     'Text("\\(Int((illumination.wrappedValue * 100).rounded()))%")')
