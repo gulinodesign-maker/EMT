@@ -60,8 +60,8 @@ assert '"Sfumature · velatura inferiore"' in tabs
 assert '("Sfumature · luce e ombra", [15, 16, 19, 20])' in tabs
 assert "gradientIntensityBinding(for role: Int)" in tabs
 assert "Slider(value: binding, in: 0...1, step: 0.01)" in tabs
-assert "Color(themeHex: roleHex(19))" in tabs
-assert "Color(themeHex: roleHex(20))" in tabs
+assert "Color(themeHex: roleHex(role))" in tabs and "ForEach([15, 16, 19, 20]" in tabs
+assert "case 19:" in tabs and "case 20:" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
 assert "if selectedGroup == 4 {" in tabs
 
