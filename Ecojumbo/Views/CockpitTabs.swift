@@ -361,18 +361,24 @@ struct EcoThemePalette: Codable, Equatable {
     var topFadeIntensity: Double
     var bottomFadeIntensity: Double
     var dayTopBar: EcoDayTopBarPalette
-    // Un cursore globale condiviso da Night/Day e card di telemetria.
-    // Valori precedenti migrano a 0° (orizzontale sx → dx).
+    // Solo per compatibilità con gli slot delle build 104/105:
+    // la direzione del rendering è ora sempre orizzontale.
     var gradientAngle: Double
-    // Build 105: opacità globale delle sfumature separata per Day e Night.
-    // 0 = tutte le velature trasparenti, 1 = resa originaria.
+    // Valori legacy 105, migrati verso quattro intensità separate.
     var gradientOpacity: Double
     var dayGradientOpacity: Double
+    // Build 106: due intensità indipendenti per luce/ombra, in Day e Night.
+    var lightIntensity: Double
+    var shadowIntensity: Double
+    var dayLightIntensity: Double
+    var dayShadowIntensity: Double
 
     init(name: String, colors: [String], glowIntensity: Double = 0.60,
          topFadeIntensity: Double = 0.35, bottomFadeIntensity: Double = 0.35,
          dayTopBar: EcoDayTopBarPalette? = nil, gradientAngle: Double = 0,
-         gradientOpacity: Double = 1, dayGradientOpacity: Double = 1) {
+         gradientOpacity: Double = 1, dayGradientOpacity: Double = 1,
+         lightIntensity: Double = 1, shadowIntensity: Double = 1,
+         dayLightIntensity: Double = 1, dayShadowIntensity: Double = 1) {
         self.name = name
         self.colors = colors
         self.glowIntensity = glowIntensity.isFinite ? min(1, max(0, glowIntensity)) : 0.60
@@ -383,12 +389,17 @@ struct EcoThemePalette: Codable, Equatable {
             ? min(360, max(0, gradientAngle)) : 0
         self.gradientOpacity = gradientOpacity.isFinite ? min(1, max(0, gradientOpacity)) : 1
         self.dayGradientOpacity = dayGradientOpacity.isFinite ? min(1, max(0, dayGradientOpacity)) : 1
+        self.lightIntensity = lightIntensity.isFinite ? min(1, max(0, lightIntensity)) : 1
+        self.shadowIntensity = shadowIntensity.isFinite ? min(1, max(0, shadowIntensity)) : 1
+        self.dayLightIntensity = dayLightIntensity.isFinite ? min(1, max(0, dayLightIntensity)) : 1
+        self.dayShadowIntensity = dayShadowIntensity.isFinite ? min(1, max(0, dayShadowIntensity)) : 1
     }
 
     // Le palette 63–72 non contenevano intensità: default retrocompatibile.
     private enum CodingKeys: String, CodingKey {
         case name, colors, glowIntensity, topFadeIntensity, bottomFadeIntensity, dayTopBar, gradientAngle,
-             gradientOpacity, dayGradientOpacity
+             gradientOpacity, dayGradientOpacity,
+             lightIntensity, shadowIntensity, dayLightIntensity, dayShadowIntensity
     }
 
     init(from decoder: Decoder) throws {
@@ -409,8 +420,30 @@ struct EcoThemePalette: Codable, Equatable {
         gradientAngle = angle.isFinite ? min(360, max(0, angle)) : 0
         let nightOpacity = try data.decodeIfPresent(Double.self, forKey: .gradientOpacity) ?? 1
         let dayOpacity = try data.decodeIfPresent(Double.self, forKey: .dayGradientOpacity) ?? 1
-        gradientOpacity = nightOpacity.isFinite ? min(1, max(0, nightOpacity)) : 1
-        dayGradientOpacity = dayOpacity.isFinite ? min(1, max(0, dayOpacity)) : 1
+        let oldNight = nightOpacity.isFinite ? min(1, max(0, nightOpacity)) : 1
+        let oldDay = dayOpacity.isFinite ? min(1, max(0, dayOpacity)) : 1
+        let savedLight = try data.decodeIfPresent(Double.self, forKey: .lightIntensity)
+        let savedShadow = try data.decodeIfPresent(Double.self, forKey: .shadowIntensity)
+        let savedDayLight = try data.decodeIfPresent(Double.self, forKey: .dayLightIntensity)
+        let savedDayShadow = try data.decodeIfPresent(Double.self, forKey: .dayShadowIntensity)
+        // Migrazione 105 -> 106: la precedente opacità generale viene assorbita
+        // dalle quattro intensità senza alterare l'aspetto degli slot esistenti.
+        lightIntensity = savedLight.map { $0.isFinite ? min(1, max(0, $0)) : oldNight } ?? oldNight
+        shadowIntensity = savedShadow.map { $0.isFinite ? min(1, max(0, $0)) : oldNight } ?? oldNight
+        dayLightIntensity = savedDayLight.map { $0.isFinite ? min(1, max(0, $0)) : oldDay } ?? oldDay
+        dayShadowIntensity = savedDayShadow.map { $0.isFinite ? min(1, max(0, $0)) : oldDay } ?? oldDay
+        if savedLight == nil && savedShadow == nil {
+            topFadeIntensity *= oldNight
+            bottomFadeIntensity *= oldNight
+        }
+        if savedDayLight == nil && savedDayShadow == nil {
+            dayTopBar.highIntensity *= oldDay
+            dayTopBar.lowIntensity *= oldDay
+        }
+        // Restano codificati soltanto per retrocompatibilità; nessun cursore
+        // globale 105 interviene più sul rendering o sulle nuove intensità.
+        gradientOpacity = 1
+        dayGradientOpacity = 1
     }
 
     func encode(to encoder: Encoder) throws {
@@ -424,6 +457,10 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(gradientAngle, forKey: .gradientAngle)
         try data.encode(gradientOpacity, forKey: .gradientOpacity)
         try data.encode(dayGradientOpacity, forKey: .dayGradientOpacity)
+        try data.encode(lightIntensity, forKey: .lightIntensity)
+        try data.encode(shadowIntensity, forKey: .shadowIntensity)
+        try data.encode(dayLightIntensity, forKey: .dayLightIntensity)
+        try data.encode(dayShadowIntensity, forKey: .dayShadowIntensity)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -471,18 +508,18 @@ struct EcoThemePalette: Codable, Equatable {
         "Colore ombra della sfumatura condivisa da top bar e card Telemetria.",
         "Colore della barra LED quando la velocità GPS raggiunge il limite attivato in Barre luminose.",
         "Colore dell’arco GPS quando la velocità aumenta di oltre 5 km/h nella finestra di osservazione.",
-        "Velatura aggiuntiva alta della top bar, personalizzabile senza modificare la direzione globale.",
-        "Velatura aggiuntiva bassa della top bar, personalizzabile senza modificare la direzione globale.",
+        "Velatura aggiuntiva alta della top bar, con colore e intensità indipendenti.",
+        "Velatura aggiuntiva bassa della top bar, con colore e intensità indipendenti.",
         "Colore del cerchio luminoso rimasto attorno al tachimetro; bagliore regolabile qui, termina prima del ponte kW."
     ]
     // Ogni ruolo compare una sola volta. Barre in entrata/uscita e tutte
     // le fasi della velocità fanno parte del tachimetro, non della telemetria.
     static let groups: [(title: String, range: [Int])] = [
         ("Aspetto generale", [0]),
-        ("Anelli e numeri del tachimetro", [1, 3, 21, 11, 10, 14, 18, 17, 8, 9]),
+        ("Anelli e numeri del tachimetro", [1, 3, 21, 2, 11, 10, 14, 18, 17, 8, 9]),
         ("Barre telemetria", [4, 5, 6]),
         ("Navigatore", [12, 13]),
-        ("Sfumature · luce e ombra", [15, 16, 19, 20, 2])
+        ("Sfumature · luce e ombra", [15, 16, 19, 20])
     ]
     static let colorCount = 22
     static let extraDefaults = [
@@ -576,6 +613,10 @@ struct EcoThemePalette: Codable, Equatable {
               palette.gradientAngle.isFinite, (0...360).contains(palette.gradientAngle),
               palette.gradientOpacity.isFinite, (0...1).contains(palette.gradientOpacity),
               palette.dayGradientOpacity.isFinite, (0...1).contains(palette.dayGradientOpacity),
+              palette.lightIntensity.isFinite, (0...1).contains(palette.lightIntensity),
+              palette.shadowIntensity.isFinite, (0...1).contains(palette.shadowIntensity),
+              palette.dayLightIntensity.isFinite, (0...1).contains(palette.dayLightIntensity),
+              palette.dayShadowIntensity.isFinite, (0...1).contains(palette.dayShadowIntensity),
               palette.dayTopBar.isValid,
               palette.colors.allSatisfy({ validHex($0) }),
               let data = try? JSONEncoder().encode(palette) else { return false }
@@ -833,108 +874,28 @@ private struct EcoThemeEditorView: View {
                         .preferredColorScheme(selectedGroup == 4
                             ? (editingDayTopBar ? .light : .dark) : nil)
 
-                        if selectedGroup == 4 {
-                            Picker("Modalità della sfumatura", selection: $editingDayTopBar) {
-                                Text("☀️ Day Mode").tag(true)
-                                Text("🌙 Night Mode").tag(false)
-                            }
-                            .pickerStyle(.segmented)
-                            .accessibilityLabel("Modifica la top bar per giorno o notte")
-                            Text(editingDayTopBar
-                                 ? "Colori e intensità del giorno, indipendenti dalla notte."
-                                 : "Colori e intensità della notte, indipendenti dal giorno.")
-                                .font(.caption).foregroundStyle(.secondary)
-                        }
-
-                    // Build 105: controlli direttamente sotto l'anteprima. Luce/ombra condivise da top bar e Telemetria.
-                    // L'orientamento è UNICO per Day e Night; i colori restano
-                    // indipendenti e le velature verticali sono opzionali.
+                    // Quattro riquadri colore + intensità sotto l'anteprima.
+                    // Nessun cursore di orientamento/opacità globale duplicato.
                     if selectedGroup == 4 {
-                        VStack(alignment: .leading, spacing: 12) {
-                            VStack(alignment: .leading, spacing: 7) {
-                                HStack {
-                                    Label("Opacità di tutte le sfumature", systemImage: "circle.lefthalf.filled")
-                                        .font(.subheadline.weight(.semibold))
-                                    Spacer()
-                                    Text("\(Int((gradientOpacityBinding.wrappedValue * 100).rounded()))%")
-                                        .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                                }
-                                Slider(value: gradientOpacityBinding, in: 0...1, step: 0.01)
-                                    .tint(Color(themeHex: roleHex(15)))
-                                    .accessibilityLabel("Opacità complessiva delle sfumature in modalità giorno o notte")
-                                Text("0% rende trasparenti luce, ombra, velature alta e bassa e bagliore sotto il layer.")
-                                    .font(.caption).foregroundStyle(.secondary)
-                            }
-                            Divider()
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack {
-                                    Label("Orientamento globale · luce → ombra",
-                                          systemImage: "arrow.up.left.and.arrow.down.right")
-                                        .font(.subheadline.weight(.semibold))
-                                    Spacer()
-                                    Text("\(Int(draft.gradientAngle.rounded()))°")
-                                        .font(.caption.monospacedDigit())
-                                        .foregroundStyle(.secondary)
-                                }
-                                Slider(value: $draft.gradientAngle, in: 0...360, step: 5)
-                                    .tint(Color(themeHex: roleHex(15)))
-                                    .accessibilityLabel("Ruota la sfumatura globale di top bar e telemetria")
-                                HStack {
-                                    Text("0° →")
-                                    Spacer()
-                                    Text("90° ↓")
-                                    Spacer()
-                                    Text("180° ←")
-                                    Spacer()
-                                    Text("270° ↑")
-                                }
-                                .font(.caption2.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                                let direction = EcoGradientDirection.points(angle: draft.gradientAngle)
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(LinearGradient(
-                                        colors: [Color(themeHex: roleHex(15)),
-                                                 Color(themeHex: roleHex(16))],
-                                        startPoint: direction.start, endPoint: direction.end))
-                                    .frame(height: 38)
-                                    .accessibilityLabel("Anteprima della direzione luce e ombra")
-                                Text("Un solo orientamento per top bar e tutte le card, in Giorno e Notte.")
-                                    .font(.caption).foregroundStyle(.secondary)
-                            }
-                            Divider()
-                            VStack(alignment: .leading, spacing: 7) {
-                                HStack {
-                                    Label("Sfumatura alta · intensità", systemImage: "arrow.down.to.line")
-                                        .font(.subheadline.weight(.semibold))
-                                    Spacer()
-                                    Text("\(Int((topFadeBinding.wrappedValue * 100).rounded()))%")
-                                        .font(.caption.monospacedDigit())
-                                        .foregroundStyle(.secondary)
-                                }
-                                Slider(value: topFadeBinding, in: 0...1, step: 0.05)
-                                    .tint(Color(themeHex: roleHex(19)))
-                            }
-                            VStack(alignment: .leading, spacing: 7) {
-                                HStack {
-                                    Label("Sfumatura bassa · intensità", systemImage: "arrow.up.to.line")
-                                        .font(.subheadline.weight(.semibold))
-                                    Spacer()
-                                    Text("\(Int((bottomFadeBinding.wrappedValue * 100).rounded()))%")
-                                        .font(.caption.monospacedDigit())
-                                        .foregroundStyle(.secondary)
-                                }
-                                Slider(value: bottomFadeBinding, in: 0...1, step: 0.05)
-                                    .tint(Color(themeHex: roleHex(20)))
-                            }
-                            Text("Le velature alte e basse sono aggiuntive alla sfumatura globale e restano fuori da tachimetro e ponte.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                        Picker("Modalità della sfumatura", selection: $editingDayTopBar) {
+                            Text("☀️ Day Mode").tag(true)
+                            Text("🌙 Night Mode").tag(false)
                         }
-                        .padding(12)
-                        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+                        .pickerStyle(.segmented)
+                        .accessibilityLabel("Modifica le sfumature per giorno o notte")
+
+                        Text(editingDayTopBar
+                             ? "Colori e intensità del giorno, indipendenti dalla notte."
+                             : "Colori e intensità della notte, indipendenti dal giorno.")
+                            .font(.caption).foregroundStyle(.secondary)
+
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)],
+                                  spacing: 12) {
+                            ForEach([15, 16, 19, 20], id: \.self) { role in
+                                gradientRoleTile(role)
+                            }
+                        }
                     }
-
-
 
                     // Il gruppo tachimetro contiene tutte le fasi GPS,
                     // gli anelli luminosi e le barre di potenza del ponte.
@@ -957,10 +918,10 @@ private struct EcoThemeEditorView: View {
 
 
                         if selectedGroup == 1 {
-                            colorRoleSection("Anelli e luci", roles: [1, 3, 21])
+                            colorRoleSection("Anelli e luci", roles: [1, 3, 21, 2])
                             colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])
                             colorRoleSection("Barre di potenza", roles: [8, 9])
-                        } else {
+                        } else if selectedGroup != 4 {
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)],
                                       spacing: 10) {
                                 ForEach(group.range, id: \.self) { index in
@@ -1025,6 +986,10 @@ private struct EcoThemeEditorView: View {
                               !draft.gradientAngle.isFinite ||
                               !draft.gradientOpacity.isFinite ||
                               !draft.dayGradientOpacity.isFinite ||
+                              !draft.lightIntensity.isFinite ||
+                              !draft.shadowIntensity.isFinite ||
+                              !draft.dayLightIntensity.isFinite ||
+                              !draft.dayShadowIntensity.isFinite ||
                               !(0...360).contains(draft.gradientAngle) ||
                               !draft.dayTopBar.isValid ||
                               !draft.colors.allSatisfy({ EcoThemePalette.validHex($0) }))
@@ -1136,31 +1101,77 @@ private struct EcoThemeEditorView: View {
             ? draft.dayTopBar.hex(for: index) : draft.colors[index]
     }
 
-    private var gradientOpacityBinding: Binding<Double> {
+    // Ogni ruolo 15/16/19/20 ha una singola intensità Day e Night.
+    private func gradientIntensityBinding(for role: Int) -> Binding<Double> {
         Binding(get: {
-            editingDayTopBar ? draft.dayGradientOpacity : draft.gradientOpacity
+            switch role {
+            case 15: return editingDayTopBar ? draft.dayLightIntensity : draft.lightIntensity
+            case 16: return editingDayTopBar ? draft.dayShadowIntensity : draft.shadowIntensity
+            case 19: return editingDayTopBar ? draft.dayTopBar.highIntensity : draft.topFadeIntensity
+            case 20: return editingDayTopBar ? draft.dayTopBar.lowIntensity : draft.bottomFadeIntensity
+            default: return 1
+            }
         }, set: { value in
-            if editingDayTopBar { draft.dayGradientOpacity = value }
-            else { draft.gradientOpacity = value }
+            switch role {
+            case 15:
+                if editingDayTopBar { draft.dayLightIntensity = value }
+                else { draft.lightIntensity = value }
+            case 16:
+                if editingDayTopBar { draft.dayShadowIntensity = value }
+                else { draft.shadowIntensity = value }
+            case 19:
+                if editingDayTopBar { draft.dayTopBar.highIntensity = value }
+                else { draft.topFadeIntensity = value }
+            case 20:
+                if editingDayTopBar { draft.dayTopBar.lowIntensity = value }
+                else { draft.bottomFadeIntensity = value }
+            default: break
+            }
         })
     }
 
-    private var topFadeBinding: Binding<Double> {
-        Binding(get: {
-            editingDayTopBar ? draft.dayTopBar.highIntensity : draft.topFadeIntensity
-        }, set: { value in
-            if editingDayTopBar { draft.dayTopBar.highIntensity = value }
-            else { draft.topFadeIntensity = value }
-        })
-    }
-
-    private var bottomFadeBinding: Binding<Double> {
-        Binding(get: {
-            editingDayTopBar ? draft.dayTopBar.lowIntensity : draft.bottomFadeIntensity
-        }, set: { value in
-            if editingDayTopBar { draft.dayTopBar.lowIntensity = value }
-            else { draft.bottomFadeIntensity = value }
-        })
+    private func gradientRoleTile(_ role: Int) -> some View {
+        let binding = gradientIntensityBinding(for: role)
+        return VStack(alignment: .leading, spacing: 10) {
+            Button {
+                colorID = EcoThemeColorID(id: role, isDay: editingDayTopBar)
+            } label: {
+                HStack(spacing: 10) {
+                    RoundedRectangle(cornerRadius: 7)
+                        .fill(Color(themeHex: roleHex(role)))
+                        .frame(width: 40, height: 40)
+                        .overlay(RoundedRectangle(cornerRadius: 7)
+                            .strokeBorder(.secondary.opacity(0.25), lineWidth: 1))
+                    Text(EcoThemePalette.labels[role])
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.leading)
+                    Spacer(minLength: 0)
+                    Image(systemName: "paintpalette")
+                        .foregroundStyle(.secondary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Modifica colore: " + EcoThemePalette.labels[role])
+            Text(EcoThemePalette.details[role])
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack {
+                Text("Intensità").font(.subheadline.weight(.medium))
+                Spacer()
+                Text("\(Int((binding.wrappedValue * 100).rounded()))%")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+            }
+            Slider(value: binding, in: 0...1, step: 0.01)
+                .tint(Color(themeHex: roleHex(role)))
+                .accessibilityLabel("Intensità " + EcoThemePalette.labels[role])
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
     }
 
     private func colorRoleSection(_ title: String, roles: [Int]) -> some View {

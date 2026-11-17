@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 105;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 106;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 91" in state
@@ -57,11 +57,11 @@ assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
 assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
 assert '"Sfumature · velatura superiore"' in tabs
 assert '"Sfumature · velatura inferiore"' in tabs
-assert '("Sfumature · luce e ombra", [15, 16, 19, 20, 2])' in tabs
-assert "Slider(value: topFadeBinding, in: 0...1, step: 0.05)" in tabs
-assert "Slider(value: bottomFadeBinding, in: 0...1, step: 0.05)" in tabs
-assert "Color(themeHex: roleHex(19))" in tabs
-assert "Color(themeHex: roleHex(20))" in tabs
+assert '("Sfumature · luce e ombra", [15, 16, 19, 20])' in tabs
+assert "gradientIntensityBinding(for role: Int)" in tabs
+assert "Slider(value: binding, in: 0...1, step: 0.01)" in tabs
+assert "Color(themeHex: roleHex(role))" in tabs and "ForEach([15, 16, 19, 20]" in tabs
+assert "case 19:" in tabs and "case 20:" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
 assert "if selectedGroup == 4 {" in tabs
 

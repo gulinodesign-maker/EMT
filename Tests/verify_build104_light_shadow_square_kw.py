@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 status = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 105;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 106;") == 2
 assert "## Build 104" in status
 
 # A single angle, never a second setting for the cards or for Day Mode.
@@ -44,10 +44,10 @@ assert "try data.encode(gradientAngle, forKey: .gradientAngle)" in palette
 assert "palette.gradientAngle.isFinite, (0...360).contains(palette.gradientAngle)" in palette
 assert "static let colorCount = 22" in palette # all 22 old saved slot values survive
 assert "if migrated.colors.count == 23 {" in palette
-assert '("Sfumature · luce e ombra", [15, 16, 19, 20, 2])' in palette
+assert '("Sfumature · luce e ombra", [15, 16, 19, 20])' in palette
 assert '"Sfumature · colore luce"' in palette
 assert '"Sfumature · colore ombra"' in palette
-assert '("Anelli e numeri del tachimetro", [1, 3, 21, 11, 10, 14, 18, 17, 8, 9])' in palette
+assert '("Anelli e numeri del tachimetro", [1, 3, 21, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
 labels=palette.split("static let labels = [",1)[1].split("]",1)[0]
 details=palette.split("static let details = [",1)[1].split("]",1)[0]
 assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
@@ -65,15 +65,15 @@ assert ".foregroundStyle(tone(9))" in cockpit
 editor=tabs.split("private struct EcoThemeEditorView: View {",1)[1].split(
     "private struct EcoThemeColorPicker:",1)[0]
 assert 'Picker("Modalità della sfumatura"' in editor
-assert 'Slider(value: $draft.gradientAngle, in: 0...360, step: 5)' in editor
-assert '"Orientamento globale · luce → ombra"' in editor
-assert '"0° →"' in editor and '"90° ↓"' in editor
-assert '"180° ←"' in editor and '"270° ↑"' in editor
-assert 'EcoGradientDirection.points(angle: draft.gradientAngle)' in editor
+assert 'Slider(value: $draft.gradientAngle, in: 0...360, step: 5)' not in editor
+assert '"Orientamento globale · luce → ombra"' not in editor
+assert '"0° →"' not in editor and '"90° ↓"' not in editor
+assert '"180° ←"' not in editor and '"270° ↑"' not in editor
+assert 'EcoGradientDirection.points(angle: draft.gradientAngle)' not in editor
 assert '.preferredColorScheme(selectedGroup == 4' in editor
 assert 'colorID = EcoThemeColorID(' in editor
 assert ".onLongPressGesture" not in editor
-assert "topFadeBinding" in editor and "bottomFadeBinding" in editor
+assert "gradientIntensityBinding(for role: Int)" in editor
 
 upper=cockpit.split("private struct GPSUpperGradientLayer: View {",1)[1].split(
     "struct EcoCockpitThemeMiniature:",1)[0]
@@ -81,14 +81,14 @@ telemetry=cockpit.split("private struct GPSExpandedReadings: View {",1)[1].split
     "// Progressi sottili",1)[0]
 preview=cockpit.split("struct EcoCockpitThemeMiniature: View {",1)[1].split(
     "private struct GPSHorizonLine",1)[0]
-assert "EcoGradientDirection.points(angle: theme.gradientAngle)" in upper
+assert "EcoGradientDirection.points(angle: 0)" in upper
 assert "startPoint: direction.start, endPoint: direction.end" in upper
-assert "EcoGradientDirection.points(angle: theme.gradientAngle)" in telemetry
+assert "EcoGradientDirection.points(angle: 0)" in telemetry
 assert "startPoint: direction.start, endPoint: direction.end" in telemetry
 assert telemetry.count(".background(telemetryCardBackground)") == 2
 assert "theme.dayTopBar.left" in telemetry and "theme.dayTopBar.right" in telemetry
 assert "theme.topBarGradientStart" in telemetry and "theme.topBarGradientEnd" in telemetry
-assert preview.count("EcoGradientDirection.points(angle: palette.gradientAngle)") == 2
+assert preview.count("EcoGradientDirection.points(angle: 0)") == 2
 assert preview.count("startPoint: direction.start, endPoint: direction.end") == 2
 
 bar=cockpit.split("private struct GPSPowerHorizontalGauge: View {",1)[1].split(
