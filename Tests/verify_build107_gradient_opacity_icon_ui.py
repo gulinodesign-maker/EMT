@@ -9,7 +9,7 @@ other = read("Ecojumbo/Views/OtherViews.swift")
 cells = read("Ecojumbo/Views/CellsView.swift")
 music = read("Ecojumbo/Views/EcoMusicCockpitPanel.swift")
 proj = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert proj.count("CURRENT_PROJECT_VERSION = 109;") == 2
+assert proj.count("CURRENT_PROJECT_VERSION = 110;") == 2
 assert proj.count("MARKETING_VERSION = 1.0;") == 2
 
 palette = tabs.split("struct EcoThemePalette: Codable, Equatable {", 1)[1].split(
