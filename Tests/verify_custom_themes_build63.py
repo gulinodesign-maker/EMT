@@ -45,7 +45,7 @@ for declaration in [
     "var previewPalette: [Color]",
 ]:
     assert declaration in cockpit
-assert "EcoThemePalette.load(slot: $0)" in cockpit
+assert "EcoThemePalette.load(slot: slot)" in cockpit
 # The historic 7th kW role is hidden: live recovery digits and blocks
 # intentionally share saved colour role 9; 4–6 remain the BMS bars.
 for index in (4, 5, 6, 9):

@@ -40,7 +40,7 @@ assert 'telemetryTile("AUT"' in standard
 assert 'telemetryTile("TRIP"' in standard
 assert 'dislevelCard(height: dislHeight)' in standard
 assert 'let dislHeight = 2 * cardHeight' in standard
-assert standard.count("showsBar: true") == 3
+assert standard.count("showsBar: true") == 4
 assert "resettable: true" not in standard
 assert "GPSTripResetControl(theme: theme)" in dashboard
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in standard
