@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 106;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 107;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -183,7 +183,7 @@ for tag in ['case copper = "Rame"','case glacier = "Ghiaccio"','case green = "Ve
 assert 'LazyVGrid(columns: portrait ? portraitColumns : landscapeColumns, spacing: 13)' in t
 assert 'Array(repeating: GridItem(.flexible(), spacing: 13), count: 3)' in t
 assert 'ForEach(CockpitTheme.allCases.filter { $0.slotIndex == nil })' in t
-assert 'Scale delle barre luminose' in o and 'Le scale delle barre sono solo grafiche' in o
+assert 'Scale delle barre luminose' in o and 'EcoInfoIcon(title: "Barre luminose"' in o
 assert 'Velocità massima veicolo:' in o and 'Cambio colore da:' in o
 assert 'Potenza istantanea:' in o and 'Ciclo km totali:' not in o
 # Nuovo dock GPS 7 a destra; classico 4+3 invariato.
@@ -285,7 +285,7 @@ assert '"—°C"' in c
 assert 'Image(systemName: "thermometer.medium")' not in c
 assert 'Link("Meteo · Open-Meteo"' not in c
 assert 'Temperatura meteo esterna stimata' not in c
-assert 'Licenza dati (CC BY 4.0)' in o
+assert 'Link("CC BY 4.0"' in o
 assert 'coordinate geografiche approssimate' in info['NSLocationWhenInUseUsageDescription']
 assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 2  # Home unchanged
 assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2  # Home unchanged

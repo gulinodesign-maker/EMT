@@ -6,7 +6,7 @@ root=Path(__file__).resolve().parents[1]
 tabs=(root/"Ecojumbo/Views/CockpitTabs.swift").read_text()
 c=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 106;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 107;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Deliberately remove ONLY the extra second ring. The original luminous
@@ -92,7 +92,7 @@ assert "Button {" in role
 assert "colorID = EcoThemeColorID(" in role
 assert ".buttonStyle(.plain)" in role
 assert ".onLongPressGesture" not in role
-assert "Tocca per cambiare il colore." in role
+assert ".accessibilityHint(EcoThemePalette.details[index])" in role
 assert 'Text("☀️ Day Mode").tag(true)' in editor
 assert 'Text("🌙 Night Mode").tag(false)' in editor
 assert "initialHex: selected.isDay" in editor

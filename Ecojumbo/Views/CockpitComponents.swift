@@ -196,6 +196,14 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     var gradientShadowIntensity: Double { savedPalette?.shadowIntensity ?? 1 }
     var dayGradientLightIntensity: Double { savedPalette?.dayLightIntensity ?? 1 }
     var dayGradientShadowIntensity: Double { savedPalette?.dayShadowIntensity ?? 1 }
+    var gradientLightOpacity: Double { savedPalette?.lightOpacity ?? 1 }
+    var gradientShadowOpacity: Double { savedPalette?.shadowOpacity ?? 1 }
+    var gradientHighOpacity: Double { savedPalette?.highOpacity ?? 1 }
+    var gradientLowOpacity: Double { savedPalette?.lowOpacity ?? 1 }
+    var dayGradientLightOpacity: Double { savedPalette?.dayLightOpacity ?? 1 }
+    var dayGradientShadowOpacity: Double { savedPalette?.dayShadowOpacity ?? 1 }
+    var dayGradientHighOpacity: Double { savedPalette?.dayHighOpacity ?? 1 }
+    var dayGradientLowOpacity: Double { savedPalette?.dayLowOpacity ?? 1 }
 
     // Build 101: configurazione Day indipendente dai 5 ruoli Night.
     // Per i kit predefiniti (senza slot) ricava una tavolozza diurna chiara.
@@ -2252,6 +2260,10 @@ private struct GPSUpperGradientLayer: View {
             let direction = EcoGradientDirection.points(angle: 0)
             let lightStrength = daylight ? theme.dayGradientLightIntensity : theme.gradientLightIntensity
             let shadowStrength = daylight ? theme.dayGradientShadowIntensity : theme.gradientShadowIntensity
+            let lightOpacity = daylight ? theme.dayGradientLightOpacity : theme.gradientLightOpacity
+            let shadowOpacity = daylight ? theme.dayGradientShadowOpacity : theme.gradientShadowOpacity
+            let highOpacity = daylight ? theme.dayGradientHighOpacity : theme.gradientHighOpacity
+            let lowOpacity = daylight ? theme.dayGradientLowOpacity : theme.gradientLowOpacity
             let high = daylight ? Color(themeHex: day.high) : theme.topBarHighFade
             let low = daylight ? Color(themeHex: day.low) : theme.topBarLowFade
             let underGlow = daylight ? Color(themeHex: day.underGlow) : theme.topBarUnderGlow
@@ -2259,7 +2271,7 @@ private struct GPSUpperGradientLayer: View {
             let lowStrength = daylight ? day.lowIntensity : theme.topBarLowFadeIntensity
             ZStack {
                 GPSUpperLayerFootprint()
-                    .fill(underGlow.opacity(theme.glowIntensity * (daylight ? 0.22 : 0.40) * lightStrength),
+                    .fill(underGlow.opacity(theme.glowIntensity * (daylight ? 0.22 : 0.40) * lightStrength * lightOpacity),
                           style: FillStyle(eoFill: true))
                     .blur(radius: max(10, d * 0.036))
                     // Nessuna luce può invadere tachimetro, telemetria o dock.
@@ -2267,7 +2279,7 @@ private struct GPSUpperGradientLayer: View {
                         .fill(style: FillStyle(eoFill: true)))
                 GPSUpperLayerFootprint()
                     .fill(LinearGradient(
-                        colors: [from.opacity(lightStrength), to.opacity(shadowStrength)],
+                        colors: [from.opacity(lightStrength * lightOpacity), to.opacity(shadowStrength * shadowOpacity)],
                         startPoint: direction.start, endPoint: direction.end),
                         style: FillStyle(eoFill: true))
                     .opacity(daylight ? 0.72 : 0.84)
@@ -2279,16 +2291,16 @@ private struct GPSUpperGradientLayer: View {
                 // ENTRAMBE, insieme al glow, da tachimetro e ponte.
                 GPSUpperLayerFootprint()
                     .fill(LinearGradient(stops: [
-                        .init(color: high.opacity(highStrength), location: 0),
-                        .init(color: high.opacity(highStrength * 0.28), location: 0.20),
+                        .init(color: high.opacity(highStrength * highOpacity), location: 0),
+                        .init(color: high.opacity(highStrength * 0.28 * highOpacity), location: 0.20),
                         .init(color: .clear, location: 0.45)
                     ], startPoint: .top, endPoint: .bottom),
                     style: FillStyle(eoFill: true))
                 GPSUpperLayerFootprint()
                     .fill(LinearGradient(stops: [
                         .init(color: .clear, location: 0.55),
-                        .init(color: low.opacity(lowStrength * 0.28), location: 0.80),
-                        .init(color: low.opacity(lowStrength), location: 1)
+                        .init(color: low.opacity(lowStrength * 0.28 * lowOpacity), location: 0.80),
+                        .init(color: low.opacity(lowStrength * lowOpacity), location: 1)
                     ], startPoint: .top, endPoint: .bottom),
                     style: FillStyle(eoFill: true))
 
@@ -2297,7 +2309,7 @@ private struct GPSUpperGradientLayer: View {
                 // invadere tachimetro o ponte grazie alle due maschere.
                 GPSUpperLayerFootprint()
                     .stroke(underGlow.opacity(
-                        theme.glowIntensity * (daylight ? 0.36 : 0.72) * lightStrength),
+                        theme.glowIntensity * (daylight ? 0.36 : 0.72) * lightStrength * lightOpacity),
                         lineWidth: max(2, d * 0.015))
                     .blur(radius: max(5, d * 0.028))
                     .offset(x: d * 0.023, y: d * 0.012)
@@ -2421,6 +2433,10 @@ struct EcoCockpitThemeMiniature: View {
         let direction = EcoGradientDirection.points(angle: 0)
         let lightStrength = daylight ? palette.dayLightIntensity : palette.lightIntensity
         let shadowStrength = daylight ? palette.dayShadowIntensity : palette.shadowIntensity
+        let lightOpacity = daylight ? palette.dayLightOpacity : palette.lightOpacity
+        let shadowOpacity = daylight ? palette.dayShadowOpacity : palette.shadowOpacity
+        let highOpacity = daylight ? palette.dayHighOpacity : palette.highOpacity
+        let lowOpacity = daylight ? palette.dayLowOpacity : palette.lowOpacity
         let high = daylight ? Color(themeHex: day.high) : tone(19)
         let low = daylight ? Color(themeHex: day.low) : tone(20)
         let underGlow = daylight ? Color(themeHex: day.underGlow) : tone(2)
@@ -2429,24 +2445,24 @@ struct EcoCockpitThemeMiniature: View {
         return ZStack {
             GPSUpperLayerFootprint()
                 .fill(LinearGradient(
-                    colors: [from.opacity(lightStrength), to.opacity(shadowStrength)],
+                    colors: [from.opacity(lightStrength * lightOpacity), to.opacity(shadowStrength * shadowOpacity)],
                     startPoint: direction.start, endPoint: direction.end),
                     style: FillStyle(eoFill: true))
                 .opacity(daylight ? 0.72 : 0.84)
             GPSUpperLayerFootprint()
                 .fill(LinearGradient(stops: [
-                    .init(color: high.opacity(highStrength), location: 0),
+                    .init(color: high.opacity(highStrength * highOpacity), location: 0),
                     .init(color: .clear, location: 0.45)
                 ], startPoint: .top, endPoint: .bottom),
                 style: FillStyle(eoFill: true))
             GPSUpperLayerFootprint()
                 .fill(LinearGradient(stops: [
                     .init(color: .clear, location: 0.55),
-                    .init(color: low.opacity(lowStrength), location: 1)
+                    .init(color: low.opacity(lowStrength * lowOpacity), location: 1)
                 ], startPoint: .top, endPoint: .bottom),
                 style: FillStyle(eoFill: true))
             GPSUpperLayerFootprint()
-                .stroke(underGlow.opacity(palette.glowIntensity * (daylight ? 0.36 : 0.72) * lightStrength),
+                .stroke(underGlow.opacity(palette.glowIntensity * (daylight ? 0.36 : 0.72) * lightStrength * lightOpacity),
                         lineWidth: max(2, d * 0.015))
                 .blur(radius: max(5, d * 0.028))
                 .offset(x: d * 0.023, y: d * 0.012)
@@ -2530,6 +2546,8 @@ struct EcoCockpitThemeMiniature: View {
             let daytime = colorScheme == .light
             let lightStrength = daytime ? palette.dayLightIntensity : palette.lightIntensity
             let shadowStrength = daytime ? palette.dayShadowIntensity : palette.shadowIntensity
+            let lightOpacity = daytime ? palette.dayLightOpacity : palette.lightOpacity
+            let shadowOpacity = daytime ? palette.dayShadowOpacity : palette.shadowOpacity
             let from = daytime ? Color(themeHex: palette.dayTopBar.left) : tone(15)
             let to = daytime ? Color(themeHex: palette.dayTopBar.right) : tone(16)
             let direction = EcoGradientDirection.points(angle: 0)
@@ -2538,8 +2556,8 @@ struct EcoCockpitThemeMiniature: View {
                 .overlay {
                     RoundedRectangle(cornerRadius: 5)
                         .fill(LinearGradient(
-                            colors: [from.opacity((daytime ? 0.38 : 0.32) * lightStrength),
-                                     to.opacity((daytime ? 0.38 : 0.32) * shadowStrength)],
+                            colors: [from.opacity((daytime ? 0.38 : 0.32) * lightStrength * lightOpacity),
+                                     to.opacity((daytime ? 0.38 : 0.32) * shadowStrength * shadowOpacity)],
                             startPoint: direction.start, endPoint: direction.end))
                 }
         }
@@ -3425,8 +3443,10 @@ private struct GPSExpandedReadings: View {
         let direction = EcoGradientDirection.points(angle: 0)
         let lightStrength = day ? theme.dayGradientLightIntensity : theme.gradientLightIntensity
         let shadowStrength = day ? theme.dayGradientShadowIntensity : theme.gradientShadowIntensity
-        return LinearGradient(colors: [from.opacity((day ? 0.38 : 0.32) * lightStrength),
-                                       to.opacity((day ? 0.38 : 0.32) * shadowStrength)],
+        let lightOpacity = day ? theme.dayGradientLightOpacity : theme.gradientLightOpacity
+        let shadowOpacity = day ? theme.dayGradientShadowOpacity : theme.gradientShadowOpacity
+        return LinearGradient(colors: [from.opacity((day ? 0.38 : 0.32) * lightStrength * lightOpacity),
+                                       to.opacity((day ? 0.38 : 0.32) * shadowStrength * shadowOpacity)],
                               startPoint: direction.start, endPoint: direction.end)
     }
 

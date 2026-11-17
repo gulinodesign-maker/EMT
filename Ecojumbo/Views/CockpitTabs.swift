@@ -26,7 +26,7 @@ struct TripsPanel: View {
                 EcoCard {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Registrazione viaggio").font(.headline)
-                        Text("Le misure vengono raccolte soltanto quando arrivano dati reali e l'app è attiva. La carica in ingresso comprende sia ricarica sia rigenerazione.")
+                        EcoInfoIcon(title: "Sessione", message: "Solo dati reali mentre EMT è attiva. L'energia in ingresso comprende ricarica e rigenerazione.")
                             .font(.subheadline).foregroundStyle(.secondary)
                         Text(gps.state).font(.subheadline).foregroundStyle(.secondary)
                         Button(role: .destructive) { confirmReset = true } label: {
@@ -372,13 +372,27 @@ struct EcoThemePalette: Codable, Equatable {
     var shadowIntensity: Double
     var dayLightIntensity: Double
     var dayShadowIntensity: Double
+    // Build 107: opacità per ruolo, distinta dalla rispettiva intensità.
+    // I vecchi slot mantengono il loro aspetto grazie al default 1.0.
+    var lightOpacity: Double
+    var shadowOpacity: Double
+    var highOpacity: Double
+    var lowOpacity: Double
+    var dayLightOpacity: Double
+    var dayShadowOpacity: Double
+    var dayHighOpacity: Double
+    var dayLowOpacity: Double
 
     init(name: String, colors: [String], glowIntensity: Double = 0.60,
          topFadeIntensity: Double = 0.35, bottomFadeIntensity: Double = 0.35,
          dayTopBar: EcoDayTopBarPalette? = nil, gradientAngle: Double = 0,
          gradientOpacity: Double = 1, dayGradientOpacity: Double = 1,
          lightIntensity: Double = 1, shadowIntensity: Double = 1,
-         dayLightIntensity: Double = 1, dayShadowIntensity: Double = 1) {
+         dayLightIntensity: Double = 1, dayShadowIntensity: Double = 1,
+         lightOpacity: Double = 1, shadowOpacity: Double = 1,
+         highOpacity: Double = 1, lowOpacity: Double = 1,
+         dayLightOpacity: Double = 1, dayShadowOpacity: Double = 1,
+         dayHighOpacity: Double = 1, dayLowOpacity: Double = 1) {
         self.name = name
         self.colors = colors
         self.glowIntensity = glowIntensity.isFinite ? min(1, max(0, glowIntensity)) : 0.60
@@ -393,13 +407,23 @@ struct EcoThemePalette: Codable, Equatable {
         self.shadowIntensity = shadowIntensity.isFinite ? min(1, max(0, shadowIntensity)) : 1
         self.dayLightIntensity = dayLightIntensity.isFinite ? min(1, max(0, dayLightIntensity)) : 1
         self.dayShadowIntensity = dayShadowIntensity.isFinite ? min(1, max(0, dayShadowIntensity)) : 1
+        self.lightOpacity = lightOpacity.isFinite ? min(1, max(0, lightOpacity)) : 1
+        self.shadowOpacity = shadowOpacity.isFinite ? min(1, max(0, shadowOpacity)) : 1
+        self.highOpacity = highOpacity.isFinite ? min(1, max(0, highOpacity)) : 1
+        self.lowOpacity = lowOpacity.isFinite ? min(1, max(0, lowOpacity)) : 1
+        self.dayLightOpacity = dayLightOpacity.isFinite ? min(1, max(0, dayLightOpacity)) : 1
+        self.dayShadowOpacity = dayShadowOpacity.isFinite ? min(1, max(0, dayShadowOpacity)) : 1
+        self.dayHighOpacity = dayHighOpacity.isFinite ? min(1, max(0, dayHighOpacity)) : 1
+        self.dayLowOpacity = dayLowOpacity.isFinite ? min(1, max(0, dayLowOpacity)) : 1
     }
 
     // Le palette 63–72 non contenevano intensità: default retrocompatibile.
     private enum CodingKeys: String, CodingKey {
         case name, colors, glowIntensity, topFadeIntensity, bottomFadeIntensity, dayTopBar, gradientAngle,
              gradientOpacity, dayGradientOpacity,
-             lightIntensity, shadowIntensity, dayLightIntensity, dayShadowIntensity
+             lightIntensity, shadowIntensity, dayLightIntensity, dayShadowIntensity,
+             lightOpacity, shadowOpacity, highOpacity, lowOpacity,
+             dayLightOpacity, dayShadowOpacity, dayHighOpacity, dayLowOpacity
     }
 
     init(from decoder: Decoder) throws {
@@ -444,6 +468,18 @@ struct EcoThemePalette: Codable, Equatable {
         // globale 105 interviene più sul rendering o sulle nuove intensità.
         gradientOpacity = 1
         dayGradientOpacity = 1
+        func opacity(_ key: CodingKeys) throws -> Double {
+            let saved = try data.decodeIfPresent(Double.self, forKey: key) ?? 1
+            return saved.isFinite ? min(1, max(0, saved)) : 1
+        }
+        lightOpacity = try opacity(.lightOpacity)
+        shadowOpacity = try opacity(.shadowOpacity)
+        highOpacity = try opacity(.highOpacity)
+        lowOpacity = try opacity(.lowOpacity)
+        dayLightOpacity = try opacity(.dayLightOpacity)
+        dayShadowOpacity = try opacity(.dayShadowOpacity)
+        dayHighOpacity = try opacity(.dayHighOpacity)
+        dayLowOpacity = try opacity(.dayLowOpacity)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -461,6 +497,14 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(shadowIntensity, forKey: .shadowIntensity)
         try data.encode(dayLightIntensity, forKey: .dayLightIntensity)
         try data.encode(dayShadowIntensity, forKey: .dayShadowIntensity)
+        try data.encode(lightOpacity, forKey: .lightOpacity)
+        try data.encode(shadowOpacity, forKey: .shadowOpacity)
+        try data.encode(highOpacity, forKey: .highOpacity)
+        try data.encode(lowOpacity, forKey: .lowOpacity)
+        try data.encode(dayLightOpacity, forKey: .dayLightOpacity)
+        try data.encode(dayShadowOpacity, forKey: .dayShadowOpacity)
+        try data.encode(dayHighOpacity, forKey: .dayHighOpacity)
+        try data.encode(dayLowOpacity, forKey: .dayLowOpacity)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -617,6 +661,14 @@ struct EcoThemePalette: Codable, Equatable {
               palette.shadowIntensity.isFinite, (0...1).contains(palette.shadowIntensity),
               palette.dayLightIntensity.isFinite, (0...1).contains(palette.dayLightIntensity),
               palette.dayShadowIntensity.isFinite, (0...1).contains(palette.dayShadowIntensity),
+              palette.lightOpacity.isFinite, (0...1).contains(palette.lightOpacity),
+              palette.shadowOpacity.isFinite, (0...1).contains(palette.shadowOpacity),
+              palette.highOpacity.isFinite, (0...1).contains(palette.highOpacity),
+              palette.lowOpacity.isFinite, (0...1).contains(palette.lowOpacity),
+              palette.dayLightOpacity.isFinite, (0...1).contains(palette.dayLightOpacity),
+              palette.dayShadowOpacity.isFinite, (0...1).contains(palette.dayShadowOpacity),
+              palette.dayHighOpacity.isFinite, (0...1).contains(palette.dayHighOpacity),
+              palette.dayLowOpacity.isFinite, (0...1).contains(palette.dayLowOpacity),
               palette.dayTopBar.isValid,
               palette.colors.allSatisfy({ validHex($0) }),
               let data = try? JSONEncoder().encode(palette) else { return false }
@@ -688,7 +740,7 @@ struct ThemePickerView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Tre temi personali con anteprima dell'intero cockpit. Nel configuratore scegli una categoria, tocca il campione da modificare e salva nello slot.")
+                EcoInfoIcon(title: "Temi", message: "Puoi salvare tre temi. Tocca un campione colore e salva nello slot.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
@@ -700,14 +752,14 @@ struct ThemePickerView: View {
                 Button {
                     openEditor(slot: nil)
                 } label: {
-                    Label("Crea un nuovo tema", systemImage: "paintbrush.pointed")
+                    Label("Nuovo tema", systemImage: "paintbrush.pointed")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(CockpitTheme(rawValue: selection)?.accent ?? .orange)
 
-                Text("I sei kit originali sono disponibili solo come punto di partenza nel configuratore. Nessuna modifica viene applicata al cruscotto prima del salvataggio.")
+                EcoInfoIcon(title: "Kit", message: "I sei kit sono punti di partenza. Le modifiche si applicano solo dopo il salvataggio.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             .padding(15)
@@ -861,14 +913,11 @@ private struct EcoThemeEditorView: View {
                             }
                         }
                     } label: {
-                        Label("Scegli un kit di partenza", systemImage: "paintpalette")
+                        Label("Kit", systemImage: "paintpalette")
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(12)
                             .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 10))
                     }
-
-                    Text("Anteprima completa del cockpit · aggiornamento immediato. Tocca un colore per modificarlo.")
-                        .font(.subheadline).foregroundStyle(.secondary)
 
                     EcoThemePreview(palette: draft)
                         .preferredColorScheme(selectedGroup == 4
@@ -883,11 +932,6 @@ private struct EcoThemeEditorView: View {
                         }
                         .pickerStyle(.segmented)
                         .accessibilityLabel("Modifica le sfumature per giorno o notte")
-
-                        Text(editingDayTopBar
-                             ? "Colori e intensità del giorno, indipendenti dalla notte."
-                             : "Colori e intensità della notte, indipendenti dal giorno.")
-                            .font(.caption).foregroundStyle(.secondary)
 
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)],
                                   spacing: 12) {
@@ -906,7 +950,7 @@ private struct EcoThemeEditorView: View {
                                 self.selectedGroup = nil
                             }
                         } label: {
-                            Label("Tutte le categorie", systemImage: "chevron.left")
+                            Label("Categorie", systemImage: "chevron.left")
                                 .font(.subheadline.weight(.semibold))
                         }
                         .buttonStyle(.plain)
@@ -930,10 +974,6 @@ private struct EcoThemeEditorView: View {
                             }
                         }
                     } else {
-                        Text("Scegli una categoria per modificare i suoi colori.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-
                         LazyVGrid(columns: [GridItem(.flexible(), spacing: 12),
                                             GridItem(.flexible(), spacing: 12)],
                                   spacing: 12) {
@@ -955,7 +995,7 @@ private struct EcoThemeEditorView: View {
                     if selectedGroup == 1 {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Label("Intensità delle luci del tachimetro", systemImage: "sun.max")
+                            Label("Luce tachimetro", systemImage: "sun.max")
                                 .font(.subheadline.weight(.semibold))
                             Spacer()
                             Text("\(Int((draft.glowIntensity * 100).rounded()))%")
@@ -964,9 +1004,6 @@ private struct EcoThemeEditorView: View {
                         }
                         Slider(value: $draft.glowIntensity, in: 0...1, step: 0.05)
                             .tint(Color(themeHex: draft.colors[1]))
-                        Text("Stessa intensità per top bar, anello arancione e ponte kW. Zero disattiva l'alone esterno.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
                     }
                     .padding(12)
                     .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
@@ -975,7 +1012,7 @@ private struct EcoThemeEditorView: View {
                     Button {
                         chooseSlot = true
                     } label: {
-                        Label("Salva tema in uno slot", systemImage: "square.and.arrow.down")
+                        Label("Salva", systemImage: "square.and.arrow.down")
                             .frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
@@ -990,6 +1027,14 @@ private struct EcoThemeEditorView: View {
                               !draft.shadowIntensity.isFinite ||
                               !draft.dayLightIntensity.isFinite ||
                               !draft.dayShadowIntensity.isFinite ||
+                              !draft.lightOpacity.isFinite ||
+                              !draft.shadowOpacity.isFinite ||
+                              !draft.highOpacity.isFinite ||
+                              !draft.lowOpacity.isFinite ||
+                              !draft.dayLightOpacity.isFinite ||
+                              !draft.dayShadowOpacity.isFinite ||
+                              !draft.dayHighOpacity.isFinite ||
+                              !draft.dayLowOpacity.isFinite ||
                               !(0...360).contains(draft.gradientAngle) ||
                               !draft.dayTopBar.isValid ||
                               !draft.colors.allSatisfy({ EcoThemePalette.validHex($0) }))
@@ -1084,9 +1129,6 @@ private struct EcoThemeEditorView: View {
                             .strokeBorder(.white.opacity(0.16), lineWidth: 0.5))
                 }
             }
-            Text("\(group.range.count) colori")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, minHeight: 134)
         .padding(12)
@@ -1130,9 +1172,48 @@ private struct EcoThemeEditorView: View {
         })
     }
 
+    private func gradientOpacityBinding(for role: Int) -> Binding<Double> {
+        Binding(get: {
+            switch role {
+            case 15: return editingDayTopBar ? draft.dayLightOpacity : draft.lightOpacity
+            case 16: return editingDayTopBar ? draft.dayShadowOpacity : draft.shadowOpacity
+            case 19: return editingDayTopBar ? draft.dayHighOpacity : draft.highOpacity
+            case 20: return editingDayTopBar ? draft.dayLowOpacity : draft.lowOpacity
+            default: return 1
+            }
+        }, set: { value in
+            switch role {
+            case 15:
+                if editingDayTopBar { draft.dayLightOpacity = value }
+                else { draft.lightOpacity = value }
+            case 16:
+                if editingDayTopBar { draft.dayShadowOpacity = value }
+                else { draft.shadowOpacity = value }
+            case 19:
+                if editingDayTopBar { draft.dayHighOpacity = value }
+                else { draft.highOpacity = value }
+            case 20:
+                if editingDayTopBar { draft.dayLowOpacity = value }
+                else { draft.lowOpacity = value }
+            default: break
+            }
+        })
+    }
+
+    private func gradientShortName(_ role: Int) -> String {
+        switch role {
+        case 15: return "Luce"
+        case 16: return "Ombra"
+        case 19: return "Superiore"
+        case 20: return "Inferiore"
+        default: return "Sfumatura"
+        }
+    }
+
     private func gradientRoleTile(_ role: Int) -> some View {
         let binding = gradientIntensityBinding(for: role)
-        return VStack(alignment: .leading, spacing: 10) {
+        let opacity = gradientOpacityBinding(for: role)
+        return VStack(alignment: .leading, spacing: 9) {
             Button {
                 colorID = EcoThemeColorID(id: role, isDay: editingDayTopBar)
             } label: {
@@ -1142,7 +1223,7 @@ private struct EcoThemeEditorView: View {
                         .frame(width: 40, height: 40)
                         .overlay(RoundedRectangle(cornerRadius: 7)
                             .strokeBorder(.secondary.opacity(0.25), lineWidth: 1))
-                    Text(EcoThemePalette.labels[role])
+                    Text(gradientShortName(role))
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.primary)
                         .multilineTextAlignment(.leading)
@@ -1154,20 +1235,32 @@ private struct EcoThemeEditorView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Modifica colore: " + EcoThemePalette.labels[role])
-            Text(EcoThemePalette.details[role])
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            HStack {
-                Text("Intensità").font(.subheadline.weight(.medium))
-                Spacer()
+            HStack(spacing: 10) {
+                Image(systemName: "sun.max")
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                Slider(value: binding, in: 0...1, step: 0.01)
+                    .tint(Color(themeHex: roleHex(role)))
+                    .accessibilityLabel("Intensità " + gradientShortName(role))
+                    .accessibilityValue("\(Int((binding.wrappedValue * 100).rounded()))%")
                 Text("\(Int((binding.wrappedValue * 100).rounded()))%")
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
+                    .frame(width: 42, alignment: .trailing)
             }
-            Slider(value: binding, in: 0...1, step: 0.01)
-                .tint(Color(themeHex: roleHex(role)))
-                .accessibilityLabel("Intensità " + EcoThemePalette.labels[role])
+            HStack(spacing: 10) {
+                Image(systemName: "circle.lefthalf.filled")
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                Slider(value: opacity, in: 0...1, step: 0.01)
+                    .tint(Color(themeHex: roleHex(role)))
+                    .accessibilityLabel("Opacità " + gradientShortName(role))
+                    .accessibilityValue("\(Int((opacity.wrappedValue * 100).rounded()))%")
+                Text("\(Int((opacity.wrappedValue * 100).rounded()))%")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .frame(width: 42, alignment: .trailing)
+            }
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1202,14 +1295,11 @@ private struct EcoThemeEditorView: View {
                             .strokeBorder(.white.opacity(0.25), lineWidth: 1))
                     Text(EcoThemePalette.labels[index])
                         .font(.system(size: 13, weight: .semibold))
+                        .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                         .multilineTextAlignment(.leading)
                     Spacer(minLength: 0)
                 }
-                Text(EcoThemePalette.details[index])
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)
@@ -1218,7 +1308,7 @@ private struct EcoThemeEditorView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(EcoThemePalette.labels[index])
-        .accessibilityHint("Tocca per cambiare il colore.")
+        .accessibilityHint(EcoThemePalette.details[index])
     }
 
     private func save(slot: Int) {
@@ -1312,7 +1402,7 @@ private struct EcoThemeColorPicker: View {
                         .accessibilityLabel("Annulla modifica")
                     }
 
-                    Text("Scegli uno dei 20 colori base")
+                    Label("Colori", systemImage: "paintpalette")
                         .font(.subheadline.weight(.semibold))
                     LazyVGrid(columns: Array(
                         repeating: GridItem(.flexible(), spacing: 9), count: 5),
@@ -1342,7 +1432,7 @@ private struct EcoThemeColorPicker: View {
                     }
 
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Regola il colore selezionato")
+                        Label("Tonalità", systemImage: "slider.horizontal.3")
                             .font(.subheadline.weight(.semibold))
                         HStack(spacing: 10) {
                             Text("Scuro").font(.caption.weight(.medium))
@@ -1367,7 +1457,7 @@ private struct EcoThemeColorPicker: View {
                             }
                             Spacer(minLength: 0)
                         }
-                        Text("La regolazione cambia soltanto questo colore. Premi ✓ per salvarlo oppure × per annullare.")
+                        EcoInfoIcon(title: "Colore", message: "La regolazione cambia solo il colore selezionato. ✓ salva, × annulla.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

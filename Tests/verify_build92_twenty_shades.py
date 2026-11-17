@@ -7,7 +7,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 106;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 107;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 92" in state
@@ -25,7 +25,7 @@ assert "ForEach(Self.baseColors.indices, id: \\.self)" in picker
 assert picker.count("Slider(value: $shadeLevel") == 1
 assert 'Text("Scuro")' in picker
 assert 'Text("Chiaro")' in picker
-assert 'Text("Scegli uno dei 20 colori base")' in picker
+assert 'Label("Colori", systemImage: "paintpalette")' in picker
 for retired in ("private static let spectrum:", "private static let neutrals:",
                 "displayedColors", "filterButton(", "@State private var filter",
                 'ColorPicker("Altro colore"', "pickerColor"):

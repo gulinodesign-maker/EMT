@@ -340,11 +340,13 @@ struct EcoMusicCockpitPanel: View {
                 .foregroundStyle(theme.accent)
                 .buttonStyle(.plain)
             } else if provider == .spotify && !music.spotifyConnected {
-                Text("Collega Spotify in Setup → Musica.")
+                Label("Spotify · Setup", systemImage: "link")
                     .foregroundStyle(.white.opacity(0.8))
+                    .accessibilityHint("Collega Spotify dalle impostazioni Musica.")
             } else if provider == .youtube {
-                Text("YouTube Music non dispone di riproduzione integrata tramite API pubblica.")
+                Label("Player esterno", systemImage: "arrow.up.right.square")
                     .foregroundStyle(.white.opacity(0.8))
+                    .accessibilityHint("YouTube Music non dispone di riproduzione integrata.")
             }
             let note = usesInAppPlayer ? apple.errorMessage : music.message
             if !note.isEmpty {
@@ -388,7 +390,7 @@ struct EcoMusicCockpitPanel: View {
             .background(.black.opacity(0.76), in: RoundedRectangle(cornerRadius: 10))
 
             if provider != .apple {
-                Text("La ricerca musicale interna è attualmente disponibile con Apple Music.")
+                Label("Ricerca · Apple Music", systemImage: "music.note")
                     .foregroundStyle(.white)
                     .font(.footnote)
             } else {
@@ -509,7 +511,7 @@ struct EcoMusicCockpitPanel: View {
                 .scrollIndicators(.hidden)
                 if !searching && query.trimmingCharacters(in: .whitespacesAndNewlines).count >= 2
                     && results.isEmpty && libraryResults.isEmpty {
-                    Text("Nessun risultato disponibile. Il catalogo online richiede MusicKit attivo; la libreria può essere vuota.")
+                    Label("Nessun brano", systemImage: "music.note.list")
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.75))
                 }

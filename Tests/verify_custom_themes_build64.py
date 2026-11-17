@@ -9,7 +9,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 106;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 107;") == 2
 assert "static let colorCount = 22" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
@@ -47,7 +47,7 @@ assert "guard (1...3).contains(slot)" in tabs
 assert "palette.colors.count == colorCount" in tabs
 assert 'UserDefaults.standard.set(data, forKey: storagePrefix + String(slot))' in tabs
 assert "ForEach(1...3, id:" in tabs
-assert 'Label("Crea un nuovo tema", systemImage: "paintbrush.pointed")' in tabs
+assert 'Label("Nuovo tema", systemImage: "paintbrush.pointed")' in tabs
 
 # Principal accent reaches top-bar strokes AND all twelve icon buttons in Setup.
 assert "theme.accent" in home

@@ -255,7 +255,7 @@ struct EcojumboRootView: View {
                 .foregroundStyle(theme.accent)
             Text("Tachimetro in orizzontale")
                 .font(.title2.bold())
-            Text("Ruota l'iPhone per aprire il cruscotto GPS.")
+            Label("Ruota iPhone", systemImage: "iphone.gen3.radiowaves.left.and.right")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

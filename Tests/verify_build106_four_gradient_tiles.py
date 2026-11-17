@@ -6,7 +6,7 @@ root = Path(__file__).resolve().parents[1]
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 proj = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert proj.count("CURRENT_PROJECT_VERSION = 106;") == 2
+assert proj.count("CURRENT_PROJECT_VERSION = 107;") == 2
 
 editor = tabs.split("private struct EcoThemeEditorView: View {", 1)[1].split(
     "private struct EcoThemeColorPicker:", 1)[0]
@@ -24,7 +24,7 @@ cards = editor.split("private func gradientRoleTile(_ role: Int) -> some View {"
     "private func colorRoleSection", 1)[0]
 assert "colorID = EcoThemeColorID(id: role, isDay: editingDayTopBar)" in cards
 assert "Slider(value: binding, in: 0...1, step: 0.01)" in cards
-assert 'Text("Intensità")' in cards and "binding.wrappedValue * 100" in cards
+assert '"sun.max"' in cards and "binding.wrappedValue * 100" in cards
 assert 'Color(themeHex: roleHex(role))' in cards
 
 palette = tabs.split("struct EcoThemePalette: Codable, Equatable {", 1)[1].split("extension Color {", 1)[0]
@@ -61,12 +61,12 @@ for surface in (upper, mini, tele):
     assert "EcoGradientDirection.points(angle: 0)" in surface
     assert "lightStrength" in surface and "shadowStrength" in surface
     assert "fadeOpacity" not in surface
-assert "colors: [from.opacity(lightStrength), to.opacity(shadowStrength)]" in upper
-assert "high.opacity(highStrength)" in upper and "low.opacity(lowStrength)" in upper
-assert "theme.glowIntensity * (daylight ? 0.36 : 0.72) * lightStrength" in upper
-assert "colors: [from.opacity(lightStrength), to.opacity(shadowStrength)]" in mini
-assert "palette.glowIntensity * (daylight ? 0.36 : 0.72) * lightStrength" in mini
-assert "from.opacity((day ? 0.38 : 0.32) * lightStrength)" in tele
-assert "to.opacity((day ? 0.38 : 0.32) * shadowStrength)" in tele
+assert "colors: [from.opacity(lightStrength * lightOpacity), to.opacity(shadowStrength * shadowOpacity)]" in upper
+assert "high.opacity(highStrength * highOpacity)" in upper and "low.opacity(lowStrength * lowOpacity)" in upper
+assert "theme.glowIntensity * (daylight ? 0.36 : 0.72) * lightStrength * lightOpacity" in upper
+assert "colors: [from.opacity(lightStrength * lightOpacity), to.opacity(shadowStrength * shadowOpacity)]" in mini
+assert "palette.glowIntensity * (daylight ? 0.36 : 0.72) * lightStrength * lightOpacity" in mini
+assert "from.opacity((day ? 0.38 : 0.32) * lightStrength * lightOpacity)" in tele
+assert "to.opacity((day ? 0.38 : 0.32) * shadowStrength * shadowOpacity)" in tele
 assert "Color(red: 0.94, green: 0.96, blue: 0.985) : tone(0)" in mini
 print("OK — build 106: four color+intensity cards, separate Day/Night values, fixed orientation, migration")

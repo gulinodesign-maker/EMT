@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 106;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 107;") == 2
 
 editor = tabs.split("private struct EcoThemeEditorView: View {", 1)[1].split(
     "private struct EcoThemeColorPicker: View {", 1)[0]
@@ -17,7 +17,7 @@ assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: 12)," in editor
 assert "ForEach(0..<EcoThemePalette.groups.count, id:" in editor
 assert "selectedGroup = groupIndex" in editor
 assert "categoryTile(groupIndex)" in editor
-assert 'Label("Tutte le categorie", systemImage: "chevron.left")' in editor
+assert 'Label("Categorie", systemImage: "chevron.left")' in editor
 assert "self.selectedGroup = nil" in editor
 assert "ForEach(group.range, id:" in editor
 assert "colorRoleTile(index)" in editor
