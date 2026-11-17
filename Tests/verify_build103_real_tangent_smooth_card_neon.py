@@ -60,8 +60,8 @@ assert "private var telemetryCardGradient: LinearGradient" in telemetry
 assert "theme.dayTopBar.left" in telemetry and "theme.dayTopBar.right" in telemetry
 assert "theme.topBarGradientStart" in telemetry and "theme.topBarGradientEnd" in telemetry
 assert "startPoint: direction.start, endPoint: direction.end" in telemetry
-assert "EcoGradientDirection.points(angle: 0)" in telemetry
-assert "from.opacity((day ? 0.38 : 0.32) * lightStrength * lightOpacity)" in telemetry
+assert "startPoint: .leading, endPoint: .trailing" in telemetry
+assert "from.opacity((day ? 0.38 : 0.32) * lightOpacity)" in telemetry
 assert telemetry.count(".background(telemetryCardBackground)")==2
 assert "telemetryTile(\"SOC\"" in telemetry
 assert "dislevelCard(height: dislHeight)" in telemetry
