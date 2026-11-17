@@ -22,7 +22,7 @@ for condition in (
     "fix.speed >= 0",
     "fix.speedAccuracy >= 0",
     "fix.speedAccuracy <= 5",
-    "fix.speed <= 50",
+    "fix.speed <= maxTrustedSpeed",
 ):
     assert condition in native, condition
 assert "let kmh = fix.speed * 3.6" in gps

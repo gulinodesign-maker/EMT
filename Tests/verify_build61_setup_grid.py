@@ -9,7 +9,7 @@ en = settings.split("private enum EcoSetupSection:", 1)[1].split("struct EcoSett
 assert "case battery, bms, appearance, scooter, bluetooth, charging" in en
 assert "case odometer, bars, power, weather" in en
 assert "LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 3)" in settings
-assert "ForEach(EcoSetupSection.allCases)" in settings
+assert "ForEach(visibleSections)" in settings
 assert "Image(systemName: section.symbol)" in settings
 assert "Text(section.title)" in settings
 assert ".frame(height: tileHeight)" in settings

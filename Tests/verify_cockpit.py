@@ -87,13 +87,13 @@ assert (r/'RiferimentoGrafico/Cockpit_1_09_utente.jpg').stat().st_size>100000
 # Sei schede indipendenti, con sei icone e soltanto tre barre reali.
 assert 'private struct PremiumWing: View' in c and 'metricTile(reading, width: w, height: tileHeight)' in c
 assert 'ForEach(readings.indices' in c
-assert c.count('WingReading(value:')==6
+assert c.count('WingReading(value:')==12
 legacy = c[:c.index('private struct GPSExpandedReadings: View {')]
-assert legacy.count('showsBar: true')==3 and legacy.count('showsBar: false')==3
+assert legacy.count('showsBar: true')==5 and legacy.count('showsBar: false')==7
 for sym in ('bolt.fill','voltage','road.lanes','chart.bar.fill','mappin','speedometer'):
     assert f'icon: "{sym}"' in c
 assert 'if reading.showsBar {' in c and 'MetricGlowBar(fraction: reading.fraction' in c
-assert c.count('CockpitBarMath.unit(')==4
+assert c.count('CockpitBarMath.unit(')==6
 assert 'CockpitBarMath.odometerCycle(' not in c
 assert 'rangeKm.map' in c and 'gps.tripKm' in c and 'gps.totalKm' in c
 assert 'let instantKW = live.map { -($0.power) / 1000.0 }' in c

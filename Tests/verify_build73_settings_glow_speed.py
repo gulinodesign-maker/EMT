@@ -17,7 +17,7 @@ assert "case battery, bms, appearance, scooter, bluetooth, charging" in cases
 assert "case odometer, bars, power, weather" in cases
 assert "gps, weather, privacy, version" not in cases
 assert "LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 3)" in settings
-assert "ForEach(EcoSetupSection.allCases)" in settings
+assert "ForEach(visibleSections)" in settings
 assert 'Text("Ecojumbo \\(EcojumboBuildStamp.display) · build \\(EcojumboBuildStamp.buildNumber)")' in settings
 for obsolete in ('case .gps:', 'case .privacy:', 'case .version:',
                  'Section("GPS e viaggi")', 'Section("Sicurezza e privacy")',

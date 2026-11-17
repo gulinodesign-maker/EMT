@@ -23,7 +23,7 @@ for region in (portrait, dock):
     assert "ForEach(EcoTab.allCases)" not in region
     assert "ForEach([EcoTab.trips, .battery" not in region
 # Build 61: access to both technical pages is modal inside the 3x4 grid.
-assert "ForEach(EcoSetupSection.allCases)" in settings
+assert "ForEach(visibleSections)" in settings
 assert "LazyVGrid(columns: Array(repeating: GridItem(.flexible(minimum: 0), spacing: 10), count: 3)" in settings
 assert ".sheet(item: $activeSection)" in settings
 assert "CellsView(portrait: space.size.height > space.size.width)" in settings

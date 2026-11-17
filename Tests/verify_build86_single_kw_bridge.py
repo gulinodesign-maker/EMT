@@ -23,7 +23,7 @@ assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in home
 # The GPS cockpit draws ONE net signed reading, not two columns or a divider.
 single = code.split("private struct GPSCockpitPowerReading: View {", 1)[1].split(
     "// Calcola la posizione", 1)[0]
-assert single.count('Text(powerKW.map { String(format: "%.2f kW"') == 1
+assert single.count('return powerKW.map { String(format: "%.2f kW"') == 1
 assert "HStack(" not in single
 assert "Rectangle()" not in single
 assert "powerWatts / 1_000.0" in single

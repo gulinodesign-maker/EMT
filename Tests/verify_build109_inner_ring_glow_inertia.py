@@ -67,7 +67,7 @@ assert "case 18: return CockpitTheme.accelerationAccent" in speed
 assert "CockpitTheme.glowForRole(colorRole)" in speed
 assert "ledColor.opacity(0.80 * illumination)" in speed
 assert "ledColor.opacity(0.94 * illumination)" in speed
-assert "let usesBMS = powerSource == EcoPowerSource.bms.rawValue" in cockpit
+assert "let usesBMS = vehicleMode == EcoVehicleMode.bms.rawValue" in cockpit
 assert "powerFlowUsesBMS: usesBMS" in cockpit
 assert "GPSSpeedMovement" not in cockpit
 assert "speedHistory" not in cockpit

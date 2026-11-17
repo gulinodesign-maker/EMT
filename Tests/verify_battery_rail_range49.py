@@ -33,14 +33,14 @@ assert "Double($0.soc) / 100.0" in rail
 
 # Build 65: four tiles in 2×2 and a full-width, double-height altitude card.
 # BMS still gates live values and range estimates; map-only SOC rail is unchanged.
-assert standard.count('telemetryTile("') == 4
+assert standard.count('telemetryTile("') == 7
 assert 'telemetryTile("SOC"' in standard
 assert 'telemetryTile("V BAT"' in standard
 assert 'telemetryTile("AUT"' in standard
 assert 'telemetryTile("TRIP"' in standard
 assert 'dislevelCard(height: dislHeight)' in standard
 assert 'let dislHeight = 2 * cardHeight' in standard
-assert standard.count("showsBar: true") == 4
+assert standard.count("showsBar: true") == 7
 assert "resettable: true" not in standard
 assert "GPSTripResetControl(theme: theme)" in dashboard
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in standard
@@ -58,7 +58,7 @@ assert "autonomy?.fractionOfFull" in standard
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in dashboard
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in g
 assert "let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10" in g
-assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in g
+assert "fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed" in g
 assert "date.timeIntervalSince(lastValidAt) < 8" in g
 assert "if mapEnabled && selected == .gps {" in u
 

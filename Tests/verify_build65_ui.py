@@ -41,7 +41,7 @@ panel = cockpit.split("private struct GPSExpandedReadings: View {", 1)[1].split(
     "// Progressi sottili e luminosi, soltanto per SOC", 1)[0]
 assert 'Text("TELEMETRIA")' in panel
 assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in panel
-assert panel.count('telemetryTile("') == 4
+assert panel.count('telemetryTile("') == 7
 for label in ("SOC", "V BAT", "AUT", "TRIP"):
     assert f'telemetryTile("{label}"' in panel
 assert "let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 4)" in panel
