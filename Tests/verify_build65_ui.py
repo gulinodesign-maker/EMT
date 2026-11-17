@@ -33,7 +33,7 @@ assert ".sheet(item: $colorID)" in editor
 assert "draft.colors[selected.id] = hex" in editor
 assert "onSave(slot, palette)" in editor
 assert "ForEach(1...3, id:" in tabs
-assert "static let colorCount = 22" in tabs
+assert "static let colorCount = 23" in tabs
 assert "decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
 assert "decoded.colors.count == 22 || decoded.colors.count == 23" in tabs
 

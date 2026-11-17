@@ -12,7 +12,7 @@ assert project.count("CURRENT_PROJECT_VERSION = 109;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Existing 3 slots retain old shades. Both old 8- and 15-colour palettes migrate.
-assert "static let colorCount = 22" in tabs
+assert "static let colorCount = 23" in tabs
 assert "decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
 assert "decoded.colors.count == 22 || decoded.colors.count == 23" in tabs
 assert "if migrated.colors.count == 8 {" in tabs

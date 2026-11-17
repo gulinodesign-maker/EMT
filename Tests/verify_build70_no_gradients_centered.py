@@ -18,7 +18,7 @@ assert "GPSLowerAreaGradient" not in cockpit
 assert "GPSAreaGradientStyle" not in cockpit
 assert "contourGradient" not in cockpit
 assert '("Sfumatura top bar e ponte kW", 15..<17)' not in tabs
-assert "static let colorCount = 22" in tabs  # existing saved slots are never erased
+assert "static let colorCount = 23" in tabs  # existing saved slots are never erased
 assert "decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
 

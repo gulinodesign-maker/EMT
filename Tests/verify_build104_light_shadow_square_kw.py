@@ -42,12 +42,12 @@ assert "dayTopBar: EcoDayTopBarPalette? = nil, gradientAngle: Double = 0" in pal
 assert "decodeIfPresent(Double.self, forKey: .gradientAngle) ?? 0" in palette
 assert "try data.encode(gradientAngle, forKey: .gradientAngle)" in palette
 assert "palette.gradientAngle.isFinite, (0...360).contains(palette.gradientAngle)" in palette
-assert "static let colorCount = 22" in palette # all 22 old saved slot values survive
-assert "if migrated.colors.count == 23 {" in palette
+assert "static let colorCount = 23" in palette # all 22 old saved slot values survive
+assert "if migrated.colors.count == 23 && decoded.lightingVersion < 109 {" in palette
 assert '("Sfumature", [15, 16, 19, 20])' in palette
 assert '"Sfumatura sinistra"' in palette
 assert '"Sfumatura destra"' in palette
-assert '("Anelli e numeri del tachimetro", [1, 3, 21, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
+assert '("Anelli e numeri del tachimetro", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
 labels=palette.split("static let labels = [",1)[1].split("]",1)[0]
 details=palette.split("static let details = [",1)[1].split("]",1)[0]
 assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
