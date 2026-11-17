@@ -1881,6 +1881,7 @@ private struct EcoThemeColorPicker: View {
     @State private var referenceHex: String
     @State private var shadeLevel: Double = 0.50
     @State private var selectedBaseIndex: Int?
+    @AppStorage("ecojumbo.theme.savedSwatches.v1") private var savedSwatchesJSON = "[]"
 
     let title: String
     let onConfirm: (String) -> Void
@@ -1901,6 +1902,31 @@ private struct EcoThemeColorPicker: View {
         "#039BE5", "#1E88E5", "#3949AB", "#5E35B1", "#8E24AA",
         "#D81B60", "#F06292", "#795548", "#78909C", "#E0E0E0"
     ]
+
+    // I venti colori originali sono fissi; ogni colore aggiunto compare
+    // SUBITO DOPO nello stesso identico reticolo, senza schede separate.
+    private var paletteColors: [String] {
+        guard let bytes = savedSwatchesJSON.data(using: .utf8),
+              let decoded = try? JSONDecoder().decode([String].self, from: bytes)
+        else { return Self.baseColors }
+        var seen = Set(Self.baseColors)
+        let extra = decoded.map { $0.uppercased() }.filter {
+            $0.hasPrefix("#") && EcoThemePalette.validHex($0)
+                && seen.insert($0).inserted
+        }
+        return Self.baseColors + extra
+    }
+
+    private func saveCurrentColor() {
+        let hex = selectedHex.uppercased()
+        guard hex.hasPrefix("#"), EcoThemePalette.validHex(hex),
+              !paletteColors.contains(hex) else { return }
+        let extras = Array(paletteColors.dropFirst(Self.baseColors.count)) + [hex]
+        guard let bytes = try? JSONEncoder().encode(extras),
+              let json = String(data: bytes, encoding: .utf8) else { return }
+        savedSwatchesJSON = json
+        selectedBaseIndex = Self.baseColors.count + extras.count - 1
+    }
 
     // 0 = nero, 0.5 = colore di partenza, 1 = bianco.
     // Interpolazione RGB continua: conserva il colore originale dello slot
@@ -1960,8 +1986,8 @@ private struct EcoThemeColorPicker: View {
                     LazyVGrid(columns: Array(
                         repeating: GridItem(.flexible(), spacing: 9), count: 5),
                               spacing: 9) {
-                        ForEach(Self.baseColors.indices, id: \.self) { index in
-                            let hex = Self.baseColors[index]
+                        ForEach(paletteColors.indices, id: \.self) { index in
+                            let hex = paletteColors[index]
                             Button {
                                 selectedBaseIndex = index
                                 referenceHex = hex
@@ -2010,7 +2036,14 @@ private struct EcoThemeColorPicker: View {
                             }
                             Spacer(minLength: 0)
                         }
-                        EcoInfoIcon(title: "Colore", message: "La regolazione cambia solo il colore selezionato. ✓ salva, × annulla.")
+                        Button(action: saveCurrentColor) {
+                            Label("Salva colore", systemImage: "plus.square.on.square")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(paletteColors.contains(selectedHex.uppercased()))
+                        .accessibilityHint("Aggiunge il colore corrente ai 20 colori iniziali, nella stessa griglia.")
+                        EcoInfoIcon(title: "Colore", message: "Salva colore lo aggiunge alla tavolozza. ✓ applica al tema; × annulla.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -2024,5 +2057,8 @@ private struct EcoThemeColorPicker: View {
             .navigationBarHidden(true)
         }
         .presentationDragIndicator(.visible)
+        .onAppear {
+            selectedBaseIndex = paletteColors.firstIndex(of: selectedHex.uppercased())
+        }
     }
 }

@@ -175,8 +175,13 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
         }
     }
 
+    // I sei kit di fabbrica devono risolvere la palette COMPLETA:
+    // in particolare Ferrari/Cupra mantengono i 23 colori, Day/Night,
+    // 23 glow, sfumature, anello interno e grafico DISL dei JSON utente.
+    // Prima venivano usati solo per alcuni colori, lasciando fallback generici.
     private var savedPalette: EcoThemePalette? {
-        slotIndex.flatMap { EcoThemePalette.load(slot: $0) }
+        if let slot = slotIndex { return EcoThemePalette.load(slot: slot) }
+        return EcoThemePalette.template(self)
     }
 
     var accent: Color {
@@ -3350,6 +3355,7 @@ private struct GPSExpandedReadings: View {
                 abs(now.timeIntervalSince($0.date)) < 10
             }) == true ? snapshot : nil
             let autonomy = EcoRangeEstimate(snapshot: live, session: bluetooth.session)
+            let tripAverage = gps.averageRecentTripKm(at: now)
 
             VStack(spacing: tileGap) {
                 HStack(spacing: max(7, width * 0.015)) {
@@ -3391,7 +3397,14 @@ private struct GPSExpandedReadings: View {
 
                     telemetryTile("TRIP",
                                   value: String(format: "%.1f km", gps.tripKm),
-                                  fraction: nil, height: cardHeight)
+                                  fraction: tripAverage.flatMap {
+                                      CockpitBarMath.unit(gps.tripKm, maximum: $0)
+                                  },
+                                  showsBar: true,
+                                  scaleLabel: tripAverage.map {
+                                      String(format: "Media 7 gg: %.1f km", $0)
+                                  } ?? "Media 7 gg: —",
+                                  height: cardHeight)
                 }
                 .frame(maxWidth: .infinity)
 
@@ -3457,6 +3470,7 @@ private struct GPSExpandedReadings: View {
 
     private func telemetryTile(_ label: String, value: String,
                                fraction: Double?, showsBar: Bool = false,
+                               scaleLabel: String? = nil,
                                height: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 5) {
@@ -3469,6 +3483,14 @@ private struct GPSExpandedReadings: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.8)
                 Spacer(minLength: 0)
+                if let scaleLabel {
+                    Text(scaleLabel)
+                        .font(.system(size: max(8, min(10, height * 0.15)),
+                                      weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                }
             }
             Spacer(minLength: 0)
             Text(value)
@@ -3491,7 +3513,8 @@ private struct GPSExpandedReadings: View {
         .frame(height: height)
         .background(telemetryCardBackground)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(label): \(value)")
+        .accessibilityLabel(scaleLabel.map { "\(label): \(value). \($0)" }
+            ?? "\(label): \(value)")
     }
 
     private func dislevelCard(height: CGFloat) -> some View {
