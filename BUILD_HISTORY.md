@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44056149976:ATTEMPT:1 -->
+### 2026-11-17T09:30:13Z — CI #369 · build-108-directional-fades-inertial-bms-power · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44056149976](https://github.com/gulinodesign-maker/EMT/actions/runs/44056149976); avvio 2026-11-17T09:30:13Z UTC; aggiornamento finale 2026-11-17T09:32:47Z UTC; registrazione 2026-11-17T09:32:57+00:00 UTC; evento pull_request.
+- **Commit:** [75dd2ae69582](https://github.com/gulinodesign-maker/EMT/commit/75dd2ae695829c88d539aecf4eddfdbac39e79e9); versione **1.0**; build **108**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **fase riuscita, workflow complessivo failure**; Test protocollo JK Bluetooth (sola lettura): **fase riuscita, workflow complessivo failure**; Test barre dinamiche: **fase riuscita, workflow complessivo failure**.
+- **Compilazione simulatore:** **FAILURE**.
+- **Errori rilevati:** Compila app per simulatore iOS (senza firma Apple). Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build101_daynight_theme_cleanup.py.
+
 <!-- EMT_RUN:44055985399:ATTEMPT:1 -->
 ### 2026-11-17T09:29:05Z — CI #367 · build-108-directional-fades-inertial-bms-power · tentativo 1
 
