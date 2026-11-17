@@ -894,6 +894,47 @@ extension Color {
     }
 }
 
+// Formato trasferibile fra iPhone: JSON con tipo, versione e palette completa.
+// Non contiene coordinate GPS, dati BLE o informazioni di account.
+private struct EcoThemeTransferEnvelope: Codable {
+    let format: String
+    let version: Int
+    let theme: EcoThemePalette
+
+    var isSupported: Bool {
+        format == "ecojumbo.theme" && version == 1
+            && EcoThemePalette.isValidImported(theme)
+    }
+}
+
+private struct EcoThemeJSONDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.json] }
+    static var writableContentTypes: [UTType] { [.json] }
+    let palette: EcoThemePalette
+
+    init(palette: EcoThemePalette) { self.palette = palette }
+
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        let envelope = try JSONDecoder().decode(EcoThemeTransferEnvelope.self, from: data)
+        guard envelope.isSupported else { throw CocoaError(.fileReadCorruptFile) }
+        palette = envelope.theme
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        guard EcoThemePalette.isValidImported(palette) else {
+            throw CocoaError(.fileWriteInvalidFileName)
+        }
+        let envelope = EcoThemeTransferEnvelope(
+            format: "ecojumbo.theme", version: 1, theme: palette)
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return FileWrapper(regularFileWithContents: try encoder.encode(envelope))
+    }
+}
+
 private struct EcoThemeEditorSession: Identifiable {
     let id = UUID()
     let palette: EcoThemePalette
@@ -1149,6 +1190,11 @@ private struct EcoThemeEditorView: View {
     @State private var editingDayTopBar = false
     @State private var chooseSlot = false
     @State private var overwriteSlot: Int?
+    @State private var importingTheme = false
+    @State private var exportingTheme = false
+    @State private var pendingImportedTheme: EcoThemePalette?
+    @State private var transferErrorMessage = ""
+    @State private var showTransferError = false
     let initialSlot: Int?
     let onSave: (Int, EcoThemePalette) -> Void
 
@@ -1205,6 +1251,23 @@ private struct EcoThemeEditorView: View {
                                 .accessibilityAddTraits(selectedKit == theme ? .isSelected : [])
                             }
                         }
+                    }
+
+                    HStack(spacing: 10) {
+                        Button {
+                            importingTheme = true
+                        } label: {
+                            Label("Importa tema", systemImage: "square.and.arrow.down")
+                                .frame(maxWidth: .infinity, minHeight: 42)
+                        }
+                        .buttonStyle(.bordered)
+                        Button {
+                            exportingTheme = true
+                        } label: {
+                            Label("Esporta tema", systemImage: "square.and.arrow.up")
+                                .frame(maxWidth: .infinity, minHeight: 42)
+                        }
+                        .buttonStyle(.bordered)
                     }
 
                     EcoThemePreview(palette: draft)
@@ -1328,6 +1391,41 @@ private struct EcoThemeEditorView: View {
                     Button("Chiudi") { dismiss() }
                 }
             }
+            .fileImporter(isPresented: $importingTheme,
+                          allowedContentTypes: [.json]) { result in
+                importTheme(from: result)
+            }
+            .fileExporter(isPresented: $exportingTheme,
+                          document: EcoThemeJSONDocument(palette: draft),
+                          contentType: .json,
+                          defaultFilename: exportFileName) { result in
+                if case .failure(let error) = result {
+                    transferErrorMessage = error.localizedDescription
+                    showTransferError = true
+                }
+            }
+            .confirmationDialog("Caricare il tema importato?",
+                                isPresented: Binding(
+                                    get: { pendingImportedTheme != nil },
+                                    set: { if !$0 { pendingImportedTheme = nil } }),
+                                titleVisibility: .visible) {
+                Button("Carica nell’editor") {
+                    if let imported = pendingImportedTheme {
+                        draft = imported
+                        selectedKit = nil
+                        selectedGroup = nil
+                    }
+                    pendingImportedTheme = nil
+                }
+                Button("Annulla", role: .cancel) { pendingImportedTheme = nil }
+            } message: {
+                Text("La bozza corrente verrà sostituita. Gli slot salvati non cambiano finché non premi Salva.")
+            }
+            .alert("Trasferimento tema", isPresented: $showTransferError) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(transferErrorMessage)
+            }
             .sheet(item: $colorID) { selected in
                 EcoThemeColorPicker(
                     title: EcoThemePalette.labels[selected.id]
@@ -1377,6 +1475,35 @@ private struct EcoThemeEditorView: View {
         }
     }
 
+
+    private var exportFileName: String {
+        let safe = draft.name.filter { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }
+        return "Ecojumbo-" + (safe.isEmpty ? "Tema" : String(safe.prefix(48)))
+    }
+
+    // Carica soltanto documenti JSON piccoli, firmati dal formato Ecojumbo;
+    // non sovrascrive gli slot e richiede una seconda conferma.
+    private func importTheme(from result: Result<URL, Error>) {
+        do {
+            let url = try result.get()
+            let access = url.startAccessingSecurityScopedResource()
+            defer { if access { url.stopAccessingSecurityScopedResource() } }
+            let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+            let size = (attributes[.size] as? NSNumber)?.intValue ?? 0
+            guard size > 0 && size <= 128_000 else {
+                throw CocoaError(.fileReadTooLarge)
+            }
+            let data = try Data(contentsOf: url)
+            let envelope = try JSONDecoder().decode(EcoThemeTransferEnvelope.self, from: data)
+            guard envelope.isSupported else {
+                throw CocoaError(.fileReadCorruptFile)
+            }
+            pendingImportedTheme = envelope.theme
+        } catch {
+            transferErrorMessage = "Impossibile importare il tema: " + error.localizedDescription
+            showTransferError = true
+        }
+    }
 
     private func categorySymbol(_ index: Int) -> String {
         switch index {
