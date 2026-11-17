@@ -17,7 +17,7 @@ assert "diameter: d * 0.630" not in cockpit
 
 palette = tabs.split("struct EcoThemePalette: Codable, Equatable {", 1)[1].split("extension Color {", 1)[0]
 assert '("Cockpit", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
-assert '("Cockpit",' not in palette
+assert '("Anelli e numeri del tachimetro",' not in palette
 assert "static let colorCount = 23" in palette
 for line in [
     "var altitudeGraphColor: String", "var altitudeGraphGlow: Double",
