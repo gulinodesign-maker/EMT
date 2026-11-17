@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44065120786:ATTEMPT:1 -->
+### 2026-11-17T10:28:17Z — CI #385 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44065120786](https://github.com/gulinodesign-maker/EMT/actions/runs/44065120786); avvio 2026-11-17T10:28:17Z UTC; aggiornamento finale 2026-11-17T10:29:02Z UTC; registrazione 2026-11-17T10:29:17+00:00 UTC; evento pull_request.
+- **Commit:** [e5f220f60225](https://github.com/gulinodesign-maker/EMT/commit/e5f220f60225185c035d66a57e1c93c5b5d87f1d); versione **1.0**; build **110**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build100_luminous_rings_power_weather.py, Tests/verify_build101_daynight_theme_cleanup.py, Tests/verify_build102_dock_power_weather_reset.py, Tests/verify_build103_real_tangent_smooth_card_neon.py, Tests/verify_build104_light_shadow_square_kw.py, Tests/verify_build105_gradient_music.py, Tests/verify_build106_four_gradient_tiles.py, Tests/verify_build107_gradient_opacity_icon_ui.py, Tests/verify_build108_directional_motion_bms.py.
+
 <!-- EMT_RUN:44065057813:ATTEMPT:1 -->
 ### 2026-11-17T10:27:51Z — CI #384 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
 
