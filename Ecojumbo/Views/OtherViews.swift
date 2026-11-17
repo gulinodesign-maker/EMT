@@ -466,8 +466,9 @@ struct EcoSettingsView: View {
                     .font(.footnote).foregroundStyle(.secondary)
             }
         case .odometer:
-            Section("Chilometri totali dello scooter") {
-                EcoInfoIcon(title: "Contachilometri", message: "Inserisci il chilometraggio originale. EMT aggiunge poi i km GPS senza azzerare il totale.")
+            Section(vehicleMode == EcoVehicleMode.universal.rawValue
+                    ? "Chilometri totali veicolo" : "Chilometri totali dello scooter") {
+                EcoInfoIcon(title: "Contachilometri", message: "Inserisci il chilometraggio originale. Ecojumbo aggiunge poi i km GPS senza azzerare il totale.")
                     .font(.footnote).foregroundStyle(.secondary)
                 HStack {
                     TextField("Chilometri attuali", text: $odometerText)
@@ -486,10 +487,15 @@ struct EcoSettingsView: View {
             Section("Scale delle barre luminose") {
                 EcoInfoIcon(title: "Barre luminose", message: "Le scale sono grafiche, non limitano la velocità. Il tachimetro legge la velocità GPS reale.")
                     .font(.footnote).foregroundStyle(.secondary)
-                LabeledContent("SOC", value: "0–100%")
-                LabeledContent("Tensione 20S", value: "50–73 V")
-                Stepper("Potenza istantanea: 0–\(Int(averagePowerMaxKW)) kW",
-                        value: $averagePowerMaxKW, in: 1...20, step: 1)
+                if vehicleMode == EcoVehicleMode.universal.rawValue {
+                    LabeledContent("Carburante", value: "0–100% stimato")
+                    LabeledContent("Velocità media GPS", value: "0–\(Int(averageSpeedScaleKmh)) km/h")
+                } else {
+                    LabeledContent("SOC", value: "0–100%")
+                    LabeledContent("Tensione 20S", value: "50–73 V")
+                    Stepper("Potenza istantanea: 0–\(Int(averagePowerMaxKW)) kW",
+                            value: $averagePowerMaxKW, in: 1...20, step: 1)
+                }
                 Stepper("Velocità massima veicolo: \(Int(vehicleSpeedMaxKmh)) km/h",
                         value: $vehicleSpeedMaxKmh, in: 30...240, step: 5)
                 Toggle("Colore speciale oltre il limite", isOn: $speedLimitColorEnabled)
@@ -522,7 +528,7 @@ struct EcoSettingsView: View {
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 EcoInfoIcon(title: "Scala potenza",
-                    message: "Il LED del cursore velocità mostra in azzurro l'ingresso, in rosso l'uscita. Con BMS collegato usa watt reali; senza BMS passa all'inerzia, che non misura i watt.")
+                    message: "In modalità BMS i colori seguono ingresso/uscita dell'energia misurata; senza un BMS recente si usa l'inerzia. In Universale azzurro indica decelerazione e arancione accelerazione. I sensori non misurano watt.")
             }
             Section("Sensori inerziali") {
                 HStack(spacing: 12) {
