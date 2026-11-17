@@ -7,7 +7,7 @@ c = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 t = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 p = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 104;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 105;") == 2
 assert p.count("MARKETING_VERSION = 1.0;") == 2
 assert "Build 93" in state
 
