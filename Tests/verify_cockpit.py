@@ -285,7 +285,7 @@ assert '"—°C"' in c
 assert 'Image(systemName: "thermometer.medium")' not in c
 assert 'Link("Meteo · Open-Meteo"' not in c
 assert 'Temperatura meteo esterna stimata' not in c
-assert 'Licenza dati (CC BY 4.0)' in o
+assert 'Link("CC BY 4.0"' in o
 assert 'coordinate geografiche approssimate' in info['NSLocationWhenInUseUsageDescription']
 assert c.count('incomingPower: live.map { Swift.max(0, $0.power) }') == 2  # Home unchanged
 assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2  # Home unchanged
