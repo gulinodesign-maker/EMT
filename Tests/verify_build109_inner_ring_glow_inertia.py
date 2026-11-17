@@ -6,11 +6,11 @@ tabs = read("Ecojumbo/Views/CockpitTabs.swift")
 cockpit = read("Ecojumbo/Views/CockpitComponents.swift")
 motion = read("Ecojumbo/Models/GPSRideManager.swift")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 110;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 111;") == 2
 palette = tabs.split("struct EcoThemePalette: Codable, Equatable {", 1)[1].split("extension Color {", 1)[0]
 assert "static let colorCount = 23" in palette
 assert '"Anello interno · tachimetro"' in palette
-assert '("Anelli e numeri del tachimetro", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
+assert '("Cockpit", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
 assert "var glowLevels: [Double]" in palette
 assert "var lightingVersion: Int" in palette
 assert "func glow(for role: Int) -> Double" in palette
@@ -36,7 +36,7 @@ assert 'glowRoleSection("LED velocità · inerzia", roles: [10, 14, 18, 17])' in
 assert 'glowRoleSection("LED potenza · BMS", roles: [8, 9])' in editor
 assert 'glowRoleSection("Barre telemetria", roles: [4, 5, 6])' in editor
 glow_tile = editor.split("private func glowRoleTile(_ role: Int) -> some View {",1)[1].split(
-    "private func glowRoleSection",1)[0]
+    "private func altitudeGraphTile",1)[0]
 assert glow_tile.index("RoundedRectangle(cornerRadius: 7)") < glow_tile.index(
     "Image(systemName:") < glow_tile.index("Slider(value: illumination") < glow_tile.index(
     'Text("\\(Int((illumination.wrappedValue * 100).rounded()))%")')
@@ -47,7 +47,7 @@ assert 'Slider(value: transparency, in: 0...1, step: 0.01)' in editor
 cluster = cockpit.split("private struct OpenSpeedCluster: View {",1)[1].split(
     "private struct GPSMetalInnerRing:",1)[0] if "private struct GPSMetalInnerRing:" in cockpit else cockpit
 assert "GPSLuminousCircleStroke(color: theme.innerRingColor" in cockpit
-assert "diameter: d * 0.630" in cockpit
+assert "diameter: GPSDialLayout.innerRingDiameter(for: d)" in cockpit
 assert "glowIntensity: theme.glow(for: 22)" in cockpit
 assert "GPSLuminousCircleStroke(color: tone(22)" in cockpit
 assert "glowIntensity: palette.glow(for: 22)" in cockpit

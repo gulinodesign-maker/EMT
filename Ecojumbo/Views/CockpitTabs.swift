@@ -388,6 +388,9 @@ struct EcoThemePalette: Codable, Equatable {
     // Ruolo 22: nuovo anello interno al neon GPS.
     var glowLevels: [Double]
     var lightingVersion: Int
+    // Build 111: grafico DISL indipendente dai 23 ruoli storici.
+    var altitudeGraphColor: String
+    var altitudeGraphGlow: Double
 
     static let luminousRoles: [Int] = [1, 2, 4, 5, 6, 8, 9, 10, 14, 17, 18, 21, 22]
 
@@ -414,7 +417,8 @@ struct EcoThemePalette: Codable, Equatable {
          highOpacity: Double = 1, lowOpacity: Double = 1,
          dayLightOpacity: Double = 1, dayShadowOpacity: Double = 1,
          dayHighOpacity: Double = 1, dayLowOpacity: Double = 1,
-         glowLevels: [Double]? = nil) {
+         glowLevels: [Double]? = nil,
+         altitudeGraphColor: String? = nil, altitudeGraphGlow: Double = 0.55) {
         self.name = name
         self.colors = colors
         self.glowIntensity = glowIntensity.isFinite ? min(1, max(0, glowIntensity)) : 0.60
@@ -452,6 +456,11 @@ struct EcoThemePalette: Codable, Equatable {
             ? glowLevels!.map { $0.isFinite ? min(1, max(0, $0)) : 1 }
             : Self.defaultGlowLevels(legacyGlow: self.glowIntensity)
         self.lightingVersion = 109
+        let defaultGraphColor = colors.indices.contains(1) ? colors[1] : "#FF7008"
+        self.altitudeGraphColor = altitudeGraphColor.flatMap { Self.validHex($0) ? $0 : nil }
+            ?? defaultGraphColor
+        self.altitudeGraphGlow = altitudeGraphGlow.isFinite
+            ? min(1, max(0, altitudeGraphGlow)) : 0.55
         normalizeLegacyFadeIntensities()
     }
 
@@ -473,7 +482,8 @@ struct EcoThemePalette: Codable, Equatable {
              lightIntensity, shadowIntensity, dayLightIntensity, dayShadowIntensity,
              lightOpacity, shadowOpacity, highOpacity, lowOpacity,
              dayLightOpacity, dayShadowOpacity, dayHighOpacity, dayLowOpacity,
-             directionalVersion, glowLevels, lightingVersion
+             directionalVersion, glowLevels, lightingVersion,
+              altitudeGraphColor, altitudeGraphGlow
     }
 
     init(from decoder: Decoder) throws {
@@ -549,6 +559,12 @@ struct EcoThemePalette: Codable, Equatable {
             ? levels!.map { $0.isFinite ? min(1, max(0, $0)) : 1 }
             : Self.defaultGlowLevels(legacyGlow: glowIntensity)
         lightingVersion = try data.decodeIfPresent(Int.self, forKey: .lightingVersion) ?? 0
+        let legacyGraphColor = colors.indices.contains(1) ? colors[1] : "#FF7008"
+        let storedGraphColor = try data.decodeIfPresent(String.self, forKey: .altitudeGraphColor)
+        altitudeGraphColor = storedGraphColor.flatMap { Self.validHex($0) ? $0 : nil }
+            ?? legacyGraphColor
+        let storedGlow = try data.decodeIfPresent(Double.self, forKey: .altitudeGraphGlow) ?? 0.55
+        altitudeGraphGlow = storedGlow.isFinite ? min(1, max(0, storedGlow)) : 0.55
         normalizeLegacyFadeIntensities()
     }
 
@@ -578,6 +594,8 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(directionalVersion, forKey: .directionalVersion)
         try data.encode(glowLevels, forKey: .glowLevels)
         try data.encode(lightingVersion, forKey: .lightingVersion)
+        try data.encode(altitudeGraphColor, forKey: .altitudeGraphColor)
+        try data.encode(altitudeGraphGlow, forKey: .altitudeGraphGlow)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -635,7 +653,7 @@ struct EcoThemePalette: Codable, Equatable {
     // le fasi della velocità fanno parte del tachimetro, non della telemetria.
     static let groups: [(title: String, range: [Int])] = [
         ("Aspetto generale", [0]),
-        ("Anelli e numeri del tachimetro", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9]),
+        ("Cockpit", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9]),
         ("Barre telemetria", [4, 5, 6]),
         ("Navigatore", [12, 13]),
         ("Sfumature", [15, 16, 19, 20])
@@ -759,7 +777,9 @@ struct EcoThemePalette: Codable, Equatable {
               palette.dayHighOpacity.isFinite, (0...1).contains(palette.dayHighOpacity),
               palette.dayLowOpacity.isFinite, (0...1).contains(palette.dayLowOpacity),
               palette.dayTopBar.isValid,
-              palette.glowLevels.count == colorCount,
+              validHex(palette.altitudeGraphColor),
+               palette.altitudeGraphGlow.isFinite, (0...1).contains(palette.altitudeGraphGlow),
+               palette.glowLevels.count == colorCount,
               palette.glowLevels.allSatisfy({ $0.isFinite && (0...1).contains($0) }),
               palette.colors.allSatisfy({ validHex($0) }),
               let data = try? JSONEncoder().encode(palette) else { return false }
@@ -972,6 +992,7 @@ private struct EcoThemeEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var draft: EcoThemePalette
     @State private var colorID: EcoThemeColorID?
+    @State private var choosingAltitudeColor = false
     @State private var selectedGroup: Int?
     @State private var selectedKit: CockpitTheme?
     @State private var editingDayTopBar = false
@@ -1086,6 +1107,7 @@ private struct EcoThemeEditorView: View {
                             colorRoleSection("Metallo e numeri", roles: [3, 11])
                             glowRoleSection("LED velocità · inerzia", roles: [10, 14, 18, 17])
                             glowRoleSection("LED potenza · BMS", roles: [8, 9])
+                            altitudeGraphTile()
                         } else if selectedGroup == 2 {
                             glowRoleSection("Barre telemetria", roles: [4, 5, 6])
                         } else if selectedGroup != 4 {
@@ -1125,6 +1147,9 @@ private struct EcoThemeEditorView: View {
                     .disabled(draft.colors.count != EcoThemePalette.colorCount ||
                               draft.glowLevels.count != EcoThemePalette.colorCount ||
                               !draft.glowLevels.allSatisfy({ $0.isFinite && (0...1).contains($0) }) ||
+                               !EcoThemePalette.validHex(draft.altitudeGraphColor) ||
+                               !draft.altitudeGraphGlow.isFinite ||
+                               !(0...1).contains(draft.altitudeGraphGlow) ||
                               !draft.topFadeIntensity.isFinite ||
                               !draft.bottomFadeIntensity.isFinite ||
                               !draft.gradientAngle.isFinite ||
@@ -1169,6 +1194,12 @@ private struct EcoThemeEditorView: View {
                     } else {
                         draft.colors[selected.id] = hex
                     }
+                }
+            }
+            .sheet(isPresented: $choosingAltitudeColor) {
+                EcoThemeColorPicker(title: "Grafico altimetrico · Telemetria",
+                                    initialHex: draft.altitudeGraphColor) { hex in
+                    draft.altitudeGraphColor = hex
                 }
             }
             .confirmationDialog("In quale slot vuoi salvare il tema?",
@@ -1346,36 +1377,127 @@ private struct EcoThemeEditorView: View {
         })
     }
 
+    // Le icone rappresentano il parametro, mentre il sole indica
+    // esclusivamente il controllo dell'illuminazione sulla seconda riga.
+    private func roleSymbol(_ role: Int) -> String {
+        switch role {
+        case 1: return "rectangle.topthird.inset.filled"
+        case 2: return "sun.max.fill"
+        case 3: return "gearshape.2.fill"
+        case 4: return "chart.bar.xaxis"
+        case 5: return "chart.bar.fill"
+        case 6: return "chart.bar.doc.horizontal"
+        case 8: return "arrow.up.right.circle.fill"
+        case 9: return "arrow.down.left.circle.fill"
+        case 10: return "speedometer"
+        case 11: return "number"
+        case 14: return "arrow.down.circle.fill"
+        case 17: return "exclamationmark.triangle.fill"
+        case 18: return "arrow.up.circle.fill"
+        case 21: return "circle.circle"
+        case 22: return "smallcircle.filled.circle"
+        default: return "paintpalette"
+        }
+    }
+
+    private func roleShortName(_ role: Int) -> String {
+        switch role {
+        case 1: return "Top bar"
+        case 2: return "Luce sotto top bar"
+        case 4: return "Barra · scuro"
+        case 5: return "Barra · intermedio"
+        case 6: return "Barra · brillante"
+        case 8: return "Potenza · uscita"
+        case 9: return "Potenza · ingresso"
+        case 10: return "Velocità · neutro"
+        case 14: return "Inerzia · decelerazione"
+        case 17: return "Velocità · limite"
+        case 18: return "Inerzia · accelerazione"
+        case 21: return "Anello esterno"
+        case 22: return "Anello interno"
+        default: return EcoThemePalette.labels[role]
+        }
+    }
+
     private func glowRoleTile(_ role: Int) -> some View {
         let illumination = glowBinding(for: role)
-        return HStack(spacing: 9) {
-            Button {
-                colorID = EcoThemeColorID(id: role, isDay: false)
-            } label: {
-                RoundedRectangle(cornerRadius: 7)
-                    .fill(Color(themeHex: draft.colors[role]))
-                    .frame(width: 38, height: 38)
-                    .overlay(RoundedRectangle(cornerRadius: 7)
-                        .strokeBorder(.secondary.opacity(0.30), lineWidth: 1))
+        return VStack(alignment: .leading, spacing: 7) {
+            Label(roleShortName(role), systemImage: roleSymbol(role))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+
+            HStack(spacing: 9) {
+                Button {
+                    colorID = EcoThemeColorID(id: role, isDay: false)
+                } label: {
+                    RoundedRectangle(cornerRadius: 7)
+                        .fill(Color(themeHex: draft.colors[role]))
+                        .frame(width: 38, height: 38)
+                        .overlay(RoundedRectangle(cornerRadius: 7)
+                            .strokeBorder(.secondary.opacity(0.30), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Colore " + EcoThemePalette.labels[role])
+
+                Image(systemName: "sun.max")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 22)
+                    .accessibilityHidden(true)
+
+                Slider(value: illumination, in: 0...1, step: 0.01)
+                    .tint(Color(themeHex: draft.colors[role]))
+                    .accessibilityLabel("Illuminazione " + EcoThemePalette.labels[role])
+                    .accessibilityValue("\(Int((illumination.wrappedValue * 100).rounded()))%")
+
+                Text("\(Int((illumination.wrappedValue * 100).rounded()))%")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .frame(width: 42, alignment: .trailing)
             }
-            .buttonStyle(.plain)
-            .accessibilityLabel("Colore " + EcoThemePalette.labels[role])
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity)
+        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+    }
 
-            Image(systemName: role == 21 || role == 22 ? "circle.dotted.circle" : "sun.max")
-                .font(.system(size: 18, weight: .semibold))
+    private func altitudeGraphTile() -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Label("Grafico altimetrico · Telemetria", systemImage: "mountain.2.fill")
+                .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
-                .frame(width: 22)
-                .accessibilityHidden(true)
 
-            Slider(value: illumination, in: 0...1, step: 0.01)
-                .tint(Color(themeHex: draft.colors[role]))
-                .accessibilityLabel("Illuminazione " + EcoThemePalette.labels[role])
-                .accessibilityValue("\(Int((illumination.wrappedValue * 100).rounded()))%")
+            HStack(spacing: 9) {
+                Button {
+                    choosingAltitudeColor = true
+                } label: {
+                    RoundedRectangle(cornerRadius: 7)
+                        .fill(Color(themeHex: draft.altitudeGraphColor))
+                        .frame(width: 38, height: 38)
+                        .overlay(RoundedRectangle(cornerRadius: 7)
+                            .strokeBorder(.secondary.opacity(0.30), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Colore grafico altimetrico")
 
-            Text("\(Int((illumination.wrappedValue * 100).rounded()))%")
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
-                .frame(width: 42, alignment: .trailing)
+                Image(systemName: "sun.max")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 22)
+                    .accessibilityHidden(true)
+
+                Slider(value: $draft.altitudeGraphGlow, in: 0...1, step: 0.01)
+                    .tint(Color(themeHex: draft.altitudeGraphColor))
+                    .accessibilityLabel("Illuminazione grafico altimetrico")
+                    .accessibilityValue("\(Int((draft.altitudeGraphGlow * 100).rounded()))%")
+
+                Text("\(Int((draft.altitudeGraphGlow * 100).rounded()))%")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .frame(width: 42, alignment: .trailing)
+            }
         }
         .padding(10)
         .frame(maxWidth: .infinity)
@@ -1421,6 +1543,10 @@ private struct EcoThemeEditorView: View {
                         .frame(width: 36, height: 36)
                         .overlay(RoundedRectangle(cornerRadius: 6)
                             .strokeBorder(.white.opacity(0.25), lineWidth: 1))
+                    Image(systemName: roleSymbol(index))
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .accessibilityHidden(true)
                     Text(EcoThemePalette.labels[index])
                         .font(.system(size: 13, weight: .semibold))
                         .lineLimit(2)

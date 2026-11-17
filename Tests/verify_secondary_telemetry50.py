@@ -6,7 +6,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 110;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 111;") == 2
 dashboard = cockpit.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 view = cockpit.split("private struct GPSExpandedReadings: View {", 1)[1].split(
@@ -55,7 +55,8 @@ assert "startPoint: .top, endPoint: .bottom" in chart
 assert "closeToBottom: true" in chart
 assert "Profilo GPS in attesa" in chart
 assert "gps.tripElevationMeters" in view
-assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile, color: theme.accent)" in view
+assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile," in view
+assert "color: theme.altitudeGraphColor, glowIntensity: theme.altitudeGraphGlow" in view
 
 # Il tasto RESET rimane a pressione lunga e azzera solo il trip e la sua quota.
 reset = cockpit.split("private struct GPSTripResetControl: View {", 1)[1].split(

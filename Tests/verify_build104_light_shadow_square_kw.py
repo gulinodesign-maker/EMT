@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 status = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 110;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 111;") == 2
 assert "## Build 104" in status
 
 # A single angle, never a second setting for the cards or for Day Mode.
@@ -47,7 +47,7 @@ assert "if migrated.colors.count == 23 && decoded.lightingVersion < 109 {" in pa
 assert '("Sfumature", [15, 16, 19, 20])' in palette
 assert '"Sfumatura sinistra"' in palette
 assert '"Sfumatura destra"' in palette
-assert '("Anelli e numeri del tachimetro", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
+assert '("Cockpit", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
 labels=palette.split("static let labels = [",1)[1].split("]",1)[0]
 details=palette.split("static let details = [",1)[1].split("]",1)[0]
 assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 23

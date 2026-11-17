@@ -6,7 +6,7 @@ root=Path(__file__).resolve().parents[1]
 tabs=(root/"Ecojumbo/Views/CockpitTabs.swift").read_text()
 c=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 110;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 111;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Deliberately remove ONLY the extra second ring. The original luminous
@@ -32,7 +32,7 @@ assert '"Secondo cerchio esterno · spessore doppio"' not in tabs
 assert '"Barre telemetria e potenza"' not in tabs
 groups=tabs.split("static let groups:",1)[1].split("static let colorCount",1)[0]
 for text in ('("Aspetto generale", [0])',
-             '("Anelli e numeri del tachimetro", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9])',
+             '("Cockpit", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9])',
              '("Barre telemetria", [4, 5, 6])',
              '("Navigatore", [12, 13])',
              '("Sfumature", [15, 16, 19, 20])'):

@@ -1,5 +1,13 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 111 — Cockpit: anello 3 pt dal LED, icone specifiche e card grafico altimetrico (17 novembre 2026)
+
+**Richiesta e autorizzazione:** anello interno più grande, a **3 pt verso l'interno dal LED velocità**; icone specifiche in tutte le schede che regolano il tachimetro; categoria «Anelli e numeri del tachimetro» rinominata «Cockpit»; nuova card Cockpit per colore e illuminazione 0–100% del grafico altimetrico DISL in Telemetria. L'utente ha richiesto esplicitamente di procedere con la build.
+
+**Implementazione branch `build-111-cockpit-altimetry-ring-icons`:** il diametro dell'anello interno è calcolato dal bordo interno del nucleo LED velocità dopo la scala 1,08× e dal suo proprio spessore, con spazio nominale costante di 3 punti SwiftUI. La miniatura applica la medesima geometria. Le card delle regolazioni luminosità hanno un'etichetta e un simbolo SF diverso per la funzione regolata e un separato simbolo sole per il cursore di luce; metallo e numeri hanno proprie icone. In «Cockpit» è presente una nuova card «Grafico altimetrico · Telemetria»: selettore colore, cursore indipendente di illuminazione e percentuale, luce disattivabile a 0%. Due campi persistenti in `EcoThemePalette` sono retrocompatibili con i precedenti 23 ruoli di colore e con i temi già salvati. Il grafico DISL usa il colore personalizzato e il bagliore, solo sui punti GPS reali senza dati simulati. Il cambio colore avviene in bozza e si applica all'app dopo «Salva» del tema.
+
+**Versionamento:** `1.0 (111)` Debug e Release. **Verifiche ancora richieste:** CI PR test Python/JK/barre/build iOS simulator; merge su `main` solo con CI verde; CI main e upload Apple TestFlight con conferma `Upload succeeded`. Conclusione processing Apple, associazione a TE e resa su iPhone non deducibili dalla CI; non duplicare upload 111.
+
 ## Build 110 — anello interno, illuminazione individuale e inerzia stabile (17 novembre 2026)
 
 **Richiesta:** nuovo anello concentrico *dentro* il neon velocità, colore e illuminazione editabili nella stessa card compatta **colore → icona → slider luce → %**, identica alle sfumature. Tutti gli elementi con un alone luminoso devono avere il proprio slider; eliminare quello generale. Correggere l'inerzia che oscillava rapidamente: **accelerazione arancione, decelerazione azzurra**, più filtraggio, isteresi e permanenza minima. Colori personalizzabili in «Anelli e numeri del tachimetro». GPS usato solo per la velocità; classificazione inerziale derivata da Core Motion e non dal delta km/h.

@@ -9,7 +9,7 @@ settings = (root / "Ecojumbo/Views/OtherViews.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 110;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 111;") == 2
 assert "static let colorCount = 23" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
@@ -27,7 +27,7 @@ for label in (
 
 # Five named groups and long-press on each color; color picker keeps cancel/confirm.
 for group in ("Aspetto generale", "Barre telemetria",
-              "Anelli e numeri del tachimetro", "Navigatore"):
+              "Cockpit", "Navigatore"):
     assert f'"{group}"' in tabs
 assert "ForEach(group.range, id:" in tabs
 assert "EcoThemePalette.labels[index]" in tabs

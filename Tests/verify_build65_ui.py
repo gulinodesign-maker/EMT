@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 110;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 111;") == 2
 
 editor = tabs.split("private struct EcoThemeEditorView: View {", 1)[1].split(
     "private struct EcoThemeColorPicker: View {", 1)[0]
@@ -47,7 +47,8 @@ for label in ("SOC", "V BAT", "AUT", "TRIP"):
 assert "let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 4)" in panel
 assert "let dislHeight = 2 * cardHeight" in panel
 assert "dislevelCard(height: dislHeight)" in panel
-assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile, color: theme.accent)" in panel
+assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile," in panel
+assert "color: theme.altitudeGraphColor, glowIntensity: theme.altitudeGraphGlow" in panel
 assert "live = bluetooth.isConnected && snapshot.map" in panel
 assert "abs(now.timeIntervalSince($0.date)) < 10" in panel
 assert "EcoRangeEstimate(snapshot: live, session: bluetooth.session)" in panel

@@ -258,6 +258,10 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
         }
         return accent
     }
+    var altitudeGraphColor: Color {
+        Color(themeHex: savedPalette?.altitudeGraphColor ?? EcoThemePalette.template(self).altitudeGraphColor)
+    }
+    var altitudeGraphGlow: Double { savedPalette?.altitudeGraphGlow ?? 0.55 }
     // Le barre mantengono i ruoli storici, invariati.
     // Barre e recupero energia usano la palette attiva, non soltanto la preview.
     static var barDark: Color {
@@ -1287,8 +1291,8 @@ private struct OpenSpeedCluster: View {
                 // neon GPS; il testo velocità rimane sopra ed è leggibile.
                 if maximizesGPSSpeedScale {
                     GPSLuminousCircleStroke(color: theme.innerRingColor,
-                        diameter: d * 0.630,
-                        stroke: max(1.9, d * 0.0050),
+                        diameter: GPSDialLayout.innerRingDiameter(for: d),
+                        stroke: GPSDialLayout.innerRingStroke(for: d),
                         glowIntensity: theme.glow(for: 22))
                 }
 
@@ -1485,6 +1489,14 @@ private enum GPSDialLayout {
     static let outerProfileDiameterFactor: CGFloat = 0.986 * 0.90
     static let carbonProfileDiameterFactor: CGFloat = 0.982 * 0.90
     static let speedScaleMagnification: CGFloat = 1.08
+    // Build 111: 3 pt di distanza fra il bordo interno del nucleo LED
+    // velocità (già ingrandito 1,08×) e il bordo esterno dell'anello.
+    static func innerRingStroke(for d: CGFloat) -> CGFloat { max(1.9, d * 0.0050) }
+    static func innerRingDiameter(for d: CGFloat) -> CGFloat {
+        let ledInnerRadius = (d * 0.722 * speedScaleMagnification
+            - GPSInnerLED.coreWidth(d) * speedScaleMagnification) / 2
+        return max(1, 2 * (ledInnerRadius - 3 - innerRingStroke(for: d) / 2))
+    }
     // Build 95: anello sopra top bar, ma fuori dal disco nero. La mappa
     // si arresta esattamente 2 punti oltre il bordo ESTERNO dell'anello.
     static let mapToDialClearance: CGFloat = 2
@@ -2343,8 +2355,8 @@ struct EcoCockpitThemeMiniature: View {
                     .frame(width: d, height: d)
                     .position(x: cx, y: h * 0.494)
                 GPSLuminousCircleStroke(color: tone(22),
-                    diameter: d * 0.630,
-                    stroke: max(1.9, d * 0.0050),
+                    diameter: GPSDialLayout.innerRingDiameter(for: d),
+                    stroke: GPSDialLayout.innerRingStroke(for: d),
                     glowIntensity: palette.glow(for: 22))
                     .position(x: cx, y: h * 0.494)
                 // Anche l'anteprima usa il cerchio e il colore del draft.
@@ -3495,7 +3507,8 @@ private struct GPSExpandedReadings: View {
             }
             .frame(height: height * 0.29)
 
-            GPSTripAltitudeSparkline(points: gps.altitudeProfile, color: theme.accent)
+            GPSTripAltitudeSparkline(points: gps.altitudeProfile,
+                color: theme.altitudeGraphColor, glowIntensity: theme.altitudeGraphGlow)
                 .frame(maxWidth: .infinity)
                 .frame(height: max(12, height * 0.62))
         }
@@ -3550,6 +3563,7 @@ private struct TelemetrySlimBar: View {
 private struct GPSTripAltitudeSparkline: View {
     let points: [TripAltitudePoint]
     let color: Color
+    let glowIntensity: Double
 
     var body: some View {
         GeometryReader { geo in
@@ -3574,9 +3588,15 @@ private struct GPSTripAltitudeSparkline: View {
                         colors: [color.opacity(0.34), color.opacity(0.16), color.opacity(0.0)],
                         startPoint: .top, endPoint: .bottom
                     ))
+                    line.stroke(color.opacity(0.72 * min(1, max(0, glowIntensity))),
+                                 style: StrokeStyle(lineWidth: 6,
+                                                    lineCap: .round, lineJoin: .round))
+                        .blur(radius: 3.5)
                     line.stroke(color, style: StrokeStyle(lineWidth: 2,
-                                                          lineCap: .round,
-                                                          lineJoin: .round))
+                                                           lineCap: .round,
+                                                           lineJoin: .round))
+                        .shadow(color: color.opacity(0.65 * min(1, max(0, glowIntensity))),
+                                radius: 3)
                 }
             } else {
                 // Nessun profilo o ombra inventati prima di 2 misure GPS.
