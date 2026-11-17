@@ -71,7 +71,8 @@ final class EcoAppleMusicPlayback: ObservableObject {
         if let current = player.queue.currentEntry {
             title = current.title
             artist = current.subtitle ?? artist
-            artworkURL = current.artwork?.url(width: 1100, height: 1100) ?? artworkURL
+            // Non conservare la copertina del brano precedente quando cambia la coda.
+            artworkURL = current.artwork?.url(width: 1100, height: 1100)
         }
         isPlaying = player.state.playbackStatus == .playing
     }
@@ -84,7 +85,7 @@ final class EcoAppleMusicPlayback: ObservableObject {
 
     func togglePlayback() {
         guard hasChosenTrack else { return }
-        if isPlaying {
+        if player.state.playbackStatus == .playing {
             player.pause()
             refresh()
         } else {
@@ -204,9 +205,16 @@ struct EcoMusicCockpitPanel: View {
         .onChange(of: music.appleAuthorized) { _, value in
             if value { searchRevision += 1 }
         }
+        // MusicKit + lettore di sistema: polling breve anche mentre suona;
+        // i comandi non sono necessari per aggiornare copertina/Play-Pausa.
+        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
+            if provider == .apple {
+                music.refresh()
+                apple.refresh()
+            }
+        }
         .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
-            music.refresh()
-            apple.refresh()
+            if provider == .spotify { music.refresh() }
         }
         .task(id: searchVisible ? "\(query)|\(searchRevision)" : "") {
             guard searchVisible, provider == .apple else {
@@ -271,10 +279,16 @@ struct EcoMusicCockpitPanel: View {
     private func fullBleedArtwork(width: CGFloat, height: CGFloat) -> some View {
         ZStack {
             Color.ecoCard
-            if usesInAppPlayer, let url = artworkURL {
-                AsyncImage(url: url) { image in
-                    image.resizable().scaledToFill()
-                } placeholder: {
+            if usesInAppPlayer {
+                // Mai mostrare la copertina (eventualmente vecchia) del player di sistema.
+                if let url = artworkURL {
+                    AsyncImage(url: url) { image in
+                        image.resizable().scaledToFill()
+                    } placeholder: {
+                        placeholder
+                    }
+                    .id(url)
+                } else {
                     placeholder
                 }
             } else if let artwork = music.cover, provider == .apple {
@@ -285,6 +299,7 @@ struct EcoMusicCockpitPanel: View {
                 } placeholder: {
                     placeholder
                 }
+                .id(url)
             } else {
                 placeholder
             }

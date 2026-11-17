@@ -364,10 +364,15 @@ struct EcoThemePalette: Codable, Equatable {
     // Un cursore globale condiviso da Night/Day e card di telemetria.
     // Valori precedenti migrano a 0° (orizzontale sx → dx).
     var gradientAngle: Double
+    // Build 105: opacità globale delle sfumature separata per Day e Night.
+    // 0 = tutte le velature trasparenti, 1 = resa originaria.
+    var gradientOpacity: Double
+    var dayGradientOpacity: Double
 
     init(name: String, colors: [String], glowIntensity: Double = 0.60,
          topFadeIntensity: Double = 0.35, bottomFadeIntensity: Double = 0.35,
-         dayTopBar: EcoDayTopBarPalette? = nil, gradientAngle: Double = 0) {
+         dayTopBar: EcoDayTopBarPalette? = nil, gradientAngle: Double = 0,
+         gradientOpacity: Double = 1, dayGradientOpacity: Double = 1) {
         self.name = name
         self.colors = colors
         self.glowIntensity = glowIntensity.isFinite ? min(1, max(0, glowIntensity)) : 0.60
@@ -376,11 +381,14 @@ struct EcoThemePalette: Codable, Equatable {
         self.dayTopBar = dayTopBar ?? EcoDayTopBarPalette.derived(from: colors)
         self.gradientAngle = gradientAngle.isFinite
             ? min(360, max(0, gradientAngle)) : 0
+        self.gradientOpacity = gradientOpacity.isFinite ? min(1, max(0, gradientOpacity)) : 1
+        self.dayGradientOpacity = dayGradientOpacity.isFinite ? min(1, max(0, dayGradientOpacity)) : 1
     }
 
     // Le palette 63–72 non contenevano intensità: default retrocompatibile.
     private enum CodingKeys: String, CodingKey {
-        case name, colors, glowIntensity, topFadeIntensity, bottomFadeIntensity, dayTopBar, gradientAngle
+        case name, colors, glowIntensity, topFadeIntensity, bottomFadeIntensity, dayTopBar, gradientAngle,
+             gradientOpacity, dayGradientOpacity
     }
 
     init(from decoder: Decoder) throws {
@@ -399,6 +407,10 @@ struct EcoThemePalette: Codable, Equatable {
             ?? EcoDayTopBarPalette.derived(from: colors)
         let angle = try data.decodeIfPresent(Double.self, forKey: .gradientAngle) ?? 0
         gradientAngle = angle.isFinite ? min(360, max(0, angle)) : 0
+        let nightOpacity = try data.decodeIfPresent(Double.self, forKey: .gradientOpacity) ?? 1
+        let dayOpacity = try data.decodeIfPresent(Double.self, forKey: .dayGradientOpacity) ?? 1
+        gradientOpacity = nightOpacity.isFinite ? min(1, max(0, nightOpacity)) : 1
+        dayGradientOpacity = dayOpacity.isFinite ? min(1, max(0, dayOpacity)) : 1
     }
 
     func encode(to encoder: Encoder) throws {
@@ -410,6 +422,8 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(bottomFadeIntensity, forKey: .bottomFadeIntensity)
         try data.encode(dayTopBar, forKey: .dayTopBar)
         try data.encode(gradientAngle, forKey: .gradientAngle)
+        try data.encode(gradientOpacity, forKey: .gradientOpacity)
+        try data.encode(dayGradientOpacity, forKey: .dayGradientOpacity)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -560,6 +574,8 @@ struct EcoThemePalette: Codable, Equatable {
               palette.topFadeIntensity.isFinite, (0...1).contains(palette.topFadeIntensity),
               palette.bottomFadeIntensity.isFinite, (0...1).contains(palette.bottomFadeIntensity),
               palette.gradientAngle.isFinite, (0...360).contains(palette.gradientAngle),
+              palette.gradientOpacity.isFinite, (0...1).contains(palette.gradientOpacity),
+              palette.dayGradientOpacity.isFinite, (0...1).contains(palette.dayGradientOpacity),
               palette.dayTopBar.isValid,
               palette.colors.allSatisfy({ validHex($0) }),
               let data = try? JSONEncoder().encode(palette) else { return false }
@@ -817,25 +833,6 @@ private struct EcoThemeEditorView: View {
                         .preferredColorScheme(selectedGroup == 4
                             ? (editingDayTopBar ? .light : .dark) : nil)
 
-                    // Il gruppo tachimetro contiene tutte le fasi GPS,
-                    // gli anelli luminosi e le barre di potenza del ponte.
-                    if let selectedGroup {
-                        let group = EcoThemePalette.groups[selectedGroup]
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.20)) {
-                                self.selectedGroup = nil
-                            }
-                        } label: {
-                            Label("Tutte le categorie", systemImage: "chevron.left")
-                                .font(.subheadline.weight(.semibold))
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.vertical, 6)
-
-                        Label(group.title, systemImage: categorySymbol(selectedGroup))
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-
                         if selectedGroup == 4 {
                             Picker("Modalità della sfumatura", selection: $editingDayTopBar) {
                                 Text("☀️ Day Mode").tag(true)
@@ -849,46 +846,26 @@ private struct EcoThemeEditorView: View {
                                 .font(.caption).foregroundStyle(.secondary)
                         }
 
-                        if selectedGroup == 1 {
-                            colorRoleSection("Anelli e luci", roles: [1, 3, 21])
-                            colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])
-                            colorRoleSection("Barre di potenza", roles: [8, 9])
-                        } else {
-                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)],
-                                      spacing: 10) {
-                                ForEach(group.range, id: \.self) { index in
-                                    colorRoleTile(index)
-                                }
-                            }
-                        }
-                    } else {
-                        Text("Scegli una categoria per modificare i suoi colori.")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-
-                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12),
-                                            GridItem(.flexible(), spacing: 12)],
-                                  spacing: 12) {
-                            ForEach(0..<EcoThemePalette.groups.count, id: \.self) { groupIndex in
-                                Button {
-                                    withAnimation(.easeInOut(duration: 0.20)) {
-                                        selectedGroup = groupIndex
-                                    }
-                                } label: {
-                                    categoryTile(groupIndex)
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel(EcoThemePalette.groups[groupIndex].title)
-                                .accessibilityHint("Apri i colori di questa categoria")
-                            }
-                        }
-                    }
-
-                    // Build 104: luce/ombra condivise da top bar e Telemetria.
+                    // Build 105: controlli direttamente sotto l'anteprima. Luce/ombra condivise da top bar e Telemetria.
                     // L'orientamento è UNICO per Day e Night; i colori restano
                     // indipendenti e le velature verticali sono opzionali.
                     if selectedGroup == 4 {
                         VStack(alignment: .leading, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 7) {
+                                HStack {
+                                    Label("Opacità di tutte le sfumature", systemImage: "circle.lefthalf.filled")
+                                        .font(.subheadline.weight(.semibold))
+                                    Spacer()
+                                    Text("\(Int((gradientOpacityBinding.wrappedValue * 100).rounded()))%")
+                                        .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                                }
+                                Slider(value: gradientOpacityBinding, in: 0...1, step: 0.01)
+                                    .tint(Color(themeHex: roleHex(15)))
+                                    .accessibilityLabel("Opacità complessiva delle sfumature in modalità giorno o notte")
+                                Text("0% rende trasparenti luce, ombra, velature alta e bassa e bagliore sotto il layer.")
+                                    .font(.caption).foregroundStyle(.secondary)
+                            }
+                            Divider()
                             VStack(alignment: .leading, spacing: 8) {
                                 HStack {
                                     Label("Orientamento globale · luce → ombra",
@@ -957,6 +934,63 @@ private struct EcoThemeEditorView: View {
                         .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
                     }
 
+
+
+                    // Il gruppo tachimetro contiene tutte le fasi GPS,
+                    // gli anelli luminosi e le barre di potenza del ponte.
+                    if let selectedGroup {
+                        let group = EcoThemePalette.groups[selectedGroup]
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.20)) {
+                                self.selectedGroup = nil
+                            }
+                        } label: {
+                            Label("Tutte le categorie", systemImage: "chevron.left")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.vertical, 6)
+
+                        Label(group.title, systemImage: categorySymbol(selectedGroup))
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+
+
+                        if selectedGroup == 1 {
+                            colorRoleSection("Anelli e luci", roles: [1, 3, 21])
+                            colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])
+                            colorRoleSection("Barre di potenza", roles: [8, 9])
+                        } else {
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)],
+                                      spacing: 10) {
+                                ForEach(group.range, id: \.self) { index in
+                                    colorRoleTile(index)
+                                }
+                            }
+                        }
+                    } else {
+                        Text("Scegli una categoria per modificare i suoi colori.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        LazyVGrid(columns: [GridItem(.flexible(), spacing: 12),
+                                            GridItem(.flexible(), spacing: 12)],
+                                  spacing: 12) {
+                            ForEach(0..<EcoThemePalette.groups.count, id: \.self) { groupIndex in
+                                Button {
+                                    withAnimation(.easeInOut(duration: 0.20)) {
+                                        selectedGroup = groupIndex
+                                    }
+                                } label: {
+                                    categoryTile(groupIndex)
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(EcoThemePalette.groups[groupIndex].title)
+                                .accessibilityHint("Apri i colori di questa categoria")
+                            }
+                        }
+                    }
+
                     if selectedGroup == 1 {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
@@ -989,6 +1023,8 @@ private struct EcoThemeEditorView: View {
                               !draft.topFadeIntensity.isFinite ||
                               !draft.bottomFadeIntensity.isFinite ||
                               !draft.gradientAngle.isFinite ||
+                              !draft.gradientOpacity.isFinite ||
+                              !draft.dayGradientOpacity.isFinite ||
                               !(0...360).contains(draft.gradientAngle) ||
                               !draft.dayTopBar.isValid ||
                               !draft.colors.allSatisfy({ EcoThemePalette.validHex($0) }))
@@ -1098,6 +1134,15 @@ private struct EcoThemeEditorView: View {
     private func roleHex(_ index: Int) -> String {
         selectedGroup == 4 && editingDayTopBar
             ? draft.dayTopBar.hex(for: index) : draft.colors[index]
+    }
+
+    private var gradientOpacityBinding: Binding<Double> {
+        Binding(get: {
+            editingDayTopBar ? draft.dayGradientOpacity : draft.gradientOpacity
+        }, set: { value in
+            if editingDayTopBar { draft.dayGradientOpacity = value }
+            else { draft.gradientOpacity = value }
+        })
     }
 
     private var topFadeBinding: Binding<Double> {
