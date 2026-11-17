@@ -57,7 +57,7 @@ listed = list(map(int,re.findall(r'\d+',groups)))
 assert sorted(listed)==[i for i in range(22) if i!=7], listed
 assert '"Numeri kW · energia in ingresso (ruolo storico nascosto)"' in labels
 assert "[8, 9, 7]" not in tabs
-assert 'colorRoleSection("Barre di potenza", roles: [8, 9])' in tabs
+assert 'colorRoleSection("LED potenza", roles: [8, 9])' in tabs
 assert "EcoThemePalette.active?.colors[9]" in cockpit
 assert "EcoThemePalette.active?.colors[7]" not in cockpit
 assert ".foregroundStyle(tone(9))" in cockpit
