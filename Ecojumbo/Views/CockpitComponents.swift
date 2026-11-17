@@ -1443,6 +1443,7 @@ private struct GPSCockpitPowerReading: View {
     @Environment(\.colorScheme) private var colorScheme
     let d: CGFloat
     let powerWatts: Double?
+    var inertialFlow: EcoPowerFlow? = nil
 
     private var powerKW: Double? {
         guard let powerWatts, powerWatts.isFinite else { return nil }
@@ -1450,6 +1451,13 @@ private struct GPSCockpitPowerReading: View {
     }
 
     private var readingColor: Color {
+        if let inertialFlow {
+            switch inertialFlow {
+            case .incoming: return CockpitTheme.decelerationAccent
+            case .outgoing: return CockpitTheme.dischargeAccent
+            case .neutral: return colorScheme == .light ? Color(white: 0.28) : .white.opacity(0.85)
+            }
+        }
         guard let powerKW else {
             return colorScheme == .light ? Color(white: 0.28) : .white.opacity(0.85)
         }
@@ -1458,8 +1466,19 @@ private struct GPSCockpitPowerReading: View {
         return colorScheme == .light ? Color(white: 0.28) : .white.opacity(0.85)
     }
 
+    private var readingText: String {
+        if let inertialFlow {
+            switch inertialFlow {
+            case .incoming: return "DECEL."
+            case .outgoing: return "ACCEL."
+            case .neutral: return "INERZIA"
+            }
+        }
+        return powerKW.map { String(format: "%.2f kW", $0) } ?? "— kW"
+    }
+
     var body: some View {
-        Text(powerKW.map { String(format: "%.2f kW", $0) } ?? "— kW")
+        Text(readingText)
             .font(.system(size: d * 0.066, weight: .semibold))
             .monospacedDigit()
             .foregroundStyle(readingColor)
@@ -1468,7 +1487,8 @@ private struct GPSCockpitPowerReading: View {
             .frame(width: d * 0.66, height: d * 0.13)
             .position(x: d * 0.50, y: d * 0.889)
             .frame(width: d, height: d)
-            .accessibilityLabel("Potenza netta istantanea")
+            .accessibilityLabel(inertialFlow == nil
+                ? "Potenza netta istantanea" : "Movimento inerziale, non potenza in kilowatt")
     }
 }
 
@@ -1797,6 +1817,9 @@ struct GPSCockpitDashboard: View {
     @EnvironmentObject private var bluetooth: JKBluetoothManager
     @EnvironmentObject private var powerMotion: EcoPowerMotionManager
     @AppStorage("ecojumbo.power.source") private var powerSource = EcoPowerSource.inertia.rawValue
+    @AppStorage("ecojumbo.vehicle.mode") private var vehicleMode = EcoVehicleMode.bms.rawValue
+    @AppStorage("ecojumbo.vehicle.fullRangeKm") private var fullRangeKm = 0.0
+    @State private var confirmFull = false
     @StateObject private var navigation = EcoNavigationStore.shared
     let theme: CockpitTheme
     let now: Date
@@ -1813,7 +1836,7 @@ struct GPSCockpitDashboard: View {
     // Scelta sorgente: BMS solo con pacchetto verificato e recente.
     // Se assente o scollegato, il LED usa l'inerzia; non genera watt.
     private func selectedPowerFlow(snapshot: JKSnapshot?, at now: Date) -> EcoPowerFlow {
-        if powerSource == EcoPowerSource.bms.rawValue, let snapshot {
+        if vehicleMode == EcoVehicleMode.bms.rawValue, let snapshot {
             let watts = snapshot.power
             guard watts.isFinite else { return .neutral }
             if watts > 30 { return .incoming }
@@ -1861,12 +1884,13 @@ struct GPSCockpitDashboard: View {
             let railCenterY = (railTopBound + railBottomBound) / 2
             let railRightInset = max(9, w * 0.010)
             let live: JKSnapshot? = {
-                guard bluetooth.isConnected, let sample = bluetooth.snapshot,
+                guard vehicleMode == EcoVehicleMode.bms.rawValue,
+                      bluetooth.isConnected, let sample = bluetooth.snapshot,
                       abs(now.timeIntervalSince(sample.date)) < 10 else { return nil }
                 return sample
             }()
             let flow = selectedPowerFlow(snapshot: live, at: now)
-            let usesBMS = powerSource == EcoPowerSource.bms.rawValue
+            let usesBMS = vehicleMode == EcoVehicleMode.bms.rawValue
                 && live.map({ $0.power.isFinite }) == true
             ZStack {
                 CarbonBackdrop(theme: theme)
@@ -1899,11 +1923,13 @@ struct GPSCockpitDashboard: View {
                         .position(x: w * 0.68, y: h * 0.5225)
                         .zIndex(5)
 
-                    GPSMapBatteryRail(theme: theme, now: now)
-                        .frame(width: railWidth, height: railHeight)
-                        .position(x: w - railRightInset - railWidth / 2,
-                                  y: railCenterY)
-                        .zIndex(29)
+                    if vehicleMode == EcoVehicleMode.bms.rawValue {
+                        GPSMapBatteryRail(theme: theme, now: now)
+                            .frame(width: railWidth, height: railHeight)
+                            .position(x: w - railRightInset - railWidth / 2,
+                                      y: railCenterY)
+                            .zIndex(29)
+                    }
                 } else {
                     // Cinque schede principali, centrate fino al dock inferiore.
                     GPSExpandedReadings(theme: theme, now: now)
@@ -1976,7 +2002,9 @@ struct GPSCockpitDashboard: View {
                 // Un solo kW sotto il ponte: la misura JK ha segno opposto alla
                 // convenzione visualizzata (positivo = erogazione, negativo = recupero).
                 GPSCockpitPowerReading(d: dialSize,
-                                       powerWatts: live.map { -$0.power })
+                                       powerWatts: live.map { -$0.power },
+                                       inertialFlow: vehicleMode == EcoVehicleMode.universal.rawValue
+                                           ? flow : nil)
                     .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(29)
 
@@ -1988,6 +2016,34 @@ struct GPSCockpitDashboard: View {
                     .position(x: temperatureX, y: temperatureY)
                     .zIndex(37)
 
+                // Il tasto Pieno rimane raggiungibile anche con Mappa/Musica:
+                // nessuna stima finché non è configurata e confermata.
+                if vehicleMode == EcoVehicleMode.universal.rawValue {
+                    Button {
+                        confirmFull = true
+                    } label: {
+                        VStack(spacing: 2) {
+                            Image(systemName: "fuelpump.fill")
+                                .font(.system(size: resetSide * 0.36, weight: .medium))
+                            Text("Pieno")
+                                .font(.system(size: 9, weight: .semibold))
+                        }
+                        .foregroundStyle(theme.accent)
+                        .frame(width: resetSide, height: resetSide)
+                        .background(.black.opacity(0.78), in: Circle())
+                        .overlay(Circle().stroke(theme.accent.opacity(0.72), lineWidth: 1))
+                        .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!(10...2500).contains(fullRangeKm))
+                    .accessibilityLabel("Registra pieno carburante")
+                    .accessibilityHint(fullRangeKm >= 10
+                        ? "Conferma il rifornimento e azzera la distanza stimata dal pieno"
+                        : "Configura prima l'autonomia con un pieno nelle Impostazioni")
+                    .position(x: resetX, y: resetY - resetSide * 1.30)
+                    .zIndex(38)
+                }
+
                 // Reset indipendente dalla Telemetria, visibile con mappa ON/OFF.
                 GPSTripResetControl(theme: theme)
                     .frame(width: resetSide, height: resetSide)
@@ -1997,7 +2053,8 @@ struct GPSCockpitDashboard: View {
                 GPSHeader(theme: theme, now: now,
                           positionAvailable: gps.currentCoordinate(at: now) != nil,
                           speedAvailable: gps.currentSpeed(at: now) != nil,
-                          bmsAvailable: live != nil)
+                          bmsAvailable: live != nil,
+                          showsBMS: vehicleMode == EcoVehicleMode.bms.rawValue)
                     .frame(width: w, height: h * 0.125)
                     .position(x: w * 0.5, y: h * 0.0625)
                     .zIndex(40)
@@ -2007,6 +2064,14 @@ struct GPSCockpitDashboard: View {
         }
         // GPS e itinerario continuano a progredire anche mentre MapKit
         // non è renderizzato sotto la copertina musicale.
+        .confirmationDialog("Hai effettuato un pieno?",
+                            isPresented: $confirmFull, titleVisibility: .visible) {
+            Button("Conferma pieno") { gps.recordUniversalFull() }
+            Button("Annulla", role: .cancel) {}
+        } message: {
+            Text("L'autonomia stimata tornerà al valore configurato. " +
+                 "L'app non può leggere il livello reale del serbatoio.")
+        }
         .onReceive(gps.$lastGPSCoordinate) { coordinate in
             if musicEnabled, let coordinate {
                 navigation.updateProgress(at: coordinate)
@@ -2629,6 +2694,7 @@ private struct GPSHeader: View {
     let positionAvailable: Bool
     let speedAvailable: Bool
     let bmsAvailable: Bool
+    var showsBMS: Bool = true
 
     var body: some View {
         GeometryReader { geo in
@@ -2664,13 +2730,16 @@ private struct GPSHeader: View {
                 Rectangle().fill(colorScheme == .light
                                  ? Color.black.opacity(0.33) : .white.opacity(0.55))
                     .frame(width: 1, height: h * 0.43)
-                BluetoothGlyph()
-                    .frame(width: h * 0.27, height: h * 0.43)
-                Circle().fill(bmsAvailable ? theme.accent : .gray)
-                    .frame(width: max(5, h * 0.14), height: max(5, h * 0.14))
-                Rectangle().fill(colorScheme == .light
-                                 ? Color.black.opacity(0.33) : .white.opacity(0.55))
-                    .frame(width: 1, height: h * 0.43)
+                if showsBMS {
+                    BluetoothGlyph()
+                        .frame(width: h * 0.27, height: h * 0.43)
+                    Circle().fill(bmsAvailable ? theme.accent : .gray)
+                        .frame(width: max(5, h * 0.14), height: max(5, h * 0.14))
+                    Rectangle().fill(colorScheme == .light
+                                     ? Color.black.opacity(0.33) : .white.opacity(0.55))
+                        .frame(width: 1, height: h * 0.43)
+
+                }
                 PhoneChargeMeter()
             }
             .font(.system(size: max(13, h * 0.34), weight: .medium))
