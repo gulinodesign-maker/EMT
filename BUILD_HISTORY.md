@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44055985399:ATTEMPT:1 -->
+### 2026-11-17T09:29:05Z — CI #367 · build-108-directional-fades-inertial-bms-power · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44055985399](https://github.com/gulinodesign-maker/EMT/actions/runs/44055985399); avvio 2026-11-17T09:29:05Z UTC; aggiornamento finale 2026-11-17T09:29:47Z UTC; registrazione 2026-11-17T09:30:07+00:00 UTC; evento pull_request.
+- **Commit:** [4f6b8d050c97](https://github.com/gulinodesign-maker/EMT/commit/4f6b8d050c97e2aa212d14776e15fc46dfe1c310); versione **1.0**; build **108**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_cockpit.py.
+
 <!-- EMT_RUN:44056006421:ATTEMPT:1 -->
 ### 2026-11-17T09:29:14Z — CI #368 · build-108-directional-fades-inertial-bms-power · tentativo 1
 
