@@ -38,11 +38,11 @@ for text in ('("Aspetto generale", [0])',
              '("Sfumature", [15, 16, 19, 20])'):
     assert text in groups
 indices=[int(v) for v in re.findall(r"\d+", groups)]
-assert sorted(indices)==[i for i in range(22) if i != 7],indices
+assert sorted(indices)==[i for i in range(23) if i != 7],indices
 assert '"Cursore potenza · uscita"' in tabs
 assert '"Cursore potenza · ingresso"' in tabs
-assert 'colorRoleSection("LED potenza", roles: [8, 9])' in tabs
-assert 'colorRoleSection("Anelli e luci", roles: [1, 3, 21, 2])' in tabs
+assert 'glowRoleSection("LED potenza · BMS", roles: [8, 9])' in tabs
+assert 'glowRoleSection("Anelli", roles: [1, 21, 22, 2])' in tabs
 assert 'colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])' in tabs
 labels=tabs.split("static let labels = [",1)[1].split("]",1)[0]
 details=tabs.split("static let details = [",1)[1].split("]",1)[0]

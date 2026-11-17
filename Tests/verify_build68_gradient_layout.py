@@ -21,7 +21,7 @@ assert "migrated.colors[9] = decoded.colors[7]" in tabs
 assert "if migrated.colors.count == 15 {" in tabs
 assert "let edge = migrated.colors[2]" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
-assert "foreground.1, foreground.0, foreground.0]" in tabs
+assert "foreground.1, foreground.0, foreground.0, foreground.0]" in tabs
 assert '("Sfumatura top bar e ponte kW", 15..<17)' not in tabs
 assert '"Sfumatura sinistra"' in tabs
 assert '"Sfumatura destra"' in tabs
@@ -32,8 +32,8 @@ assert "onSave(slot, palette)" in tabs
 assert "EcoThemePalette.save(palette, slot: slot)" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 22
-assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 23
 
 # Build 70 intentionally retires the extra colored area fills, while
 # preserving the 17 stored palette values for backwards compatibility.

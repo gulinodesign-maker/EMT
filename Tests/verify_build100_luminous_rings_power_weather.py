@@ -48,8 +48,8 @@ assert "migrated.colors.removeLast()" in tabs
 assert "var secondRingColor: Color" not in cockpit
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
-assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 23
 
 # Only GPS header has text-only meteo under the brand mark; other Home unchanged.
 weather = cockpit.split("private struct EcoOutsideTemperature: View {", 1)[1].split(

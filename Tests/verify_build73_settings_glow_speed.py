@@ -48,7 +48,7 @@ assert "speed / 120" not in speed
 # Current palette persistence (8/15/17 -> 18) and defaulted Codable intensity.
 assert "static let colorCount = 23" in tabs
 assert "decoded.colors.count == 17 || decoded.colors.count == 18 ||" in tabs
-assert "decoded.colors.count == 23 || decoded.colors.count == 23" in tabs
+assert "decoded.colors.count == 22 || decoded.colors.count == 23" in tabs
 assert "migrated.colors.append(contentsOf: extraDefaults)" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
 assert 'migrated.colors.append("#FF3B30")' in tabs

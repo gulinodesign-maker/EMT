@@ -69,7 +69,7 @@ assert "let palette: EcoThemePalette" in preview
 assert "Color(themeHex: palette.colors[index])" in preview
 assert "palette.highOpacity" in preview
 assert "palette.lowOpacity" in preview
-assert "palette.glowIntensity" in preview
+assert "palette.glow(for: 21)" in preview
 assert 'Text("88")' not in preview
 assert 'Text("35%")' not in preview
 assert 'Text("60 km/h")' not in preview

@@ -50,14 +50,14 @@ assert '"Sfumatura destra"' in palette
 assert '("Anelli e numeri del tachimetro", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
 labels=palette.split("static let labels = [",1)[1].split("]",1)[0]
 details=palette.split("static let details = [",1)[1].split("]",1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
-assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 23
 groups=palette.split("static let groups:",1)[1].split("static let colorCount",1)[0]
 listed = list(map(int,re.findall(r'\d+',groups)))
-assert sorted(listed)==[i for i in range(22) if i!=7], listed
+assert sorted(listed)==[i for i in range(23) if i!=7], listed
 assert '"Numeri kW · energia in ingresso (ruolo storico nascosto)"' in labels
 assert "[8, 9, 7]" not in tabs
-assert 'colorRoleSection("LED potenza", roles: [8, 9])' in tabs
+assert 'glowRoleSection("LED potenza · BMS", roles: [8, 9])' in tabs
 assert "EcoThemePalette.active?.colors[9]" in cockpit
 assert "EcoThemePalette.active?.colors[7]" not in cockpit
 assert ".foregroundStyle(tone(9))" in cockpit
