@@ -65,7 +65,7 @@ assert "return accent" in theme
 # All existing 21 colors survive, and the new role starts from old accent.
 assert "static let colorCount = 22" in t
 assert '"Cerchio concentrico luminoso · tachimetro"' in t
-assert '("Sfumature · luce e ombra", [15, 16, 19, 20])' in t
+assert '("Sfumature", [15, 16, 19, 20])' in t
 assert "decoded.colors.count == 21 ||" in t
 assert "if migrated.colors.count == 21 {" in t
 assert "migrated.colors.append(migrated.colors[1])" in t
