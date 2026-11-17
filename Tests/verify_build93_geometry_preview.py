@@ -31,7 +31,7 @@ cluster = c.split("private struct OpenSpeedCluster: View {", 1)[1].split(
 assert "var maximizesGPSSpeedScale: Bool = false" in cluster
 assert "if maximizesGPSSpeedScale {" in cluster
 assert cluster.count(".scaleEffect(GPSDialLayout.speedScaleMagnification)") == 2
-assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow)" in cluster
+assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow," in cluster
 assert "SpeedScaleTicks(d: d)" in cluster
 gps = c.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "// Pulsante dedicato", 1)[0]
@@ -84,5 +84,5 @@ assert "EcoThemePreview(palette: palette, active: active)" in t
 assert "EcoThemePreview(palette: draft)" in t
 assert "draft.colors[selected.id] = hex" in t
 assert "minimumDuration: 0.45" not in t
-assert "static let colorCount = 22" in t
+assert "static let colorCount = 23" in t
 print("OK — build 93: diagonal exterior layer, -10% ring, larger GPS scale, complete live draft cockpit miniature")

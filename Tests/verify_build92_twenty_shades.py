@@ -50,7 +50,7 @@ assert "onConfirm(" not in picker.split('accessibilityLabel("Annulla modifica")'
 
 # The established theme editor still commits ONLY the tapped role on
 # explicit confirmation, with existing 21-color palettes untouched.
-assert "static let colorCount = 22" in tabs
+assert "static let colorCount = 23" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
 assert "initialHex: selected.isDay" in tabs
 assert '("Sfumature", [15, 16, 19, 20])' in tabs

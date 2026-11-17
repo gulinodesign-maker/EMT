@@ -23,7 +23,7 @@ assert "var showsCircularPowerGauges: Bool = true" in cluster
 assert "if showsCircularPowerGauges {" in cluster
 assert "SegmentedGaugeBar(d: d, fraction: outputFill" in cluster
 assert "SegmentedGaugeBar(d: d, fraction: inputFill" in cluster
-assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow)" in cluster
+assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow," in cluster
 assert "GPSCockpitPowerReading(d: dialSize" in gps
 assert "powerWatts: live.map { -$0.power }" in gps
 assert "powerFlow: flow" in gps

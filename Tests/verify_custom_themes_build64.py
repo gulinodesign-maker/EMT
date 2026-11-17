@@ -10,18 +10,18 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
 assert project.count("CURRENT_PROJECT_VERSION = 109;") == 2
-assert "static let colorCount = 22" in tabs
+assert "static let colorCount = 23" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 22
-assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 23
 for label in (
     "Sfondo del cockpit", "Colore principale · top bar e icone Setup",
     "Barre telemetria · colore scuro", "Numeri kW · energia in ingresso (ruolo storico nascosto)",
     "Cursore potenza · uscita", "Cursore potenza · ingresso",
-    "Velocità GPS · fase normale", "Numeri del tachimetro · km/h",
+    "LED velocità · neutro", "Numeri del tachimetro · km/h",
     "Navigatore · svolta a destra", "Navigatore · svolta a sinistra",
-    "Velocità GPS · fase decelerazione",
+    "Inerzia · decelerazione",
 ):
     assert f'"{label}"' in labels, label
 
@@ -40,7 +40,7 @@ assert "EcoThemePalette.colorCount" in tabs
 
 # Do not wipe existing custom palettes: old 8-color slots become 15 colors.
 assert "(decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
-assert "decoded.colors.count == 22 || decoded.colors.count == 23)" in tabs
+assert "decoded.colors.count == 23 || decoded.colors.count == 23)" in tabs
 assert "migrated.colors.append(contentsOf: extraDefaults)" in tabs
 assert "migrated.colors[9] = decoded.colors[7]" in tabs
 assert "guard (1...3).contains(slot)" in tabs
@@ -62,7 +62,7 @@ for i in range(8, 15):
 assert "activeColor: CockpitTheme.dischargeAccent" in cockpit
 assert "activeColor: CockpitTheme.recoveryRingAccent" in cockpit
 assert "CockpitTheme.speedLEDAccent" in cockpit
-assert "case .incoming: return CockpitTheme.recoveryRingAccent" in cockpit
+assert "case 9: return CockpitTheme.recoveryRingAccent" in cockpit
 assert ".foregroundStyle(CockpitTheme.speedDigitsAccent)" in cockpit
 assert "navigationArrow.contains(\"right\")" in cockpit
 assert "navigationArrow.contains(\"left\")" in cockpit
@@ -77,7 +77,7 @@ assert "GPSSpeedMovement" not in cockpit
 assert "speedHistory" not in cockpit
 assert "selectedPowerFlow(snapshot: JKSnapshot?" in cockpit
 assert "motion.userAcceleration" in (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
-assert "Velocità GPS · fase decelerazione" in tabs
+assert "Inerzia · decelerazione" in tabs
 
 # Critical GPS and telemetry measurements and geometry remain unchanged.
 assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in cockpit

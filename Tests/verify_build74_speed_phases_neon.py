@@ -14,10 +14,10 @@ assert pbx.count("MARKETING_VERSION = 1.0;") == 2
 assert pbx.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
 # Four independently selectable swatches, with the old 10/14/17 preserved.
-assert "static let colorCount = 22" in tabs
-assert 'colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])' in tabs
-for name in ("Velocità GPS · fase normale", "Velocità GPS · fase decelerazione",
-             "Velocità GPS · fase accelerazione", "Velocità GPS · limite superato"):
+assert "static let colorCount = 23" in tabs
+assert 'glowRoleSection("LED velocità · inerzia", roles: [10, 14, 18, 17])' in tabs
+for name in ("LED velocità · neutro", "Inerzia · decelerazione",
+             "Inerzia · accelerazione", "Velocità GPS · limite superato"):
     assert f'"{name}"' in tabs
 for i in (10, 14, 17, 18):
     assert i in [14, 10, 18, 17]
@@ -28,8 +28,8 @@ assert "colorID = EcoThemeColorID(" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 22
-assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', labels, flags=re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 23
 
 # Lossless migration of existing slots: 8, 15, 17, 18 -> 19.
 assert "(decoded.colors.count == 8 || decoded.colors.count == 15 ||" in tabs
@@ -50,8 +50,8 @@ assert "speedLimitColorEnabled = true" in cockpit
 speed = cockpit.split("private struct SpeedLEDStream: View {", 1)[1].split(
     "private struct SegmentedGaugeBar: View {", 1)[0]
 assert "if speedLimitColorEnabled, let speed, speed.isFinite," in speed
-assert "case .incoming: return CockpitTheme.recoveryRingAccent" in speed
-assert "case .outgoing: return CockpitTheme.dischargeAccent" in speed
+assert "case 9: return CockpitTheme.recoveryRingAccent" in speed
+assert "case 8: return CockpitTheme.dischargeAccent" in speed
 assert "case .neutral:" in speed
 assert "speed / max(30, vehicleSpeedMaxKmh)" in speed
 assert "guard let speed, speed.isFinite, speed >= 0 else { return nil }" in speed

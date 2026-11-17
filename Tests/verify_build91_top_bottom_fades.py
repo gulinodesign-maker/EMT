@@ -47,11 +47,11 @@ assert "GPSLowerGlow(theme: theme)" in dashboard
 assert "GPSPowerHorizontalGauge" not in dashboard
 
 # Two new palette roles, each with color and independent adjustable intensity.
-assert "static let colorCount = 22" in tabs
+assert "static let colorCount = 23" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
-assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 23
 assert '"Sfumatura alto"' in tabs
 assert '"Sfumatura basso"' in tabs
 assert '("Sfumature", [15, 16, 19, 20])' in tabs
