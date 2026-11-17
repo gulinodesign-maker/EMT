@@ -19,7 +19,7 @@ struct CellsView: View {
                     ContentUnavailableView(
                         "Celle non disponibili",
                         systemImage: "battery.0percent",
-                        description: Text("Collega il BMS JK via Bluetooth e attendi una lettura reale verificata. Nessun valore viene inventato.")
+                        description: Text("Collega il BMS JK")
                     )
                     .padding(.top, 24)
                 }
@@ -27,7 +27,7 @@ struct CellsView: View {
             .scrollContentBackground(.hidden)
             .background(Color.ecoBackground)
         }
-        .navigationTitle("Batteria · 20 celle")
+        .navigationTitle("Celle BMS")
     }
 
     private func verifiedSnapshot(at time: Date) -> JKSnapshot? {
@@ -53,10 +53,13 @@ struct CellsView: View {
             }
 
             if snapshot.errorBits != 0 {
-                Label("Il BMS segnala allarmi. Consulta l'app JK ufficiale per i dettagli.", systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(.orange)
-                    .font(.footnote)
-                    .padding(.horizontal, 4)
+                HStack(spacing: 8) {
+                    Label("Allarmi BMS", systemImage: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                    EcoInfoIcon(title: "Allarmi BMS", message: "Il BMS segnala uno o più allarmi. Consulta l'app JK ufficiale per i dettagli.")
+                }
+                .font(.footnote)
+                .padding(.horizontal, 4)
             }
 
             LazyVGrid(columns: columns, spacing: 12) {
@@ -64,9 +67,7 @@ struct CellsView: View {
                     cellTile(number: index + 1, voltage: voltage, snapshot: snapshot)
                 }
             }
-            Text("Valori in sola lettura, ricevuti via Bluetooth dal BMS. L'isolamento, il bilanciamento e le protezioni rimangono gestiti dal BMS.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            EcoInfoIcon(title: "Dati BMS", message: "I valori sono in sola lettura via Bluetooth. Isolamento, bilanciamento e protezioni restano gestiti dal BMS.")
         }
         .padding(16)
     }
@@ -103,7 +104,7 @@ struct CellsView: View {
             Image(systemName: "battery.100percent")
                 .foregroundStyle(outlier ? Color.orange : Color.ecoGreen)
             VStack(alignment: .leading, spacing: 3) {
-                Text("Cella \(number)").font(.caption).foregroundStyle(.secondary)
+                Text("#\(number)").font(.caption).foregroundStyle(.secondary)
                 Text(String(format: "%.3f V", voltage))
                     .font(.system(.headline, design: .rounded))
                     .monospacedDigit()
