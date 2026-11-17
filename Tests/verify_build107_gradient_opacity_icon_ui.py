@@ -44,7 +44,7 @@ assert "gradientIntensityBinding(for role: Int)" not in editor
 assert "gradientOpacityBinding(for role: Int)" in editor
 assert "Slider(value: $draft.gradientAngle" not in editor
 cards = editor.split("private func gradientRoleTile(_ role: Int) -> some View {",1)[1].split(
-    "private func colorRoleSection",1)[0]
+    "private func glowBinding",1)[0]
 assert cards.count("Slider(value:") == 1
 assert "Slider(value: transparency, in: 0...1, step: 0.01)" in cards
 assert 'accessibilityLabel("Trasparenza " + gradientDirectionName(role))' in cards
@@ -76,7 +76,7 @@ assert "high.opacity(highOpacity)" in upper
 assert "low.opacity(lowOpacity)" in upper
 assert "high.opacity(highOpacity)" in mini
 assert "low.opacity(lowOpacity)" in mini
-assert "underGlow.opacity(theme.glowIntensity" in upper
+assert "underGlow.opacity(theme.glow(for: 2)" in upper
 assert "palette.dayHighOpacity : palette.highOpacity" in mini
 assert "palette.dayLowOpacity : palette.lowOpacity" in mini
 assert "directionalVersion = 108" in palette

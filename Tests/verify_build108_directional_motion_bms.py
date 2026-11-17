@@ -36,7 +36,7 @@ assert "private func gradientOpacityBinding(for role: Int)" in editor
 for r, direction in ((15,"arrow.left"),(16,"arrow.right"),(19,"arrow.up"),(20,"arrow.down")):
     assert 'case ' + str(r) + ': return "' + direction + '"' in editor
 tile = editor.split("private func gradientRoleTile(_ role: Int) -> some View {",1)[1].split(
-    "private func colorRoleSection",1)[0]
+    "private func glowBinding",1)[0]
 assert "return HStack(spacing: 9)" in tile
 assert tile.index('RoundedRectangle(cornerRadius: 7)') < tile.index('Image(systemName: gradientArrow(role))') < tile.index('Slider(value: transparency, in: 0...1, step: 0.01)') < tile.index('Text("\\(Int((transparency.wrappedValue * 100).rounded()))%")')
 assert tile.count("Slider(value:") == 1
@@ -79,8 +79,8 @@ assert "if watts < -30 { return .outgoing }" in dashboard
 assert "return powerMotion.currentFlow(at: now)" in dashboard
 stream = cockpit.split("private struct SpeedLEDStream: View {",1)[1].split(
     "private struct SegmentedGaugeBar:",1)[0]
-assert "case .incoming: return CockpitTheme.recoveryRingAccent" in stream
-assert "case .outgoing: return CockpitTheme.dischargeAccent" in stream
+assert "case .incoming: return usesBMS ? 9 : 14" in stream
+assert "case .outgoing: return usesBMS ? 8 : 18" in stream
 assert "GPSSpeedMovement" not in cockpit
 assert "speedHistory" not in cockpit
 assert "speed / max(30, vehicleSpeedMaxKmh)" in stream
@@ -88,11 +88,11 @@ assert "speed / max(30, vehicleSpeedMaxKmh)" in stream
 assert "import CoreMotion" in motion
 assert "final class EcoPowerMotionManager: ObservableObject" in motion
 assert "sensor.startDeviceMotionUpdates(to: .main)" in motion
-assert "motion.userAcceleration.z" in motion
-assert "motion.rotationRate.x" in motion
-assert "smoothedAcceleration" in motion
-assert "let threshold = 0.18 - sensitivity * 0.155" in motion
-assert "time.timeIntervalSince(lastUpdate) < 1.0" in motion
+assert "let accel = motion.userAcceleration" in motion
+assert "let rotation = motion.rotationRate" in motion
+assert "filteredAcceleration" in motion
+assert "let enterThreshold = 0.21 - sensitivity * 0.16" in motion
+assert "time.timeIntervalSince(lastUpdate) < 1" in motion
 assert 'private var powerSource = EcoPowerSource.inertia.rawValue' in settings
 assert 'case .power: "Scala potenza"' in settings
 assert 'Picker("Controllo", selection: $powerSource)' in settings

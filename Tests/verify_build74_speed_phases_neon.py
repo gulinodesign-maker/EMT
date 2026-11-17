@@ -52,13 +52,15 @@ speed = cockpit.split("private struct SpeedLEDStream: View {", 1)[1].split(
 assert "if speedLimitColorEnabled, let speed, speed.isFinite," in speed
 assert "case 9: return CockpitTheme.recoveryRingAccent" in speed
 assert "case 8: return CockpitTheme.dischargeAccent" in speed
-assert "case .neutral:" in speed
+assert "case .neutral:" not in speed
+assert "case 14: return CockpitTheme.decelerationAccent" in speed
+assert "case 18: return CockpitTheme.accelerationAccent" in speed
 assert "speed / max(30, vehicleSpeedMaxKmh)" in speed
 assert "guard let speed, speed.isFinite, speed >= 0 else { return nil }" in speed
 assert "GPSSpeedMovement" not in cockpit
 assert "speedHistory" not in cockpit
 motion=(root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
-assert "motion.userAcceleration.z" in motion
+assert "let accel = motion.userAcceleration" in motion
 assert "sensor.startDeviceMotionUpdates(to: .main)" in motion
 
 # The actual speed LED remains active; decorative GPS outlines are removed.
