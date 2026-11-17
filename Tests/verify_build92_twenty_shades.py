@@ -25,7 +25,7 @@ assert "ForEach(Self.baseColors.indices, id: \\.self)" in picker
 assert picker.count("Slider(value: $shadeLevel") == 1
 assert 'Text("Scuro")' in picker
 assert 'Text("Chiaro")' in picker
-assert 'Text("Scegli uno dei 20 colori base")' in picker
+assert 'Label("Colori", systemImage: "paintpalette")' in picker
 for retired in ("private static let spectrum:", "private static let neutrals:",
                 "displayedColors", "filterButton(", "@State private var filter",
                 'ColorPicker("Altro colore"', "pickerColor"):
