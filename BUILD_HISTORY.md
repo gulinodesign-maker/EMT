@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44055791231:ATTEMPT:1 -->
+### 2026-11-17T09:27:47Z — CI #366 · build-108-directional-fades-inertial-bms-power · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44055791231](https://github.com/gulinodesign-maker/EMT/actions/runs/44055791231); avvio 2026-11-17T09:27:47Z UTC; aggiornamento finale 2026-11-17T09:28:11Z UTC; registrazione 2026-11-17T09:28:22+00:00 UTC; evento pull_request.
+- **Commit:** [7b2d30d3597b](https://github.com/gulinodesign-maker/EMT/commit/7b2d30d3597ba820ff6374df068da7ededb917b1); versione **1.0**; build **108**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_speed_font_build53.py.
+
 <!-- EMT_RUN:44055627776:ATTEMPT:1 -->
 ### 2026-11-17T09:26:41Z — CI #360 · build-108-directional-fades-inertial-bms-power · tentativo 1
 
