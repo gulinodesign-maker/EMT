@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44147863939:ATTEMPT:1 -->
+### 2026-11-17T18:26:31Z — CI #418 · build-117-universal-bridge-arrows · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44147863939](https://github.com/gulinodesign-maker/EMT/actions/runs/44147863939); avvio 2026-11-17T18:26:31Z UTC; aggiornamento finale 2026-11-17T18:27:07Z UTC; registrazione 2026-11-17T18:27:17+00:00 UTC; evento pull_request.
+- **Commit:** [ec8d636b210b](https://github.com/gulinodesign-maker/EMT/commit/ec8d636b210b069c72a68b51fd45d09eb458824e); versione **1.0**; build **117**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_telemetry_dock_build62.py.
+
 <!-- EMT_RUN:44125742653:ATTEMPT:1 -->
 ### 2026-11-17T16:26:14Z — CI #417 · main · tentativo 1
 
