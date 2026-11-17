@@ -74,7 +74,7 @@ layer=c.split("private struct GPSUpperGradientLayer: View {",1)[1].split(
 for needle in ("@Environment(\\.colorScheme) private var colorScheme",
                "let daylight = colorScheme == .light",
                "let day = theme.dayTopBar",
-               "day.highIntensity", "day.lowIntensity",
+               "theme.dayGradientHighOpacity", "theme.dayGradientLowOpacity",
                "day.left", "day.right", "day.high", "day.low", "day.underGlow",
                ".mask(GPSDialExteriorMask()", ".mask(GPSBridgeExteriorMask()"):
     assert needle in layer,needle
