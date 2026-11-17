@@ -17,6 +17,7 @@
 <key>CFBundleURLSchemes</key><array><string>ecojumbo-spotify</string></array>
 </dict></array>
 <key>LSApplicationQueriesSchemes</key><array><string>spotify</string></array>
+<key>NSMotionUsageDescription</key><string>Ecojumbo usa i sensori di movimento per visualizzare accelerazione e decelerazione sulla scala del tachimetro quando il BMS non è disponibile.</string>
 <key>NSBluetoothAlwaysUsageDescription</key><string>Ecojumbo usa il Bluetooth per leggere i dati del BMS della batteria dello scooter.</string>
 <key>UIApplicationSupportsIndirectInputEvents</key><true/>
 <key>UILaunchScreen</key><dict/>
