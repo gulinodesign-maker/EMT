@@ -59,7 +59,7 @@ telemetry=cockpit.split("private struct GPSExpandedReadings: View {",1)[1].split
 assert "private var telemetryCardGradient: LinearGradient" in telemetry
 assert "theme.dayTopBar.left" in telemetry and "theme.dayTopBar.right" in telemetry
 assert "theme.topBarGradientStart" in telemetry and "theme.topBarGradientEnd" in telemetry
-assert "startPoint: direction.start, endPoint: direction.end" in telemetry
+assert "startPoint: direction.start, endPoint: direction.end" not in telemetry
 assert "startPoint: .leading, endPoint: .trailing" in telemetry
 assert "from.opacity((day ? 0.38 : 0.32) * lightOpacity)" in telemetry
 assert telemetry.count(".background(telemetryCardBackground)")==2
