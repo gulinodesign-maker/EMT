@@ -222,7 +222,10 @@ struct EcoSettingsView: View {
     @State private var odometerStatus: String?
     @State private var fullRangeText = ""
     @State private var fullRangeStatus: String?
+    @State private var kmSinceFullText = ""
+    @State private var kmSinceFullStatus: String?
     @FocusState private var odometerFieldFocused: Bool
+    @FocusState private var distanceFieldFocused: Bool
     @AppStorage("ecojumbo.cellCount") private var cellCount = 20
     @AppStorage("ecojumbo.capacity") private var capacity = 206
     @AppStorage("ecojumbo.chargeAlert") private var chargeAlert = 80
@@ -270,6 +273,13 @@ struct EcoSettingsView: View {
                           spacing: 10) {
                     ForEach(visibleSections) { section in
                         Button {
+                            if section == .vehicle {
+                                fullRangeText = fullRangeKm >= 10 ? String(format: "%.0f", fullRangeKm) : ""
+                                kmSinceFullText = gps.universalHasFull
+                                    ? String(format: "%.1f", gps.universalKmSinceFull) : ""
+                                fullRangeStatus = nil
+                                kmSinceFullStatus = nil
+                            }
                             activeSection = section
                         } label: {
                             VStack(spacing: landscape ? 4 : 8) {
@@ -315,6 +325,7 @@ struct EcoSettingsView: View {
             bluetooth.applyFormat(JKFrameFormat(rawValue: rawFormat) ?? .automatic, cells: cellCount)
             odometerText = gps.hasOdometer ? String(format: "%.1f", gps.totalKm) : ""
             fullRangeText = fullRangeKm >= 10 ? String(format: "%.0f", fullRangeKm) : ""
+            kmSinceFullText = gps.universalHasFull ? String(format: "%.1f", gps.universalKmSinceFull) : ""
             powerSource = vehicleMode == EcoVehicleMode.universal.rawValue
                 ? EcoPowerSource.inertia.rawValue : EcoPowerSource.bms.rawValue
             speedColorThresholdKmh = min(max(10, speedColorThresholdKmh), vehicleSpeedMaxKmh)
@@ -357,8 +368,10 @@ struct EcoSettingsView: View {
                 ToolbarItemGroup(placement: .keyboard) {
                     Spacer()
                     Button("Conferma e salva") {
-                        if section == .vehicle { saveFullRange() }
-                        else if section == .odometer { saveOdometer() }
+                        if section == .vehicle {
+                            if distanceFieldFocused { saveKmSinceFull() }
+                            else { saveFullRange() }
+                        } else if section == .odometer { saveOdometer() }
                     }
                         .fontWeight(.semibold)
                 }
@@ -397,17 +410,32 @@ struct EcoSettingsView: View {
                     }
                     LabeledContent("Autonomia configurata",
                         value: fullRangeKm >= 10 ? String(format: "%.0f km", fullRangeKm) : "—")
-                    LabeledContent("Distanza dal pieno",
-                        value: gps.universalHasFull
-                            ? String(format: "%.1f km", gps.universalKmSinceFull)
-                            : "Pieno non registrato")
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Distanza dal pieno")
+                        HStack {
+                            TextField("Km percorsi", text: $kmSinceFullText)
+                                .keyboardType(.decimalPad)
+                                .submitLabel(.done)
+                                .focused($distanceFieldFocused)
+                                .onSubmit(saveKmSinceFull)
+                                .accessibilityLabel("Chilometri percorsi dall'ultimo pieno")
+                            Text("km").foregroundStyle(.secondary)
+                            Button("Salva", action: saveKmSinceFull)
+                                .buttonStyle(.borderedProminent)
+                                .accessibilityLabel("Salva distanza dal pieno")
+                        }
+                    }
                     if let fullRangeStatus {
                         Text(fullRangeStatus).font(.caption).foregroundStyle(.secondary)
                     }
+                    if let kmSinceFullStatus {
+                        Text(kmSinceFullStatus).font(.caption).foregroundStyle(.secondary)
+                    }
                     EcoInfoIcon(title: "Stima, non sensore carburante", message:
-                        "Inserisci la distanza media percorribile con un pieno e premi Pieno nel cockpit " +
-                        "solo dopo un vero rifornimento. Il GPS sottrae i chilometri registrati; " +
-                        "viaggi a app chiusa, consumi variabili e rifornimenti parziali non sono rilevati.")
+                        "Inserisci l'autonomia con un pieno. Puoi impostare i km già percorsi " +
+                        "dall'ultimo rifornimento, oppure premere Pieno nel cockpit dopo un pieno vero. " +
+                        "I prossimi km GPS registrati si sommano alla distanza manuale; " +
+                        "viaggi ad app chiusa, consumi variabili e rifornimenti parziali non sono rilevati.")
                 }
                 Section("Velocità media") {
                     Stepper("Fondoscala: \(Int(averageSpeedScaleKmh)) km/h",
@@ -578,6 +606,23 @@ struct EcoSettingsView: View {
         fullRangeKm = kilometers
         fullRangeText = String(format: "%.0f", kilometers)
         fullRangeStatus = "Autonomia salvata. Per iniziare la stima premi Pieno nel cockpit."
+    }
+
+    private func saveKmSinceFull() {
+        let normalized = kmSinceFullText.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: ",", with: ".")
+        guard let kilometers = Double(normalized), kilometers.isFinite,
+              (0...1_000_000).contains(kilometers) else {
+            kmSinceFullStatus = "Inserisci una distanza valida da 0 a 1.000.000 km."
+            return
+        }
+        guard gps.setUniversalKmSinceFull(kilometers) else {
+            kmSinceFullStatus = "Seleziona Universale e salva prima l'autonomia con un pieno."
+            return
+        }
+        kmSinceFullText = String(format: "%.1f", gps.universalKmSinceFull)
+        kmSinceFullStatus = "Distanza salvata. Il GPS sommerà i prossimi km percorsi."
+        distanceFieldFocused = false
     }
 
     private func saveOdometer() {

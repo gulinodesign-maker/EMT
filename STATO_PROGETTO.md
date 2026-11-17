@@ -1,5 +1,13 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 116 — distanza dal pieno inseribile a mano (17 novembre 2026)
+
+**Segnalazione utente:** screenshot Impostazioni → Veicolo → Universale (autonomia impostata 600 km): la voce «Distanza dal pieno» della build 115 è soltanto informativa, non consente di inserire i chilometri percorsi dopo l'ultimo rifornimento.
+
+**Correzione:** in «Carburante stimato» la distanza dal pieno è ora un campo decimale in km con pulsante Salva; all'apertura del foglio mostra l'ultimo valore registrato, se presente. Una nuova operazione esplicita `GPSRideManager.setUniversalKmSinceFull` convalida 0–1.000.000 km, la modalità Universale e l'autonomia impostata 10–2500 km; memorizza la distanza e abilita la stima. Restano invariati TRIP e ODO, il pulsante Pieno (azzera solo la distanza dal pieno) e l'accumulo dei successivi incrementi GPS validi. I viaggi a app chiusa non vengono registrati automaticamente, e il valore manuale è una calibrazione dichiarata dal conducente, non una lettura del sensore. La tastiera decimale ha il comando «Conferma e salva» dedicato al campo attivo. Nessun dato BMS simulato.
+
+**Versionamento:** Debug/Release 1.0 (116). Test specifici di validazione manuale e regressioni storiche del numero build aggiornati. **Stato rilascio:** PR, CI, merge e upload Apple da verificare prima di dichiarare completata la build. Non ripetere l'upload già riuscito della 115.
+
 ## Build 115 — cockpit veicolo BMS oppure Universale (17 novembre 2026)
 
 **Richiesta autorizzata:** estendere Ecojumbo da scooter elettrico JK BMS a qualunque automobile, con un pulsante nelle Impostazioni per scegliere tra **BMS** e **Universale**. In Universale nessun dato elettrico inventato: scala visiva basata esclusivamente sui sensori inerziali, autonomia inserita dal conducente, tasto «Pieno» per calibrare la distanza rimanente, carburante percentuale stimato e velocità media GPS al posto della tensione; tutte e quattro le schede con barre graduate. Il precedente comando manuale inerzia/BMS viene sostituito dal collegamento automatico alla modalità Veicolo. Tachimetro, Mappa, Apple Music, i sei temi originali, import/export e TRIP restano.
