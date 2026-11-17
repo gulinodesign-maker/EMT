@@ -90,6 +90,6 @@ for width, height in ((736, 414), (844, 390), (932, 430), (956, 440),
 
 # UI changes do not alter real GPS/JK BMS measurement sources.
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in cockpit
-assert "let live = bluetooth.snapshot" in cockpit
+assert "let live: JKSnapshot? = {" in cockpit
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in cockpit
 print("OK — build 68/70: lossless palette migration and tangent-centered panels and dock without colored gradients")
