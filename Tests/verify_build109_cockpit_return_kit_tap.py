@@ -6,7 +6,7 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 111;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 112;") == 2
 dock = home.split("private struct CockpitCornerControls: View", 1)[1].split(
     "private func iconButton(", 1
 )[0]
@@ -31,8 +31,8 @@ assert 'minHeight: 48' in editor
 assert '.contentShape(RoundedRectangle(cornerRadius: 10))' in editor
 assert 'selectedKit = theme' in editor
 assert 'draft = EcoThemePalette.template(theme)' in editor
-assert 'draft.name = name' in editor
-assert '.accessibilityLabel("Seleziona kit " + theme.rawValue)' in editor
+assert 'draft = EcoThemePalette.template(theme)' in editor
+assert '.accessibilityLabel("Seleziona kit " + theme.displayName)' in editor
 assert "if selectedKit == theme" in editor
 assert 'EcoThemePreview(palette: draft)' in editor
 assert 'chooseSlot = true' in editor

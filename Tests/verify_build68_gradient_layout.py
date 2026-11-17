@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 111;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 112;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Existing 3 slots retain old shades. Both old 8- and 15-colour palettes migrate.
@@ -21,7 +21,11 @@ assert "migrated.colors[9] = decoded.colors[7]" in tabs
 assert "if migrated.colors.count == 15 {" in tabs
 assert "let edge = migrated.colors[2]" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
-assert "foreground.1, foreground.0, foreground.0, foreground.0]" in tabs
+# Build 112 changes only preset colors; the 23 historical roles and old-slot migration stay intact.
+assert "static let colorCount = 23" in tabs
+assert "shade, main, \"#FF3B30\", signal," in tabs
+assert "main, shade, bright, main" in tabs
+assert "brandID: preset.automotiveBrand" in tabs
 assert '("Sfumatura top bar e ponte kW", 15..<17)' not in tabs
 assert '"Sfumatura sinistra"' in tabs
 assert '"Sfumatura destra"' in tabs

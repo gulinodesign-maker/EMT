@@ -141,6 +141,31 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     case slot3 = "Slot 3"
 
     var id: String { rawValue }
+    // Gli identificatori di archiviazione storici restano invariati:
+    // i vecchi temi Rame/Ghiaccio/etc. rimangono leggibili.
+    var automotiveBrand: String? {
+        switch self {
+        case .copper: return "BMW"
+        case .glacier: return "Ferrari"
+        case .green: return "Mercedes"
+        case .aquamarine: return "Alfa Romeo"
+        case .brown: return "Lamborghini"
+        case .racing: return "Cupra"
+        case .slot1, .slot2, .slot3: return nil
+        }
+    }
+    var displayName: String { automotiveBrand ?? rawValue }
+    var brandLogoAssetName: String? {
+        switch self {
+        case .copper: return "AutoBMW"
+        case .glacier: return "AutoFerrari"
+        case .green: return "AutoMercedes"
+        case .aquamarine: return "AutoAlfaRomeo"
+        case .brown: return "AutoLamborghini"
+        case .racing: return "AutoCupra"
+        case .slot1, .slot2, .slot3: return nil
+        }
+    }
     var slotIndex: Int? {
         switch self {
         case .slot1: 1
@@ -156,27 +181,11 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
 
     var accent: Color {
         if let savedPalette { return Color(themeHex: savedPalette.colors[1]) }
-        switch self {
-        case .copper: return Color(red: 1.00, green: 0.44, blue: 0.03)
-        case .glacier: return Color(red: 0.69, green: 0.88, blue: 0.98)
-        case .green: return Color(red: 0.26, green: 0.86, blue: 0.41)
-        case .aquamarine: return Color(red: 0.28, green: 0.88, blue: 0.81)
-        case .brown: return Color(red: 0.73, green: 0.43, blue: 0.22)
-        case .racing: return Color(red: 0.97, green: 0.23, blue: 0.22)
-        case .slot1, .slot2, .slot3: return Color(red: 1.00, green: 0.44, blue: 0.03)
-        }
+        return Color(themeHex: EcoThemePalette.template(self).colors[1])
     }
     var secondary: Color {
         if let savedPalette { return Color(themeHex: savedPalette.colors[2]) }
-        switch self {
-        case .copper: return Color(red: 0.75, green: 0.24, blue: 0.09)
-        case .glacier: return Color(red: 0.19, green: 0.51, blue: 0.73)
-        case .green: return Color(red: 0.10, green: 0.48, blue: 0.26)
-        case .aquamarine: return Color(red: 0.10, green: 0.47, blue: 0.49)
-        case .brown: return Color(red: 0.37, green: 0.19, blue: 0.12)
-        case .racing: return Color(red: 0.63, green: 0.09, blue: 0.15)
-        case .slot1, .slot2, .slot3: return Color(red: 0.75, green: 0.24, blue: 0.09)
-        }
+        return Color(themeHex: EcoThemePalette.template(self).colors[2])
     }
     var backdrop: Color {
         if let savedPalette { return Color(themeHex: savedPalette.colors[0]) }
@@ -222,21 +231,21 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
 
     // Build 88: ruoli colore salvati e riattivati sul nuovo layer GPS.
     var topBarGradientStart: Color {
-        Color(themeHex: savedPalette?.colors[15] ?? "#173A59")
+        Color(themeHex: savedPalette?.colors[15] ?? EcoThemePalette.template(self).colors[15])
     }
     var topBarGradientEnd: Color {
-        Color(themeHex: savedPalette?.colors[16] ?? "#452452")
+        Color(themeHex: savedPalette?.colors[16] ?? EcoThemePalette.template(self).colors[16])
     }
     var topBarUnderGlow: Color {
-        Color(themeHex: savedPalette?.colors[2] ?? "#FF7008")
+        Color(themeHex: savedPalette?.colors[2] ?? EcoThemePalette.template(self).colors[2])
     }
     // Build 91: le due dissolvenze verticali hanno colori e
     // intensità autonomi, persistenti nel tema personalizzato.
     var topBarHighFade: Color {
-        Color(themeHex: savedPalette?.colors[19] ?? "#173A59")
+        Color(themeHex: savedPalette?.colors[19] ?? EcoThemePalette.template(self).colors[19])
     }
     var topBarLowFade: Color {
-        Color(themeHex: savedPalette?.colors[20] ?? "#452452")
+        Color(themeHex: savedPalette?.colors[20] ?? EcoThemePalette.template(self).colors[20])
     }
     var topBarHighFadeIntensity: Double {
         savedPalette?.topFadeIntensity ?? 0.35

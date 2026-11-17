@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 111;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 112;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 91" in state
@@ -72,7 +72,11 @@ for prop in ("topFadeIntensity", "bottomFadeIntensity"):
     assert f"decodeIfPresent(Double.self, forKey: .{prop})" in tabs
     assert f"data.encode({prop}, forKey: .{prop})" in tabs
     assert f"palette.{prop}.isFinite" in tabs
-assert "foreground.1, foreground.0, foreground.0, foreground.0]" in tabs
+# Build 112 changes only preset colors; the 23 historical roles and old-slot migration stay intact.
+assert "static let colorCount = 23" in tabs
+assert "shade, main, \"#FF3B30\", signal," in tabs
+assert "main, shade, bright, main" in tabs
+assert "brandID: preset.automotiveBrand" in tabs
 assert "EcoThemePalette.save(palette, slot: slot)" in tabs
 
 print("OK — build 91: independent high/low color and opacity, migrated slots, dial/bridge masks")
