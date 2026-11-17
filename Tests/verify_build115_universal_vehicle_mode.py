@@ -10,7 +10,7 @@ cockpit = read("Ecojumbo/Views/CockpitComponents.swift")
 setup = read("Ecojumbo/Views/OtherViews.swift")
 root_view = read("Ecojumbo/Views/EcojumboRootView.swift")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 116;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 117;") == 2
 
 # Modalità predefinita BMS conserva i vecchi dispositivi e gli slot personalizzati.
 assert 'enum EcoVehicleMode: String, CaseIterable, Identifiable' in gps
@@ -72,8 +72,9 @@ assert 'Button("Conferma pieno") { gps.recordUniversalFull() }' in dashboard
 assert '.disabled(!(10...2500).contains(fullRangeKm))' in dashboard
 assert 'if vehicleMode == EcoVehicleMode.universal.rawValue {' in dashboard
 assert 'showsBMS: vehicleMode == EcoVehicleMode.bms.rawValue' in dashboard
-assert 'return "DECEL."' in cockpit and 'return "ACCEL."' in cockpit
-assert 'return "INERZIA"' in cockpit
+assert 'case .incoming: return "arrow.down"' in cockpit
+assert 'case .outgoing: return "arrow.up"' in cockpit
+assert 'case .neutral: return "minus"' in cockpit
 assert 'Movimento inerziale, non potenza in kilowatt' in cockpit
 
 tele = cockpit.split("private struct GPSExpandedReadings: View {",1)[1].split("// Progressi sottili",1)[0]
