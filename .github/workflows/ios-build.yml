@@ -68,6 +68,19 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             build
 
+      - name: Compila Release per iPhone (senza firma Apple)
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project Ecojumbo.xcodeproj \
+            -scheme Ecojumbo \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/EcojumboReleaseData" \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+
       - name: Archivia log diagnostici in caso di errore
         if: failure()
         run: |
