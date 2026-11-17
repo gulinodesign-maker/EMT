@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44062899428:ATTEMPT:1 -->
+### 2026-11-17T10:14:02Z — CI #374 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44062899428](https://github.com/gulinodesign-maker/EMT/actions/runs/44062899428); avvio 2026-11-17T10:14:02Z UTC; aggiornamento finale 2026-11-17T10:14:27Z UTC; registrazione 2026-11-17T10:14:42+00:00 UTC; evento pull_request.
+- **Commit:** [a5407d018017](https://github.com/gulinodesign-maker/EMT/commit/a5407d01801702419f1f41eb3dfff2e2be4040ee); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build100_luminous_rings_power_weather.py, Tests/verify_build101_daynight_theme_cleanup.py, Tests/verify_build104_light_shadow_square_kw.py, Tests/verify_build106_four_gradient_tiles.py, Tests/verify_build65_ui.py, Tests/verify_build68_gradient_layout.py, Tests/verify_build69_filled_areas_profile.py, Tests/verify_build70_no_gradients_centered.py.
+
 <!-- EMT_RUN:44062621039:ATTEMPT:1 -->
 ### 2026-11-17T10:12:16Z — CI #373 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
 
