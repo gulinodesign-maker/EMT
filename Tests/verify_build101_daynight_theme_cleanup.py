@@ -92,7 +92,7 @@ assert "Button {" in role
 assert "colorID = EcoThemeColorID(" in role
 assert ".buttonStyle(.plain)" in role
 assert ".onLongPressGesture" not in role
-assert "Tocca per cambiare il colore." in role
+assert ".accessibilityHint(EcoThemePalette.details[index])" in role
 assert 'Text("☀️ Day Mode").tag(true)' in editor
 assert 'Text("🌙 Night Mode").tag(false)' in editor
 assert "initialHex: selected.isDay" in editor
