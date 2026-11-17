@@ -391,6 +391,12 @@ struct EcoThemePalette: Codable, Equatable {
     // Build 111: grafico DISL indipendente dai 23 ruoli storici.
     var altitudeGraphColor: String
     var altitudeGraphGlow: Double
+    // Associazione stabile del logo anche nei tre slot e nei file esportati.
+    var brandID: String?
+
+    static let automotiveBrands: Set<String> = [
+        "BMW", "Ferrari", "Mercedes", "Alfa Romeo", "Lamborghini", "Cupra"
+    ]
 
     static let luminousRoles: [Int] = [1, 2, 4, 5, 6, 8, 9, 10, 14, 17, 18, 21, 22]
 
@@ -418,7 +424,8 @@ struct EcoThemePalette: Codable, Equatable {
          dayLightOpacity: Double = 1, dayShadowOpacity: Double = 1,
          dayHighOpacity: Double = 1, dayLowOpacity: Double = 1,
          glowLevels: [Double]? = nil,
-         altitudeGraphColor: String? = nil, altitudeGraphGlow: Double = 0.55) {
+         altitudeGraphColor: String? = nil, altitudeGraphGlow: Double = 0.55,
+         brandID: String? = nil) {
         self.name = name
         self.colors = colors
         self.glowIntensity = glowIntensity.isFinite ? min(1, max(0, glowIntensity)) : 0.60
@@ -461,6 +468,7 @@ struct EcoThemePalette: Codable, Equatable {
             ?? defaultGraphColor
         self.altitudeGraphGlow = altitudeGraphGlow.isFinite
             ? min(1, max(0, altitudeGraphGlow)) : 0.55
+        self.brandID = brandID.flatMap { Self.automotiveBrands.contains($0) ? $0 : nil }
         normalizeLegacyFadeIntensities()
     }
 
@@ -483,7 +491,7 @@ struct EcoThemePalette: Codable, Equatable {
              lightOpacity, shadowOpacity, highOpacity, lowOpacity,
              dayLightOpacity, dayShadowOpacity, dayHighOpacity, dayLowOpacity,
              directionalVersion, glowLevels, lightingVersion,
-              altitudeGraphColor, altitudeGraphGlow
+              altitudeGraphColor, altitudeGraphGlow, brandID
     }
 
     init(from decoder: Decoder) throws {
@@ -565,6 +573,8 @@ struct EcoThemePalette: Codable, Equatable {
             ?? legacyGraphColor
         let storedGlow = try data.decodeIfPresent(Double.self, forKey: .altitudeGraphGlow) ?? 0.55
         altitudeGraphGlow = storedGlow.isFinite ? min(1, max(0, storedGlow)) : 0.55
+        let storedBrand = try data.decodeIfPresent(String.self, forKey: .brandID)
+        brandID = storedBrand.flatMap { Self.automotiveBrands.contains($0) ? $0 : nil }
         normalizeLegacyFadeIntensities()
     }
 
@@ -596,6 +606,7 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(lightingVersion, forKey: .lightingVersion)
         try data.encode(altitudeGraphColor, forKey: .altitudeGraphColor)
         try data.encode(altitudeGraphGlow, forKey: .altitudeGraphGlow)
+        try data.encodeIfPresent(brandID, forKey: .brandID)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -671,23 +682,77 @@ struct EcoThemePalette: Codable, Equatable {
         return hex.count == 6 && hex.allSatisfy { $0.isHexDigit }
     }
 
+    // Sei preset automobilistici basati sulle identità cromatiche dei marchi.
+    // In tutti restano distinti gli allarmi di sicurezza (rosso limite).
     static func template(_ preset: CockpitTheme) -> EcoThemePalette {
-        let foreground: (String, String)
+        let base: String
+        let main: String
+        let shade: String
+        let bright: String
+        let metal: String
+        let contrast: String
+        let signal: String
         switch preset {
-        case .glacier: foreground = ("#B0E0FA", "#3082BA")
-        case .green: foreground = ("#42DB68", "#1A7A42")
-        case .aquamarine: foreground = ("#47E0CE", "#1A787D")
-        case .brown: foreground = ("#BA6E38", "#5E301F")
-        case .racing: foreground = ("#F73B38", "#A11726")
-        default: foreground = ("#FF7008", "#BF3D17")
+        case .copper:   // BMW: blu bavarese, bianco, nero/argento
+            (base, main, shade, bright, metal, contrast, signal) =
+                ("#05070D", "#0066B3", "#173A63", "#70BDF0", "#C3CDD9", "#FFFFFF", "#1C69D4")
+        case .glacier:  // Ferrari: Rosso Corsa, giallo Modena, nero
+            (base, main, shade, bright, metal, contrast, signal) =
+                ("#090606", "#ED1C24", "#6E1019", "#FFD800", "#D8D8D8", "#FFFFFF", "#ED1C24")
+        case .green:    // Mercedes-Benz: argento, bianco e nero
+            (base, main, shade, bright, metal, contrast, signal) =
+                ("#050607", "#B6B6B6", "#434A50", "#F3F3F3", "#CFD4D6", "#FFFFFF", "#D5D5D5")
+        case .aquamarine: // Alfa Romeo: rosso Alfa, blu del badge, verde Biscione
+            (base, main, shade, bright, metal, contrast, signal) =
+                ("#070813", "#C22636", "#1B2441", "#B6BCC6", "#BBBBBB", "#FFFFFF", "#01804F")
+        case .brown:    // Lamborghini: nero con oro/giallo
+            (base, main, shade, bright, metal, contrast, signal) =
+                ("#060606", "#DDB321", "#66500F", "#FFF1B5", "#D5BF78", "#FFFFFF", "#DDB321")
+        case .racing:   // CUPRA: rame e Petrol Blue scuro
+            (base, main, shade, bright, metal, contrast, signal) =
+                ("#07151C", "#B87333", "#163E4A", "#DEAB82", "#A9ACAA", "#FFFFFF", "#B87333")
+        case .slot1, .slot2, .slot3:
+            return template(.copper)
         }
+        // 23 ruoli storici mantenuti: aggiornare tutte le sezioni, non
+        // soltanto il LED principale. Segnalazione limite rimane rossa.
+        let colors = [
+            base, main, shade, metal,
+            shade, main, bright, signal,
+            main, bright, main, contrast,
+            contrast, contrast, bright,
+            shade, main, "#FF3B30", signal,
+            main, shade, bright, main
+        ]
         return EcoThemePalette(
-            name: "Il mio tema",
-            colors: ["#040405", foreground.0, foreground.1, "#D9DEE3"]
-                + standardBarColors + extraDefaults
-                + [foreground.1, foreground.1, "#FF3B30", "#FF9A1F",
-                   foreground.1, foreground.0, foreground.0, foreground.0]
+            name: preset.displayName,
+            colors: colors,
+            altitudeGraphColor: bright,
+            altitudeGraphGlow: 0.55,
+            brandID: preset.automotiveBrand
         )
+    }
+
+    // I JSON importati sono convalidati prima di essere presentati e non
+    // scrivono mai direttamente sugli slot esistenti.
+    static func isValidImported(_ p: EcoThemePalette) -> Bool {
+        p.colors.count == colorCount
+            && p.colors.allSatisfy(validHex)
+            && p.glowLevels.count == colorCount
+            && p.glowLevels.allSatisfy { $0.isFinite && (0...1).contains($0) }
+            && p.dayTopBar.isValid
+            && validHex(p.altitudeGraphColor)
+            && p.altitudeGraphGlow.isFinite && (0...1).contains(p.altitudeGraphGlow)
+            && (p.brandID == nil || automotiveBrands.contains(p.brandID!))
+            && !p.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && p.name.count <= 128
+            && [p.glowIntensity, p.topFadeIntensity, p.bottomFadeIntensity,
+                p.gradientOpacity, p.dayGradientOpacity,
+                p.lightIntensity, p.shadowIntensity, p.dayLightIntensity, p.dayShadowIntensity,
+                p.lightOpacity, p.shadowOpacity, p.highOpacity, p.lowOpacity,
+                p.dayLightOpacity, p.dayShadowOpacity, p.dayHighOpacity, p.dayLowOpacity]
+                .allSatisfy { $0.isFinite && (0...1).contains($0) }
+            && p.gradientAngle.isFinite && (0...360).contains(p.gradientAngle)
     }
 
     static func load(slot: Int) -> EcoThemePalette? {
@@ -793,9 +858,11 @@ struct EcoThemePalette: Codable, Equatable {
     }
 
     static var active: EcoThemePalette? {
-        guard let key = UserDefaults.standard.string(forKey: "ecojumbo.theme"),
-              let slot = CockpitTheme(rawValue: key)?.slotIndex else { return nil }
-        return load(slot: slot)
+        let key = UserDefaults.standard.string(forKey: "ecojumbo.theme")
+            ?? CockpitTheme.copper.rawValue
+        guard let theme = CockpitTheme(rawValue: key) else { return template(.copper) }
+        if let slot = theme.slotIndex { return load(slot: slot) }
+        return template(theme)
     }
 
     static func colorHex(_ color: UIColor) -> String {
