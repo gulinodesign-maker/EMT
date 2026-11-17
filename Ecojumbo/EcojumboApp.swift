@@ -45,24 +45,33 @@ struct EcojumboApp: App {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var bluetooth = JKBluetoothManager()
     @StateObject private var gps = GPSRideManager()
+    @StateObject private var powerMotion = EcoPowerMotionManager()
 
     var body: some Scene {
         WindowGroup {
             EcojumboRootView()
                 .environmentObject(bluetooth)
                 .environmentObject(gps)
+                .environmentObject(powerMotion)
                 .onOpenURL { url in
                     EcoMusicManager.shared.handleSpotifyCallback(url)
                 }
                 .onAppear {
                     UIApplication.shared.isIdleTimerDisabled = true
+                    powerMotion.start()
                 }
                 .onChange(of: scenePhase) { _, phase in
                     UIApplication.shared.isIdleTimerDisabled = (phase == .active)
-                    if phase == .active { gps.retryLocation() }
+                    if phase == .active {
+                        gps.retryLocation()
+                        powerMotion.start()
+                    } else {
+                        powerMotion.stop()
+                    }
                 }
                 .onDisappear {
                     UIApplication.shared.isIdleTimerDisabled = false
+                    powerMotion.stop()
                 }
         }
     }
