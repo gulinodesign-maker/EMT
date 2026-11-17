@@ -42,7 +42,7 @@ expected = {
     "cupraFactory": ("Cupra", "d09b287a7270a4b8ea6223238ccd862906e3533953c5ef56bab54e80099b6b37"),
 }
 for property_name, (brand, expected_digest) in expected.items():
-    pattern = r"private static let " + property_name + r': EcoThemePalette = \{\s*let json = #"(.*?)"#'
+    pattern = r"private static let " + property_name + r': EcoThemePalette = \{\s*let json = ##"(.*?)"##'
     match = re.search(pattern, tabs, re.DOTALL)
     assert match, f"Embedded factory JSON missing: {property_name}"
     source = json.loads(match.group(1))
