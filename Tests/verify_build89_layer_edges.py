@@ -8,7 +8,7 @@ theme = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 proj = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert proj.count("CURRENT_PROJECT_VERSION = 107;") == 2
+assert proj.count("CURRENT_PROJECT_VERSION = 108;") == 2
 assert "Build 89" in state
 footprint = src.split("private struct GPSUpperLayerFootprint: Shape {", 1)[1].split(
     "private struct GPSUpperGradientLayer: View {", 1)[0]
