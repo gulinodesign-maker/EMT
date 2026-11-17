@@ -72,13 +72,11 @@ assert "navigationDistance: navigation.isNavigating &&" in cockpit
 assert 'Text(navigationDistance)' in cockpit
 assert "navigation.guidanceDistanceLabel" in cockpit
 
-# A reduction of actual GPS speed is not the brake signal; never claim it is.
-assert ".onChange(of: speed)" in cockpit
-assert "GPSSpeedMovement.classify(deltaKmh: current - reference.value)" in cockpit
-assert "if deltaKmh > 5" in cockpit
-assert "if deltaKmh < -5" in cockpit
-assert "speedHistory.removeAll()" in cockpit
-assert "Una variazione GPS non è la lettura di un accelerometro/freno." in cockpit
+# Build 108: acceleration now comes only from device motion or verified BMS.
+assert "GPSSpeedMovement" not in cockpit
+assert "speedHistory" not in cockpit
+assert "selectedPowerFlow(snapshot: JKSnapshot?" in cockpit
+assert "motion.userAcceleration" in (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 assert "Velocità GPS · fase decelerazione" in tabs
 
 # Critical GPS and telemetry measurements and geometry remain unchanged.
