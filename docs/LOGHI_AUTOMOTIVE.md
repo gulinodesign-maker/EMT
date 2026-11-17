@@ -1,12 +1,24 @@
-# Loghi automotive dei sei kit Ecojumbo (build 112)
+# Stemmi originali dei sei kit Ecojumbo (build 113)
 
-Gli stemmi sono asset SVG locali, non caricati da Internet durante l'uso dell'app. Provenienza dei tracciati vettoriali:
+I sei asset SVG locali non riproducono i loghi ufficiali dei costruttori.
+Sono tutti declinazioni dello **stesso stemma Ecojumbo**: scudo nero,
+segno grafico del fulmine arancione dell'app, lettera bianca e cornice colorata.
 
-- AutoBMW: [bmw-logo.svg](https://raw.githubusercontent.com/vehiclespecs/brand-logos/main/bmw-logo.svg)
-- AutoFerrari: [ferrari-logo.svg](https://raw.githubusercontent.com/vehiclespecs/brand-logos/main/ferrari-logo.svg)
-- AutoMercedes: [mercedes-benz-logo.svg](https://raw.githubusercontent.com/vehiclespecs/brand-logos/main/mercedes-benz-logo.svg)
-- AutoAlfaRomeo: [alfa-romeo-logo.svg](https://raw.githubusercontent.com/vehiclespecs/brand-logos/main/alfa-romeo-logo.svg)
-- AutoLamborghini: [lamborghini-alt.svg](https://raw.githubusercontent.com/Sim1Who/CarBrands/main/lamborghini-alt.svg)
-- AutoCupra: [cupra-logo.svg](https://raw.githubusercontent.com/vehiclespecs/brand-logos/main/cupra-logo.svg)
+| Tema visualizzato | Iniziale | Colore della cornice | Asset |
+| --- | --- | --- | --- |
+| Alfa Romeo | A | #C22636 | AutoAlfaRomeo |
+| BMW | B | #1C69D4 | AutoBMW |
+| Cupra | C | #B87333 | AutoCupra |
+| Lamborghini | L | #DDB321 | AutoLamborghini |
+| Ferrari | F | #ED1C24 | AutoFerrari |
+| Mercedes | M | #B6B6B6 | AutoMercedes |
 
-BMW, Ferrari, Mercedes-Benz, Alfa Romeo, Lamborghini e CUPRA sono marchi dei rispettivi titolari. Il loro uso come identificatori di preset cromatici **non** implica sponsorizzazione, collaborazione o approvazione dell'app. Il repository da cui sono state ottenute le immagini avverte esplicitamente che le proprie licenze sui metadati non concedono diritti sui marchi. Le forme Lamborghini e CUPRA sono state cromaticamente adattate ai colori oro/rame del marchio per la resa nel selettore; i tracciati non sono stati ridisegnati. Se destinati alla distribuzione pubblica, verificare separatamente l'autorizzazione all'uso dei marchi e le linee guida di ciascun produttore.
+La geometria dello scudo, il fondo nero e il fulmine sono identici nei sei file;
+cambiano solo l'iniziale e il colore della cornice. Le immagini sono salvate in
+`Ecojumbo/Assets.xcassets/Auto*.imageset/logo.svg`, restano vettoriali e si
+vedono senza accesso alla rete.
+
+Le denominazioni dei temi restano come nel progetto preesistente per
+compatibilità e identificazione dei preset; non implicano affiliazione, accordo
+o patrocinio dei costruttori. Valutare i nomi dei temi prima di una pubblicazione
+commerciale: il solo stemma originale non esclude ogni rischio di marchio.
