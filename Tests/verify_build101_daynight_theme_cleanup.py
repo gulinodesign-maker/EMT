@@ -43,11 +43,12 @@ assert '"Cursore potenza · uscita"' in tabs
 assert '"Cursore potenza · ingresso"' in tabs
 assert 'glowRoleSection("LED potenza · BMS", roles: [8, 9])' in tabs
 assert 'glowRoleSection("Anelli", roles: [1, 21, 22, 2])' in tabs
-assert 'colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])' in tabs
+assert 'glowRoleSection("LED velocità · inerzia", roles: [10, 14, 18, 17])' in tabs
+assert 'colorRoleSection("Metallo e numeri", roles: [3, 11])' in tabs
 labels=tabs.split("static let labels = [",1)[1].split("]",1)[0]
 details=tabs.split("static let details = [",1)[1].split("]",1)[0]
-assert len(re.findall(r'^\s*"[^"]+"',labels,re.M))==22
-assert len(re.findall(r'^\s*"[^"]+"',details,re.M))==22
+assert len(re.findall(r'^\s*"[^"]+"',labels,re.M))==23
+assert len(re.findall(r'^\s*"[^"]+"',details,re.M))==23
 
 # 23-colour saved build 100 palettes lose only the removed colour index22.
 assert "decoded.colors.count == 22 || decoded.colors.count == 23" in tabs
