@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44065278595:ATTEMPT:1 -->
+### 2026-11-17T10:29:22Z — CI #388 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44065278595](https://github.com/gulinodesign-maker/EMT/actions/runs/44065278595); avvio 2026-11-17T10:29:22Z UTC; aggiornamento finale 2026-11-17T10:29:57Z UTC; registrazione 2026-11-17T10:30:07+00:00 UTC; evento pull_request.
+- **Commit:** [72ad2a44e3cf](https://github.com/gulinodesign-maker/EMT/commit/72ad2a44e3cf8022ebd66c027c631964cf351162); versione **1.0**; build **110**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build90_exterior_layer.py, Tests/verify_build91_top_bottom_fades.py, Tests/verify_build92_twenty_shades.py, Tests/verify_build93_geometry_preview.py, Tests/verify_build94_preview_dial_geometry.py, Tests/verify_build95_map_concentric.py, Tests/verify_build96_topbar_flush.py, Tests/verify_build97_music_cockpit.py, Tests/verify_build98_inapp_music.py, Tests/verify_build99_music_search_clip.py.
+
 <!-- EMT_RUN:44065228495:ATTEMPT:1 -->
 ### 2026-11-17T10:29:01Z — CI #387 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
 
