@@ -1,6 +1,30 @@
 import SwiftUI
 import Charts
 
+// Guida contestuale: descrizioni tecniche e avvertenze disponibili a richiesta,
+// senza occupare spazio permanente nelle schermate operative.
+struct EcoInfoIcon: View {
+    let title: String
+    let message: String
+    @State private var isPresented = false
+
+    var body: some View {
+        Button { isPresented = true } label: {
+            Image(systemName: "info.circle")
+                .foregroundStyle(.secondary)
+                .font(.subheadline)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Informazioni: " + title)
+        .accessibilityHint(message)
+        .alert(title, isPresented: $isPresented) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(message)
+        }
+    }
+}
+
 struct TrendsView: View {
     @EnvironmentObject private var bluetooth: JKBluetoothManager
     var body: some View {
@@ -8,7 +32,7 @@ struct TrendsView: View {
             VStack(spacing: 14) {
                 if bluetooth.session.points.isEmpty {
                     ContentUnavailableView("Nessun dato registrato", systemImage: "chart.xyaxis.line",
-                                           description: Text("I grafici usano soltanto i campioni ricevuti realmente dal BMS quando l'app è in primo piano."))
+                                           description: Text("In attesa dei dati BMS"))
                 } else {
                     TrendChart(title: "Tensione batteria", points: bluetooth.session.points, type: .voltage)
                     TrendChart(title: "Corrente batteria", points: bluetooth.session.points, type: .current)
@@ -19,8 +43,7 @@ struct TrendsView: View {
                             row("Energia ingresso", String(format: "%.3f kWh", bluetooth.session.chargedKWh))
                             row("Capacità uscita", String(format: "%.2f Ah", bluetooth.session.dischargedAh))
                             row("Capacità ingresso", String(format: "%.2f Ah", bluetooth.session.chargedAh))
-                            Text("L'energia in ingresso comprende sia la ricarica sia l'eventuale rigenerazione: senza un segnale del veicolo non possiamo distinguerle.")
-                                .font(.footnote).foregroundStyle(.secondary)
+                            EcoInfoIcon(title: "Energia", message: "L'energia in ingresso comprende ricarica e rigenerazione; senza un segnale del veicolo non è possibile distinguerle.")
                         }
                     }
                     Button(role: .destructive) { bluetooth.session.reset() } label: {
@@ -56,8 +79,13 @@ private struct TrendChart: View {
                         .interpolationMethod(.linear)
                 }
                 .frame(height: 200)
-                Text(type == .voltage ? "Volt (V)" : "Ampere (A) · positivo = carica, negativo = scarica")
-                    .font(.footnote).foregroundStyle(.secondary)
+                HStack {
+                    Text(type == .voltage ? "V" : "A")
+                        .font(.footnote).foregroundStyle(.secondary)
+                    if type == .current {
+                        EcoInfoIcon(title: "Corrente", message: "Corrente positiva: carica. Corrente negativa: scarica.")
+                    }
+                }
             }
         }
     }
@@ -75,9 +103,9 @@ struct BluetoothView: View {
                             .font(.headline)
                         Text(bluetooth.state).font(.subheadline).foregroundStyle(.secondary)
                         if let device = bluetooth.deviceInfo {
-                            if !device.name.isEmpty { Text("Modello: \(device.name)").font(.footnote) }
-                            if !device.hardware.isEmpty { Text("Hardware: \(device.hardware)").font(.footnote) }
-                            if !device.firmware.isEmpty { Text("Firmware: \(device.firmware)").font(.footnote) }
+                            if !device.name.isEmpty { Label(device.name, systemImage: "tag").font(.footnote) }
+                            if !device.hardware.isEmpty { Label(device.hardware, systemImage: "cpu").font(.footnote) }
+                            if !device.firmware.isEmpty { Label(device.firmware, systemImage: "square.stack").font(.footnote) }
                         }
                         HStack {
                             if bluetooth.isConnected {
@@ -96,11 +124,15 @@ struct BluetoothView: View {
                     }
                 }
                 if !bluetooth.isConnected {
-                    Text("Dispositivi Bluetooth nelle vicinanze")
+                    Label("Dispositivi", systemImage: "antenna.radiowaves.left.and.right")
                         .font(.headline)
                     if bluetooth.nearby.isEmpty {
-                        Text("Nessun dispositivo trovato. Accendi il BMS e avvia la ricerca. Chiudi prima l'app JK ufficiale.")
-                            .font(.subheadline).foregroundStyle(.secondary)
+                        HStack {
+                            Label("Nessun BMS", systemImage: "antenna.radiowaves.left.and.right")
+                            Spacer()
+                            EcoInfoIcon(title: "Ricerca BMS", message: "Accendi il BMS e avvia la ricerca Bluetooth. Chiudi prima l'app JK ufficiale.")
+                        }
+                        .font(.subheadline).foregroundStyle(.secondary)
                     }
                     ForEach(bluetooth.nearby) { device in
                         Button { bluetooth.connect(device) } label: {
@@ -108,7 +140,7 @@ struct BluetoothView: View {
                                 Image(systemName: "bluetooth").font(.title3)
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(device.name).font(.headline)
-                                    Text("Segnale \(device.rssi) dBm · Identità non verificata")
+                                    Text("\(device.rssi) dBm · Non verificato")
                                         .font(.caption).foregroundStyle(.secondary)
                                 }
                                 Spacer()
@@ -126,11 +158,10 @@ struct BluetoothView: View {
                 }
                 EcoCard {
                     VStack(alignment: .leading, spacing: 9) {
-                        Text("Diagnostica collegamento").font(.headline)
-                        HStack { Text("Notifiche BLE ricevute"); Spacer(); Text("\(bluetooth.rawCount)") }.font(.footnote)
-                        HStack { Text("Frame JK validi"); Spacer(); Text("\(bluetooth.frameCount)") }.font(.footnote)
-                        Text("La connessione Bluetooth non basta: le misure compaiono soltanto dopo la verifica del protocollo e dei controlli di coerenza.")
-                            .font(.footnote).foregroundStyle(.secondary)
+                        Label("Diagnostica", systemImage: "waveform.path.ecg").font(.headline)
+                        HStack { Text("BLE"); Spacer(); Text("\(bluetooth.rawCount)") }.font(.footnote)
+                        HStack { Text("JK"); Spacer(); Text("\(bluetooth.frameCount)") }.font(.footnote)
+                        EcoInfoIcon(title: "Dati verificati", message: "Le misure compaiono solo dopo la verifica del protocollo JK e dei controlli di coerenza.")
                     }
                 }
             }.padding(16)
@@ -314,7 +345,7 @@ struct EcoSettingsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                Text("Automatico segue l'aspetto del dispositivo (anche il cambio programmato giorno/notte). La scelta vale per la Home, tutte le pagine e Apple Maps.")
+                EcoInfoIcon(title: "Aspetto", message: "Automatico segue l'aspetto del dispositivo, anche il cambio giorno/notte. Vale per Home, pagine e Apple Maps.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -325,13 +356,13 @@ struct EcoSettingsView: View {
                         Text(provider.rawValue).tag(provider.rawValue)
                     }
                 }
-                Text("In Telemetria e Mappa compare Musica; nella modalità musicale i pulsanti standard diventano i comandi dei brani e la ricerca interna, mentre tachimetro e GPS restano attivi.")
+                EcoInfoIcon(title: "Musica", message: "In Telemetria e Mappa i comandi Musica sostituiscono i pulsanti standard. GPS e tachimetro restano attivi.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             if musicProvider == EcoMusicProvider.apple.rawValue {
                 Section("Apple Music") {
                     Button("Autorizza Apple Music") { music.requestAppleAccess() }
-                    Text("Il tasto Cerca interroga Apple Music tramite MusicKit. Selezionando un brano, la riproduzione parte direttamente in EMT, senza aprire altre app. Servono autorizzazione iOS, un abbonamento per il catalogo e il servizio MusicKit abilitato nell'Apple Developer ID.")
+                    EcoInfoIcon(title: "Apple Music", message: "La ricerca usa MusicKit e riproduce i brani in EMT. Sono necessari autorizzazione iOS, abbonamento al catalogo e servizio MusicKit abilitato.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             } else if musicProvider == EcoMusicProvider.spotify.rawValue {
@@ -339,14 +370,14 @@ struct EcoSettingsView: View {
                     TextField("Client ID Spotify", text: $spotifyClientID)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                    Text("Registra il Client ID nel portale Spotify Developer per il bundle it.ecojumbo.battery e la URI di ritorno ecojumbo-spotify://callback. Non inserire Client Secret.")
+                    EcoInfoIcon(title: "Spotify Client ID", message: "Configura il Client ID in Spotify Developer, bundle it.ecojumbo.battery e URI ecojumbo-spotify://callback. Non inserire mai Client Secret.")
                         .font(.footnote).foregroundStyle(.secondary)
                     if music.spotifyConnected {
                         Button("Scollega Spotify", role: .destructive) { music.disconnectSpotify() }
                     } else {
                         Button("Collega Spotify") { music.connectSpotify() }
                     }
-                    Text("Il controllo remoto Spotify richiede connessione Internet, autorizzazione dell'account, un dispositivo di riproduzione attivo e, per diversi comandi, Spotify Premium.")
+                    EcoInfoIcon(title: "Spotify", message: "Per il controllo remoto servono Internet, autorizzazione, un dispositivo attivo e, per alcuni comandi, Spotify Premium.")
                         .font(.footnote).foregroundStyle(.secondary)
                     if !music.message.isEmpty {
                         Text(music.message).font(.footnote).foregroundStyle(.secondary)
@@ -354,7 +385,7 @@ struct EcoSettingsView: View {
                 }
             } else {
                 Section("YouTube Music") {
-                    Text("Si apre YouTube Music come servizio esterno. La sua API non offre qui comandi di riproduzione integrati.")
+                    EcoInfoIcon(title: "YouTube Music", message: "YouTube Music si apre esternamente. I comandi integrati non sono disponibili.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
@@ -364,7 +395,7 @@ struct EcoSettingsView: View {
                 Stepper("Celle in serie: \(cellCount)", value: $cellCount, in: 1...24)
                 Stepper("Capacità nominale: \(capacity) Ah", value: $capacity, in: 20...500, step: 1)
                 LabeledContent("Pacco teorico", value: "\(cellCount)S1P")
-                Text("Questi sono dati di progetto. Non modificano la configurazione del BMS.")
+                EcoInfoIcon(title: "Scooter", message: "Sono dati di progetto e non modificano la configurazione del BMS.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
         case .bluetooth:
@@ -374,7 +405,7 @@ struct EcoSettingsView: View {
                         Text(variant.rawValue).tag(variant.rawValue)
                     }
                 }
-                Text("JK02 24S/32S indicano il formato dei pacchetti, non il numero delle celle. La compatibilità con il firmware reale sarà verificata dopo l'acquisto.")
+                EcoInfoIcon(title: "Protocollo JK", message: "JK02 24S/32S indica il formato dei pacchetti, non il numero di celle. La compatibilità dipende dal firmware reale.")
                     .font(.footnote).foregroundStyle(.secondary)
                 Button("Applica formato di lettura") {
                     bluetooth.applyFormat(JKFrameFormat(rawValue: rawFormat) ?? .automatic, cells: cellCount)
@@ -383,12 +414,12 @@ struct EcoSettingsView: View {
         case .charging:
             Section("Ricarica") {
                 Stepper("Avviso: \(chargeAlert)%", value: $chargeAlert, in: 50...100, step: 5)
-                Text("Avviso visuale soltanto con app aperta, BMS collegato e SOC ricevuto. Non interrompe la carica.")
+                EcoInfoIcon(title: "Avviso ricarica", message: "È solo un avviso visivo con app aperta e dati BMS/SOC disponibili: non interrompe la carica.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
         case .odometer:
             Section("Chilometri totali dello scooter") {
-                Text("Per uno scooter già usato inserisci il valore mostrato dal contachilometri originale. Ecojumbo aggiungerà i chilometri GPS registrati in seguito, senza azzerare il totale.")
+                EcoInfoIcon(title: "Contachilometri", message: "Inserisci il chilometraggio originale. EMT aggiunge poi i km GPS senza azzerare il totale.")
                     .font(.footnote).foregroundStyle(.secondary)
                 HStack {
                     TextField("Chilometri attuali", text: $odometerText)
@@ -405,7 +436,7 @@ struct EcoSettingsView: View {
             }
         case .bars:
             Section("Scale delle barre luminose") {
-                Text("Le scale delle barre sono solo grafiche e non limitano la velocità effettiva del veicolo. Il tachimetro usa sempre la velocità GPS reale.")
+                EcoInfoIcon(title: "Barre luminose", message: "Le scale sono grafiche, non limitano la velocità. Il tachimetro legge la velocità GPS reale.")
                     .font(.footnote).foregroundStyle(.secondary)
                 LabeledContent("SOC", value: "0–100%")
                 LabeledContent("Tensione 20S", value: "50–73 V")
@@ -418,17 +449,25 @@ struct EcoSettingsView: View {
                         value: $speedColorThresholdKmh,
                         in: 10...vehicleSpeedMaxKmh, step: 5)
                     .disabled(!speedLimitColorEnabled)
-                Text(speedLimitColorEnabled
-                     ? "Al raggiungimento del limite prevale il colore scelto nel tema. È solo un avviso grafico, non un limitatore."
-                     : "Avviso limite spento: la barra usa soltanto i colori normale, accelerazione e decelerazione. Il limite resta memorizzato.")
-                    .font(.footnote).foregroundStyle(.secondary)
+                EcoInfoIcon(title: "Limite velocità",
+                    message: speedLimitColorEnabled
+                        ? "Al limite prevale il colore scelto nel tema. È un avviso grafico, non un limitatore."
+                        : "Avviso limite spento. Restano i colori normale, accelerazione e decelerazione.")
             }
         case .weather:
             Section("Temperatura esterna") {
-                Text("È una stima meteorologica a 2 metri dal suolo, non la misura di un termometro dell’iPhone. Richiede GPS e Internet; aggiornata al massimo ogni 15 minuti, senza inviare la posizione precisa.")
+                EcoInfoIcon(title: "Meteo", message: "Temperatura stimata a 2 m dal suolo, non misurata dall'iPhone. Richiede GPS e Internet; aggiornamento massimo ogni 15 minuti.")
                     .font(.footnote).foregroundStyle(.secondary)
-                Link("Fonte dati: Open-Meteo", destination: URL(string: "https://open-meteo.com")!)
-                Link("Licenza dati (CC BY 4.0)", destination: URL(string: "https://creativecommons.org/licenses/by/4.0/")!)
+                Label {
+                    Link("Open-Meteo", destination: URL(string: "https://open-meteo.com")!)
+                } icon: {
+                    Image(systemName: "cloud.sun")
+                }
+                Label {
+                    Link("CC BY 4.0", destination: URL(string: "https://creativecommons.org/licenses/by/4.0/")!)
+                } icon: {
+                    Image(systemName: "doc.text")
+                }
             }
         }
     }
