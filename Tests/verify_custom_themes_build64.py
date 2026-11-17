@@ -62,7 +62,7 @@ for i in range(8, 15):
 assert "activeColor: CockpitTheme.dischargeAccent" in cockpit
 assert "activeColor: CockpitTheme.recoveryRingAccent" in cockpit
 assert "CockpitTheme.speedLEDAccent" in cockpit
-assert "CockpitTheme.decelerationAccent" in cockpit
+assert "case .incoming: return CockpitTheme.recoveryRingAccent" in cockpit
 assert ".foregroundStyle(CockpitTheme.speedDigitsAccent)" in cockpit
 assert "navigationArrow.contains(\"right\")" in cockpit
 assert "navigationArrow.contains(\"left\")" in cockpit
