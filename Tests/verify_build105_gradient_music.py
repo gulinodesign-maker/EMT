@@ -63,8 +63,8 @@ assert "strokeBorder" in miniPower
 assert "HStack(spacing: 0)" in miniPower and "HStack(spacing: 0)" in bar
 
 # Cover and Play/Pause follow the real player and current item.
-assert "MPMusicPlayerController.nowPlayingItemDidChangeNotification" in manager
-assert "MPMusicPlayerController.playbackStateDidChangeNotification" in manager
+assert "Notification.Name.MPMusicPlayerControllerNowPlayingItemDidChange" in manager
+assert "Notification.Name.MPMusicPlayerControllerPlaybackStateDidChange" in manager
 assert "self.refreshApple()" in manager
 assert "artworkURL = current.artwork?.url(width: 1100, height: 1100)" in panel
 assert "?? artworkURL" not in panel
