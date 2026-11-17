@@ -160,6 +160,13 @@ struct TripAltitudePoint: Codable, Equatable {
     let altitudeMeters: Double
 }
 
+// Build 114: solo viaggi GPS conclusi con il reset esplicito del TRIP.
+// Non conserva coordinate né inventa viaggi anteriori alla registrazione.
+struct EcoCompletedTrip: Codable, Equatable {
+    let completedAt: Date
+    let distanceKm: Double
+}
+
 /// GPS del telefono: nessuna velocità o distanza è simulata.
 /// Le distanze accumulate riguardano soltanto le posizioni ricevute con app in uso.
 @MainActor
@@ -182,6 +189,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     @Published private(set) var hasOdometer: Bool
     @Published private(set) var track: [RouteCoordinate]
     @Published private(set) var altitudeProfile: [TripAltitudePoint]
+    @Published private(set) var completedTrips: [EcoCompletedTrip]
     var tripElevationMeters: Double? {
         guard let first = altitudeProfile.first, let last = altitudeProfile.last else { return nil }
         return last.altitudeMeters - first.altitudeMeters
@@ -217,6 +225,20 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             altitudeProfile = []
         }
         movingSeconds = UserDefaults.standard.double(forKey: "ecojumbo.gps.movingSeconds")
+        // Le vecchie installazioni partono senza storico: nessun dato sintetico.
+        let savedTrips: [EcoCompletedTrip]
+        if let bytes = UserDefaults.standard.data(forKey: "ecojumbo.gps.completedTrips.v1"),
+           let decoded = try? JSONDecoder().decode([EcoCompletedTrip].self, from: bytes) {
+            savedTrips = decoded
+        } else {
+            savedTrips = []
+        }
+        let now = Date()
+        completedTrips = Array(savedTrips.filter {
+            $0.distanceKm.isFinite && (0.05...10_000).contains($0.distanceKm)
+                && $0.completedAt <= now
+                && $0.completedAt > now.addingTimeInterval(-7 * 24 * 60 * 60)
+        }.suffix(128))
         super.init()
         manager.delegate = self
         // Ripristinati i parametri della build 33: precisione di navigazione
@@ -326,7 +348,34 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         UserDefaults.standard.set(true, forKey: "ecojumbo.gps.odometerKnown")
     }
 
+    // Fondoscala TRIP: media aritmetica dei viaggi REALMENTE conclusi
+    // negli ultimi sette giorni mobili. Il viaggio in corso non entra nella media.
+    func averageRecentTripKm(at date: Date = Date()) -> Double? {
+        let cutoff = date.addingTimeInterval(-7 * 24 * 60 * 60)
+        let recent = completedTrips.filter {
+            $0.completedAt > cutoff && $0.completedAt <= date
+                && $0.distanceKm.isFinite && $0.distanceKm >= 0.05
+        }
+        guard !recent.isEmpty else { return nil }
+        return recent.reduce(0) { $0 + $1.distanceKm } / Double(recent.count)
+    }
+
     func resetTrip() {
+        // Un viaggio è completato solo al reset esplicito; non contare
+        // reset ripetuti a 0 km o letture GPS invalide.
+        if tripKm.isFinite && (0.05...10_000).contains(tripKm) {
+            let now = Date()
+            let retained = completedTrips.filter {
+                $0.completedAt > now.addingTimeInterval(-7 * 24 * 60 * 60)
+                    && $0.completedAt <= now
+            }
+            completedTrips = Array((retained + [
+                EcoCompletedTrip(completedAt: now, distanceKm: tripKm)
+            ]).suffix(128))
+            if let bytes = try? JSONEncoder().encode(completedTrips) {
+                UserDefaults.standard.set(bytes, forKey: "ecojumbo.gps.completedTrips.v1")
+            }
+        }
         tripKm = 0
         track.removeAll()
         altitudeProfile.removeAll()

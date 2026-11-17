@@ -276,7 +276,7 @@ for w,h in [(736,414),(844,390),(852,393),(932,430),(956,440),(1536,706),(1536,8
     assert abs(mask_cutoff - ((.099-.045)/.955))<1e-10
     assert map_top+mask_cutoff*map_h==top_bar_y or abs(map_top+mask_cutoff*map_h-top_bar_y)<1e-8
 expanded=c[c.index('private struct GPSExpandedReadings: View {'):]
-assert expanded.count('showsBar: true')==3
+assert expanded.count('showsBar: true')==4
 assert expanded.count('telemetryTile("')==4
 assert 'telemetryTile("SOC"' in expanded and 'telemetryTile("V BAT"' in expanded
 assert 'telemetryTile("AUT"' in expanded and 'telemetryTile("TRIP"' in expanded

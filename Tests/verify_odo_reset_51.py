@@ -7,7 +7,7 @@ source=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 113;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 114;") == 2
 dashboard=source.split("struct GPSCockpitDashboard: View {",1)[1].split(
     "private struct GPSHorizonLine: View {",1)[0]
 speed=source.split("private struct OpenSpeedCluster: View {",1)[1].split(
@@ -23,7 +23,7 @@ assert "VStack(spacing: tileGap)" in telemetry
 assert 'Text("TELEMETRIA")' in telemetry
 assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in telemetry
 assert telemetry.count('telemetryTile("') == 4
-assert telemetry.count("showsBar: true") == 3
+assert telemetry.count("showsBar: true") == 4
 assert "let dislHeight = 2 * cardHeight" in telemetry
 assert "dislevelCard(height: dislHeight)" in telemetry
 assert "TelemetrySlimBar(fraction: fraction, theme: theme)" in telemetry

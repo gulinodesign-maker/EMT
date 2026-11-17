@@ -7,7 +7,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 113;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 114;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 92" in state
@@ -18,7 +18,7 @@ colors = re.findall(r'"(#[A-Fa-f0-9]{6})"', base)
 assert len(colors) == 20, f"Expected 20 presets, found {len(colors)}"
 assert len(set(colors)) == 20
 assert "count: 5" in picker
-assert "ForEach(Self.baseColors.indices, id: \\.self)" in picker
+assert "ForEach(paletteColors.indices, id: \\.self)" in picker
 
 # The entire replacement popup has a single light/dark slider and no
 # spectrum/filter controls or secondary system picker.

@@ -5,7 +5,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 113;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 114;") == 2
 assert "struct EcoThemePalette: Codable, Equatable" in tabs
 assert 'static let storagePrefix = "ecojumbo.customTheme."' in tabs
 assert "let data = try? JSONEncoder().encode(palette)" in tabs
@@ -34,7 +34,7 @@ assert "In quale slot vuoi salvare il tema?" in tabs
 assert "Sostituire il tema nello slot" in tabs
 assert "onSave(slot, palette)" in tabs
 assert "private static let baseColors: [String]" in tabs
-assert "ForEach(Self.baseColors.indices, id:" in tabs
+assert "ForEach(paletteColors.indices, id:" in tabs
 assert "Slider(value: $shadeLevel, in: 0...1, step: 0.01)" in tabs
 assert "count: 5" in tabs
 for declaration in [
@@ -45,7 +45,7 @@ for declaration in [
     "var previewPalette: [Color]",
 ]:
     assert declaration in cockpit
-assert "EcoThemePalette.load(slot: $0)" in cockpit
+assert "EcoThemePalette.load(slot: slot)" in cockpit
 # The historic 7th kW role is hidden: live recovery digits and blocks
 # intentionally share saved colour role 9; 4–6 remain the BMS bars.
 for index in (4, 5, 6, 9):
