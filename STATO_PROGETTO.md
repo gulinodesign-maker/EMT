@@ -1,5 +1,13 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 109 — ritorno Cockpit nei menu e selezione kit al primo tocco (17 novembre 2026)
+
+**Nuova richiesta utente:** nel menu Setup e negli altri menu l'icona per tornare al cockpit deve raffigurare il cockpit, non la mappa; in «Configura tema» i sei kit devono rispondere al primo tocco, senza ripetere i click.
+
+**Intervento:** `CockpitCornerControls` distingue il tasto `speedometer / Cockpit` nei menu dal tasto `map.fill / Mappa` nel cockpit. La navigazione verso `.gps` non cambia la preferenza `mapEnabled`. `EcoThemeEditorView` sostituisce il `Menu` dei preset con sei `Button` a hit-area piena (altezza minima 48 punti), disposizione adattiva e indicatore visuale del kit toccato. La scelta aggiorna subito la bozza e la miniatura ma **non** salva automaticamente né sovrascrive gli slot: rimane necessaria la conferma «Salva». Nome della bozza e dati di palette/Day-Night preservati come nella versione precedente.
+
+**Versione sorgenti:** 1.0 (109) su ramo `build-109-cockpit-icon-kit-one-tap`; nuova regressione statica dedicata e aggiornati i controlli di build a 109. **Verifiche ancora da ottenere:** esito CI Python/Swift e compilazione simulatore su PR, poi merge su `main`, workflow TestFlight e prova reale su iPhone dei tocchi ripetuti e dello stato cockpit/mappa. Non interpretare il solo commit come build/installazione verificata.
+
 ## Build 108 — sfumature direzionali, potenza da Core Motion/BMS e ponte solo kW (17 novembre 2026)
 
 **Ultima richiesta utente consolidata:** quattro sfumature **sinistra (←), destra (→), alto (↑), basso (↓)**, non più luce/ombra. Ogni riga del configuratore contiene **quadratino colore a sinistra**, immediatamente **freccia direzionale**, **unico slider di trasparenza 0–100%**, **percentuale a destra**, senza descrizioni. Colori e trasparenze indipendenti per Day/Night e aggiornamento istantaneo della miniatura. Eliminarne il vecchio cursore Intensità (e l'orientamento). Rimuovere totalmente le **10 tacche graduate sotto il ponte kW**, in cockpit e miniatura, lasciando solo il valore kW reale o «— kW». La **scala velocità** conserva GPS come fonte della posizione del cursore, ma il LED/cursore assume il colore A azzurro per watt BMS in ingresso o decelerazione inerziale e B rosso per watt BMS in uscita o accelerazione inerziale. In Setup aggiungere **Scala potenza**, scelta tra **Sensori inerziali/BMS**, sensibilità e orientamento sensore.

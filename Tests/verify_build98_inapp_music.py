@@ -7,11 +7,11 @@ c=read("Ecojumbo/Views/CockpitComponents.swift")
 p=read("Ecojumbo/Views/EcoMusicCockpitPanel.swift")
 s=read("Ecojumbo/Views/OtherViews.swift")
 x=read("Ecojumbo.xcodeproj/project.pbxproj")
-assert x.count("CURRENT_PROJECT_VERSION = 108;")==2
+assert x.count("CURRENT_PROJECT_VERSION = 109;")==2
 
 # Music entry in map and telemetry, no standard menu/navigation in music dock.
 dock=u.split("private struct CockpitCornerControls: View",1)[1].split("private func iconButton(",1)[0]
-mus=dock.split("if musicDock {",1)[1].split('} else {\n                        gpsButton("map.fill"',1)[0]
+mus=dock.split("if musicDock {",1)[1].split("\n                    } else {\n",1)[0]
 for label in ("Telemetria", "Indietro", "Play/Pausa", "Avanti", "Cerca"):
     assert '"'+label+'"' in mus
 assert 'gpsButton("chart.bar.xaxis"' in mus
