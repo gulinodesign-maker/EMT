@@ -49,7 +49,7 @@ assert "let dislHeight = 2 * cardHeight" in panel
 assert "dislevelCard(height: dislHeight)" in panel
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile," in panel
 assert "color: theme.altitudeGraphColor, glowIntensity: theme.altitudeGraphGlow" in panel
-assert "live = bluetooth.isConnected && snapshot.map" in panel
+assert "live = vehicleMode == EcoVehicleMode.bms.rawValue &&" in panel
 assert "abs(now.timeIntervalSince($0.date)) < 10" in panel
 assert "EcoRangeEstimate(snapshot: live, session: bluetooth.session)" in panel
 assert 'Text("DISL")' in panel

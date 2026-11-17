@@ -20,9 +20,12 @@ assert "Button(\"Chiudi\") { activeSection = nil }" in settings
 assert "CellsView(portrait: space.size.height > space.size.width)" in settings
 assert "BluetoothView()" in settings
 for label in ["Aspetto dell'app", "Il mio Ecojumbo", "Bluetooth JK", "Ricarica",
-              "Chilometri totali dello scooter", "Scale delle barre luminose",
+              "Scale delle barre luminose",
               "Temperatura esterna"]:
     assert f'Section("{label}")' in settings
+assert '"Chilometri totali dello scooter"' in settings
+assert '"Chilometri totali veicolo"' in settings
+assert 'Section(vehicleMode == EcoVehicleMode.universal.rawValue' in settings
 assert "gps.setOdometer(number)" in settings
 assert "bluetooth.applyFormat(" in settings
 assert 'Picker("Modalità schermo", selection: $appearanceMode)' in settings

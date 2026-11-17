@@ -313,7 +313,7 @@ assert 'private func toggleProjection()' in c
 assert 'Passa alla mappa 2D' in u and 'Passa alla mappa 3D' in u
 assert 'private func activateNoseView()' in c
 assert 'private func followCamera(at coordinate: CLLocationCoordinate2D)' in c
-assert 'Vista dal muso dello scooter, direzione di marcia' in u
+assert 'Vista in direzione di marcia del veicolo' in u
 assert 'let lookAhead = mapControls.headingUp' in c
 assert 'private(set) var courseDegrees: CLLocationDirection?' in g
 assert 'fix.speed >= 1.3, fix.course >= 0, fix.course < 360' in g
@@ -399,7 +399,7 @@ assert 'Color(white: 0.92).opacity(0.035)' not in c
 assert '.init(color: .clear, location: 0.62)' not in c
 expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
 assert 'LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap),' in expanded
-assert expanded.count('telemetryTile("') == 4
+assert expanded.count('telemetryTile("') == 7
 assert expanded.count('showsBar: true') == 4
 assert 'telemetryTile("SOC"' in expanded and 'telemetryTile("V BAT"' in expanded
 assert 'telemetryTile("AUT"' in expanded and 'telemetryTile("TRIP"' in expanded
