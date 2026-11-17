@@ -47,7 +47,7 @@ assert "if migrated.colors.count == 23 {" in palette
 assert '("Sfumature · luce e ombra", [15, 16, 19, 20])' in palette
 assert '"Sfumature · colore luce"' in palette
 assert '"Sfumature · colore ombra"' in palette
-assert '("Anelli e numeri del tachimetro", [1, 3, 21, 11, 10, 14, 18, 17, 8, 9])' in palette
+assert '("Anelli e numeri del tachimetro", [1, 3, 21, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
 labels=palette.split("static let labels = [",1)[1].split("]",1)[0]
 details=palette.split("static let details = [",1)[1].split("]",1)[0]
 assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
