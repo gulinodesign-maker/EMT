@@ -70,7 +70,7 @@ assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in fn
 # Speeds must remain measured, not estimated. Do not regress build 45.
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10" in gps
-assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in gps
+assert "fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed" in gps
 assert "date.timeIntervalSince(lastValidAt) < 8" in gps
 assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow," in speed
 
