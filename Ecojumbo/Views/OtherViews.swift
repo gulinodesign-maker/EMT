@@ -232,8 +232,6 @@ struct EcoSettingsView: View {
     @AppStorage("ecojumbo.power.motionAxis") private var motionAxis = "z"
     @AppStorage("ecojumbo.power.reverseMotion") private var reverseMotion = false
     @AppStorage("ecojumbo.appearanceMode") private var appearanceMode = EcoAppearanceMode.dark.rawValue
-    @AppStorage("ecojumbo.music.provider") private var musicProvider = EcoMusicProvider.apple.rawValue
-    @AppStorage("ecojumbo.spotifyClientID") private var spotifyClientID = ""
     @AppStorage("ecojumbo.theme") private var themeName = CockpitTheme.copper.rawValue
     @AppStorage("ecojumbo.themeRevision") private var themeRevision = 0
 
@@ -357,44 +355,12 @@ struct EcoSettingsView: View {
                     .foregroundStyle(.secondary)
             }
         case .music:
-            Section("Servizio musicale") {
-                Picker("Provider", selection: $musicProvider) {
-                    ForEach(EcoMusicProvider.allCases) { provider in
-                        Text(provider.rawValue).tag(provider.rawValue)
-                    }
-                }
-                EcoInfoIcon(title: "Musica", message: "In Telemetria e Mappa i comandi Musica sostituiscono i pulsanti standard. GPS e tachimetro restano attivi.")
+            Section("Apple Music") {
+                EcoInfoIcon(title: "Musica", message: "Apple Music è l'unico servizio musicale. In Telemetria e Mappa i comandi Musica sostituiscono i pulsanti standard. GPS e tachimetro restano attivi.")
                     .font(.footnote).foregroundStyle(.secondary)
-            }
-            if musicProvider == EcoMusicProvider.apple.rawValue {
-                Section("Apple Music") {
-                    Button("Autorizza Apple Music") { music.requestAppleAccess() }
-                    EcoInfoIcon(title: "Apple Music", message: "La ricerca usa MusicKit e riproduce i brani in EMT. Sono necessari autorizzazione iOS, abbonamento al catalogo e servizio MusicKit abilitato.")
-                        .font(.footnote).foregroundStyle(.secondary)
-                }
-            } else if musicProvider == EcoMusicProvider.spotify.rawValue {
-                Section("Collegamento Spotify") {
-                    TextField("Client ID Spotify", text: $spotifyClientID)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                    EcoInfoIcon(title: "Spotify Client ID", message: "Configura il Client ID in Spotify Developer, bundle it.ecojumbo.battery e URI ecojumbo-spotify://callback. Non inserire mai Client Secret.")
-                        .font(.footnote).foregroundStyle(.secondary)
-                    if music.spotifyConnected {
-                        Button("Scollega Spotify", role: .destructive) { music.disconnectSpotify() }
-                    } else {
-                        Button("Collega Spotify") { music.connectSpotify() }
-                    }
-                    EcoInfoIcon(title: "Spotify", message: "Per il controllo remoto servono Internet, autorizzazione, un dispositivo attivo e, per alcuni comandi, Spotify Premium.")
-                        .font(.footnote).foregroundStyle(.secondary)
-                    if !music.message.isEmpty {
-                        Text(music.message).font(.footnote).foregroundStyle(.secondary)
-                    }
-                }
-            } else {
-                Section("YouTube Music") {
-                    EcoInfoIcon(title: "YouTube Music", message: "YouTube Music si apre esternamente. I comandi integrati non sono disponibili.")
-                        .font(.footnote).foregroundStyle(.secondary)
-                }
+                Button("Autorizza Apple Music") { music.requestAppleAccess() }
+                EcoInfoIcon(title: "Apple Music", message: "La ricerca usa MusicKit e riproduce i brani in Ecojumbo. Sono necessari autorizzazione iOS, abbonamento al catalogo e servizio MusicKit abilitato.")
+                    .font(.footnote).foregroundStyle(.secondary)
             }
         case .scooter:
             Section("Il mio Ecojumbo") {
