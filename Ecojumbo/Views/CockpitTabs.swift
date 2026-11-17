@@ -384,6 +384,25 @@ struct EcoThemePalette: Codable, Equatable {
     var dayLowOpacity: Double
     // 108: riassegna una sola volta le vecchie intensità nelle opacità.
     var directionalVersion: Int
+    // Build 109: luminosità di ogni singolo ruolo, senza master globale.
+    // Ruolo 22: nuovo anello interno al neon GPS.
+    var glowLevels: [Double]
+    var lightingVersion: Int
+
+    static let luminousRoles: [Int] = [1, 2, 4, 5, 6, 8, 9, 10, 14, 17, 18, 21, 22]
+
+    static func defaultGlowLevels(legacyGlow: Double) -> [Double] {
+        var values = Array(repeating: 1.0, count: colorCount)
+        values[2] = legacyGlow
+        values[21] = legacyGlow
+        values[22] = 0.70
+        return values
+    }
+
+    func glow(for role: Int) -> Double {
+        guard glowLevels.indices.contains(role) else { return 1 }
+        return glowLevels[role]
+    }
 
     init(name: String, colors: [String], glowIntensity: Double = 0.60,
          topFadeIntensity: Double = 0.35, bottomFadeIntensity: Double = 0.35,
@@ -394,7 +413,8 @@ struct EcoThemePalette: Codable, Equatable {
          lightOpacity: Double = 1, shadowOpacity: Double = 1,
          highOpacity: Double = 1, lowOpacity: Double = 1,
          dayLightOpacity: Double = 1, dayShadowOpacity: Double = 1,
-         dayHighOpacity: Double = 1, dayLowOpacity: Double = 1) {
+         dayHighOpacity: Double = 1, dayLowOpacity: Double = 1,
+         glowLevels: [Double]? = nil) {
         self.name = name
         self.colors = colors
         self.glowIntensity = glowIntensity.isFinite ? min(1, max(0, glowIntensity)) : 0.60
@@ -429,6 +449,10 @@ struct EcoThemePalette: Codable, Equatable {
         self.dayHighOpacity *= self.dayTopBar.highIntensity
         self.dayLowOpacity *= self.dayTopBar.lowIntensity
         normalizeLegacyFadeIntensities()
+        self.glowLevels = glowLevels?.count == Self.colorCount
+            ? glowLevels!.map { $0.isFinite ? min(1, max(0, $0)) : 1 }
+            : Self.defaultGlowLevels(legacyGlow: self.glowIntensity)
+        self.lightingVersion = 109
     }
 
     private mutating func normalizeLegacyFadeIntensities() {
@@ -449,7 +473,7 @@ struct EcoThemePalette: Codable, Equatable {
              lightIntensity, shadowIntensity, dayLightIntensity, dayShadowIntensity,
              lightOpacity, shadowOpacity, highOpacity, lowOpacity,
              dayLightOpacity, dayShadowOpacity, dayHighOpacity, dayLowOpacity,
-             directionalVersion
+             directionalVersion, glowLevels, lightingVersion
     }
 
     init(from decoder: Decoder) throws {
@@ -521,6 +545,11 @@ struct EcoThemePalette: Codable, Equatable {
         }
         directionalVersion = 108
         normalizeLegacyFadeIntensities()
+        let levels = try data.decodeIfPresent([Double].self, forKey: .glowLevels)
+        glowLevels = (levels?.count == Self.colorCount)
+            ? levels!.map { $0.isFinite ? min(1, max(0, $0)) : 1 }
+            : Self.defaultGlowLevels(legacyGlow: glowIntensity)
+        lightingVersion = try data.decodeIfPresent(Int.self, forKey: .lightingVersion) ?? 0
     }
 
     func encode(to encoder: Encoder) throws {
@@ -547,6 +576,8 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(dayHighOpacity, forKey: .dayHighOpacity)
         try data.encode(dayLowOpacity, forKey: .dayLowOpacity)
         try data.encode(directionalVersion, forKey: .directionalVersion)
+        try data.encode(glowLevels, forKey: .glowLevels)
+        try data.encode(lightingVersion, forKey: .lightingVersion)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -561,18 +592,19 @@ struct EcoThemePalette: Codable, Equatable {
         "Numeri kW · energia in ingresso (ruolo storico nascosto)",
         "Cursore potenza · uscita",
         "Cursore potenza · ingresso",
-        "Velocità GPS · fase normale",
+        "LED velocità · neutro",
         "Numeri del tachimetro · km/h",
         "Navigatore · svolta a destra",
         "Navigatore · svolta a sinistra",
-        "Velocità GPS · fase decelerazione",
+        "Inerzia · decelerazione",
         "Sfumatura sinistra",
         "Sfumatura destra",
         "Velocità GPS · limite superato",
-        "Velocità GPS · fase accelerazione",
+        "Inerzia · accelerazione",
         "Sfumatura alto",
         "Sfumatura basso",
-        "Cerchio concentrico luminoso · tachimetro"
+        "Cerchio concentrico luminoso · tachimetro",
+        "Anello interno · tachimetro"
     ]
     static let details = [
         "Fondo scuro dietro gli strumenti.",
@@ -585,29 +617,30 @@ struct EcoThemePalette: Codable, Equatable {
         "Ruolo kW storico conservato nei temi salvati, ora unificato con il colore Energia in entrata.",
         "Colore B del LED cursore velocità quando il BMS scarica o l'iPhone accelera.",
         "Colore A del LED cursore velocità quando il BMS carica o l'iPhone decelera.",
-        "Colore normale dell’arco GPS quando la variazione resta entro ±5 km/h.",
+        "Colore LED del cursore velocità quando il movimento è stabile.",
         "Cifre grandi della velocità GPS al centro.",
         "Freccia e distanza della prossima svolta verso destra.",
         "Freccia e distanza della prossima svolta verso sinistra.",
-        "Colore dell’arco GPS quando la velocità cala di oltre 5 km/h nella finestra di osservazione; non indica il freno fisico.",
+        "Colore azzurro del cursore velocità quando Core Motion rileva una decelerazione stabile; non misura rigenerazione.",
         "Sfumatura dal bordo sinistro verso il centro.",
         "Sfumatura dal bordo destro verso il centro.",
         "Colore della barra LED quando la velocità GPS raggiunge il limite attivato in Barre luminose.",
-        "Colore dell’arco GPS quando la velocità aumenta di oltre 5 km/h nella finestra di osservazione.",
+        "Colore arancione del cursore velocità quando Core Motion rileva accelerazione stabile.",
         "Sfumatura dal bordo alto verso il centro.",
         "Sfumatura dal bordo basso verso il centro.",
-        "Colore del cerchio luminoso rimasto attorno al tachimetro; bagliore regolabile qui, termina prima del ponte kW."
+        "Colore del cerchio luminoso esterno attorno al tachimetro; illuminazione dedicata.",
+        "Anello concentrico interno al neon della velocità, colore e luce indipendenti."
     ]
     // Ogni ruolo compare una sola volta. Barre in entrata/uscita e tutte
     // le fasi della velocità fanno parte del tachimetro, non della telemetria.
     static let groups: [(title: String, range: [Int])] = [
         ("Aspetto generale", [0]),
-        ("Anelli e numeri del tachimetro", [1, 3, 21, 2, 11, 10, 14, 18, 17, 8, 9]),
+        ("Anelli e numeri del tachimetro", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9]),
         ("Barre telemetria", [4, 5, 6]),
         ("Navigatore", [12, 13]),
         ("Sfumature", [15, 16, 19, 20])
     ]
-    static let colorCount = 22
+    static let colorCount = 23
     static let extraDefaults = [
         "#FA2B2E", "#2BBAFF", "#FF7008", "#FA2B2E",
         "#FFFFFF", "#FFFFFF", "#FFB224"
@@ -635,7 +668,8 @@ struct EcoThemePalette: Codable, Equatable {
             colors: ["#040405", foreground.0, foreground.1, "#D9DEE3"]
                 + standardBarColors + extraDefaults
                 + [foreground.1, foreground.1, "#FF3B30", "#FF3B30",
-                   foreground.1, foreground.0, foreground.0]
+                   foreground.1, "#FF9A1F", foreground.0, foreground.0,
+                   foreground.0]
         )
     }
 
@@ -684,9 +718,23 @@ struct EcoThemePalette: Codable, Equatable {
         // Build 101: il ruolo 22 è orfano dopo la rimozione del
         // secondo anello. Troncamento dell'UNICO valore non più usato;
         // tutti i colori 0...21 e il nuovo layer Day restano intatti.
-        if migrated.colors.count == 23 {
+        if migrated.colors.count == 23 && decoded.lightingVersion < 109 {
             migrated.colors.removeLast()
         }
+        // Build 109: preserva i 22 colori precedenti, aggiunge solo anello interno.
+        if migrated.colors.count == 22 {
+            migrated.colors.append(migrated.colors[21])
+        }
+        // Nuovi preset cromatici per inerzia, ma mai sovrascrivere scelte diverse.
+        if decoded.lightingVersion < 109 {
+            if migrated.colors[14].uppercased() == "#FFB224" {
+                migrated.colors[14] = "#38BDF8"
+            }
+            if migrated.colors[18].uppercased() == "#FF3B30" {
+                migrated.colors[18] = "#FF9A1F"
+            }
+        }
+        migrated.lightingVersion = 109
         return migrated
     }
 
@@ -712,6 +760,8 @@ struct EcoThemePalette: Codable, Equatable {
               palette.dayHighOpacity.isFinite, (0...1).contains(palette.dayHighOpacity),
               palette.dayLowOpacity.isFinite, (0...1).contains(palette.dayLowOpacity),
               palette.dayTopBar.isValid,
+              palette.glowLevels.count == colorCount,
+              palette.glowLevels.allSatisfy({ $0.isFinite && (0...1).contains($0) }),
               palette.colors.allSatisfy({ validHex($0) }),
               let data = try? JSONEncoder().encode(palette) else { return false }
         UserDefaults.standard.set(data, forKey: storagePrefix + String(slot))
