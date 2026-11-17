@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44077270276:ATTEMPT:1 -->
+### 2026-11-17T11:48:08Z — CI #400 · build-112-release-typecheck-fix · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44077270276](https://github.com/gulinodesign-maker/EMT/actions/runs/44077270276); avvio 2026-11-17T11:48:08Z UTC; aggiornamento finale 2026-11-17T11:57:57Z UTC; registrazione 2026-11-17T11:58:08+00:00 UTC; evento pull_request.
+- **Commit:** [e436b8e01865](https://github.com/gulinodesign-maker/EMT/commit/e436b8e01865791e35013821e3d1787adb3cd8bd); versione **1.0**; build **112**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build109_cockpit_return_kit_tap.py.
+
 <!-- EMT_RUN:44076409695:ATTEMPT:1 -->
 ### 2026-11-17T11:42:22Z — CI #398 · main · tentativo 1
 
