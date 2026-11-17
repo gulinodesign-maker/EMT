@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44098120759:ATTEMPT:1 -->
+### 2026-11-17T13:58:35Z — CI #406 · build-114-ferrari-cupra-palettes-saved-swatches-trip-average · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44098120759](https://github.com/gulinodesign-maker/EMT/actions/runs/44098120759); avvio 2026-11-17T13:58:35Z UTC; aggiornamento finale 2026-11-17T13:59:42Z UTC; registrazione 2026-11-17T13:59:53+00:00 UTC; evento pull_request.
+- **Commit:** [d224d60b0dc8](https://github.com/gulinodesign-maker/EMT/commit/d224d60b0dc87defd6d3798a2e27f1a1642b0ec7); versione **1.0**; build **114**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_custom_themes_build63.py, Tests/verify_landscape_geometry.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py.
+
 <!-- EMT_RUN:44097889341:ATTEMPT:1 -->
 ### 2026-11-17T13:57:11Z — CI #405 · build-114-ferrari-cupra-palettes-saved-swatches-trip-average · tentativo 1
 
