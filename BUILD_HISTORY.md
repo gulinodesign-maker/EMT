@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44070206276:ATTEMPT:1 -->
+### 2026-11-17T11:01:36Z — CI #393 · build-111-cockpit-altimetry-ring-icons · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44070206276](https://github.com/gulinodesign-maker/EMT/actions/runs/44070206276); avvio 2026-11-17T11:01:36Z UTC; aggiornamento finale 2026-11-17T11:02:25Z UTC; registrazione 2026-11-17T11:02:36+00:00 UTC; evento pull_request.
+- **Commit:** [613ca3cca367](https://github.com/gulinodesign-maker/EMT/commit/613ca3cca3672c82a9d3ace8650d49b5fcb6a8d6); versione **1.0**; build **111**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build111_cockpit_altitude.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:44066386089:ATTEMPT:1 -->
 ### 2026-11-17T10:36:26Z — CI #392 · main · tentativo 1
 
