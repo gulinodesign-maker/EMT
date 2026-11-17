@@ -399,6 +399,23 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         return true
     }
 
+    // Calibrazione manuale della distanza dall'ultimo pieno, utile anche se
+    // il conducente ha guidato con Ecojumbo chiusa. Non azzera TRIP/ODO.
+    // Solo un inserimento esplicito abilita la stima; il GPS continuerà
+    // ad aggiungere esclusivamente i successivi incrementi validati.
+    @discardableResult
+    func setUniversalKmSinceFull(_ kilometers: Double) -> Bool {
+        guard UserDefaults.standard.string(forKey: "ecojumbo.vehicle.mode") == EcoVehicleMode.universal.rawValue,
+              let fullRange = UserDefaults.standard.object(forKey: "ecojumbo.vehicle.fullRangeKm") as? Double,
+              fullRange.isFinite, (10...2500).contains(fullRange),
+              kilometers.isFinite, (0...1_000_000).contains(kilometers) else { return false }
+        universalKmSinceFull = kilometers
+        universalHasFull = true
+        UserDefaults.standard.set(kilometers, forKey: "ecojumbo.vehicle.kmSinceFull")
+        UserDefaults.standard.set(true, forKey: "ecojumbo.vehicle.hasFull")
+        return true
+    }
+
     func universalEstimatedRemainingKm(fullRange: Double) -> Double? {
         guard universalHasFull, fullRange.isFinite, (10...2500).contains(fullRange),
               universalKmSinceFull.isFinite, universalKmSinceFull >= 0 else { return nil }
