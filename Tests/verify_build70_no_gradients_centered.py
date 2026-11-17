@@ -77,5 +77,5 @@ assert "Build 70" in state
 assert "senza applicare le sfumature" in state
 assert "GPSCockpitMap(theme: theme)" in cockpit
 assert "GPSTripAltitudeSparkline(points: gps.altitudeProfile" in cockpit
-assert "let live = bluetooth.snapshot" in cockpit
+assert "let live: JKSnapshot? = {" in cockpit
 print("OK — build 70/71: no colored gradients, 18 palette colors, originals kept, centered telemetry and five dock controls")
