@@ -31,13 +31,13 @@ cluster = c.split("private struct OpenSpeedCluster: View {", 1)[1].split(
 assert "var maximizesGPSSpeedScale: Bool = false" in cluster
 assert "if maximizesGPSSpeedScale {" in cluster
 assert cluster.count(".scaleEffect(GPSDialLayout.speedScaleMagnification)") == 2
-assert "SpeedLEDStream(d: d, speed: speed)" in cluster
+assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow)" in cluster
 assert "SpeedScaleTicks(d: d)" in cluster
 gps = c.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "// Pulsante dedicato", 1)[0]
 assert "maximizesGPSSpeedScale: true" in gps
 assert "showsCircularPowerGauges: false" in gps
-assert "GPSPowerHorizontalGauge(d: dialSize," in gps
+assert "GPSPowerHorizontalGauge(d: dialSize," not in gps
 # Ring / speed graduation have a positive separation, for every phone.
 for h in (390, 414, 510, 706, 831):
     d = h * 0.965
@@ -67,8 +67,8 @@ for component in (
     assert component in preview, component
 assert "let palette: EcoThemePalette" in preview
 assert "Color(themeHex: palette.colors[index])" in preview
-assert "palette.topFadeIntensity" in preview
-assert "palette.bottomFadeIntensity" in preview
+assert "palette.highOpacity" in preview
+assert "palette.lowOpacity" in preview
 assert "palette.glowIntensity" in preview
 assert 'Text("88")' not in preview
 assert 'Text("35%")' not in preview
