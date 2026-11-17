@@ -1510,29 +1510,51 @@ private struct GPSCockpitPowerReading: View {
         return colorScheme == .light ? Color(white: 0.28) : .white.opacity(0.85)
     }
 
-    private var readingText: String {
-        if let inertialFlow {
-            switch inertialFlow {
-            case .incoming: return "DECEL."
-            case .outgoing: return "ACCEL."
-            case .neutral: return "INERZIA"
-            }
+    // Modalità Universale: SOLO simboli, senza scritte nel ponte.
+    // .incoming è decelerazione, .outgoing accelerazione; .neutral è inerzia.
+    private var inertialSymbol: String? {
+        guard let inertialFlow else { return nil }
+        switch inertialFlow {
+        case .incoming: return "arrow.down"
+        case .outgoing: return "arrow.up"
+        case .neutral: return "minus"
         }
-        return powerKW.map { String(format: "%.2f kW", $0) } ?? "— kW"
+    }
+
+    private var readingText: String {
+        powerKW.map { String(format: "%.2f kW", $0) } ?? "— kW"
+    }
+
+    private var movementAccessibilityValue: String {
+        guard let inertialFlow else { return readingText }
+        switch inertialFlow {
+        case .incoming: return "Decelerazione"
+        case .outgoing: return "Accelerazione"
+        case .neutral: return "Inerzia"
+        }
     }
 
     var body: some View {
-        Text(readingText)
-            .font(.system(size: d * 0.066, weight: .semibold))
-            .monospacedDigit()
-            .foregroundStyle(readingColor)
-            .lineLimit(1)
-            .minimumScaleFactor(0.45)
-            .frame(width: d * 0.66, height: d * 0.13)
-            .position(x: d * 0.50, y: d * 0.889)
-            .frame(width: d, height: d)
-            .accessibilityLabel(inertialFlow == nil
-                ? "Potenza netta istantanea" : "Movimento inerziale, non potenza in kilowatt")
+        Group {
+            if let inertialSymbol {
+                Image(systemName: inertialSymbol)
+                    .font(.system(size: d * 0.089, weight: .bold))
+                    .symbolRenderingMode(.monochrome)
+            } else {
+                Text(readingText)
+                    .font(.system(size: d * 0.066, weight: .semibold))
+                    .monospacedDigit()
+            }
+        }
+        .foregroundStyle(readingColor)
+        .lineLimit(1)
+        .minimumScaleFactor(0.45)
+        .frame(width: d * 0.66, height: d * 0.13)
+        .position(x: d * 0.50, y: d * 0.889)
+        .frame(width: d, height: d)
+        .accessibilityLabel(inertialFlow == nil
+            ? "Potenza netta istantanea" : "Movimento inerziale, non potenza in kilowatt")
+        .accessibilityValue(movementAccessibilityValue)
     }
 }
 
@@ -2043,7 +2065,7 @@ struct GPSCockpitDashboard: View {
                     .allowsHitTesting(false)
                     .zIndex(28)
 
-                // BMS: un solo kW reale. Universale: stato inerziale, mai watt.
+                // BMS: un solo kW reale. Universale: frecce su/giù o trattino inerziale, mai watt.
                 // La misura JK ha segno opposto alla
                 // convenzione visualizzata (positivo = erogazione, negativo = recupero).
                 GPSCockpitPowerReading(d: dialSize,

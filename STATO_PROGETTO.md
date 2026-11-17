@@ -1,12 +1,20 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 117 — frecce inerziali al posto delle scritte sotto il ponte (17 novembre 2026)
+
+**Richiesta utente:** screenshot cockpit Universale della build 116 con «INERZIA» cerchiato; sostituire le parole sotto il ponte con freccia alta (accelerazione), freccia bassa (decelerazione) e segno meno (inerzia), quindi realizzare una nuova build e pubblicarla su TestFlight.
+
+**Intervento:** `GPSCockpitPowerReading` visualizza SF Symbols monocromatici `arrow.up`, `arrow.down`, `minus` quando `inertialFlow` non è nil. Mappatura reale dei sensori invariata: `.outgoing` → freccia alta, `.incoming` → freccia bassa, `.neutral` → meno; dimensione e colore derivano dallo stesso layout/stato di prima. Nessuna parola stampata nel ponte in modalità Universale; VoiceOver mantiene la descrizione parlata dello stato. Quando `inertialFlow == nil` (modalità BMS) resta il testo kW reale o «— kW», senza frecce. Nessun cambiamento a GPS, sensori, modalità BMS, TRIP, temi, musica o stima carburante.
+
+**Versione:** 1.0 (117) in Debug e Release; aggiornati i test di regressione versionamento e le verifiche della build 115, aggiunta regressione specifica sulle frecce della 117. **Rilascio da verificare:** CI PR, CI main e workflow `Pubblica Ecojumbo su TestFlight` fino al log Apple `Upload succeeded`; processing App Store Connect e assegnazione al gruppo TE restano verifiche separate.
+
 ## Build 116 — distanza dal pieno inseribile a mano (17 novembre 2026)
 
 **Segnalazione utente:** screenshot Impostazioni → Veicolo → Universale (autonomia impostata 600 km): la voce «Distanza dal pieno» della build 115 è soltanto informativa, non consente di inserire i chilometri percorsi dopo l'ultimo rifornimento.
 
 **Correzione:** in «Carburante stimato» la distanza dal pieno è ora un campo decimale in km con pulsante Salva; all'apertura del foglio mostra l'ultimo valore registrato, se presente. Una nuova operazione esplicita `GPSRideManager.setUniversalKmSinceFull` convalida 0–1.000.000 km, la modalità Universale e l'autonomia impostata 10–2500 km; memorizza la distanza e abilita la stima. Restano invariati TRIP e ODO, il pulsante Pieno (azzera solo la distanza dal pieno) e l'accumulo dei successivi incrementi GPS validi. I viaggi a app chiusa non vengono registrati automaticamente, e il valore manuale è una calibrazione dichiarata dal conducente, non una lettura del sensore. La tastiera decimale ha il comando «Conferma e salva» dedicato al campo attivo. Nessun dato BMS simulato.
 
-**Versionamento:** Debug/Release 1.0 (116). Test specifici di validazione manuale e regressioni storiche del numero build aggiornati. **Stato rilascio:** PR, CI, merge e upload Apple da verificare prima di dichiarare completata la build. Non ripetere l'upload già riuscito della 115.
+**Versione e rilascio verificati:** Debug/Release 1.0 (116), [PR #105](https://github.com/gulinodesign-maker/EMT/pull/105) integrata su main, commit `46dbd8ca9c0962aedb877c39f5d5fc9b57408903`. [CI PR 44120862792](https://github.com/gulinodesign-maker/EMT/actions/runs/44120862792) e [CI main 44125742653](https://github.com/gulinodesign-maker/EMT/actions/runs/44125742653) riuscite (Python, JK, barre, Debug simulator, Release iPhone). [TestFlight 44125742646](https://github.com/gulinodesign-maker/EMT/actions/runs/44125742646) successo: log Apple `Numero build TestFlight: 116`, `ARCHIVE SUCCEEDED`, `Upload succeeded` alle 17:03:05 UTC, `EXPORT SUCCEEDED`. Non ricaricare 116; elaborazione ASC, gruppo TE e installazione su iPhone non verificati attraverso GitHub.
 
 ## Build 115 — cockpit veicolo BMS oppure Universale (17 novembre 2026)
 
@@ -548,11 +556,11 @@ Per tutti i run successivi, riusciti o falliti, consultare **[BUILD_HISTORY.md](
 
 ## Stato operativo e richieste aperte
 
-**Attività corrente (17/11/2026):** build **1.0 (115)** integrata su main tramite PR #104, CI PR e main interamente verdi, archivio firmato e upload Apple riusciti (workflow 44114267714). In Setup → Veicolo l'utente sceglie BMS oppure Universale; il secondo usa solo GPS e sensori iPhone, con carburante/autonomia stimati dopo conferma esplicita del pieno, lettura V MED e barra TRIP settimanale. Nessun dato BMS inventato e nessun reset del chilometraggio dal pieno quando si azzera il TRIP.
+**Attività corrente (17/11/2026):** build **1.0 (117)** in sviluppo per sostituire le scritte ACCEL./DECEL./INERZIA con icone ↑/↓/− nel ponte della modalità Universale. La precedente 116 è stata integrata in main, compilata e caricata ad Apple con successo (workflow 44125742646). In Setup → Veicolo l'utente sceglie BMS oppure Universale; il secondo usa solo GPS e sensori iPhone, con carburante/autonomia stimati dopo conferma esplicita del pieno, lettura V MED e barra TRIP settimanale. Nessun dato BMS inventato e nessun reset del chilometraggio dal pieno quando si azzera il TRIP.
 
-**Da verificare prima di dichiararla disponibile:** in App Store Connect → Ecojumbo → TestFlight controllare elaborazione **1.0 (115)** e assegnazione al gruppo tester **TE**, poi installare e provare su iPhone. Passare BMS → Universale → BMS e verificare che le preferenze JK restino intatte; controllare layout dei 4 indicatori, palette Ferrari/Cupra e temi personalizzati, pulsante Pieno in Mappa/Musica/Telemetria, autonomia impostata da zero (non una stima precostituita), persistenza dopo chiusura, accumulo di GPS reale e media velocità, reset TRIP indipendente da km dal pieno, fallimento GPS e assenza di valori fittizi. La velocità, la stima carburante e gli indicatori inerziali di Ecojumbo non sostituiscono gli strumenti certificati dell'automobile. Conservare verifica orientamento Core Motion e fallback BMS.
+**Da verificare prima di dichiararla disponibile:** in App Store Connect → Ecojumbo → TestFlight controllare elaborazione **1.0 (117)** e assegnazione al gruppo tester **TE**, poi installare e provare su iPhone. Passare BMS → Universale → BMS e verificare che le preferenze JK restino intatte; controllare layout dei 4 indicatori, palette Ferrari/Cupra e temi personalizzati, pulsante Pieno in Mappa/Musica/Telemetria, autonomia impostata da zero (non una stima precostituita), persistenza dopo chiusura, accumulo di GPS reale e media velocità, reset TRIP indipendente da km dal pieno, fallimento GPS e assenza di valori fittizi. La velocità, la stima carburante e gli indicatori inerziali di Ecojumbo non sostituiscono gli strumenti certificati dell'automobile. Conservare verifica orientamento Core Motion e fallback BMS.
 
-**Altre richieste aperte:** inserire una volta le istruzioni docs/ISTRUZIONI_PROGETTO_CHATGPT.md nel Progetto ChatGPT (non automatizzabile dal repo). Prima della pubblicazione commerciale valutare i nomi dei produttori nei temi nonostante gli stemmi originali. **Non avviare un secondo upload 115**, già ricevuto da Apple.
+**Altre richieste aperte:** inserire una volta le istruzioni docs/ISTRUZIONI_PROGETTO_CHATGPT.md nel Progetto ChatGPT (non automatizzabile dal repo). Prima della pubblicazione commerciale valutare i nomi dei produttori nei temi nonostante gli stemmi originali. **Non avviare un secondo upload 116**, già ricevuto da Apple.
 
 ## Procedura di handoff
 

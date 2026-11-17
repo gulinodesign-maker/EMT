@@ -7,7 +7,7 @@ c=read("Ecojumbo/Views/CockpitComponents.swift")
 p=read("Ecojumbo/Views/EcoMusicCockpitPanel.swift")
 s=read("Ecojumbo/Views/OtherViews.swift")
 x=read("Ecojumbo.xcodeproj/project.pbxproj")
-assert x.count("CURRENT_PROJECT_VERSION = 116;")==2
+assert x.count("CURRENT_PROJECT_VERSION = 117;")==2
 
 # Music entry in map and telemetry, no standard menu/navigation in music dock.
 dock=u.split("private struct CockpitCornerControls: View",1)[1].split("private func iconButton(",1)[0]
