@@ -38,6 +38,7 @@ final class EcoMusicManager: ObservableObject {
     private var loginState: String?
     private var spotifyRequestInFlight = false
     private var activeProvider: EcoMusicProvider = .apple
+    private var playbackObservers: [AnyCancellable] = []
 
     private struct SpotifyToken: Codable {
         let accessToken: String
@@ -84,6 +85,18 @@ final class EcoMusicManager: ObservableObject {
     private init() {
         appleAuthorized = MPMediaLibrary.authorizationStatus() == .authorized
         applePlayer.beginGeneratingPlaybackNotifications()
+        // Gli eventi di iOS cambiano brano e stato senza dover fare Pausa/Play.
+        for name in [MPMusicPlayerController.nowPlayingItemDidChangeNotification,
+                     MPMusicPlayerController.playbackStateDidChangeNotification] {
+            NotificationCenter.default.publisher(for: name)
+                .sink { [weak self] _ in
+                    Task { @MainActor [weak self] in
+                        guard let self, self.activeProvider == .apple else { return }
+                        self.refreshApple()
+                    }
+                }
+                .store(in: &playbackObservers)
+        }
         spotifyToken = Self.readTokenFromKeychain()
         spotifyConnected = spotifyToken != nil
     }
