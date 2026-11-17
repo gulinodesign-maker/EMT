@@ -1,6 +1,110 @@
 import Foundation
 import CoreLocation
 import Combine
+import CoreMotion
+
+// Direzione visualizzata dal cursore velocità, non misura dei watt fittizi.
+enum EcoPowerFlow: Equatable {
+    case neutral, incoming, outgoing
+}
+enum EcoPowerSource: String, CaseIterable {
+    case inertia, bms
+}
+
+// Build 108 — Core Motion usa l'accelerazione senza gravità, stimata dalla
+// fusione accelerometro+giroscopio. Non deriva fasi dalla velocità GPS.
+@MainActor
+final class EcoPowerMotionManager: ObservableObject {
+    @Published private(set) var flow: EcoPowerFlow = .neutral
+    @Published private(set) var available: Bool = false
+    @Published private(set) var lastUpdate: Date = .distantPast
+
+    private let sensor = CMMotionManager()
+    private var smoothedAcceleration: Double = 0
+    private var started = false
+
+    func start() {
+        guard !started else { return }
+        available = sensor.isDeviceMotionAvailable
+        guard available else {
+            flow = .neutral
+            lastUpdate = .distantPast
+            return
+        }
+        started = true
+        smoothedAcceleration = 0
+        sensor.deviceMotionUpdateInterval = 1.0 / 30.0
+        sensor.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
+            guard let motion else { return }
+            let x = motion.userAcceleration.x
+            let y = motion.userAcceleration.y
+            let z = motion.userAcceleration.z
+            let turnRate = sqrt(pow(motion.rotationRate.x, 2)
+                                + pow(motion.rotationRate.y, 2)
+                                + pow(motion.rotationRate.z, 2))
+            Task { @MainActor [weak self] in
+                self?.consume(x: x, y: y, z: z, rotationRate: turnRate, at: Date())
+            }
+        }
+    }
+
+    func stop() {
+        sensor.stopDeviceMotionUpdates()
+        started = false
+        smoothedAcceleration = 0
+        flow = .neutral
+        lastUpdate = .distantPast
+    }
+
+    // Asse perpendicolare allo schermo di default, per iPhone montato in
+    // verticale sul manubrio. Asse e inversione sono configurabili.
+    private func consume(x: Double, y: Double, z: Double,
+                         rotationRate: Double, at date: Date) {
+        guard x.isFinite, y.isFinite, z.isFinite, rotationRate.isFinite else {
+            flow = .neutral
+            return
+        }
+        let settings = UserDefaults.standard
+        let axis = settings.string(forKey: "ecojumbo.power.motionAxis") ?? "z"
+        let sample = switch axis {
+        case "x": x
+        case "y": y
+        default: -z
+        }
+        let sign = settings.bool(forKey: "ecojumbo.power.reverseMotion") ? -1.0 : 1.0
+        // Sospendi temporaneamente la classificazione durante rotazioni forti.
+        // Evita l'interpretazione di curve e vibrazioni come freno/acceleratore.
+        guard rotationRate < 2.5 else {
+            smoothedAcceleration *= 0.65
+            flow = .neutral
+            lastUpdate = date
+            return
+        }
+        smoothedAcceleration = 0.65 * smoothedAcceleration + 0.35 * sample * sign
+        let stored = settings.object(forKey: "ecojumbo.power.motionSensitivity") as? Double ?? 0.5
+        let sensitivity = max(0, min(1, stored))
+        // Sensibilità alta => soglia più bassa, ma sempre zona morta.
+        let threshold = 0.18 - sensitivity * 0.155 // 0.025...0.18 g
+        let releaseThreshold = threshold * 0.60
+        let limit = flow == .neutral ? threshold : releaseThreshold
+        if smoothedAcceleration > limit {
+            flow = .outgoing
+        } else if smoothedAcceleration < -limit {
+            flow = .incoming
+        } else {
+            flow = .neutral
+        }
+        lastUpdate = date
+    }
+
+    func currentFlow(at time: Date = Date()) -> EcoPowerFlow {
+        guard available, started, time.timeIntervalSince(lastUpdate) < 1.0 else {
+            return .neutral
+        }
+        return flow
+    }
+}
+
 
 struct RouteCoordinate: Codable, Equatable {
     let latitude: Double
