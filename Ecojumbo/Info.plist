@@ -12,11 +12,6 @@
 <key>LSRequiresIPhoneOS</key><true/>
 <key>NSLocationWhenInUseUsageDescription</key><string>Ecojumbo usa la posizione per velocità GPS, viaggi, itinerari con MapKit e temperatura meteo esterna: invia coordinate geografiche approssimate a Open-Meteo per recuperare il dato meteorologico.</string>
 <key>NSAppleMusicUsageDescription</key><string>Ecojumbo consente di cercare nel catalogo Apple Music, riprodurre brani direttamente nel cockpit e controllare titolo, artista, copertina, pausa e tracce con il tuo consenso.</string>
-<key>CFBundleURLTypes</key><array><dict>
-<key>CFBundleURLName</key><string>it.ecojumbo.battery.spotify-auth</string>
-<key>CFBundleURLSchemes</key><array><string>ecojumbo-spotify</string></array>
-</dict></array>
-<key>LSApplicationQueriesSchemes</key><array><string>spotify</string></array>
 <key>NSMotionUsageDescription</key><string>Ecojumbo usa i sensori di movimento per visualizzare accelerazione e decelerazione sulla scala del tachimetro quando il BMS non è disponibile.</string>
 <key>NSBluetoothAlwaysUsageDescription</key><string>Ecojumbo usa il Bluetooth per leggere i dati del BMS della batteria dello scooter.</string>
 <key>UIApplicationSupportsIndirectInputEvents</key><true/>
