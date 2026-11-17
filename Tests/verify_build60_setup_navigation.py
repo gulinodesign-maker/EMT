@@ -29,7 +29,7 @@ assert ".sheet(item: $activeSection)" in settings
 assert "CellsView(portrait: space.size.height > space.size.width)" in settings
 assert "BluetoothView()" in settings
 assert "case battery, bms, appearance, scooter, bluetooth, charging" in settings
-assert "case odometer, bars, weather" in settings
+assert "case odometer, bars, power, weather" in settings
 
 # The GPS map, dial, telemetry, horizontal dock placement and vertical bounds
 # must not be changed when moving service navigation out of the cockpit.
