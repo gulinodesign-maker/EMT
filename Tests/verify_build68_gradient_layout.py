@@ -23,8 +23,8 @@ assert "let edge = migrated.colors[2]" in tabs
 assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
 assert "foreground.1, foreground.0, foreground.0]" in tabs
 assert '("Sfumatura top bar e ponte kW", 15..<17)' not in tabs
-assert '"Sfumature · colore luce"' in tabs
-assert '"Sfumature · colore ombra"' in tabs
+assert '"Sfumatura sinistra"' in tabs
+assert '"Sfumatura destra"' in tabs
 assert 'ForEach(0..<EcoThemePalette.groups.count, id:' in tabs
 assert 'ForEach(group.range, id:' in tabs
 assert 'draft.colors[selected.id] = hex' in tabs
