@@ -1,5 +1,17 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 113 — solo Apple Music, stemmi originali e preset JSON Ferrari/Cupra (17 novembre 2026)
+
+**Richiesta utente:** eliminare Spotify e ogni servizio musicale esterno, mantenendo Apple Music come unico player; sostituire i sei loghi automobilistici con stemmi Ecojumbo originali e uniformi (A Alfa Romeo, B BMW, C Cupra, L Lamborghini, F Ferrari, M Mercedes); applicare ai preset Ferrari e Cupra l'intero contenuto dei JSON `F.json` e `Ecojumbo-Cupra.json` senza alterare gli slot personalizzati.
+
+**Intervento nel ramo `build-113-original-automotive-emblems-apple-only`:** il manager musicale mantiene soltanto MediaPlayer e l'accesso MusicKit al catalogo e alla libreria locale; rimossi flussi API/OAuth Spotify, YouTube Music, selettore dei provider, configurazione Client ID e schema URL di callback da Info.plist. All'avvio vengono cancellati l'eventuale vecchio Client ID e token locale Spotify (migrazione dati, nessuna connessione). Il cockpit conserva la ricerca Apple Music, Play/Pausa, Indietro/Avanti e copertina.
+
+**Stemmi:** sostituiti i sei `Auto*.imageset/logo.svg` con un disegno vettoriale originale comune, ispirato al fulmine del logo Ecojumbo: scudo nero, lettera bianca A/B/C/L/F/M, fulmine arancione e bordo distinto (rosso Alfa `#C22636`, blu BMW `#1C69D4`, rame Cupra `#B87333`, oro Lamborghini `#DDB321`, rosso Ferrari `#ED1C24`, argento Mercedes `#B6B6B6`). Asset Xcode e nomi delle associazioni conservati; **non sono più inclusi i tracciati ufficiali**. Le denominazioni automotive dei temi rimangono: servono ulteriori valutazioni sui marchi prima della distribuzione pubblica.
+
+**Ferrari e Cupra:** le due palette di fabbrica sono decodificate dai JSON forniti, con **27 proprietà complessive, 23 colori e 23 livelli di luce** ciascuno: colori, barra Day, illuminazione/ombre, opacità, grafico altimetrico, anello interno, brandID, glow e valori di versione. I preset sono selezionabili normalmente; i tre slot preesistenti non sono riscritti. SHA256 del `theme` canonico: Ferrari `0dec80e42a369102cbe716535a280d4405654dde73f2448b2cf9a15ae4febe94`, Cupra `d09b287a7270a4b8ea6223238ccd862906e3533953c5ef56bab54e80099b6b37`.
+
+**Versione e verifica:** progetto portato a `1.0 (113)` in Debug/Release; test Python esistenti aggiornati e aggiunto `Tests/verify_build113_apple_only_emblems_json.py` per confrontare tutti i valori dei JSON con gli originali, assicurare l'uniformità grafica e verificare la rimozione dei servizi esterni. **CI/Xcode, caricamento TestFlight e resa su iPhone: da verificare, non ancora dichiarati riusciti.** Dopo esito CI positivo, unire su `main` e controllare il workflow Apple, senza confondere l'upload con la disponibilità per il gruppo TE.
+
 ## Build 112 — sei temi automotive ufficialmente ispirati e scambio JSON (17 novembre 2026)
 
 **Richiesta utente autorizzata:** sostituire i sei kit cromatici di fabbrica con BMW, Ferrari, Mercedes, Alfa Romeo, Lamborghini e Cupra; usare i colori e i loghi identificativi dei marchi; aggiungere «Importa tema» e «Esporta tema» nella modifica tema. La richiesta «Procedi» autorizza la build.
