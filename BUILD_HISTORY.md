@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44063715813:ATTEMPT:1 -->
+### 2026-11-17T10:19:12Z — CI #382 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44063715813](https://github.com/gulinodesign-maker/EMT/actions/runs/44063715813); avvio 2026-11-17T10:19:12Z UTC; aggiornamento finale 2026-11-17T10:21:46Z UTC; registrazione 2026-11-17T10:21:57+00:00 UTC; evento pull_request.
+- **Commit:** [4bb0d2851942](https://github.com/gulinodesign-maker/EMT/commit/4bb0d2851942fa836ae5a4307488ffec6a191f7f); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **fase riuscita, workflow complessivo failure**; Test protocollo JK Bluetooth (sola lettura): **fase riuscita, workflow complessivo failure**; Test barre dinamiche: **fase riuscita, workflow complessivo failure**.
+- **Compilazione simulatore:** **FAILURE**.
+- **Errori rilevati:** Compila app per simulatore iOS (senza firma Apple). Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build73_settings_glow_speed.py.
+
 <!-- EMT_RUN:44063333631:ATTEMPT:1 -->
 ### 2026-11-17T10:16:44Z — CI #379 · build-109-cockpit-icon-kit-one-tap · tentativo 1
 
