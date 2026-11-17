@@ -63,7 +63,7 @@ assert "client_secret" not in manager.lower()
 assert "EcoMusicManager.shared.handleSpotifyCallback(url)" in app
 assert "<key>NSAppleMusicUsageDescription</key>" in plist
 assert "<string>ecojumbo-spotify</string>" in plist
-assert project.count("CURRENT_PROJECT_VERSION = 108;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 109;") == 2
 for filename in ("EcoMusicManager.swift", "EcoMusicCockpitPanel.swift"):
     assert project.count(f"{filename} in Sources") >= 2
 
