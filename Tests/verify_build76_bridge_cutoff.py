@@ -7,7 +7,7 @@ src = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 version = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert version.count("CURRENT_PROJECT_VERSION = 115;") == 2
+assert version.count("CURRENT_PROJECT_VERSION = 116;") == 2
 dashboard = src.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "// Pulsante dedicato", 1)[0]
 mask = src.split("private struct GPSBridgeUpperMask: Shape {", 1)[1].split(
