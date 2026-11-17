@@ -6,7 +6,7 @@ root = Path(__file__).resolve().parents[1]
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 proj = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert proj.count("CURRENT_PROJECT_VERSION = 106;") == 2
+assert proj.count("CURRENT_PROJECT_VERSION = 107;") == 2
 
 editor = tabs.split("private struct EcoThemeEditorView: View {", 1)[1].split(
     "private struct EcoThemeColorPicker:", 1)[0]
