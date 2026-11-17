@@ -37,7 +37,10 @@ final class EcoMusicManager: ObservableObject {
                      Notification.Name.MPMusicPlayerControllerPlaybackStateDidChange] {
             NotificationCenter.default.publisher(for: name)
                 .sink { [weak self] _ in
-                    Task { @MainActor [weak self] in self?.refreshApple() }
+                    Task { @MainActor [weak self] in
+                        guard let self else { return }
+                        self.refreshApple()
+                    }
                 }
                 .store(in: &playbackObservers)
         }
