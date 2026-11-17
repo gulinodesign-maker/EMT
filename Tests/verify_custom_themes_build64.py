@@ -47,7 +47,7 @@ assert "guard (1...3).contains(slot)" in tabs
 assert "palette.colors.count == colorCount" in tabs
 assert 'UserDefaults.standard.set(data, forKey: storagePrefix + String(slot))' in tabs
 assert "ForEach(1...3, id:" in tabs
-assert 'Label("Crea un nuovo tema", systemImage: "paintbrush.pointed")' in tabs
+assert 'Label("Nuovo tema", systemImage: "paintbrush.pointed")' in tabs
 
 # Principal accent reaches top-bar strokes AND all twelve icon buttons in Setup.
 assert "theme.accent" in home
