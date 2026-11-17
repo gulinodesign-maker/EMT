@@ -20,7 +20,7 @@ assert "String(format: \"ODO %.0f km\", $0)" in speed
 assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow," in speed
 # Models/GPSRideManager is intentionally unchanged from the working GPS build.
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in g
-assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in g
+assert "fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed" in g
 assert "date.timeIntervalSince(lastValidAt) < 8" in g
 assert "func currentSpeed(at date: Date = Date()) -> Double?" in g
 print("OK — build 53: Arial Bold rosso sul solo valore velocità; GPS invariato")

@@ -20,7 +20,7 @@ assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in dashboard
 
 # Due colonne, due righe (SOC e V BAT in alto, AUT e TRIP sotto).
 assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in view
-assert view.count('telemetryTile("') == 4
+assert view.count('telemetryTile("') == 7
 for label in ("SOC", "V BAT", "AUT", "TRIP"):
     assert 'telemetryTile("' + label + '"' in view
 assert "let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 4)" in view
@@ -40,7 +40,7 @@ assert "autonomy?.fractionOfFull" in view
 assert "fraction: live.map { Double($0.soc) / 100.0 }" in view
 assert "fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) }" in view
 assert "abs(now.timeIntervalSince($0.date)) < 10" in view
-assert view.count("showsBar: true") == 4
+assert view.count("showsBar: true") == 7
 assert "TelemetrySlimBar(fraction: fraction, theme: theme)" in view
 
 # Il grafico è reale, e la sfumatura è tracciata solo dopo due letture GPS.

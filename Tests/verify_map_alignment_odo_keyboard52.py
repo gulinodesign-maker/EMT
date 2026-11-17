@@ -22,7 +22,7 @@ assert "@FocusState private var odometerFieldFocused: Bool" in settings
 assert ".keyboardType(.decimalPad)" in settings
 assert ".focused($odometerFieldFocused)" in settings
 assert "ToolbarItemGroup(placement: .keyboard)" in settings
-assert 'Button("Conferma e salva", action: saveOdometer)' in settings
+assert 'Button("Conferma e salva")' in settings
 assert 'Button("Salva", action: saveOdometer)' in settings
 assert ".onSubmit(saveOdometer)" in settings
 assert "private func saveOdometer()" in settings

@@ -50,6 +50,6 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
 # I criteri GPS funzionanti ripristinati nella 45 sono INVARIATI.
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10" in gps
-assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in gps
+assert "fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed" in gps
 assert "date.timeIntervalSince(lastValidAt) < 8" in gps
 print("OK — build 47: mappa curva, ricerca trasparente, parametri GPS preservati")

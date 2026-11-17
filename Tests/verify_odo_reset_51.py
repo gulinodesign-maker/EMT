@@ -22,8 +22,8 @@ telemetry=source.split("private struct GPSExpandedReadings: View {",1)[1].split(
 assert "VStack(spacing: tileGap)" in telemetry
 assert 'Text("TELEMETRIA")' in telemetry
 assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in telemetry
-assert telemetry.count('telemetryTile("') == 4
-assert telemetry.count("showsBar: true") == 4
+assert telemetry.count('telemetryTile("') == 7
+assert telemetry.count("showsBar: true") == 7
 assert "let dislHeight = 2 * cardHeight" in telemetry
 assert "dislevelCard(height: dislHeight)" in telemetry
 assert "TelemetrySlimBar(fraction: fraction, theme: theme)" in telemetry
