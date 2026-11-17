@@ -6,7 +6,7 @@ root = Path(__file__).resolve().parents[1]
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 proj = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert proj.count("CURRENT_PROJECT_VERSION = 109;") == 2
+assert proj.count("CURRENT_PROJECT_VERSION = 110;") == 2
 
 editor = tabs.split("private struct EcoThemeEditorView: View {", 1)[1].split(
     "private struct EcoThemeColorPicker:", 1)[0]
@@ -21,7 +21,7 @@ assert "Slider(value: $draft.gradientAngle" not in editor
 assert "Slider(value: gradientOpacityBinding" not in editor
 assert "topFadeBinding" not in editor and "bottomFadeBinding" not in editor
 cards = editor.split("private func gradientRoleTile(_ role: Int) -> some View {", 1)[1].split(
-    "private func colorRoleSection", 1)[0]
+    "private func glowBinding", 1)[0]
 assert "colorID = EcoThemeColorID(id: role, isDay: editingDayTopBar)" in cards
 assert "Slider(value: transparency, in: 0...1, step: 0.01)" in cards
 assert cards.count("Slider(value:") == 1
@@ -30,9 +30,9 @@ assert "Color(themeHex: roleHex(role))" in cards
 
 palette = tabs.split("struct EcoThemePalette: Codable, Equatable {", 1)[1].split("extension Color {", 1)[0]
 assert '("Sfumature", [15, 16, 19, 20])' in palette
-assert '("Anelli e numeri del tachimetro", [1, 3, 21, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
+assert '("Anelli e numeri del tachimetro", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
 groups = palette.split("static let groups:", 1)[1].split("static let colorCount", 1)[0]
-assert sorted(map(int, re.findall(r"\d+", groups))) == [i for i in range(22) if i != 7]
+assert sorted(map(int, re.findall(r"\d+", groups))) == [i for i in range(23) if i != 7]
 for name in ("lightIntensity", "shadowIntensity", "dayLightIntensity", "dayShadowIntensity"):
     assert f"var {name}: Double" in palette
     assert f"try data.encode({name}, forKey: .{name})" in palette

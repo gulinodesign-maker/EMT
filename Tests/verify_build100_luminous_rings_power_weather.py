@@ -9,7 +9,7 @@ tabs = (r / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (r / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (r / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 109;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 110;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert "## Build 100" in state
 
@@ -33,23 +33,23 @@ assert "lineWidth: stroke * 4.0" in ring
 assert "lineWidth: stroke * 2.1" in ring
 assert ring.count(".mask(GPSBridgeUpperMask())") == 1
 assert "color: theme.concentricRingColor" in dashboard
-assert "glowIntensity: theme.glowIntensity" in dashboard
+assert "glowIntensity: theme.glow(for: 21)" in dashboard
 assert ".zIndex(27)" in dashboard
 assert "GPSConcentricAccentRing(color: tone(21)," in preview
 assert "GPSSecondOuterRing" not in preview
-assert "glowIntensity: palette.glowIntensity" in preview
+assert "glowIntensity: palette.glow(for: 21)" in preview
 
 # Build 100 palette compatibility: first 22 colors survive, last orphaned
 # extra-ring color of 23-value themes is removed.
-assert "static let colorCount = 22" in tabs
+assert "static let colorCount = 23" in tabs
 assert "decoded.colors.count == 22 || decoded.colors.count == 23" in tabs
-assert "if migrated.colors.count == 23 {" in tabs
+assert "if migrated.colors.count == 23 && decoded.lightingVersion < 109 {" in tabs
 assert "migrated.colors.removeLast()" in tabs
 assert "var secondRingColor: Color" not in cockpit
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
-assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 23
 
 # Only GPS header has text-only meteo under the brand mark; other Home unchanged.
 weather = cockpit.split("private struct EcoOutsideTemperature: View {", 1)[1].split(

@@ -189,7 +189,15 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     var shadowAccent: Color { secondary.opacity(0.68) }
 
     // Il bagliore è proprietà del tema salvato, non una preferenza globale.
-    var glowIntensity: Double { savedPalette?.glowIntensity ?? 0.60 }
+    // Intensità indipendenti per ciascun elemento luminoso (109).
+    func glow(for role: Int) -> Double {
+        savedPalette?.glow(for: role)
+            ?? EcoThemePalette.template(self).glow(for: role)
+    }
+    static func glowForRole(_ role: Int) -> Double {
+        EcoThemePalette.active?.glow(for: role)
+            ?? EcoThemePalette.defaultGlowLevels(legacyGlow: 0.60)[role]
+    }
     // Build 106: direzione fissa 0° e intensità separate per i due estremi.
     // Il vecchio angolo resta nel modello di salvataggio, non nel rendering.
     var gradientLightIntensity: Double { savedPalette?.lightIntensity ?? 1 }
@@ -244,6 +252,12 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
         }
         return accent
     }
+    var innerRingColor: Color {
+        if let savedPalette, savedPalette.colors.count > 22 {
+            return Color(themeHex: savedPalette.colors[22])
+        }
+        return accent
+    }
     // Le barre mantengono i ruoli storici, invariati.
     // Barre e recupero energia usano la palette attiva, non soltanto la preview.
     static var barDark: Color {
@@ -275,7 +289,7 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
         Color(themeHex: EcoThemePalette.active?.colors[17] ?? "#FF3B30")
     }
     static var accelerationAccent: Color {
-        Color(themeHex: EcoThemePalette.active?.colors[18] ?? "#FF3B30")
+        Color(themeHex: EcoThemePalette.active?.colors[18] ?? "#FF9A1F")
     }
     static var speedDigitsAccent: Color {
         Color(themeHex: EcoThemePalette.active?.colors[11] ?? "#FA2B2E")
@@ -289,7 +303,7 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     // Ruolo storico GPS, conservato nelle palette personalizzate.
     // Il colore energia del nuovo LED usa invece i ruoli 8 e 9.
     static var decelerationAccent: Color {
-        Color(themeHex: EcoThemePalette.active?.colors[14] ?? "#FFB224")
+        Color(themeHex: EcoThemePalette.active?.colors[14] ?? "#38BDF8")
     }
 
     var previewPalette: [Color] {
@@ -412,7 +426,12 @@ private struct MetricGlowBar: View {
                         ], startPoint: .leading, endPoint: .trailing))
                         .frame(width: fillWidth, height: h * 0.84)
                         .padding(.leading, h * 0.10)
-                        .shadow(color: Color.red.opacity(0.45), radius: h * 0.7)
+                        .shadow(color: CockpitTheme.barDark.opacity(
+                            0.20 * CockpitTheme.glowForRole(4)), radius: h * 0.8)
+                        .shadow(color: CockpitTheme.barMid.opacity(
+                            0.30 * CockpitTheme.glowForRole(5)), radius: h * 0.75)
+                        .shadow(color: CockpitTheme.barBright.opacity(
+                            0.45 * CockpitTheme.glowForRole(6)), radius: h * 0.7)
                 }
             }
             .frame(width: w, height: h)
@@ -471,7 +490,7 @@ private struct PremiumWing: View {
         let icon = ZStack {
             Circle()
                 .stroke(theme.accent, lineWidth: max(1.5, height * 0.020))
-                .shadow(color: theme.accent.opacity(0.35), radius: 3)
+                .shadow(color: theme.accent.opacity(0.35 * theme.glow(for: 1)), radius: 3)
             if reading.icon == "voltage" {
                 Text("V")
                     .font(.system(size: iconSide * 0.54, weight: .bold))
@@ -558,9 +577,11 @@ private struct ContinuousHorizonLine: View {
                                         width: ringRadius * 2, height: ringRadius * 2))
             }
             ZStack {
-                line.stroke(theme.accent.opacity(0.31), lineWidth: max(5, h * 0.010))
+                line.stroke(theme.accent.opacity(0.31 * theme.glow(for: 1)),
+                            lineWidth: max(5, h * 0.010))
                     .blur(radius: max(4, h * 0.012))
-                line.stroke(theme.accent.opacity(0.77), lineWidth: max(2.5, h * 0.004))
+                line.stroke(theme.accent.opacity(0.77 * theme.glow(for: 1)),
+                            lineWidth: max(2.5, h * 0.004))
                     .blur(radius: max(2, h * 0.004))
                 line.stroke(theme.accent,
                             style: StrokeStyle(lineWidth: max(1.4, h * 0.002), lineCap: .round))
@@ -1026,23 +1047,36 @@ private struct SpeedLEDStream: View {
     let d: CGFloat
     let speed: Double?
     let powerFlow: EcoPowerFlow
+    let usesBMS: Bool
     @AppStorage("ecojumbo.bars.vehicleSpeedMaxKmh") private var vehicleSpeedMaxKmh = 120.0
     @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
     @AppStorage("ecojumbo.bars.speedLimitColorEnabled") private var speedLimitColorEnabled = true
 
-    private var ledColor: Color {
-        // I due colori energia provengono dai ruoli tema 9 (A/ingresso)
-        // e 8 (B/uscita), non dalle vecchie fasi GPS.
+    private var colorRole: Int {
         switch powerFlow {
-        case .incoming: return CockpitTheme.recoveryRingAccent
-        case .outgoing: return CockpitTheme.dischargeAccent
+        case .incoming: return usesBMS ? 9 : 14  // BMS in / inerzia decel
+        case .outgoing: return usesBMS ? 8 : 18  // BMS out / inerzia accel
         case .neutral:
             if speedLimitColorEnabled, let speed, speed.isFinite,
                speed >= min(max(30, vehicleSpeedMaxKmh), max(10, speedColorThresholdKmh)) {
-                return CockpitTheme.speedLimitAccent
+                return 17
             }
-            return CockpitTheme.speedLEDAccent
+            return 10
         }
+    }
+
+    private var ledColor: Color {
+        switch colorRole {
+        case 9: return CockpitTheme.recoveryRingAccent
+        case 8: return CockpitTheme.dischargeAccent
+        case 14: return CockpitTheme.decelerationAccent   // azzurro
+        case 18: return CockpitTheme.accelerationAccent   // arancione
+        case 17: return CockpitTheme.speedLimitAccent
+        default: return CockpitTheme.speedLEDAccent
+        }
+    }
+    private var illumination: Double {
+        CockpitTheme.glowForRole(colorRole)
     }
 
     private var progress: Double? {
@@ -1059,13 +1093,14 @@ private struct SpeedLEDStream: View {
                 .frame(width: d * 0.722, height: d * 0.722)
             if let progress, progress > 0 {
                 GaugeArc(start: 146, end: 394, fraction: progress)
-                    .stroke(ledColor.opacity(0.80),
+                    .stroke(ledColor.opacity(0.80 * illumination),
                             style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(d), lineCap: .round))
                     .blur(radius: GPSInnerLED.haloBlur(d))
                     .frame(width: d * 0.722, height: d * 0.722)
                 GaugeArc(start: 146, end: 394, fraction: progress)
                     .stroke(ledColor, style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d), lineCap: .round))
-                    .shadow(color: ledColor.opacity(0.94), radius: GPSInnerLED.outerBlur(d))
+                    .shadow(color: ledColor.opacity(0.94 * illumination),
+                            radius: GPSInnerLED.outerBlur(d))
                     .frame(width: d * 0.722, height: d * 0.722)
                 GaugeArc(start: 146, end: 394, fraction: progress)
                     .stroke(Color.white.opacity(0.65),
@@ -1078,8 +1113,8 @@ private struct SpeedLEDStream: View {
                 Circle()
                     .fill(.white)
                     .frame(width: d * 0.020, height: d * 0.020)
-                    .shadow(color: ledColor, radius: d * 0.027)
-                    .shadow(color: ledColor.opacity(0.95), radius: d * 0.014)
+                    .shadow(color: ledColor.opacity(illumination), radius: d * 0.027)
+                    .shadow(color: ledColor.opacity(0.95 * illumination), radius: d * 0.014)
                     .position(endPoint)
             }
         }
@@ -1156,6 +1191,7 @@ private struct OpenSpeedCluster: View {
     var showsCircularPowerGauges: Bool = true // La Home conserva le corone.
     var maximizesGPSSpeedScale: Bool = false // Solo GPS, senza alterare la Home.
     var powerFlow: EcoPowerFlow = .neutral
+    var powerFlowUsesBMS: Bool = false
     private var outerDiameterFactor: CGFloat {
         maximizesGPSSpeedScale ? GPSDialLayout.outerProfileDiameterFactor : 0.986
     }
@@ -1222,25 +1258,38 @@ private struct OpenSpeedCluster: View {
                                   start: 149, end: 391, count: 64, radiusFactor: 0.469,
                                   activeColor: CockpitTheme.dischargeAccent,
                                   idleColor: CockpitTheme.dischargeAccent.opacity(0.22))
-                    .shadow(color: CockpitTheme.dischargeAccent.opacity(outputFill == nil ? 0.04 : 0.72),
+                    .shadow(color: CockpitTheme.dischargeAccent.opacity(
+                                (outputFill == nil ? 0.04 : 0.72) * CockpitTheme.glowForRole(8)),
                             radius: d * 0.014)
                 SegmentedGaugeBar(d: d, fraction: inputFill,
                                   start: 149, end: 391, count: 64, radiusFactor: 0.427,
                                   activeColor: CockpitTheme.recoveryRingAccent,
                                   idleColor: CockpitTheme.recoveryRingAccent.opacity(0.20))
-                    .shadow(color: CockpitTheme.recoveryRingAccent.opacity(inputFill == nil ? 0.02 : 0.48),
+                    .shadow(color: CockpitTheme.recoveryRingAccent.opacity(
+                                (inputFill == nil ? 0.02 : 0.48) * CockpitTheme.glowForRole(9)),
                             radius: d * 0.011)
 
                 }
                 // La striscia LED arancione della velocità richiede GPS valido.
                 if maximizesGPSSpeedScale {
-                    SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow)
+                    SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow,
+                                   usesBMS: powerFlowUsesBMS)
                         .scaleEffect(GPSDialLayout.speedScaleMagnification)
                     SpeedScaleTicks(d: d)
                         .scaleEffect(GPSDialLayout.speedScaleMagnification)
                 } else {
-                    SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow)
+                    SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow,
+                                   usesBMS: powerFlowUsesBMS)
                     SpeedScaleTicks(d: d)
+                }
+
+                // 109: nuovo anello interno, concentrico e più piccolo del
+                // neon GPS; il testo velocità rimane sopra ed è leggibile.
+                if maximizesGPSSpeedScale {
+                    GPSLuminousCircleStroke(color: theme.innerRingColor,
+                        diameter: d * 0.630,
+                        stroke: max(1.9, d * 0.0050),
+                        glowIntensity: theme.glow(for: 22))
                 }
 
                 // Stessa strumentazione nella Home e nella mappa.
@@ -1791,6 +1840,8 @@ struct GPSCockpitDashboard: View {
                 return sample
             }()
             let flow = selectedPowerFlow(snapshot: live, at: now)
+            let usesBMS = powerSource == EcoPowerSource.bms.rawValue
+                && live.map({ $0.power.isFinite }) == true
             ZStack {
                 CarbonBackdrop(theme: theme)
                 CockpitTopSoftShade()
@@ -1861,6 +1912,7 @@ struct GPSCockpitDashboard: View {
                                      showsCircularPowerGauges: false,
                                      maximizesGPSSpeedScale: true,
                                      powerFlow: flow,
+                                     powerFlowUsesBMS: usesBMS,
                                      navigationArrow: maneuverSymbol,
                                      navigationInstruction: navigation.guidanceInstruction,
                                      navigationDistance: navigation.isNavigating &&
@@ -1883,7 +1935,7 @@ struct GPSCockpitDashboard: View {
                 // Anello tematico davanti alla top bar (z8) e alla
                 // cartografia (z5), ma sotto al ponte kW (z28).
                 GPSConcentricAccentRing(color: theme.concentricRingColor,
-                                        glowIntensity: theme.glowIntensity)
+                                        glowIntensity: theme.glow(for: 21))
                     .frame(width: w, height: h)
                     .zIndex(27)
 
@@ -2181,7 +2233,7 @@ private struct GPSUpperGradientLayer: View {
             let underGlow = daylight ? Color(themeHex: day.underGlow) : theme.topBarUnderGlow
             ZStack {
                 GPSUpperLayerFootprint()
-                    .fill(underGlow.opacity(theme.glowIntensity * (daylight ? 0.22 : 0.40) * lightOpacity),
+                    .fill(underGlow.opacity(theme.glow(for: 2) * (daylight ? 0.22 : 0.40) * lightOpacity),
                           style: FillStyle(eoFill: true))
                     .blur(radius: max(10, d * 0.036))
                     // Nessuna luce può invadere tachimetro, telemetria o dock.
@@ -2228,7 +2280,7 @@ private struct GPSUpperGradientLayer: View {
                 // invadere tachimetro o ponte grazie alle due maschere.
                 GPSUpperLayerFootprint()
                     .stroke(underGlow.opacity(
-                        theme.glowIntensity * (daylight ? 0.36 : 0.72) * lightOpacity),
+                        theme.glow(for: 2) * (daylight ? 0.36 : 0.72) * lightOpacity),
                         lineWidth: max(2, d * 0.015))
                     .blur(radius: max(5, d * 0.028))
                     .offset(x: d * 0.023, y: d * 0.012)
@@ -2290,9 +2342,14 @@ struct EcoCockpitThemeMiniature: View {
                 GPSMetalInnerRing()
                     .frame(width: d, height: d)
                     .position(x: cx, y: h * 0.494)
+                GPSLuminousCircleStroke(color: tone(22),
+                    diameter: d * 0.630,
+                    stroke: max(1.9, d * 0.0050),
+                    glowIntensity: palette.glow(for: 22))
+                    .position(x: cx, y: h * 0.494)
                 // Anche l'anteprima usa il cerchio e il colore del draft.
                 GPSConcentricAccentRing(color: tone(21),
-                                        glowIntensity: palette.glowIntensity)
+                                        glowIntensity: palette.glow(for: 21))
                     .frame(width: w, height: h)
 
                 // Solo il valore non disponibile: l'anteprima non inventa velocità.
@@ -2380,7 +2437,7 @@ struct EcoCockpitThemeMiniature: View {
                 ], startPoint: .top, endPoint: .bottom),
                 style: FillStyle(eoFill: true))
             GPSUpperLayerFootprint()
-                .stroke(underGlow.opacity(palette.glowIntensity * (daylight ? 0.36 : 0.72) * lightOpacity),
+                .stroke(underGlow.opacity(palette.glow(for: 2) * (daylight ? 0.36 : 0.72) * lightOpacity),
                         lineWidth: max(2, d * 0.015))
                 .blur(radius: max(5, d * 0.028))
                 .offset(x: d * 0.023, y: d * 0.012)

@@ -6,7 +6,7 @@ root=Path(__file__).resolve().parents[1]
 tabs=(root/"Ecojumbo/Views/CockpitTabs.swift").read_text()
 c=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 109;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 110;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Deliberately remove ONLY the extra second ring. The original luminous
@@ -16,42 +16,43 @@ assert "GPSSecondOuterRing" not in c
 assert "secondRingRadius" not in c
 assert "secondRingStroke" not in c
 assert "secondRingColor" not in c
-assert "savedPalette.colors[22]" not in c
+assert "savedPalette.colors[22]" in c
 assert "static func mapExclusionRadius(for d: CGFloat)" in layout
 assert "concentricRingRadius(for: d) + concentricRingStroke(for: d) / 2" in layout
 assert "static let mapToDialClearance: CGFloat = 2" in layout
 assert "GPSConcentricAccentRing(color: theme.concentricRingColor," in c
 assert "GPSConcentricAccentRing(color: tone(21)," in c
 assert "GPSLuminousCircleStroke(" in c
-assert "glowIntensity: theme.glowIntensity" in c
+assert "glowIntensity: theme.glow(for: 21)" in c
 
 # Unique, complete menu categories: 0..21 exactly once; 8 & 9 are the
 # actual red/blue power bar colours, never telemetric rows.
-assert "static let colorCount = 22" in tabs
+assert "static let colorCount = 23" in tabs
 assert '"Secondo cerchio esterno · spessore doppio"' not in tabs
 assert '"Barre telemetria e potenza"' not in tabs
 groups=tabs.split("static let groups:",1)[1].split("static let colorCount",1)[0]
 for text in ('("Aspetto generale", [0])',
-             '("Anelli e numeri del tachimetro", [1, 3, 21, 2, 11, 10, 14, 18, 17, 8, 9])',
+             '("Anelli e numeri del tachimetro", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9])',
              '("Barre telemetria", [4, 5, 6])',
              '("Navigatore", [12, 13])',
              '("Sfumature", [15, 16, 19, 20])'):
     assert text in groups
 indices=[int(v) for v in re.findall(r"\d+", groups)]
-assert sorted(indices)==[i for i in range(22) if i != 7],indices
+assert sorted(indices)==[i for i in range(23) if i != 7],indices
 assert '"Cursore potenza · uscita"' in tabs
 assert '"Cursore potenza · ingresso"' in tabs
-assert 'colorRoleSection("LED potenza", roles: [8, 9])' in tabs
-assert 'colorRoleSection("Anelli e luci", roles: [1, 3, 21, 2])' in tabs
-assert 'colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])' in tabs
+assert 'glowRoleSection("LED potenza · BMS", roles: [8, 9])' in tabs
+assert 'glowRoleSection("Anelli", roles: [1, 21, 22, 2])' in tabs
+assert 'glowRoleSection("LED velocità · inerzia", roles: [10, 14, 18, 17])' in tabs
+assert 'colorRoleSection("Metallo e numeri", roles: [3, 11])' in tabs
 labels=tabs.split("static let labels = [",1)[1].split("]",1)[0]
 details=tabs.split("static let details = [",1)[1].split("]",1)[0]
-assert len(re.findall(r'^\s*"[^"]+"',labels,re.M))==22
-assert len(re.findall(r'^\s*"[^"]+"',details,re.M))==22
+assert len(re.findall(r'^\s*"[^"]+"',labels,re.M))==23
+assert len(re.findall(r'^\s*"[^"]+"',details,re.M))==23
 
 # 23-colour saved build 100 palettes lose only the removed colour index22.
 assert "decoded.colors.count == 22 || decoded.colors.count == 23" in tabs
-assert "if migrated.colors.count == 23 {" in tabs
+assert "if migrated.colors.count == 23 && decoded.lightingVersion < 109 {" in tabs
 assert "migrated.colors.removeLast()" in tabs
 assert "if migrated.colors.count == 21 {" in tabs
 assert "migrated.colors.append(migrated.colors[1])" in tabs

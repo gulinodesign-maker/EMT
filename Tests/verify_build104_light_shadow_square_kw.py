@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 status = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 109;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 110;") == 2
 assert "## Build 104" in status
 
 # A single angle, never a second setting for the cards or for Day Mode.
@@ -42,22 +42,22 @@ assert "dayTopBar: EcoDayTopBarPalette? = nil, gradientAngle: Double = 0" in pal
 assert "decodeIfPresent(Double.self, forKey: .gradientAngle) ?? 0" in palette
 assert "try data.encode(gradientAngle, forKey: .gradientAngle)" in palette
 assert "palette.gradientAngle.isFinite, (0...360).contains(palette.gradientAngle)" in palette
-assert "static let colorCount = 22" in palette # all 22 old saved slot values survive
-assert "if migrated.colors.count == 23 {" in palette
+assert "static let colorCount = 23" in palette # all 22 old saved slot values survive
+assert "if migrated.colors.count == 23 && decoded.lightingVersion < 109 {" in palette
 assert '("Sfumature", [15, 16, 19, 20])' in palette
 assert '"Sfumatura sinistra"' in palette
 assert '"Sfumatura destra"' in palette
-assert '("Anelli e numeri del tachimetro", [1, 3, 21, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
+assert '("Anelli e numeri del tachimetro", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9])' in palette
 labels=palette.split("static let labels = [",1)[1].split("]",1)[0]
 details=palette.split("static let details = [",1)[1].split("]",1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
-assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 23
 groups=palette.split("static let groups:",1)[1].split("static let colorCount",1)[0]
 listed = list(map(int,re.findall(r'\d+',groups)))
-assert sorted(listed)==[i for i in range(22) if i!=7], listed
+assert sorted(listed)==[i for i in range(23) if i!=7], listed
 assert '"Numeri kW · energia in ingresso (ruolo storico nascosto)"' in labels
 assert "[8, 9, 7]" not in tabs
-assert 'colorRoleSection("LED potenza", roles: [8, 9])' in tabs
+assert 'glowRoleSection("LED potenza · BMS", roles: [8, 9])' in tabs
 assert "EcoThemePalette.active?.colors[9]" in cockpit
 assert "EcoThemePalette.active?.colors[7]" not in cockpit
 assert ".foregroundStyle(tone(9))" in cockpit

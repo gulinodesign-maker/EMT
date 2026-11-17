@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 109;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 110;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 91" in state
@@ -47,11 +47,11 @@ assert "GPSLowerGlow(theme: theme)" in dashboard
 assert "GPSPowerHorizontalGauge" not in dashboard
 
 # Two new palette roles, each with color and independent adjustable intensity.
-assert "static let colorCount = 22" in tabs
+assert "static let colorCount = 23" in tabs
 labels = tabs.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = tabs.split("static let details = [", 1)[1].split("]", 1)[0]
-assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
-assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
+assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 23
+assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 23
 assert '"Sfumatura alto"' in tabs
 assert '"Sfumatura basso"' in tabs
 assert '("Sfumature", [15, 16, 19, 20])' in tabs
@@ -72,7 +72,7 @@ for prop in ("topFadeIntensity", "bottomFadeIntensity"):
     assert f"decodeIfPresent(Double.self, forKey: .{prop})" in tabs
     assert f"data.encode({prop}, forKey: .{prop})" in tabs
     assert f"palette.{prop}.isFinite" in tabs
-assert "foreground.1, foreground.0, foreground.0]" in tabs
+assert "foreground.1, foreground.0, foreground.0, foreground.0]" in tabs
 assert "EcoThemePalette.save(palette, slot: slot)" in tabs
 
 print("OK — build 91: independent high/low color and opacity, migrated slots, dial/bridge masks")

@@ -1,5 +1,15 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 110 — anello interno, illuminazione individuale e inerzia stabile (17 novembre 2026)
+
+**Richiesta:** nuovo anello concentrico *dentro* il neon velocità, colore e illuminazione editabili nella stessa card compatta **colore → icona → slider luce → %**, identica alle sfumature. Tutti gli elementi con un alone luminoso devono avere il proprio slider; eliminare quello generale. Correggere l'inerzia che oscillava rapidamente: **accelerazione arancione, decelerazione azzurra**, più filtraggio, isteresi e permanenza minima. Colori personalizzabili in «Anelli e numeri del tachimetro». GPS usato solo per la velocità; classificazione inerziale derivata da Core Motion e non dal delta km/h.
+
+**Modifiche ramo `build-109-inner-ring-per-element-glow-inertia`:** `EcoThemePalette` espande i ruoli 22→23 aggiungendo **anello interno** (ruolo 22), scala geometrica `d*0.630` inferiore al neon GPS `d*0.722`, rendering nel cockpit e nella miniatura. Migrazione non distruttiva degli slot precedenti con `lightingVersion=109` e array persistente `glowLevels` dei singoli ruoli. Il vecchio `glowIntensity` resta in archivio per leggere i temi storici ma non comanda più l'interfaccia. Sotto «Anelli» compaiono anello esterno e interno, top bar e underglow; sotto LED velocità Inerzia ci sono neutro, decelerazione (azzurro), accelerazione (arancione), limite; LED BMS restano ingresso/uscita separati; anche i tre ruoli luminosi delle barre telemetria hanno il controllo dedicato. I singoli aloni sono parametrizzati senza perdere il colore base quando il valore è 0%.
+
+**Core Motion:** la lettura usa `userAcceleration` longitudinalmente e `rotationRate` per sospendere durante rotazioni; ora l'asse Z non è più invertito di default. Filtro passa-basso più forte, soglie diverse per attivazione/rilascio, zona neutra, circa 0,6–0,7 s di conferma e 1,1 s di permanenza minima. Non è possibile passare immediatamente dall'arancione all'azzurro: serve prima uno stato neutro. Un BMS con potenza recente usa invece i ruoli energia reali. GPS continua a spostare soltanto il cursore velocità. La correttezza dell'asse del supporto iPhone va confermata in prova reale.
+
+**Versione:** **1.0 (110)**. Nuova regressione `Tests/verify_build109_inner_ring_glow_inertia.py`; controlli storici di versione aggiornati. **Rilascio su numero 110:** la build 109 è stata già caricata con un altro intervento. **Prima del rilascio**: CI PR, Xcode simulator, merge `main`, CI finale, archive e `Upload succeeded` Apple. Apple processing, assegnazione gruppo TE e test dispositivo non implicati nell'upload.
+
 ## Build 109 — ritorno Cockpit nei menu e selezione kit al primo tocco (17 novembre 2026)
 
 **Nuova richiesta utente:** nel menu Setup e negli altri menu l'icona per tornare al cockpit deve raffigurare il cockpit, non la mappa; in «Configura tema» i sei kit devono rispondere al primo tocco, senza ripetere i click.

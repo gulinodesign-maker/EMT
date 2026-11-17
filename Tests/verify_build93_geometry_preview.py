@@ -7,7 +7,7 @@ c = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 t = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 p = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 109;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 110;") == 2
 assert p.count("MARKETING_VERSION = 1.0;") == 2
 assert "Build 93" in state
 
@@ -31,7 +31,7 @@ cluster = c.split("private struct OpenSpeedCluster: View {", 1)[1].split(
 assert "var maximizesGPSSpeedScale: Bool = false" in cluster
 assert "if maximizesGPSSpeedScale {" in cluster
 assert cluster.count(".scaleEffect(GPSDialLayout.speedScaleMagnification)") == 2
-assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow)" in cluster
+assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow," in cluster
 assert "SpeedScaleTicks(d: d)" in cluster
 gps = c.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "// Pulsante dedicato", 1)[0]
@@ -69,7 +69,7 @@ assert "let palette: EcoThemePalette" in preview
 assert "Color(themeHex: palette.colors[index])" in preview
 assert "palette.highOpacity" in preview
 assert "palette.lowOpacity" in preview
-assert "palette.glowIntensity" in preview
+assert "palette.glow(for: 21)" in preview
 assert 'Text("88")' not in preview
 assert 'Text("35%")' not in preview
 assert 'Text("60 km/h")' not in preview
@@ -84,5 +84,5 @@ assert "EcoThemePreview(palette: palette, active: active)" in t
 assert "EcoThemePreview(palette: draft)" in t
 assert "draft.colors[selected.id] = hex" in t
 assert "minimumDuration: 0.45" not in t
-assert "static let colorCount = 22" in t
+assert "static let colorCount = 23" in t
 print("OK — build 93: diagonal exterior layer, -10% ring, larger GPS scale, complete live draft cockpit miniature")

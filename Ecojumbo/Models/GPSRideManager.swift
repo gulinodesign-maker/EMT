@@ -11,16 +11,20 @@ enum EcoPowerSource: String, CaseIterable {
     case inertia, bms
 }
 
-// Build 108 — Core Motion usa l'accelerazione senza gravità, stimata dalla
-// fusione accelerometro+giroscopio. Non deriva fasi dalla velocità GPS.
+// Build 109: classificazione inerziale senza contributo della velocità GPS.
+// Core Motion combina accelerometro e giroscopio per rimuovere la gravità;
+// il giroscopio puro misura rotazione, non accelerazione longitudinale.
 @MainActor
 final class EcoPowerMotionManager: ObservableObject {
     @Published private(set) var flow: EcoPowerFlow = .neutral
-    @Published private(set) var available: Bool = false
+    @Published private(set) var available = false
     @Published private(set) var lastUpdate: Date = .distantPast
 
     private let sensor = CMMotionManager()
-    private var smoothedAcceleration: Double = 0
+    private var filteredAcceleration: Double = 0
+    private var pendingFlow: EcoPowerFlow?
+    private var pendingSince: Date?
+    private var lastTransition: Date = .distantPast
     private var started = false
 
     func start() {
@@ -32,18 +36,21 @@ final class EcoPowerMotionManager: ObservableObject {
             return
         }
         started = true
-        smoothedAcceleration = 0
+        filteredAcceleration = 0
+        pendingFlow = nil
+        pendingSince = nil
+        lastTransition = .distantPast
         sensor.deviceMotionUpdateInterval = 1.0 / 30.0
         sensor.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
             guard let motion else { return }
-            let x = motion.userAcceleration.x
-            let y = motion.userAcceleration.y
-            let z = motion.userAcceleration.z
-            let turnRate = sqrt(pow(motion.rotationRate.x, 2)
-                                + pow(motion.rotationRate.y, 2)
-                                + pow(motion.rotationRate.z, 2))
+            let accel = motion.userAcceleration
+            let rotation = motion.rotationRate
+            let turnRate = sqrt(rotation.x * rotation.x
+                                + rotation.y * rotation.y
+                                + rotation.z * rotation.z)
             Task { @MainActor [weak self] in
-                self?.consume(x: x, y: y, z: z, rotationRate: turnRate, at: Date())
+                self?.consume(x: accel.x, y: accel.y, z: accel.z,
+                              rotationRate: turnRate, at: Date())
             }
         }
     }
@@ -51,60 +58,96 @@ final class EcoPowerMotionManager: ObservableObject {
     func stop() {
         sensor.stopDeviceMotionUpdates()
         started = false
-        smoothedAcceleration = 0
+        filteredAcceleration = 0
+        pendingFlow = nil
+        pendingSince = nil
         flow = .neutral
         lastUpdate = .distantPast
+        lastTransition = .distantPast
     }
 
-    // Asse perpendicolare allo schermo di default, per iPhone montato in
-    // verticale sul manubrio. Asse e inversione sono configurabili.
     private func consume(x: Double, y: Double, z: Double,
                          rotationRate: Double, at date: Date) {
         guard x.isFinite, y.isFinite, z.isFinite, rotationRate.isFinite else {
-            flow = .neutral
+            pendingFlow = nil
+            pendingSince = nil
             return
-        }
-        let settings = UserDefaults.standard
-        let axis = settings.string(forKey: "ecojumbo.power.motionAxis") ?? "z"
-        let sample = switch axis {
-        case "x": x
-        case "y": y
-        default: -z
-        }
-        let sign = settings.bool(forKey: "ecojumbo.power.reverseMotion") ? -1.0 : 1.0
-        // Sospendi temporaneamente la classificazione durante rotazioni forti.
-        // Evita l'interpretazione di curve e vibrazioni come freno/acceleratore.
-        guard rotationRate < 2.5 else {
-            smoothedAcceleration *= 0.65
-            flow = .neutral
-            lastUpdate = date
-            return
-        }
-        smoothedAcceleration = 0.65 * smoothedAcceleration + 0.35 * sample * sign
-        let stored = settings.object(forKey: "ecojumbo.power.motionSensitivity") as? Double ?? 0.5
-        let sensitivity = max(0, min(1, stored))
-        // Sensibilità alta => soglia più bassa, ma sempre zona morta.
-        let threshold = 0.18 - sensitivity * 0.155 // 0.025...0.18 g
-        let releaseThreshold = threshold * 0.60
-        let limit = flow == .neutral ? threshold : releaseThreshold
-        if smoothedAcceleration > limit {
-            flow = .outgoing
-        } else if smoothedAcceleration < -limit {
-            flow = .incoming
-        } else {
-            flow = .neutral
         }
         lastUpdate = date
+        let settings = UserDefaults.standard
+        let axis = settings.string(forKey: "ecojumbo.power.motionAxis") ?? "z"
+        // Build 108 invertiva per errore l'asse Z, causando colori opposti.
+        let longitudinal = switch axis {
+        case "x": x
+        case "y": y
+        default: z
+        }
+        let sign = settings.bool(forKey: "ecojumbo.power.reverseMotion") ? -1.0 : 1.0
+        // Filtro passa-basso: attenua vibrazioni/micro-accelerazioni
+        // prima di qualunque decisione di colore.
+        filteredAcceleration = 0.86 * filteredAcceleration + 0.14 * longitudinal * sign
+
+        // Curve o cambi di assetto: congela la decisione invece di alternare
+        // rapidamente arancio/azzurro. La corrente BMS non ne è influenzata.
+        guard rotationRate < 1.15 else {
+            pendingFlow = nil
+            pendingSince = nil
+            if date.timeIntervalSince(lastTransition) > 1.2 {
+                flow = .neutral
+                lastTransition = date
+            }
+            return
+        }
+
+        let sensitivity = min(1, max(0,
+            settings.object(forKey: "ecojumbo.power.motionSensitivity") as? Double ?? 0.5))
+        // Sensibilità alta = soglia più bassa, ma non nulla.
+        let enterThreshold = 0.21 - sensitivity * 0.16 // 0.05...0.21 g
+        let leaveThreshold = enterThreshold * 0.48
+        let candidate: EcoPowerFlow
+        switch flow {
+        case .neutral:
+            if filteredAcceleration > enterThreshold {
+                candidate = .outgoing  // accelerazione => arancione
+            } else if filteredAcceleration < -enterThreshold {
+                candidate = .incoming  // decelerazione => azzurro
+            } else {
+                candidate = .neutral
+            }
+        case .outgoing:
+            candidate = filteredAcceleration >= leaveThreshold ? .outgoing : .neutral
+        case .incoming:
+            candidate = filteredAcceleration <= -leaveThreshold ? .incoming : .neutral
+        }
+        if candidate == flow {
+            pendingFlow = nil
+            pendingSince = nil
+            return
+        }
+        if pendingFlow != candidate {
+            pendingFlow = candidate
+            pendingSince = date
+            return
+        }
+        guard let since = pendingSince else { return }
+        // Nessun salto diretto tra accelerazione e decelerazione:
+        // passaggio per neutro + tempo minimo di tenuta del colore.
+        let requiredDwell = candidate == .neutral ? 0.60 : 0.70
+        guard date.timeIntervalSince(since) >= requiredDwell,
+              date.timeIntervalSince(lastTransition) >= 1.10 else { return }
+        flow = candidate
+        lastTransition = date
+        pendingFlow = nil
+        pendingSince = nil
     }
 
     func currentFlow(at time: Date = Date()) -> EcoPowerFlow {
-        guard available, started, time.timeIntervalSince(lastUpdate) < 1.0 else {
+        guard available, started, time.timeIntervalSince(lastUpdate) < 1 else {
             return .neutral
         }
         return flow
     }
 }
-
 
 struct RouteCoordinate: Codable, Equatable {
     let latitude: Double

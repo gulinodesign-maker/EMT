@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 109;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 110;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -102,7 +102,7 @@ assert '48 A' not in c and '62 km/h' not in c and '400 V' not in c
 assert '— V' in c and '— kW' in c and '— km' in c
 assert 'Text(String(Int(speed.rounded())))' in c and 'Text("km/h")' in c
 assert 'Label("GPS", systemImage: "location.north.fill")' in c and 'Text("P")' not in c
-assert 'SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow)' in c and 'SpeedScaleTicks(d: d)' in c
+assert 'SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow,' in c and 'SpeedScaleTicks(d: d)' in c
 assert 'SegmentedGaugeBar(d:' in c
 
 # Le linee usano lo stesso raggio effettivo; angoli inferiori retti.
