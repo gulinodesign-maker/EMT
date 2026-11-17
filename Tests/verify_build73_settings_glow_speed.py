@@ -54,7 +54,8 @@ assert "migrated.colors.append(contentsOf: [edge, edge])" in tabs
 assert 'migrated.colors.append("#FF3B30")' in tabs
 assert "decodeIfPresent(Double.self, forKey: .glowIntensity)" in tabs
 assert "try data.encode(glowIntensity, forKey: .glowIntensity)" in tabs
-assert "Slider(value: $draft.glowIntensity, in: 0...1, step: 0.05)" in tabs
+assert "Slider(value: $draft.glowIntensity, in: 0...1, step: 0.05)" not in tabs
+assert "Slider(value: illumination, in: 0...1, step: 0.01)" in tabs
 assert 'glowRoleSection("LED velocità · inerzia", roles: [10, 14, 18, 17])' in tabs
 assert '"Velocità GPS · limite superato"' in tabs
 assert '"Inerzia · accelerazione"' in tabs

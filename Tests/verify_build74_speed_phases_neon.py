@@ -52,7 +52,7 @@ speed = cockpit.split("private struct SpeedLEDStream: View {", 1)[1].split(
 assert "if speedLimitColorEnabled, let speed, speed.isFinite," in speed
 assert "case 9: return CockpitTheme.recoveryRingAccent" in speed
 assert "case 8: return CockpitTheme.dischargeAccent" in speed
-assert "case .neutral:" not in speed
+assert "case .neutral:" in speed
 assert "case 14: return CockpitTheme.decelerationAccent" in speed
 assert "case 18: return CockpitTheme.accelerationAccent" in speed
 assert "speed / max(30, vehicleSpeedMaxKmh)" in speed

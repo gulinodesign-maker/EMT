@@ -21,7 +21,7 @@ assert "Slider(value: $draft.gradientAngle" not in editor
 assert "Slider(value: gradientOpacityBinding" not in editor
 assert "topFadeBinding" not in editor and "bottomFadeBinding" not in editor
 cards = editor.split("private func gradientRoleTile(_ role: Int) -> some View {", 1)[1].split(
-    "private func colorRoleSection", 1)[0]
+    "private func glowBinding", 1)[0]
 assert "colorID = EcoThemeColorID(id: role, isDay: editingDayTopBar)" in cards
 assert "Slider(value: transparency, in: 0...1, step: 0.01)" in cards
 assert cards.count("Slider(value:") == 1
