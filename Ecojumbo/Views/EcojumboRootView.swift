@@ -347,7 +347,6 @@ private struct CockpitCornerControls: View {
     @StateObject private var navigation = EcoNavigationStore.shared
     @StateObject private var music = EcoMusicManager.shared
     @StateObject private var apple = EcoAppleMusicPlayback.shared
-    @AppStorage("ecojumbo.music.provider") private var providerName = EcoMusicProvider.apple.rawValue
     @Binding var selected: EcoTab
     @Binding var mapEnabled: Bool
     @Binding var musicEnabled: Bool
@@ -402,21 +401,21 @@ private struct CockpitCornerControls: View {
                         }
                         gpsButton("backward.end.fill", text: "Indietro",
                                   accessibility: "Brano precedente", side: gpsSide) {
-                            if providerName == EcoMusicProvider.apple.rawValue && apple.hasChosenTrack {
+                            if apple.hasChosenTrack {
                                 apple.previous()
                             } else { music.previous() }
                         }
-                        gpsButton((providerName == EcoMusicProvider.apple.rawValue && apple.hasChosenTrack
+                        gpsButton((apple.hasChosenTrack
                                    ? apple.isPlaying : music.isPlaying) ? "pause.fill" : "play.fill",
                                   text: "Play/Pausa", accessibility: "Riproduci o metti in pausa",
                                   side: gpsSide) {
-                            if providerName == EcoMusicProvider.apple.rawValue && apple.hasChosenTrack {
+                            if apple.hasChosenTrack {
                                 apple.togglePlayback()
                             } else { music.togglePlayback() }
                         }
                         gpsButton("forward.end.fill", text: "Avanti",
                                   accessibility: "Brano successivo", side: gpsSide) {
-                            if providerName == EcoMusicProvider.apple.rawValue && apple.hasChosenTrack {
+                            if apple.hasChosenTrack {
                                 apple.next()
                             } else { music.next() }
                         }
@@ -445,7 +444,7 @@ private struct CockpitCornerControls: View {
                                       accessibility: "Apri musica", side: gpsSide) {
                                 musicEnabled = true
                                 musicSearchVisible = false
-                                music.select(EcoMusicProvider(rawValue: providerName) ?? .apple)
+                                music.select(.apple)
                                 // Non cancellare mapEnabled né la rotta MapKit.
                             }
                         }

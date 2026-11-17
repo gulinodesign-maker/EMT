@@ -33,38 +33,32 @@ assert "mapEnabled = false" in root_view
 assert "telemetryPanelWidth - 6 * gpsSide" in root_view
 assert "GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled," in root_view
 
-# Provider persistente e menu Setup, senza servizi inesistenti.
+# Solo Apple Music; nessun provider esterno nel prodotto pubblicabile.
 assert 'case apple = "Apple Music"' in manager
-assert 'case spotify = "Spotify"' in manager
-assert 'case youtube = "YouTube Music"' in manager
-assert "Google Play Music" not in manager
-assert '"ecojumbo.music.provider"' in settings
-assert '"ecojumbo.spotifyClientID"' in settings
+assert 'case spotify' not in manager
+assert 'case youtube' not in manager
+assert 'Section("Apple Music")' in settings
+assert 'Client ID Spotify' not in settings
+assert 'YouTube Music' not in settings
 assert 'case .music: "Musica"' in settings
-assert 'TextField("Client ID Spotify", text: $spotifyClientID)' in settings
 
 # Controlli effettivi, copertine reali, nessun brano simulato.
 assert "MPMusicPlayerController.systemMusicPlayer" in manager
 for command in ["applePlayer.pause()", "applePlayer.play()", "applePlayer.skipToPreviousItem()", "applePlayer.skipToNextItem()"]:
     assert command in manager
-for endpoint in ["/me/player", "/me/player/next", "/me/player/previous", "/me/player/pause", "/me/player/play"]:
-    assert endpoint in manager
+assert "https://api.spotify.com" not in manager
+assert "spotifyCommand" not in manager
 assert "AsyncImage(url: url)" in panel
 assert "Image(uiImage: artwork)" in panel
 assert "Nessun brano" in manager
 
-# Spotify: PKCE S256, state vincolato, Keychain e mai Client Secret.
-assert '"code_challenge_method", value: "S256"' in manager
-assert 'get("state") == state' in manager
-assert "SHA256.hash" in manager
-assert "kSecClassGenericPassword" in manager
-assert "refresh_token" in manager
-assert "client_secret" not in manager.lower()
-assert "EcoMusicManager.shared.handleSpotifyCallback(url)" in app
+# OAuth esterno rimosso; permesso Apple preservato.
+assert "kSecClassGenericPassword" in manager  # pulizia vecchi token
+assert "handleSpotifyCallback" not in app
 assert "<key>NSAppleMusicUsageDescription</key>" in plist
-assert "<string>ecojumbo-spotify</string>" in plist
-assert project.count("CURRENT_PROJECT_VERSION = 112;") == 2
+assert "<string>ecojumbo-spotify</string>" not in plist
+assert project.count("CURRENT_PROJECT_VERSION = 113;") == 2
 for filename in ("EcoMusicManager.swift", "EcoMusicCockpitPanel.swift"):
     assert project.count(f"{filename} in Sources") >= 2
 
-print("Build 97 music cockpit and provider wiring OK")
+print("Build 97 music cockpit retained; build 113 Apple Music only OK")

@@ -683,9 +683,24 @@ struct EcoThemePalette: Codable, Equatable {
         return hex.count == 6 && hex.allSatisfy { $0.isHexDigit }
     }
 
+    // Preset di fabbrica esatti: importati dai due JSON forniti dall'utente.
+    // Decodifica tramite lo stesso modello usato da Importa tema; niente
+    // palette ricalcolate né migrazione dei tre slot personalizzati.
+    private static let ferrariFactory: EcoThemePalette = {
+        let json = ##"{"altitudeGraphColor":"#FFD800","altitudeGraphGlow":0.55,"bottomFadeIntensity":1,"brandID":"Ferrari","colors":["#000000","#ED1C24","#6E1019","#D8D8D8","#6E1019","#ED1C24","#FFD800","#ED1C24","#ED1C24","#FFD800","#F3F3F3","#E53935","#FFFFFF","#FFFFFF","#FFD800","#6E1019","#ED1C24","#8E24AA","#ED1C24","#ED1C24","#6E1019","#FFD800","#6C6C6C"],"dayGradientOpacity":1,"dayHighOpacity":0.22,"dayLightIntensity":1,"dayLightOpacity":1,"dayLowOpacity":0.22,"dayShadowIntensity":1,"dayShadowOpacity":1,"dayTopBar":{"high":"#FABFC2","highIntensity":1,"left":"#D6BCBF","low":"#D6BCBF","lowIntensity":1,"right":"#FABFC2","underGlow":"#BE9397"},"directionalVersion":108,"glowIntensity":0.6,"glowLevels":[1,1,0.6,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0.6,0.7],"gradientAngle":0,"gradientOpacity":1,"highOpacity":0.26,"lightIntensity":1,"lightOpacity":0.48,"lightingVersion":109,"lowOpacity":0.35,"name":"Ferrari","shadowIntensity":1,"shadowOpacity":0.52,"topFadeIntensity":1}"##
+        return try! JSONDecoder().decode(EcoThemePalette.self, from: Data(json.utf8))
+    }()
+
+    private static let cupraFactory: EcoThemePalette = {
+        let json = ##"{"altitudeGraphColor":"#DEAB82","altitudeGraphGlow":0.55,"bottomFadeIntensity":1,"brandID":"Cupra","colors":["#07151C","#B87333","#163E4A","#A9ACAA","#163E4A","#B87333","#DEAB82","#B87333","#B87333","#DEAB82","#B87333","#FFFFFF","#FFFFFF","#FFFFFF","#DEAB82","#163E4A","#B87333","#FF3B30","#B87333","#B87333","#163E4A","#DEAB82","#AAAAAA"],"dayGradientOpacity":1,"dayHighOpacity":0.22,"dayLightIntensity":1,"dayLightOpacity":1,"dayLowOpacity":0.22,"dayShadowIntensity":1,"dayShadowOpacity":1,"dayTopBar":{"high":"#EBD8C6","highIntensity":1,"left":"#BEC9CC","low":"#BEC9CC","lowIntensity":1,"right":"#EBD8C6","underGlow":"#96A8AE"},"directionalVersion":108,"glowIntensity":0.6,"glowLevels":[1,1,0.6,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0.6,0.8],"gradientAngle":0,"gradientOpacity":1,"highOpacity":0.35,"lightIntensity":1,"lightOpacity":1,"lightingVersion":109,"lowOpacity":0.35,"name":"Cupra","shadowIntensity":1,"shadowOpacity":1,"topFadeIntensity":1}"##
+        return try! JSONDecoder().decode(EcoThemePalette.self, from: Data(json.utf8))
+    }()
+
     // Sei preset automobilistici basati sulle identità cromatiche dei marchi.
     // In tutti restano distinti gli allarmi di sicurezza (rosso limite).
     static func template(_ preset: CockpitTheme) -> EcoThemePalette {
+        if preset == .glacier { return ferrariFactory }
+        if preset == .racing { return cupraFactory }
         let base: String
         let main: String
         let shade: String
@@ -946,8 +961,8 @@ private struct EcoThemeColorID: Identifiable {
     let isDay: Bool
 }
 
-// I marchi sono asset locali SVG. Gli stemmi restano riconoscibili in
-// Day/Night e la cornice chiara protegge il contrasto dei loghi originali.
+// Sei stemmi originali Ecojumbo: stessa forma e fulmine dell'app,
+// iniziale e colore diversi. Nessun logo ufficiale dei produttori.
 private struct EcoAutomotiveBrandLogo: View {
     let brand: String
     let size: CGFloat
@@ -979,8 +994,8 @@ private struct EcoAutomotiveBrandLogo: View {
             }
         }
         .frame(width: size, height: size)
-        .background(.white, in: RoundedRectangle(cornerRadius: 9))
-        .accessibilityLabel("Logo " + brand)
+        .background(.black, in: RoundedRectangle(cornerRadius: 9))
+        .accessibilityLabel("Stemma Ecojumbo " + brand)
     }
 }
 

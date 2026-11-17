@@ -133,7 +133,6 @@ final class EcoAppleMusicPlayback: ObservableObject {
 struct EcoMusicCockpitPanel: View {
     @StateObject private var music = EcoMusicManager.shared
     @StateObject private var apple = EcoAppleMusicPlayback.shared
-    @AppStorage("ecojumbo.music.provider") private var providerName = EcoMusicProvider.apple.rawValue
     @Binding var searchVisible: Bool
     @State private var query = ""
     @State private var results: [Song] = []
@@ -145,11 +144,7 @@ struct EcoMusicCockpitPanel: View {
     @FocusState private var searchFieldFocused: Bool
     let theme: CockpitTheme
 
-    private var provider: EcoMusicProvider {
-        EcoMusicProvider(rawValue: providerName) ?? .apple
-    }
-
-    private var usesInAppPlayer: Bool { provider == .apple && apple.hasChosenTrack }
+    private var usesInAppPlayer: Bool { apple.hasChosenTrack }
 
     private var trackTitle: String {
         usesInAppPlayer ? apple.title : music.title
@@ -185,16 +180,8 @@ struct EcoMusicCockpitPanel: View {
         }
         .accessibilityElement(children: .contain)
         .onAppear {
-            music.select(provider)
+            music.select(.apple)
             apple.refresh()
-        }
-        .onChange(of: providerName) { _, _ in
-            music.select(provider)
-            searchVisible = false
-            query = ""
-            results.removeAll()
-            libraryResults.removeAll()
-            catalogTokenUnavailable = false
         }
         .onChange(of: searchVisible) { _, visible in
             searchFieldFocused = visible
@@ -208,16 +195,11 @@ struct EcoMusicCockpitPanel: View {
         // MusicKit + lettore di sistema: polling breve anche mentre suona;
         // i comandi non sono necessari per aggiornare copertina/Play-Pausa.
         .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
-            if provider == .apple {
-                music.refresh()
-                apple.refresh()
-            }
-        }
-        .onReceive(Timer.publish(every: 3, on: .main, in: .common).autoconnect()) { _ in
-            if provider == .spotify { music.refresh() }
+            music.refresh()
+            apple.refresh()
         }
         .task(id: searchVisible ? "\(query)|\(searchRevision)" : "") {
-            guard searchVisible, provider == .apple else {
+            guard searchVisible else {
                 results.removeAll()
                 libraryResults.removeAll()
                 searchError = ""
@@ -291,7 +273,7 @@ struct EcoMusicCockpitPanel: View {
                 } else {
                     placeholder
                 }
-            } else if let artwork = music.cover, provider == .apple {
+            } else if let artwork = music.cover {
                 Image(uiImage: artwork).resizable().scaledToFill()
             } else if let url = artworkURL {
                 AsyncImage(url: url) { image in
@@ -319,7 +301,7 @@ struct EcoMusicCockpitPanel: View {
 
     private func informationLayer(width w: CGFloat, height h: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: max(6, h * 0.018)) {
-            Text("MUSICA · " + provider.rawValue.uppercased())
+            Text("MUSICA · APPLE MUSIC")
                 .font(.system(size: max(12, h * 0.035), weight: .bold, design: .rounded))
                 .tracking(1.5)
                 .foregroundStyle(.white.opacity(0.83))
@@ -332,21 +314,13 @@ struct EcoMusicCockpitPanel: View {
                 .font(.system(size: max(13, w * 0.025), weight: .medium))
                 .lineLimit(2)
                 .foregroundStyle(.white.opacity(0.82))
-            if provider == .apple && !apple.isAuthorized {
+            if !apple.isAuthorized {
                 Button("Autorizza Apple Music") {
                     apple.requestAuthorization()
                     music.requestAppleAccess()
                 }
                 .foregroundStyle(theme.accent)
                 .buttonStyle(.plain)
-            } else if provider == .spotify && !music.spotifyConnected {
-                Label("Spotify · Setup", systemImage: "link")
-                    .foregroundStyle(.white.opacity(0.8))
-                    .accessibilityHint("Collega Spotify dalle impostazioni Musica.")
-            } else if provider == .youtube {
-                Label("Player esterno", systemImage: "arrow.up.right.square")
-                    .foregroundStyle(.white.opacity(0.8))
-                    .accessibilityHint("YouTube Music non dispone di riproduzione integrata.")
             }
             let note = usesInAppPlayer ? apple.errorMessage : music.message
             if !note.isEmpty {
@@ -389,11 +363,6 @@ struct EcoMusicCockpitPanel: View {
             .padding(11)
             .background(.black.opacity(0.76), in: RoundedRectangle(cornerRadius: 10))
 
-            if provider != .apple {
-                Label("Ricerca · Apple Music", systemImage: "music.note")
-                    .foregroundStyle(.white)
-                    .font(.footnote)
-            } else {
                 if !apple.isAuthorized || !music.appleAuthorized {
                     Button("Autorizza Apple Music e la libreria") {
                         apple.requestAuthorization()
@@ -515,7 +484,6 @@ struct EcoMusicCockpitPanel: View {
                         .font(.caption)
                         .foregroundStyle(.white.opacity(0.75))
                 }
-            }
             Spacer(minLength: 0)
         }
         .padding(.leading, w * 0.32)

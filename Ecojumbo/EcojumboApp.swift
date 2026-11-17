@@ -53,9 +53,6 @@ struct EcojumboApp: App {
                 .environmentObject(bluetooth)
                 .environmentObject(gps)
                 .environmentObject(powerMotion)
-                .onOpenURL { url in
-                    EcoMusicManager.shared.handleSpotifyCallback(url)
-                }
                 .onAppear {
                     UIApplication.shared.isIdleTimerDisabled = true
                     powerMotion.start()
