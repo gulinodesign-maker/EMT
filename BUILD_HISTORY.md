@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44065057813:ATTEMPT:1 -->
+### 2026-11-17T10:27:51Z — CI #384 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44065057813](https://github.com/gulinodesign-maker/EMT/actions/runs/44065057813); avvio 2026-11-17T10:27:51Z UTC; aggiornamento finale 2026-11-17T10:28:36Z UTC; registrazione 2026-11-17T10:28:46+00:00 UTC; evento pull_request.
+- **Commit:** [bcd2eb120ef8](https://github.com/gulinodesign-maker/EMT/commit/bcd2eb120ef89d484efc6603b98d0e535a916a50); versione **1.0**; build **110**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** BUILD_HISTORY.md, Ecojumbo.xcodeproj/project.pbxproj, Ecojumbo/Views/CockpitTabs.swift, Ecojumbo/Views/EcojumboRootView.swift, STATO_PROGETTO.md, Tests/verify_build109_cockpit_return_kit_tap.py.
+
 <!-- EMT_RUN:44064136282:ATTEMPT:1 -->
 ### 2026-11-17T10:21:52Z — CI #383 · main · tentativo 1
 
