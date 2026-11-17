@@ -643,7 +643,7 @@ struct EcoThemePalette: Codable, Equatable {
     static let colorCount = 23
     static let extraDefaults = [
         "#FA2B2E", "#2BBAFF", "#FF7008", "#FA2B2E",
-        "#FFFFFF", "#FFFFFF", "#FFB224"
+        "#FFFFFF", "#FFFFFF", "#38BDF8"
     ]
     static let standardBarColors = ["#8C0521", "#E90F3B", "#FC3352", "#2BBAFF"]
     static let storagePrefix = "ecojumbo.customTheme."
@@ -667,9 +667,8 @@ struct EcoThemePalette: Codable, Equatable {
             name: "Il mio tema",
             colors: ["#040405", foreground.0, foreground.1, "#D9DEE3"]
                 + standardBarColors + extraDefaults
-                + [foreground.1, foreground.1, "#FF3B30", "#FF3B30",
-                   foreground.1, "#FF9A1F", foreground.0, foreground.0,
-                   foreground.0]
+                + [foreground.1, foreground.1, "#FF3B30", "#FF9A1F",
+                   foreground.1, foreground.0, foreground.0, foreground.0]
         )
     }
 
@@ -1054,9 +1053,12 @@ private struct EcoThemeEditorView: View {
 
 
                         if selectedGroup == 1 {
-                            colorRoleSection("Anelli e luci", roles: [1, 3, 21, 2])
-                            colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])
-                            colorRoleSection("LED potenza", roles: [8, 9])
+                            glowRoleSection("Anelli", roles: [1, 21, 22, 2])
+                            colorRoleSection("Metallo e numeri", roles: [3, 11])
+                            glowRoleSection("LED velocità · inerzia", roles: [10, 14, 18, 17])
+                            glowRoleSection("LED potenza · BMS", roles: [8, 9])
+                        } else if selectedGroup == 2 {
+                            glowRoleSection("Barre telemetria", roles: [4, 5, 6])
                         } else if selectedGroup != 4 {
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)],
                                       spacing: 10) {
@@ -1084,23 +1086,6 @@ private struct EcoThemeEditorView: View {
                         }
                     }
 
-                    if selectedGroup == 1 {
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            Label("Luce tachimetro", systemImage: "sun.max")
-                                .font(.subheadline.weight(.semibold))
-                            Spacer()
-                            Text("\(Int((draft.glowIntensity * 100).rounded()))%")
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                        Slider(value: $draft.glowIntensity, in: 0...1, step: 0.05)
-                            .tint(Color(themeHex: draft.colors[1]))
-                    }
-                    .padding(12)
-                    .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
-                    }
-
                     Button {
                         chooseSlot = true
                     } label: {
@@ -1109,7 +1094,8 @@ private struct EcoThemeEditorView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(draft.colors.count != EcoThemePalette.colorCount ||
-                              !draft.glowIntensity.isFinite ||
+                              draft.glowLevels.count != EcoThemePalette.colorCount ||
+                              !draft.glowLevels.allSatisfy({ $0.isFinite && (0...1).contains($0) }) ||
                               !draft.topFadeIntensity.isFinite ||
                               !draft.bottomFadeIntensity.isFinite ||
                               !draft.gradientAngle.isFinite ||
@@ -1318,6 +1304,66 @@ private struct EcoThemeEditorView: View {
         .padding(10)
         .frame(maxWidth: .infinity)
         .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    // Build 109: stessa riga delle sfumature: campione colore, icona,
+    // singolo cursore illuminazione, percentuale. Mai un master globale.
+    private func glowBinding(for role: Int) -> Binding<Double> {
+        Binding(get: {
+            draft.glowLevels.indices.contains(role) ? draft.glowLevels[role] : 1
+        }, set: { newValue in
+            guard draft.glowLevels.indices.contains(role) else { return }
+            draft.glowLevels[role] = min(1, max(0, newValue))
+        })
+    }
+
+    private func glowRoleTile(_ role: Int) -> some View {
+        let illumination = glowBinding(for: role)
+        return HStack(spacing: 9) {
+            Button {
+                colorID = EcoThemeColorID(id: role, isDay: false)
+            } label: {
+                RoundedRectangle(cornerRadius: 7)
+                    .fill(Color(themeHex: draft.colors[role]))
+                    .frame(width: 38, height: 38)
+                    .overlay(RoundedRectangle(cornerRadius: 7)
+                        .strokeBorder(.secondary.opacity(0.30), lineWidth: 1))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Colore " + EcoThemePalette.labels[role])
+
+            Image(systemName: role == 21 || role == 22 ? "circle.dotted.circle" : "sun.max")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .frame(width: 22)
+                .accessibilityHidden(true)
+
+            Slider(value: illumination, in: 0...1, step: 0.01)
+                .tint(Color(themeHex: draft.colors[role]))
+                .accessibilityLabel("Illuminazione " + EcoThemePalette.labels[role])
+                .accessibilityValue("\(Int((illumination.wrappedValue * 100).rounded()))%")
+
+            Text("\(Int((illumination.wrappedValue * 100).rounded()))%")
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
+                .frame(width: 42, alignment: .trailing)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity)
+        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func glowRoleSection(_ title: String, roles: [Int]) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            Text(title).font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)],
+                      spacing: 10) {
+                ForEach(roles, id: \.self) { role in
+                    glowRoleTile(role)
+                }
+            }
+        }
     }
 
     private func colorRoleSection(_ title: String, roles: [Int]) -> some View {
