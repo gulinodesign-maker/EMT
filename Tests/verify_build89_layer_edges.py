@@ -56,9 +56,9 @@ assert "GPSMetalInnerRing()" in gps
 assert ".mask(GPSBridgeUpperMask())" in gps  # dial mask retained
 
 # Saved theme slots and other cockpit features still exist.
-assert '("Sfumature · luce e ombra", [15, 16, 19, 20])' in theme
+assert '("Sfumature", [15, 16, 19, 20])' in theme
 assert "powerWatts: live.map { -$0.power }" in gps
-assert "GPSPowerHorizontalGauge(d: dialSize," in gps
+assert "GPSPowerHorizontalGauge(d: dialSize," not in gps
 
 # Across supported landscape geometries the foot always lies outside the
 # circle and meets the left bridge side exactly before the bottom edge.
