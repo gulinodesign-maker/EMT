@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44056748994:ATTEMPT:1 -->
+### 2026-11-17T09:34:08Z — CI #370 · build-108-directional-fades-inertial-bms-power · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44056748994](https://github.com/gulinodesign-maker/EMT/actions/runs/44056748994); avvio 2026-11-17T09:34:08Z UTC; aggiornamento finale 2026-11-17T09:35:33Z UTC; registrazione 2026-11-17T09:35:45+00:00 UTC; evento pull_request.
+- **Commit:** [3b4e2c4dde4c](https://github.com/gulinodesign-maker/EMT/commit/3b4e2c4dde4c243e444ebe9b340b0ec62075306a); versione **1.0**; build **108**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Ecojumbo/Views/CockpitTabs.swift.
+
 <!-- EMT_RUN:44055657525:ATTEMPT:1 -->
 ### 2026-11-17T09:26:54Z — CI #364 · build-108-directional-fades-inertial-bms-power · tentativo 1
 
