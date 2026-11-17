@@ -60,7 +60,8 @@ assert 'glowRoleSection("LED velocità · inerzia", roles: [10, 14, 18, 17])' in
 assert '"Velocità GPS · limite superato"' in tabs
 assert '"Inerzia · accelerazione"' in tabs
 assert "EcoThemePalette.active?.colors[17]" in cockpit
-assert "savedPalette?.glowIntensity ?? 0.60" in cockpit
+assert "func glow(for role: Int) -> Double" in cockpit
+assert "savedPalette?.glow(for: role)" in cockpit
 
 # Build 87 deliberately retires the GPS neon outlines, while leaving the
 # user-editable speed LED behavior and theme configuration available.
