@@ -53,9 +53,9 @@ assert "onConfirm(" not in picker.split('accessibilityLabel("Annulla modifica")'
 assert "static let colorCount = 22" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
 assert "initialHex: selected.isDay" in tabs
-assert '("Sfumature · luce e ombra", [15, 16, 19, 20])' in tabs
-assert "gradientIntensityBinding(for role: Int)" in tabs
-assert "Slider(value: binding, in: 0...1, step: 0.01)" in tabs
+assert '("Sfumature", [15, 16, 19, 20])' in tabs
+assert "gradientOpacityBinding(for role: Int)" in tabs
+assert "Slider(value: transparency, in: 0...1, step: 0.01)" in tabs
 assert "try data.encode(colors, forKey: .colors)" in tabs
 
 print("OK — build 92: 20 base swatches, one individual light/dark slider; no legacy filters")
