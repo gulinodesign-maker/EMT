@@ -544,12 +544,12 @@ struct EcoThemePalette: Codable, Equatable {
             dayLowOpacity *= dayTopBar.lowIntensity
         }
         directionalVersion = 108
-        normalizeLegacyFadeIntensities()
         let levels = try data.decodeIfPresent([Double].self, forKey: .glowLevels)
         glowLevels = (levels?.count == Self.colorCount)
             ? levels!.map { $0.isFinite ? min(1, max(0, $0)) : 1 }
             : Self.defaultGlowLevels(legacyGlow: glowIntensity)
         lightingVersion = try data.decodeIfPresent(Int.self, forKey: .lightingVersion) ?? 0
+        normalizeLegacyFadeIntensities()
     }
 
     func encode(to encoder: Encoder) throws {
