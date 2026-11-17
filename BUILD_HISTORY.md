@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44098473864:ATTEMPT:1 -->
+### 2026-11-17T14:00:38Z — CI #407 · build-114-ferrari-cupra-palettes-saved-swatches-trip-average · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44098473864](https://github.com/gulinodesign-maker/EMT/actions/runs/44098473864); avvio 2026-11-17T14:00:38Z UTC; aggiornamento finale 2026-11-17T14:03:16Z UTC; registrazione 2026-11-17T14:03:27+00:00 UTC; evento pull_request.
+- **Commit:** [80d1b655fd64](https://github.com/gulinodesign-maker/EMT/commit/80d1b655fd6450d21172f6f0d9d72b15881027b8); versione **1.0**; build **114**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_battery_rail_range49.py, Tests/verify_custom_themes_build63.py.
+
 <!-- EMT_RUN:44098120759:ATTEMPT:1 -->
 ### 2026-11-17T13:58:35Z — CI #406 · build-114-ferrari-cupra-palettes-saved-swatches-trip-average · tentativo 1
 
