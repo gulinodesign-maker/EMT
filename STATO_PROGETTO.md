@@ -475,8 +475,8 @@ Cockpit tachimetro GPS, mappe Apple MapKit e itinerari, indicazioni svolta, prof
 ## Ultima compilazione verificata e telemetria CI
 
 <!-- CI_STATUS_START -->
-<!-- CI_SOURCE_STARTED:2026-11-17T10:21:52Z -->
-**Ultimo run CI main registrato automaticamente:** versione **1.0 (109)**, commit c23833251554, avvio 2026-11-17T10:21:52Z UTC, esito workflow **SUCCESS**. [Passaggi verificabili e dettagli](https://github.com/gulinodesign-maker/EMT/actions/runs/44064136282). Consultare BUILD_HISTORY.md per esito effettivo di test e compilazione. Questo NON certifica upload, processing o distribuzione ai tester.
+<!-- CI_SOURCE_STARTED:2026-11-17T10:36:26Z -->
+**Ultimo run CI main registrato automaticamente:** versione **1.0 (110)**, commit 0d1e38e83ecf, avvio 2026-11-17T10:36:26Z UTC, esito workflow **SUCCESS**. [Passaggi verificabili e dettagli](https://github.com/gulinodesign-maker/EMT/actions/runs/44066386089). Consultare BUILD_HISTORY.md per esito effettivo di test e compilazione. Questo NON certifica upload, processing o distribuzione ai tester.
 <!-- CI_STATUS_END -->
 
 Per tutti i run successivi, riusciti o falliti, consultare **[BUILD_HISTORY.md](BUILD_HISTORY.md)**. Il riquadro qui sopra è aggiornato solo per i run CI su `main` gestiti dal registratore, **non** per eventi App Store Connect.
