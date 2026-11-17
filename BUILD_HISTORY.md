@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44148046580:ATTEMPT:1 -->
+### 2026-11-17T18:27:33Z — CI #419 · build-117-universal-bridge-arrows · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44148046580](https://github.com/gulinodesign-maker/EMT/actions/runs/44148046580); avvio 2026-11-17T18:27:33Z UTC; aggiornamento finale 2026-11-17T18:31:44Z UTC; registrazione 2026-11-17T18:31:55+00:00 UTC; evento pull_request.
+- **Commit:** [232799b6ed86](https://github.com/gulinodesign-maker/EMT/commit/232799b6ed86774f7d097efea4b73add3cc6e35a); versione **1.0**; build **117**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build86_single_kw_bridge.py.
+
 <!-- EMT_RUN:44147863939:ATTEMPT:1 -->
 ### 2026-11-17T18:26:31Z — CI #418 · build-117-universal-bridge-arrows · tentativo 1
 
