@@ -760,6 +760,10 @@ private struct SystemClockText: View {
 
 struct CockpitDashboard:View {
     @StateObject private var navigation = EcoNavigationStore.shared
+    @EnvironmentObject private var powerMotion: EcoPowerMotionManager
+    @AppStorage("ecojumbo.vehicle.mode") private var vehicleMode = EcoVehicleMode.bms.rawValue
+    @AppStorage("ecojumbo.vehicle.fullRangeKm") private var fullRangeKm = 0.0
+    @AppStorage("ecojumbo.vehicle.averageSpeedScaleKmh") private var averageSpeedScaleKmh = 130.0
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps:GPSRideManager
     @EnvironmentObject private var bluetooth:JKBluetoothManager
@@ -767,7 +771,8 @@ struct CockpitDashboard:View {
     let now:Date
     @AppStorage("ecojumbo.bars.averagePowerMaxKW") private var averagePowerMaxKW = 5.0
     private var live:JKSnapshot? {
-        guard bluetooth.isConnected, let snap=bluetooth.snapshot,
+        guard vehicleMode == EcoVehicleMode.bms.rawValue,
+              bluetooth.isConnected, let snap=bluetooth.snapshot,
               abs(now.timeIntervalSince(snap.date)) < 10 else {return nil}
         return snap
     }
@@ -781,7 +786,25 @@ struct CockpitDashboard:View {
     }
 
     private var leftRows: [WingReading] {
-        [
+        if vehicleMode == EcoVehicleMode.universal.rawValue {
+            let fuel = gps.universalEstimatedFuelFraction(fullRange: fullRangeKm)
+            let remaining = gps.universalEstimatedRemainingKm(fullRange: fullRangeKm)
+            let average = gps.averageMovingSpeedKmh
+            return [
+                WingReading(value: fuel.map { String(format: "%.0f%%", $0 * 100) } ?? "—%",
+                            title: "Carburante stimato", icon: "fuelpump.fill", showsBar: true,
+                            fraction: fuel),
+                WingReading(value: average.map { String(format: "%.1f km/h", $0) } ?? "— km/h",
+                            title: "Velocità media GPS", icon: "speedometer", showsBar: true,
+                            fraction: average.flatMap {
+                                CockpitBarMath.unit($0, maximum: averageSpeedScaleKmh)
+                            }),
+                WingReading(value: remaining.map { String(format: "%.0f km", $0) } ?? "— km",
+                            title: "Autonomia stimata", icon: "road.lanes", showsBar: false,
+                            fraction: nil)
+            ]
+        }
+        return [
             WingReading(value: live.map { "\($0.soc)%" } ?? "—%",
                         title: "Carica residua", icon: "bolt.fill", showsBar: true,
                         fraction: CockpitBarMath.unit(live.map { Double($0.soc) }, maximum: 100)),
@@ -794,6 +817,27 @@ struct CockpitDashboard:View {
         ]
     }
     private var rightRows: [WingReading] {
+        if vehicleMode == EcoVehicleMode.universal.rawValue {
+            let flow = powerMotion.currentFlow(at: now)
+            let description: String
+            switch flow {
+            case .incoming: description = "DECEL."
+            case .outgoing: description = "ACCEL."
+            case .neutral: description = "—"
+            }
+            return [
+                WingReading(value: description,
+                            title: "Movimento inerziale", icon: "gyroscope", showsBar: false,
+                            fraction: nil),
+                WingReading(value: String(format: "%.1f km", gps.tripKm),
+                            title: "Trip parziale", icon: "mappin", showsBar: false,
+                            fraction: nil),
+                WingReading(value: gps.hasOdometer
+                            ? String(format: "%.0f km", gps.totalKm) : "— km",
+                            title: "Chilometraggio GPS", icon: "speedometer", showsBar: false,
+                            fraction: nil)
+            ]
+        }
         // Potenza istantanea: dalla lettura corrente del JK BMS, non da una media.
         let instantKW = live.map { -($0.power) / 1000.0 }
         // Il valore persistito è valido anche senza segnale GPS: dopo il reset mostra 0,0.
@@ -1454,7 +1498,7 @@ private struct GPSCockpitPowerReading: View {
         if let inertialFlow {
             switch inertialFlow {
             case .incoming: return CockpitTheme.decelerationAccent
-            case .outgoing: return CockpitTheme.dischargeAccent
+            case .outgoing: return CockpitTheme.accelerationAccent
             case .neutral: return colorScheme == .light ? Color(white: 0.28) : .white.opacity(0.85)
             }
         }
@@ -1999,7 +2043,8 @@ struct GPSCockpitDashboard: View {
                     .allowsHitTesting(false)
                     .zIndex(28)
 
-                // Un solo kW sotto il ponte: la misura JK ha segno opposto alla
+                // BMS: un solo kW reale. Universale: stato inerziale, mai watt.
+                // La misura JK ha segno opposto alla
                 // convenzione visualizzata (positivo = erogazione, negativo = recupero).
                 GPSCockpitPowerReading(d: dialSize,
                                        powerWatts: live.map { -$0.power },
@@ -3403,6 +3448,9 @@ private struct GPSExpandedReadings: View {
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var gps: GPSRideManager
     @EnvironmentObject private var bluetooth: JKBluetoothManager
+    @AppStorage("ecojumbo.vehicle.mode") private var vehicleMode = EcoVehicleMode.bms.rawValue
+    @AppStorage("ecojumbo.vehicle.fullRangeKm") private var fullRangeKm = 0.0
+    @AppStorage("ecojumbo.vehicle.averageSpeedScaleKmh") private var averageSpeedScaleKmh = 130.0
     let theme: CockpitTheme
     let now: Date
 
@@ -3420,11 +3468,15 @@ private struct GPSExpandedReadings: View {
             let cardHeight = max(1, (innerHeight - headerHeight - 3 * tileGap) / 4)
             let dislHeight = 2 * cardHeight
             let snapshot = bluetooth.snapshot
-            let live = bluetooth.isConnected && snapshot.map({
-                abs(now.timeIntervalSince($0.date)) < 10
-            }) == true ? snapshot : nil
+            let live = vehicleMode == EcoVehicleMode.bms.rawValue &&
+                bluetooth.isConnected && snapshot.map({
+                    abs(now.timeIntervalSince($0.date)) < 10
+                }) == true ? snapshot : nil
             let autonomy = EcoRangeEstimate(snapshot: live, session: bluetooth.session)
             let tripAverage = gps.averageRecentTripKm(at: now)
+            let fuelFraction = gps.universalEstimatedFuelFraction(fullRange: fullRangeKm)
+            let remainingFuelRange = gps.universalEstimatedRemainingKm(fullRange: fullRangeKm)
+            let averageSpeed = gps.averageMovingSpeedKmh
 
             VStack(spacing: tileGap) {
                 HStack(spacing: max(7, width * 0.015)) {
@@ -3447,22 +3499,49 @@ private struct GPSExpandedReadings: View {
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap),
                                     GridItem(.flexible(), spacing: tileGap)],
                           spacing: tileGap) {
-                    telemetryTile("SOC",
-                                  value: live.map { "\($0.soc)%" } ?? "—%",
-                                  fraction: live.map { Double($0.soc) / 100.0 },
-                                  showsBar: true, height: cardHeight)
+                    if vehicleMode == EcoVehicleMode.universal.rawValue {
+                        telemetryTile("CARB",
+                                      value: fuelFraction.map {
+                                          String(format: "%.0f%%", $0 * 100)
+                                      } ?? "—%",
+                                      fraction: fuelFraction,
+                                      showsBar: true, scaleLabel: "Stima GPS",
+                                      height: cardHeight)
+                        telemetryTile("V MED",
+                                      value: averageSpeed.map {
+                                          String(format: "%.1f km/h", $0)
+                                      } ?? "— km/h",
+                                      fraction: averageSpeed.flatMap {
+                                          CockpitBarMath.unit($0, maximum: averageSpeedScaleKmh)
+                                      },
+                                      showsBar: true,
+                                      scaleLabel: String(format: "Scala %.0f", averageSpeedScaleKmh),
+                                      height: cardHeight)
+                        telemetryTile("AUT",
+                                      value: remainingFuelRange.map {
+                                          String(format: "%.0f km", $0)
+                                      } ?? "— km",
+                                      fraction: fuelFraction,
+                                      showsBar: true, scaleLabel: "Stima GPS",
+                                      height: cardHeight)
+                    } else {
+                        telemetryTile("SOC",
+                                      value: live.map { "\($0.soc)%" } ?? "—%",
+                                      fraction: live.map { Double($0.soc) / 100.0 },
+                                      showsBar: true, height: cardHeight)
 
-                    telemetryTile("V BAT",
-                                  value: live.map { String(format: "%.1f V", $0.voltage) } ?? "— V",
-                                  fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) },
-                                  showsBar: true, height: cardHeight)
+                        telemetryTile("V BAT",
+                                      value: live.map { String(format: "%.1f V", $0.voltage) } ?? "— V",
+                                      fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) },
+                                      showsBar: true, height: cardHeight)
 
-                    telemetryTile("AUT",
-                                  value: autonomy.map {
-                                      String(format: "%.0f km", $0.kilometers)
-                                  } ?? "— km",
-                                  fraction: autonomy?.fractionOfFull,
-                                  showsBar: true, height: cardHeight)
+                        telemetryTile("AUT",
+                                      value: autonomy.map {
+                                          String(format: "%.0f km", $0.kilometers)
+                                      } ?? "— km",
+                                      fraction: autonomy?.fractionOfFull,
+                                      showsBar: true, height: cardHeight)
+                    }
 
                     telemetryTile("TRIP",
                                   value: String(format: "%.1f km", gps.tripKm),
