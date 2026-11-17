@@ -1,5 +1,15 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 112 — sei temi automotive ufficialmente ispirati e scambio JSON (17 novembre 2026)
+
+**Richiesta utente autorizzata:** sostituire i sei kit cromatici di fabbrica con BMW, Ferrari, Mercedes, Alfa Romeo, Lamborghini e Cupra; usare i colori e i loghi identificativi dei marchi; aggiungere «Importa tema» e «Esporta tema» nella modifica tema. La richiesta «Procedi» autorizza la build.
+
+**Implementazione ramo `build-112-automotive-brands-theme-json`:** sei palette con colori del patrimonio visivo dei marchi (BMW blu/bianco/nero; Ferrari rosso/giallo/nero; Mercedes argento/nero/bianco; Alfa rosso/blu/verde/argento; Lamborghini nero/oro; Cupra rame/Petrol Blue) applicate ai 23 ruoli storici del cockpit, con eventuali avvisi del limite ancora rossi per sicurezza. I sei marchi sono immediatamente selezionabili nella lista Kit colori e nel configuratore a un tocco; i loro loghi sono SVG locali nell'asset catalog, senza connessione durante l'uso, visibili sulle card e nelle anteprime dei temi con associazione `brandID` persistente. Gli identificatori storici delle enum («Rame», «Ghiaccio», ecc.) restano per compatibilità con le preferenze installate; l'interfaccia usa solo i nomi automotive. Gli slot salvati non vengono cancellati o riscritti. Le fonti degli SVG e l'avviso di marchi registrati sono in `docs/LOGHI_AUTOMOTIVE.md`; l'utilizzo dei marchi non implica affiliazione, autorizzazione o approvazione da parte delle case auto.
+
+**Import/export:** due tasti «Importa tema» e «Esporta tema» nell'editor. Documento `.json` portabile `{format:"ecojumbo.theme",version:1,theme:{...}}` con tutti i campi Codabili, compresi Day/Night, illuminazione per ruolo, grafico DISL e logo brand; controllo dimensione (128 KB), valori e schema; selettore File iOS con accesso security-scoped; anteprima bozza con conferma prima del caricamento; gli slot cambiano solo dopo «Salva» e la consueta conferma di sovrascrittura. Nessuna localizzazione, GPS, BLE o password esportata. Nuovo test `Tests/verify_build112_auto_themes_transfer.py` e test legacy/versione aggiornati.
+
+**Versione progettata:** `1.0 (112)` Debug/Release. **Da completare:** CI PR test Python/JK/barre e compilazione iOS simulator; merge solo a CI verde; CI main e upload Apple TestFlight con `Upload succeeded`. Fine processing Apple, gruppo tester TE e resa SVG su iPhone reale richiedono verifiche distinte. Non duplicare upload 112.
+
 ## Build 111 — Cockpit: anello 3 pt dal LED, icone specifiche e card grafico altimetrico (17 novembre 2026)
 
 **Richiesta e autorizzazione:** anello interno più grande, a **3 pt verso l'interno dal LED velocità**; icone specifiche in tutte le schede che regolano il tachimetro; categoria «Anelli e numeri del tachimetro» rinominata «Cockpit»; nuova card Cockpit per colore e illuminazione 0–100% del grafico altimetrico DISL in Telemetria. L'utente ha richiesto esplicitamente di procedere con la build.
