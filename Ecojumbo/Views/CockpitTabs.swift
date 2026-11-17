@@ -519,8 +519,8 @@ struct EcoThemePalette: Codable, Equatable {
             dayHighOpacity *= dayTopBar.highIntensity
             dayLowOpacity *= dayTopBar.lowIntensity
         }
-        normalizeLegacyFadeIntensities()
         directionalVersion = 108
+        normalizeLegacyFadeIntensities()
     }
 
     func encode(to encoder: Encoder) throws {
