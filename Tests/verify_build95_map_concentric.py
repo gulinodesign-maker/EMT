@@ -73,7 +73,7 @@ labels = t.split("static let labels = [", 1)[1].split("]", 1)[0]
 details = t.split("static let details = [", 1)[1].split("]", 1)[0]
 assert len(re.findall(r'^\s*"[^"]+"', labels, re.M)) == 22
 assert len(re.findall(r'^\s*"[^"]+"', details, re.M)) == 22
-assert "Scegli uno dei 20 colori base" in t
+assert 'Label("Colori", systemImage: "paintpalette")' in t
 preview = c.split("struct EcoCockpitThemeMiniature: View {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 assert "GPSConcentricAccentRing(color: tone(21)," in preview
