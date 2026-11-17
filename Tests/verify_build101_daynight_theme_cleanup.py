@@ -97,7 +97,7 @@ assert 'Text("☀️ Day Mode").tag(true)' in editor
 assert 'Text("🌙 Night Mode").tag(false)' in editor
 assert "initialHex: selected.isDay" in editor
 assert "draft.dayTopBar.set(hex, for: selected.id)" in editor
-assert "gradientIntensityBinding(for role: Int)" in editor
+assert "gradientOpacityBinding(for role: Int)" in editor
 assert ".preferredColorScheme(selectedGroup == 4" in editor
 
 # User's original 20-swatch colour picker and brightness slider still exist.
