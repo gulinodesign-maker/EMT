@@ -23,7 +23,7 @@ assert "VStack(spacing: tileGap)" in telemetry
 assert 'Text("TELEMETRIA")' in telemetry
 assert "LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap)," in telemetry
 assert telemetry.count('telemetryTile("') == 4
-assert telemetry.count("showsBar: true") == 3
+assert telemetry.count("showsBar: true") == 4
 assert "let dislHeight = 2 * cardHeight" in telemetry
 assert "dislevelCard(height: dislHeight)" in telemetry
 assert "TelemetrySlimBar(fraction: fraction, theme: theme)" in telemetry

@@ -40,7 +40,7 @@ assert "autonomy?.fractionOfFull" in view
 assert "fraction: live.map { Double($0.soc) / 100.0 }" in view
 assert "fraction: live.map { min(1, max(0, ($0.voltage - 50) / 23)) }" in view
 assert "abs(now.timeIntervalSince($0.date)) < 10" in view
-assert view.count("showsBar: true") == 3
+assert view.count("showsBar: true") == 4
 assert "TelemetrySlimBar(fraction: fraction, theme: theme)" in view
 
 # Il grafico è reale, e la sfumatura è tracciata solo dopo due letture GPS.

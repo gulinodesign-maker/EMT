@@ -34,7 +34,7 @@ assert "In quale slot vuoi salvare il tema?" in tabs
 assert "Sostituire il tema nello slot" in tabs
 assert "onSave(slot, palette)" in tabs
 assert "private static let baseColors: [String]" in tabs
-assert "ForEach(Self.baseColors.indices, id:" in tabs
+assert "ForEach(paletteColors.indices, id:" in tabs
 assert "Slider(value: $shadeLevel, in: 0...1, step: 0.01)" in tabs
 assert "count: 5" in tabs
 for declaration in [
