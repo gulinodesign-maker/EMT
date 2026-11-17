@@ -292,7 +292,7 @@ assert c.count('outgoingPower: live.map { Swift.max(0, -$0.power) }') == 2  # Ho
 assert 'GPSCockpitPowerReading(d: dialSize,' in c and 'powerWatts: live.map { -$0.power }' in c
 assert 'Text(incomingPower.map { String(format: "%.2f kW"' in c
 assert 'Text(outgoingPower.map { String(format: "%.2f kW"' in c
-assert 'private var ledOrange: Color {' in c and 'CockpitTheme.speedLEDAccent' in c
+assert 'private var ledColor: Color {' in c and 'CockpitTheme.speedLEDAccent' in c
 assert 'let idealRun = standardHorizontalRun * ((footY - topY) / standardVerticalRun)' in c
 assert 'GPSLowerLineGeometry.points(in: rect)' in c
 assert 'Text("Ecojumbo \\(EcojumboBuildStamp.display) · build \\(EcojumboBuildStamp.buildNumber)")' in o
