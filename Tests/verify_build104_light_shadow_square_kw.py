@@ -66,9 +66,9 @@ editor=tabs.split("private struct EcoThemeEditorView: View {",1)[1].split(
     "private struct EcoThemeColorPicker:",1)[0]
 assert 'Picker("Modalità della sfumatura"' in editor
 assert 'Slider(value: $draft.gradientAngle, in: 0...360, step: 5)' not in editor
-assert '"Orientamento globale · luce → ombra"' in editor
-assert '"0° →"' in editor and '"90° ↓"' in editor
-assert '"180° ←"' in editor and '"270° ↑"' in editor
+assert '"Orientamento globale · luce → ombra"' not in editor
+assert '"0° →"' not in editor and '"90° ↓"' not in editor
+assert '"180° ←"' not in editor and '"270° ↑"' not in editor
 assert 'EcoGradientDirection.points(angle: draft.gradientAngle)' not in editor
 assert '.preferredColorScheme(selectedGroup == 4' in editor
 assert 'colorID = EcoThemeColorID(' in editor
