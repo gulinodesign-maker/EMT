@@ -40,27 +40,24 @@ assert editor.index("EcoThemePreview(palette: draft)") < editor.index(
     'Picker("Modalità della sfumatura"') < editor.index("ForEach([15, 16, 19, 20]")
 assert "gradientRoleTile(role)" in editor
 assert 'else if selectedGroup != 4' in editor
-assert "gradientIntensityBinding(for role: Int)" in editor
+assert "gradientIntensityBinding(for role: Int)" not in editor
 assert "gradientOpacityBinding(for role: Int)" in editor
 assert "Slider(value: $draft.gradientAngle" not in editor
-assert "Slider(value: gradientOpacityBinding" not in editor
-cards = editor.split("private func gradientRoleTile(_ role: Int) -> some View {", 1)[1].split(
-    "private func colorRoleSection", 1)[0]
-assert cards.count("Slider(value: binding, in: 0...1, step: 0.01)") == 1
-assert cards.count("Slider(value: opacity, in: 0...1, step: 0.01)") == 1
-assert '"sun.max"' in cards and '"circle.lefthalf.filled"' in cards
-assert 'accessibilityLabel("Intensità " + gradientShortName(role))' in cards
-assert 'accessibilityLabel("Opacità " + gradientShortName(role))' in cards
+cards = editor.split("private func gradientRoleTile(_ role: Int) -> some View {",1)[1].split(
+    "private func colorRoleSection",1)[0]
+assert cards.count("Slider(value:") == 1
+assert "Slider(value: transparency, in: 0...1, step: 0.01)" in cards
+assert 'accessibilityLabel("Trasparenza " + gradientDirectionName(role))' in cards
 assert 'Text(EcoThemePalette.details[role])' not in cards
 for role, pair in ((15, ("dayLightOpacity", "lightOpacity")),
                    (16, ("dayShadowOpacity", "shadowOpacity")),
                    (19, ("dayHighOpacity", "highOpacity")),
                    (20, ("dayLowOpacity", "lowOpacity"))):
     binding = editor.split("private func gradientOpacityBinding(for role: Int)", 1)[1].split(
-        "private func gradientShortName", 1)[0]
+        "private func gradientDirectionName", 1)[0]
     assert f"case {role}:" in binding
     for name in pair:
-        assert f"draft.{name}" in binding, (role, name)
+        assert f"draft.{name}" in binding
 
 theme = cockpit.split("// Build 101: configurazione Day", 1)[0]
 for name in ("gradientLightOpacity", "gradientShadowOpacity", "gradientHighOpacity",
@@ -75,15 +72,14 @@ tele = cockpit.split("private struct GPSExpandedReadings: View {", 1)[1].split(
     "// Progressi sottili", 1)[0]
 for surface in (upper, mini, tele):
     assert "lightOpacity" in surface and "shadowOpacity" in surface
-assert "high.opacity(highStrength * highOpacity)" in upper
-assert "low.opacity(lowStrength * lowOpacity)" in upper
-assert "high.opacity(highStrength * highOpacity)" in mini
-assert "low.opacity(lowStrength * lowOpacity)" in mini
+assert "high.opacity(highOpacity)" in upper
+assert "low.opacity(lowOpacity)" in upper
+assert "high.opacity(highOpacity)" in mini
+assert "low.opacity(lowOpacity)" in mini
 assert "underGlow.opacity(theme.glowIntensity" in upper
-assert "lightStrength * lightOpacity" in upper and "shadowStrength * shadowOpacity" in upper
-assert "lightStrength * lightOpacity" in tele and "shadowStrength * shadowOpacity" in tele
 assert "palette.dayHighOpacity : palette.highOpacity" in mini
 assert "palette.dayLowOpacity : palette.lowOpacity" in mini
+assert "directionalVersion = 108" in palette
 
 # Help is discoverable by a small info control, not permanent instructional text.
 assert "struct EcoInfoIcon: View" in other
@@ -95,4 +91,4 @@ assert 'Text(EcoThemePalette.details[index])' not in editor
 assert 'Text("Nessun dispositivo trovato. Accendi' not in other
 assert 'Text("Valori in sola lettura, ricevuti via Bluetooth' not in cells
 assert 'Text("La ricerca musicale interna è attualmente disponibile' not in music
-print("OK — build 107: eight opacities, four compact dual sliders, Day/Night migration and icon-first UI")
+print("OK — build 107: eight opacities, four compact single sliders, Day/Night migration and icon-first UI")
