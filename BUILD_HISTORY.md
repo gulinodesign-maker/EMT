@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44044775532:ATTEMPT:1 -->
+### 2026-11-17T08:12:34Z — CI #348 · build-106-independent-gradient-controls · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44044775532](https://github.com/gulinodesign-maker/EMT/actions/runs/44044775532); avvio 2026-11-17T08:12:34Z UTC; aggiornamento finale 2026-11-17T08:13:02Z UTC; registrazione 2026-11-17T08:13:26+00:00 UTC; evento pull_request.
+- **Commit:** [0673a41bd9c3](https://github.com/gulinodesign-maker/EMT/commit/0673a41bd9c366f1a4d671c440b0bce1fb380ce9); versione **1.0**; build **106**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build91_top_bottom_fades.py.
+
 <!-- EMT_RUN:44044766891:ATTEMPT:1 -->
 ### 2026-11-17T08:12:31Z — CI #347 · build-106-independent-gradient-controls · tentativo 1
 
