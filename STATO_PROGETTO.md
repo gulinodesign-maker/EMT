@@ -1,6 +1,6 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
-## Build 109 — anello interno, illuminazione individuale e inerzia stabile (17 novembre 2026)
+## Build 110 — anello interno, illuminazione individuale e inerzia stabile (17 novembre 2026)
 
 **Richiesta:** nuovo anello concentrico *dentro* il neon velocità, colore e illuminazione editabili nella stessa card compatta **colore → icona → slider luce → %**, identica alle sfumature. Tutti gli elementi con un alone luminoso devono avere il proprio slider; eliminare quello generale. Correggere l'inerzia che oscillava rapidamente: **accelerazione arancione, decelerazione azzurra**, più filtraggio, isteresi e permanenza minima. Colori personalizzabili in «Anelli e numeri del tachimetro». GPS usato solo per la velocità; classificazione inerziale derivata da Core Motion e non dal delta km/h.
 
@@ -8,7 +8,15 @@
 
 **Core Motion:** la lettura usa `userAcceleration` longitudinalmente e `rotationRate` per sospendere durante rotazioni; ora l'asse Z non è più invertito di default. Filtro passa-basso più forte, soglie diverse per attivazione/rilascio, zona neutra, circa 0,6–0,7 s di conferma e 1,1 s di permanenza minima. Non è possibile passare immediatamente dall'arancione all'azzurro: serve prima uno stato neutro. Un BMS con potenza recente usa invece i ruoli energia reali. GPS continua a spostare soltanto il cursore velocità. La correttezza dell'asse del supporto iPhone va confermata in prova reale.
 
-**Versione:** **1.0 (109)**. Nuova regressione `Tests/verify_build109_inner_ring_glow_inertia.py`; controlli storici di versione aggiornati. **Prima del rilascio**: CI PR, Xcode simulator, merge `main`, CI finale, archive e `Upload succeeded` Apple. Apple processing, assegnazione gruppo TE e test dispositivo non implicati nell'upload.
+**Versione:** **1.0 (110)**. Nuova regressione `Tests/verify_build109_inner_ring_glow_inertia.py`; controlli storici di versione aggiornati. **Rilascio su numero 110:** la build 109 è stata già caricata con un altro intervento. **Prima del rilascio**: CI PR, Xcode simulator, merge `main`, CI finale, archive e `Upload succeeded` Apple. Apple processing, assegnazione gruppo TE e test dispositivo non implicati nell'upload.
+
+## Build 109 — ritorno Cockpit nei menu e selezione kit al primo tocco (17 novembre 2026)
+
+**Nuova richiesta utente:** nel menu Setup e negli altri menu l'icona per tornare al cockpit deve raffigurare il cockpit, non la mappa; in «Configura tema» i sei kit devono rispondere al primo tocco, senza ripetere i click.
+
+**Intervento:** `CockpitCornerControls` distingue il tasto `speedometer / Cockpit` nei menu dal tasto `map.fill / Mappa` nel cockpit. La navigazione verso `.gps` non cambia la preferenza `mapEnabled`. `EcoThemeEditorView` sostituisce il `Menu` dei preset con sei `Button` a hit-area piena (altezza minima 48 punti), disposizione adattiva e indicatore visuale del kit toccato. La scelta aggiorna subito la bozza e la miniatura ma **non** salva automaticamente né sovrascrive gli slot: rimane necessaria la conferma «Salva». Nome della bozza e dati di palette/Day-Night preservati come nella versione precedente.
+
+**Versione e rilascio verificati (17 novembre 2026):** `1.0 (109)` Debug/Release. [PR #98](https://github.com/gulinodesign-maker/EMT/pull/98) integrata su `main` con squash merge `c23833251554db875cffbabf1d79cc50170482f0`. [CI PR 44063333631](https://github.com/gulinodesign-maker/EMT/actions/runs/44063333631) **SUCCESS**: test Python, Swift JK, barre e compilazione simulatore. Primo run PR 44063135207 fallito per una vecchia asserzione nel test musicale, poi corretta. [CI main 44064136282](https://github.com/gulinodesign-maker/EMT/actions/runs/44064136282) **SUCCESS**. [Workflow TestFlight 44064136341](https://github.com/gulinodesign-maker/EMT/actions/runs/44064136341) **SUCCESS**: log `Numero build TestFlight: 109`, `ARCHIVE SUCCEEDED`, `Upload succeeded`, `EXPORT SUCCEEDED` (17/11/2026 10:25:05 UTC). Apple segnala `Uploaded package is processing`; **non ancora confermati** fine processing, associazione al gruppo tester `TE`, visibilità in TestFlight e risposta al primo tocco su iPhone. **Non rilanciare upload 109**, già riuscito.
 
 ## Build 108 — sfumature direzionali, potenza da Core Motion/BMS e ponte solo kW (17 novembre 2026)
 
@@ -467,24 +475,24 @@ Cockpit tachimetro GPS, mappe Apple MapKit e itinerari, indicazioni svolta, prof
 ## Ultima compilazione verificata e telemetria CI
 
 <!-- CI_STATUS_START -->
-<!-- CI_SOURCE_STARTED:2026-11-17T09:36:22Z -->
-**Ultimo run CI main registrato automaticamente:** versione **1.0 (108)**, commit ee04e30af3d4, avvio 2026-11-17T09:36:22Z UTC, esito workflow **SUCCESS**. [Passaggi verificabili e dettagli](https://github.com/gulinodesign-maker/EMT/actions/runs/44057096399). Consultare BUILD_HISTORY.md per esito effettivo di test e compilazione. Questo NON certifica upload, processing o distribuzione ai tester.
+<!-- CI_SOURCE_STARTED:2026-11-17T10:21:52Z -->
+**Ultimo run CI main registrato automaticamente:** versione **1.0 (109)**, commit c23833251554, avvio 2026-11-17T10:21:52Z UTC, esito workflow **SUCCESS**. [Passaggi verificabili e dettagli](https://github.com/gulinodesign-maker/EMT/actions/runs/44064136282). Consultare BUILD_HISTORY.md per esito effettivo di test e compilazione. Questo NON certifica upload, processing o distribuzione ai tester.
 <!-- CI_STATUS_END -->
 
 Per tutti i run successivi, riusciti o falliti, consultare **[BUILD_HISTORY.md](BUILD_HISTORY.md)**. Il riquadro qui sopra è aggiornato solo per i run CI su `main` gestiti dal registratore, **non** per eventi App Store Connect.
 
 ## Stato operativo e richieste aperte
 
-**Attività corrente:** build **1.0 (108)** integrata in `main` tramite PR #96, CI PR/main verde, archivio firmato e `Upload succeeded` Apple confermati. Restano processing App Store Connect, gruppo **TE**, installabilità e test su iPhone delle sfumature sinistra/destra/alto/basso con slider unico e della sorgente Inerzia/BMS. Verificare specialmente asse e inversione dei sensori rispetto al supporto iPhone e fallback quando il BMS non è collegato.
+**Attività corrente:** build **1.0 (109)** integrata su `main` tramite PR #98, test Python/Swift e compilazione simulatore CI PR/main verdi, archivio firmato e `Upload succeeded` Apple confermati. Restano l'elaborazione App Store Connect, associazione al gruppo **TE** e verifica reale su iPhone del tasto «Cockpit» nei menu e della selezione dei sei kit al primo tocco. Restano inoltre da collaudare sul dispositivo le modifiche grafiche/sensori della 108, incluse sfumature direzionali, assi Core Motion e fallback BMS.
 
 **Richieste utente ancora da completare / da verificare:**
-1. **TestFlight 108 — elaborazione e gruppo tester da verificare:** pacchetto `1.0 (108)` inviato ad Apple con [workflow 44057096390](https://github.com/gulinodesign-maker/EMT/actions/runs/44057096390) `success` e `Upload succeeded`. Apple comunica `Uploaded package is processing`. Verificare **Completo** in App Store Connect, associare il gruppo **TE** se necessario e controllare «Aggiorna» sull'iPhone; upload riuscito **non** equivale a distribuzione ai tester.
+1. **TestFlight 109 — elaborazione e gruppo tester da verificare:** pacchetto `1.0 (109)` inviato ad Apple con [workflow 44064136341](https://github.com/gulinodesign-maker/EMT/actions/runs/44064136341) `success` e `Upload succeeded`. Apple comunica `Uploaded package is processing`. Verificare **Completo** in App Store Connect, associare il gruppo **TE** se necessario e controllare «Aggiorna» sull'iPhone; upload riuscito **non** equivale a distribuzione ai tester.
 2. **Controllo su dispositivo reale della build 67:** verificare visivamente raccordi, temperatura con GPS+Internet e valore batteria iPhone; test automatici non equivalgono a verifica su hardware.
 3. **ChatGPT Progetto:** inserire una volta il testo di `docs/ISTRUZIONI_PROGETTO_CHATGPT.md` nelle istruzioni del Progetto; non configurabile automaticamente da questo repository.
 
 **Verifiche tecniche completate:** PR #54 / CI verde, workflow di registrazione realmente eseguito con esito `success`, entry nel registro su `main`, aggiornamento automatico del riquadro CI e assenza di loop. La gestione degli esiti negativi è stata testata con casi automatici simulati, ma il ramo fallback per permessi negati non è stato esercitato in ambiente reale.
 
-**Prossima operazione:** in **App Store Connect → Ecojumbo → TestFlight** controllare `1.0 (108)` elaborata e gruppo **TE** associato. Installare su iPhone, verificare quattro righe composte da colore/freccia/trasparenza%, assenza di barre sotto kW, ingresso azzurro e uscita rossa sul LED velocità in modalità BMS, funzionamento sensori in modalità inerzia e taratura asse X/Y/Z, sensibilità e inversione. **Non rilanciare l'upload 108**, già riuscito.
+**Prossima operazione:** in **App Store Connect → Ecojumbo → TestFlight** controllare `1.0 (109)` elaborata e gruppo **TE** associato. Installare su iPhone e verificare che l'icona «Cockpit» in Setup torni correttamente al cruscotto senza cambiare stato della mappa e che tutti i sei kit siano selezionabili al primo tocco, con evidenziazione immediata e salvataggio solo su conferma. Ricontrollare anche le funzioni introdotte nella 108: sfumature direzionali, ponte kW, LED BMS e sensori inerziali. **Non rilanciare l'upload 109**, già riuscito.
 
 ## Procedura di handoff
 

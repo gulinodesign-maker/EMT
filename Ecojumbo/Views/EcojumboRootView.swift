@@ -425,11 +425,19 @@ private struct CockpitCornerControls: View {
                             musicSearchVisible.toggle()
                         }
                     } else {
-                        gpsButton("map.fill", active: mapEnabled,
-                                  accessibility: mapEnabled ? "Disattiva la mappa" : "Attiva la mappa",
-                                  side: gpsSide) {
-                            if selected == .gps { mapEnabled.toggle() }
-                            selected = .gps
+                        // Nei menu si torna al cockpit, non si comanda MapKit.
+                        // Il toggle Mappa resta disponibile soltanto nel cockpit.
+                        if selected == .gps {
+                            gpsButton("map.fill", active: mapEnabled,
+                                      accessibility: mapEnabled ? "Disattiva la mappa" : "Attiva la mappa",
+                                      side: gpsSide) {
+                                mapEnabled.toggle()
+                            }
+                        } else {
+                            gpsButton("speedometer", text: "Cockpit",
+                                      accessibility: "Torna al cockpit", side: gpsSide) {
+                                selected = .gps
+                            }
                         }
                         if selected == .gps {
                             // Disponibile SIA in Telemetria SIA sulla Mappa.

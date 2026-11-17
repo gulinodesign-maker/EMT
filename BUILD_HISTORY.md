@@ -9,6 +9,138 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44064136282:ATTEMPT:1 -->
+### 2026-11-17T10:21:52Z — CI #383 · main · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44064136282](https://github.com/gulinodesign-maker/EMT/actions/runs/44064136282); avvio 2026-11-17T10:21:52Z UTC; aggiornamento finale 2026-11-17T10:25:28Z UTC; registrazione 2026-11-17T10:25:39+00:00 UTC; evento push.
+- **Commit:** [c23833251554](https://github.com/gulinodesign-maker/EMT/commit/c23833251554db875cffbabf1d79cc50170482f0); versione **1.0**; build **109**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Ecojumbo.xcodeproj/project.pbxproj, Ecojumbo/Views/CockpitTabs.swift, Ecojumbo/Views/EcojumboRootView.swift, STATO_PROGETTO.md, Tests/verify_build100_luminous_rings_power_weather.py, Tests/verify_build101_daynight_theme_cleanup.py, Tests/verify_build102_dock_power_weather_reset.py, Tests/verify_build103_real_tangent_smooth_card_neon.py, Tests/verify_build104_light_shadow_square_kw.py, Tests/verify_build105_gradient_music.py, Tests/verify_build106_four_gradient_tiles.py, Tests/verify_build107_gradient_opacity_icon_ui.py, Tests/verify_build108_directional_motion_bms.py, Tests/verify_build109_cockpit_return_kit_tap.py, Tests/verify_build60_setup_navigation.py, Tests/verify_build61_setup_grid.py, Tests/verify_build65_ui.py, Tests/verify_build66_symmetry_ring.py, Tests/verify_build67_user_fixes.py, Tests/verify_build68_gradient_layout.py, Tests/verify_build69_filled_areas_profile.py, Tests/verify_build70_no_gradients_centered.py, Tests/verify_build71_single_topbar.py, Tests/verify_build72_internal_led_contours.py, Tests/verify_build73_settings_glow_speed.py, Tests/verify_build74_speed_phases_neon.py, Tests/verify_build75_metal_topbar_speed_shadow.py, Tests/verify_build76_bridge_cutoff.py, Tests/verify_build85_left_topbar_off.py, Tests/verify_build86_single_kw_bridge.py, Tests/verify_build87_gray_horizontal_power.py, Tests/verify_build89_layer_edges.py, Tests/verify_build90_exterior_layer.py, Tests/verify_build91_top_bottom_fades.py, Tests/verify_build92_twenty_shades.py, Tests/verify_build93_geometry_preview.py, Tests/verify_build94_preview_dial_geometry.py, Tests/verify_build95_map_concentric.py, Tests/verify_build96_topbar_flush.py, Tests/verify_build97_music_cockpit.py, Tests/verify_build98_inapp_music.py, Tests/verify_build99_music_search_clip.py, Tests/verify_cockpit.py, Tests/verify_custom_themes_build63.py, Tests/verify_custom_themes_build64.py, Tests/verify_map_alignment_odo_keyboard52.py, Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
+<!-- EMT_RUN:44063715813:ATTEMPT:1 -->
+### 2026-11-17T10:19:12Z — CI #382 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44063715813](https://github.com/gulinodesign-maker/EMT/actions/runs/44063715813); avvio 2026-11-17T10:19:12Z UTC; aggiornamento finale 2026-11-17T10:21:46Z UTC; registrazione 2026-11-17T10:21:57+00:00 UTC; evento pull_request.
+- **Commit:** [4bb0d2851942](https://github.com/gulinodesign-maker/EMT/commit/4bb0d2851942fa836ae5a4307488ffec6a191f7f); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **fase riuscita, workflow complessivo failure**; Test protocollo JK Bluetooth (sola lettura): **fase riuscita, workflow complessivo failure**; Test barre dinamiche: **fase riuscita, workflow complessivo failure**.
+- **Compilazione simulatore:** **FAILURE**.
+- **Errori rilevati:** Compila app per simulatore iOS (senza firma Apple). Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build73_settings_glow_speed.py.
+
+<!-- EMT_RUN:44063333631:ATTEMPT:1 -->
+### 2026-11-17T10:16:44Z — CI #379 · build-109-cockpit-icon-kit-one-tap · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44063333631](https://github.com/gulinodesign-maker/EMT/actions/runs/44063333631); avvio 2026-11-17T10:16:44Z UTC; aggiornamento finale 2026-11-17T10:21:28Z UTC; registrazione 2026-11-17T10:21:37+00:00 UTC; evento pull_request.
+- **Commit:** [001e76b69c27](https://github.com/gulinodesign-maker/EMT/commit/001e76b69c279fa546703d9fb3297999b28ef1d9); versione **1.0**; build **109**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build98_inapp_music.py.
+
+<!-- EMT_RUN:44063597034:ATTEMPT:1 -->
+### 2026-11-17T10:18:25Z — CI #381 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44063597034](https://github.com/gulinodesign-maker/EMT/actions/runs/44063597034); avvio 2026-11-17T10:18:25Z UTC; aggiornamento finale 2026-11-17T10:18:52Z UTC; registrazione 2026-11-17T10:19:02+00:00 UTC; evento pull_request.
+- **Commit:** [465486dbec80](https://github.com/gulinodesign-maker/EMT/commit/465486dbec80d7b2b5c9c67b7c27d8a1777cd71d); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build101_daynight_theme_cleanup.py.
+
+<!-- EMT_RUN:44063406785:ATTEMPT:1 -->
+### 2026-11-17T10:17:12Z — CI #380 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44063406785](https://github.com/gulinodesign-maker/EMT/actions/runs/44063406785); avvio 2026-11-17T10:17:12Z UTC; aggiornamento finale 2026-11-17T10:17:48Z UTC; registrazione 2026-11-17T10:17:56+00:00 UTC; evento pull_request.
+- **Commit:** [3ec5d47cf6ce](https://github.com/gulinodesign-maker/EMT/commit/3ec5d47cf6ce6f09a52407338b82f6620e8adcfe); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build106_four_gradient_tiles.py, Tests/verify_build73_settings_glow_speed.py, Tests/verify_build74_speed_phases_neon.py.
+
+<!-- EMT_RUN:44063265756:ATTEMPT:1 -->
+### 2026-11-17T10:16:17Z — CI #378 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44063265756](https://github.com/gulinodesign-maker/EMT/actions/runs/44063265756); avvio 2026-11-17T10:16:17Z UTC; aggiornamento finale 2026-11-17T10:16:49Z UTC; registrazione 2026-11-17T10:16:58+00:00 UTC; evento pull_request.
+- **Commit:** [f72e612a1c0d](https://github.com/gulinodesign-maker/EMT/commit/f72e612a1c0d947d66a2e14e7cdb2b31a4b64384); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build100_luminous_rings_power_weather.py, Tests/verify_build101_daynight_theme_cleanup.py, Tests/verify_build104_light_shadow_square_kw.py, Tests/verify_build68_gradient_layout.py, Tests/verify_build73_settings_glow_speed.py, Tests/verify_build91_top_bottom_fades.py, Tests/verify_build93_geometry_preview.py, Tests/verify_custom_themes_build64.py.
+
+<!-- EMT_RUN:44063135207:ATTEMPT:1 -->
+### 2026-11-17T10:15:29Z — CI #377 · build-109-cockpit-icon-kit-one-tap · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44063135207](https://github.com/gulinodesign-maker/EMT/actions/runs/44063135207); avvio 2026-11-17T10:15:29Z UTC; aggiornamento finale 2026-11-17T10:16:08Z UTC; registrazione 2026-11-17T10:16:18+00:00 UTC; evento pull_request.
+- **Commit:** [794436c4f851](https://github.com/gulinodesign-maker/EMT/commit/794436c4f85131464a80403d730df9480ea6726a); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Ecojumbo.xcodeproj/project.pbxproj, Ecojumbo/Views/CockpitTabs.swift, Ecojumbo/Views/EcojumboRootView.swift, STATO_PROGETTO.md, Tests/verify_build100_luminous_rings_power_weather.py, Tests/verify_build101_daynight_theme_cleanup.py, Tests/verify_build102_dock_power_weather_reset.py, Tests/verify_build103_real_tangent_smooth_card_neon.py, Tests/verify_build104_light_shadow_square_kw.py, Tests/verify_build105_gradient_music.py, Tests/verify_build106_four_gradient_tiles.py, Tests/verify_build107_gradient_opacity_icon_ui.py, Tests/verify_build108_directional_motion_bms.py, Tests/verify_build109_cockpit_return_kit_tap.py, Tests/verify_build60_setup_navigation.py, Tests/verify_build61_setup_grid.py, Tests/verify_build65_ui.py, Tests/verify_build66_symmetry_ring.py, Tests/verify_build67_user_fixes.py, Tests/verify_build68_gradient_layout.py, Tests/verify_build69_filled_areas_profile.py, Tests/verify_build70_no_gradients_centered.py, Tests/verify_build71_single_topbar.py, Tests/verify_build72_internal_led_contours.py, Tests/verify_build73_settings_glow_speed.py, Tests/verify_build74_speed_phases_neon.py, Tests/verify_build75_metal_topbar_speed_shadow.py, Tests/verify_build76_bridge_cutoff.py, Tests/verify_build85_left_topbar_off.py, Tests/verify_build86_single_kw_bridge.py, Tests/verify_build87_gray_horizontal_power.py, Tests/verify_build89_layer_edges.py, Tests/verify_build90_exterior_layer.py, Tests/verify_build91_top_bottom_fades.py, Tests/verify_build92_twenty_shades.py, Tests/verify_build93_geometry_preview.py, Tests/verify_build94_preview_dial_geometry.py, Tests/verify_build95_map_concentric.py, Tests/verify_build96_topbar_flush.py, Tests/verify_build97_music_cockpit.py, Tests/verify_build98_inapp_music.py, Tests/verify_build99_music_search_clip.py, Tests/verify_cockpit.py, Tests/verify_custom_themes_build63.py, Tests/verify_custom_themes_build64.py, Tests/verify_map_alignment_odo_keyboard52.py, Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
+<!-- EMT_RUN:44063112804:ATTEMPT:1 -->
+### 2026-11-17T10:15:22Z — CI #376 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44063112804](https://github.com/gulinodesign-maker/EMT/actions/runs/44063112804); avvio 2026-11-17T10:15:22Z UTC; aggiornamento finale 2026-11-17T10:15:52Z UTC; registrazione 2026-11-17T10:16:08+00:00 UTC; evento pull_request.
+- **Commit:** [d842b7050453](https://github.com/gulinodesign-maker/EMT/commit/d842b7050453b953b3be7e10f84267fe2482d196); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build107_gradient_opacity_icon_ui.py, Tests/verify_build108_directional_motion_bms.py, Tests/verify_build74_speed_phases_neon.py.
+
+<!-- EMT_RUN:44062974792:ATTEMPT:1 -->
+### 2026-11-17T10:14:29Z — CI #375 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44062974792](https://github.com/gulinodesign-maker/EMT/actions/runs/44062974792); avvio 2026-11-17T10:14:29Z UTC; aggiornamento finale 2026-11-17T10:14:53Z UTC; registrazione 2026-11-17T10:15:04+00:00 UTC; evento pull_request.
+- **Commit:** [89c0bb1d42b2](https://github.com/gulinodesign-maker/EMT/commit/89c0bb1d42b21f2f007586fd37fd64ddcc9bd2a4); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build73_settings_glow_speed.py, Tests/verify_build74_speed_phases_neon.py, Tests/verify_build87_gray_horizontal_power.py, Tests/verify_build91_top_bottom_fades.py, Tests/verify_build92_twenty_shades.py, Tests/verify_build93_geometry_preview.py, Tests/verify_build95_map_concentric.py, Tests/verify_cockpit.py, Tests/verify_custom_themes_build64.py, Tests/verify_odo_reset_51.py, Tests/verify_speed_font_build53.py.
+
+<!-- EMT_RUN:44062899428:ATTEMPT:1 -->
+### 2026-11-17T10:14:02Z — CI #374 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44062899428](https://github.com/gulinodesign-maker/EMT/actions/runs/44062899428); avvio 2026-11-17T10:14:02Z UTC; aggiornamento finale 2026-11-17T10:14:27Z UTC; registrazione 2026-11-17T10:14:42+00:00 UTC; evento pull_request.
+- **Commit:** [a5407d018017](https://github.com/gulinodesign-maker/EMT/commit/a5407d01801702419f1f41eb3dfff2e2be4040ee); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build100_luminous_rings_power_weather.py, Tests/verify_build101_daynight_theme_cleanup.py, Tests/verify_build104_light_shadow_square_kw.py, Tests/verify_build106_four_gradient_tiles.py, Tests/verify_build65_ui.py, Tests/verify_build68_gradient_layout.py, Tests/verify_build69_filled_areas_profile.py, Tests/verify_build70_no_gradients_centered.py.
+
+<!-- EMT_RUN:44062621039:ATTEMPT:1 -->
+### 2026-11-17T10:12:16Z — CI #373 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44062621039](https://github.com/gulinodesign-maker/EMT/actions/runs/44062621039); avvio 2026-11-17T10:12:16Z UTC; aggiornamento finale 2026-11-17T10:13:01Z UTC; registrazione 2026-11-17T10:13:17+00:00 UTC; evento pull_request.
+- **Commit:** [29bb32f91edc](https://github.com/gulinodesign-maker/EMT/commit/29bb32f91edc55689f6c40b952680df5fb84fc26); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Ecojumbo/Views/CockpitTabs.swift.
+
+<!-- EMT_RUN:44062503254:ATTEMPT:1 -->
+### 2026-11-17T10:11:31Z — CI #372 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44062503254](https://github.com/gulinodesign-maker/EMT/actions/runs/44062503254); avvio 2026-11-17T10:11:31Z UTC; aggiornamento finale 2026-11-17T10:12:33Z UTC; registrazione 2026-11-17T10:12:45+00:00 UTC; evento pull_request.
+- **Commit:** [a7239233ea06](https://github.com/gulinodesign-maker/EMT/commit/a7239233ea06ea304e2c615cea88c9f07e9b677e); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** STATO_PROGETTO.md.
+
 <!-- EMT_RUN:44057096399:ATTEMPT:1 -->
 ### 2026-11-17T09:36:22Z — CI #371 · main · tentativo 1
 

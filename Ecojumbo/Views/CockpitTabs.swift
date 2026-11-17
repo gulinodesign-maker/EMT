@@ -973,6 +973,7 @@ private struct EcoThemeEditorView: View {
     @State private var draft: EcoThemePalette
     @State private var colorID: EcoThemeColorID?
     @State private var selectedGroup: Int?
+    @State private var selectedKit: CockpitTheme?
     @State private var editingDayTopBar = false
     @State private var chooseSlot = false
     @State private var overwriteSlot: Int?
@@ -995,19 +996,47 @@ private struct EcoThemeEditorView: View {
                         .padding(12)
                         .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 10))
 
-                    Menu {
-                        ForEach(CockpitTheme.allCases.filter { $0.slotIndex == nil }) { theme in
-                            Button(theme.rawValue) {
-                                let name = draft.name
-                                draft = EcoThemePalette.template(theme)
-                                draft.name = name
+                    // La selezione diretta elimina l'intercettazione incerta
+                    // del tocco nel Menu: ogni kit è un unico Button da 48 pt.
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Kit", systemImage: "paintpalette")
+                            .font(.subheadline.weight(.semibold))
+
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 134), spacing: 8)],
+                                  spacing: 8) {
+                            ForEach(CockpitTheme.allCases.filter { $0.slotIndex == nil }) { theme in
+                                Button {
+                                    let name = draft.name
+                                    draft = EcoThemePalette.template(theme)
+                                    draft.name = name
+                                    selectedKit = theme
+                                } label: {
+                                    HStack(spacing: 8) {
+                                        Circle()
+                                            .fill(theme.accent)
+                                            .frame(width: 16, height: 16)
+                                        Text(theme.rawValue)
+                                            .font(.subheadline.weight(.medium))
+                                            .lineLimit(1)
+                                        Spacer(minLength: 0)
+                                        if selectedKit == theme {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundStyle(theme.accent)
+                                        }
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .frame(maxWidth: .infinity, minHeight: 48)
+                                    .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 10))
+                                    .overlay(RoundedRectangle(cornerRadius: 10)
+                                        .strokeBorder(selectedKit == theme ? theme.accent : .secondary.opacity(0.22),
+                                                      lineWidth: selectedKit == theme ? 2 : 1))
+                                    .contentShape(RoundedRectangle(cornerRadius: 10))
+                                }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Seleziona kit " + theme.rawValue)
+                                .accessibilityAddTraits(selectedKit == theme ? .isSelected : [])
                             }
                         }
-                    } label: {
-                        Label("Kit", systemImage: "paintpalette")
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(12)
-                            .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 10))
                     }
 
                     EcoThemePreview(palette: draft)
