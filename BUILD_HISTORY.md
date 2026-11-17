@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44113236503:ATTEMPT:1 -->
+### 2026-11-17T15:20:41Z — CI #414 · build-115-universal-vehicle-mode-fuel-average-speed · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44113236503](https://github.com/gulinodesign-maker/EMT/actions/runs/44113236503); avvio 2026-11-17T15:20:41Z UTC; aggiornamento finale 2026-11-17T15:25:33Z UTC; registrazione 2026-11-17T15:25:46+00:00 UTC; evento pull_request.
+- **Commit:** [dcf4ac206273](https://github.com/gulinodesign-maker/EMT/commit/dcf4ac206273d448ee27d9c64143a358bb1b5cad); versione **1.0**; build **115**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_cockpit.py.
+
 <!-- EMT_RUN:44113033570:ATTEMPT:1 -->
 ### 2026-11-17T15:19:40Z — CI #413 · build-115-universal-vehicle-mode-fuel-average-speed · tentativo 1
 
