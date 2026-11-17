@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44038393549:ATTEMPT:1 -->
+### 2026-11-17T07:23:57Z — CI #342 · build-105-gradient-opacity-music-gauge · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44038393549](https://github.com/gulinodesign-maker/EMT/actions/runs/44038393549); avvio 2026-11-17T07:23:57Z UTC; aggiornamento finale 2026-11-17T07:26:14Z UTC; registrazione 2026-11-17T07:26:24+00:00 UTC; evento pull_request.
+- **Commit:** [7c0d9538d969](https://github.com/gulinodesign-maker/EMT/commit/7c0d9538d9691d6d04948419549428ca5c9c1ab2); versione **1.0**; build **105**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **fase riuscita, workflow complessivo failure**; Test protocollo JK Bluetooth (sola lettura): **fase riuscita, workflow complessivo failure**; Test barre dinamiche: **fase riuscita, workflow complessivo failure**.
+- **Compilazione simulatore:** **FAILURE**.
+- **Errori rilevati:** Compila app per simulatore iOS (senza firma Apple). Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build103_real_tangent_smooth_card_neon.py.
+
 <!-- EMT_RUN:44038160517:ATTEMPT:1 -->
 ### 2026-11-17T07:22:11Z — CI #341 · build-105-gradient-opacity-music-gauge · tentativo 1
 
