@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44113033570:ATTEMPT:1 -->
+### 2026-11-17T15:19:40Z — CI #413 · build-115-universal-vehicle-mode-fuel-average-speed · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44113033570](https://github.com/gulinodesign-maker/EMT/actions/runs/44113033570); avvio 2026-11-17T15:19:40Z UTC; aggiornamento finale 2026-11-17T15:20:29Z UTC; registrazione 2026-11-17T15:20:42+00:00 UTC; evento pull_request.
+- **Commit:** [271d47faa3ef](https://github.com/gulinodesign-maker/EMT/commit/271d47faa3efce73e9ee977aa9c7fbd5609d838d); versione **1.0**; build **115**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_map_alignment_odo_keyboard52.py, Tests/verify_odo_reset_51.py, Tests/verify_trip_altitude.py.
+
 <!-- EMT_RUN:44112909047:ATTEMPT:1 -->
 ### 2026-11-17T15:19:01Z — CI #412 · build-115-universal-vehicle-mode-fuel-average-speed · tentativo 1
 
