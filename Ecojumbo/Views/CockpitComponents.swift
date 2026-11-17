@@ -426,6 +426,10 @@ private struct MetricGlowBar: View {
                         ], startPoint: .leading, endPoint: .trailing))
                         .frame(width: fillWidth, height: h * 0.84)
                         .padding(.leading, h * 0.10)
+                        .shadow(color: CockpitTheme.barDark.opacity(
+                            0.20 * CockpitTheme.glowForRole(4)), radius: h * 0.8)
+                        .shadow(color: CockpitTheme.barMid.opacity(
+                            0.30 * CockpitTheme.glowForRole(5)), radius: h * 0.75)
                         .shadow(color: CockpitTheme.barBright.opacity(
                             0.45 * CockpitTheme.glowForRole(6)), radius: h * 0.7)
                 }
@@ -486,7 +490,7 @@ private struct PremiumWing: View {
         let icon = ZStack {
             Circle()
                 .stroke(theme.accent, lineWidth: max(1.5, height * 0.020))
-                .shadow(color: theme.accent.opacity(0.35), radius: 3)
+                .shadow(color: theme.accent.opacity(0.35 * theme.glow(for: 1)), radius: 3)
             if reading.icon == "voltage" {
                 Text("V")
                     .font(.system(size: iconSide * 0.54, weight: .bold))
@@ -573,9 +577,11 @@ private struct ContinuousHorizonLine: View {
                                         width: ringRadius * 2, height: ringRadius * 2))
             }
             ZStack {
-                line.stroke(theme.accent.opacity(0.31), lineWidth: max(5, h * 0.010))
+                line.stroke(theme.accent.opacity(0.31 * theme.glow(for: 1)),
+                            lineWidth: max(5, h * 0.010))
                     .blur(radius: max(4, h * 0.012))
-                line.stroke(theme.accent.opacity(0.77), lineWidth: max(2.5, h * 0.004))
+                line.stroke(theme.accent.opacity(0.77 * theme.glow(for: 1)),
+                            lineWidth: max(2.5, h * 0.004))
                     .blur(radius: max(2, h * 0.004))
                 line.stroke(theme.accent,
                             style: StrokeStyle(lineWidth: max(1.4, h * 0.002), lineCap: .round))
