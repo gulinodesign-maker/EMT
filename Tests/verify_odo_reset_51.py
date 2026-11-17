@@ -72,7 +72,7 @@ assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10" in gps
 assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in gps
 assert "date.timeIntervalSince(lastValidAt) < 8" in gps
-assert "SpeedLEDStream(d: d, speed: speed)" in speed
+assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow)" in speed
 
 # The reset button sits to the lower left OUTSIDE the gauge ring on
 # landscape iPhones and stays fully inside the scene.
