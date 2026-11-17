@@ -17,7 +17,7 @@ assert ".font(.system(size: d * 0.275, weight: .bold, design: .rounded))" not in
 assert speed.count("Arial-BoldMT") == 1
 assert "Text(\"km/h\")" in speed
 assert "String(format: \"ODO %.0f km\", $0)" in speed
-assert "SpeedLEDStream(d: d, speed: speed)" in speed
+assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow)" in speed
 # Models/GPSRideManager is intentionally unchanged from the working GPS build.
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in g
 assert "fix.speedAccuracy <= 5 && fix.speed <= 50" in g
