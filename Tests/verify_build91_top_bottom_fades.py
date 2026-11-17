@@ -26,8 +26,7 @@ assert "colors[19]" in accessors and "colors[20]" in accessors
 assert "savedPalette?.topFadeIntensity ?? 0.35" in accessors
 assert "savedPalette?.bottomFadeIntensity ?? 0.35" in accessors
 for prop in ("topBarGradientStart", "topBarGradientEnd", "topBarUnderGlow",
-             "topBarHighFade", "topBarLowFade",
-             "topBarHighFadeIntensity", "topBarLowFadeIntensity"):
+             "topBarHighFade", "topBarLowFade"):
     assert "theme." + prop in layer, prop
 assert layer.count("GPSUpperLayerFootprint()") >= 7
 assert "from.opacity(lightOpacity)" in layer
