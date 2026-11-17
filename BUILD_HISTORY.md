@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44063112804:ATTEMPT:1 -->
+### 2026-11-17T10:15:22Z — CI #376 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44063112804](https://github.com/gulinodesign-maker/EMT/actions/runs/44063112804); avvio 2026-11-17T10:15:22Z UTC; aggiornamento finale 2026-11-17T10:15:52Z UTC; registrazione 2026-11-17T10:16:08+00:00 UTC; evento pull_request.
+- **Commit:** [d842b7050453](https://github.com/gulinodesign-maker/EMT/commit/d842b7050453b953b3be7e10f84267fe2482d196); versione **1.0**; build **109**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build107_gradient_opacity_icon_ui.py, Tests/verify_build108_directional_motion_bms.py, Tests/verify_build74_speed_phases_neon.py.
+
 <!-- EMT_RUN:44062974792:ATTEMPT:1 -->
 ### 2026-11-17T10:14:29Z — CI #375 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
 
