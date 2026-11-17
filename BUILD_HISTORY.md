@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44065228495:ATTEMPT:1 -->
+### 2026-11-17T10:29:01Z — CI #387 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44065228495](https://github.com/gulinodesign-maker/EMT/actions/runs/44065228495); avvio 2026-11-17T10:29:01Z UTC; aggiornamento finale 2026-11-17T10:29:33Z UTC; registrazione 2026-11-17T10:29:43+00:00 UTC; evento pull_request.
+- **Commit:** [200d2eea8351](https://github.com/gulinodesign-maker/EMT/commit/200d2eea835163b5935e221b8d41f57e7c684dfc); versione **1.0**; build **110**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build71_single_topbar.py, Tests/verify_build72_internal_led_contours.py, Tests/verify_build73_settings_glow_speed.py, Tests/verify_build74_speed_phases_neon.py, Tests/verify_build75_metal_topbar_speed_shadow.py, Tests/verify_build76_bridge_cutoff.py, Tests/verify_build85_left_topbar_off.py, Tests/verify_build86_single_kw_bridge.py, Tests/verify_build87_gray_horizontal_power.py, Tests/verify_build89_layer_edges.py.
+
 <!-- EMT_RUN:44065171424:ATTEMPT:1 -->
 ### 2026-11-17T10:28:38Z — CI #386 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
 
