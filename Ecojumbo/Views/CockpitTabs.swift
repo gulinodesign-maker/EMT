@@ -26,7 +26,7 @@ struct TripsPanel: View {
                 EcoCard {
                     VStack(alignment: .leading, spacing: 10) {
                         Text("Registrazione viaggio").font(.headline)
-                        Text("Le misure vengono raccolte soltanto quando arrivano dati reali e l'app è attiva. La carica in ingresso comprende sia ricarica sia rigenerazione.")
+                        EcoInfoIcon(title: "Sessione", message: "Solo dati reali mentre EMT è attiva. L'energia in ingresso comprende ricarica e rigenerazione.")
                             .font(.subheadline).foregroundStyle(.secondary)
                         Text(gps.state).font(.subheadline).foregroundStyle(.secondary)
                         Button(role: .destructive) { confirmReset = true } label: {
@@ -740,7 +740,7 @@ struct ThemePickerView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                Text("Tre temi personali con anteprima dell'intero cockpit. Nel configuratore scegli una categoria, tocca il campione da modificare e salva nello slot.")
+                EcoInfoIcon(title: "Temi", message: "Puoi salvare tre temi. Tocca un campione colore e salva nello slot.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
@@ -752,14 +752,14 @@ struct ThemePickerView: View {
                 Button {
                     openEditor(slot: nil)
                 } label: {
-                    Label("Crea un nuovo tema", systemImage: "paintbrush.pointed")
+                    Label("Nuovo tema", systemImage: "paintbrush.pointed")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(CockpitTheme(rawValue: selection)?.accent ?? .orange)
 
-                Text("I sei kit originali sono disponibili solo come punto di partenza nel configuratore. Nessuna modifica viene applicata al cruscotto prima del salvataggio.")
+                EcoInfoIcon(title: "Kit", message: "I sei kit sono punti di partenza. Le modifiche si applicano solo dopo il salvataggio.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             .padding(15)
@@ -1295,6 +1295,7 @@ private struct EcoThemeEditorView: View {
                             .strokeBorder(.white.opacity(0.25), lineWidth: 1))
                     Text(EcoThemePalette.labels[index])
                         .font(.system(size: 13, weight: .semibold))
+                        .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
                         .multilineTextAlignment(.leading)
                     Spacer(minLength: 0)
@@ -1401,7 +1402,7 @@ private struct EcoThemeColorPicker: View {
                         .accessibilityLabel("Annulla modifica")
                     }
 
-                    Text("Scegli uno dei 20 colori base")
+                    Label("Colori", systemImage: "paintpalette")
                         .font(.subheadline.weight(.semibold))
                     LazyVGrid(columns: Array(
                         repeating: GridItem(.flexible(), spacing: 9), count: 5),
@@ -1431,7 +1432,7 @@ private struct EcoThemeColorPicker: View {
                     }
 
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Regola il colore selezionato")
+                        Label("Tonalità", systemImage: "slider.horizontal.3")
                             .font(.subheadline.weight(.semibold))
                         HStack(spacing: 10) {
                             Text("Scuro").font(.caption.weight(.medium))
@@ -1456,7 +1457,7 @@ private struct EcoThemeColorPicker: View {
                             }
                             Spacer(minLength: 0)
                         }
-                        Text("La regolazione cambia soltanto questo colore. Premi ✓ per salvarlo oppure × per annullare.")
+                        EcoInfoIcon(title: "Colore", message: "La regolazione cambia solo il colore selezionato. ✓ salva, × annulla.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
