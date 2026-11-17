@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44097889341:ATTEMPT:1 -->
+### 2026-11-17T13:57:11Z — CI #405 · build-114-ferrari-cupra-palettes-saved-swatches-trip-average · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44097889341](https://github.com/gulinodesign-maker/EMT/actions/runs/44097889341); avvio 2026-11-17T13:57:11Z UTC; aggiornamento finale 2026-11-17T13:57:48Z UTC; registrazione 2026-11-17T13:57:57+00:00 UTC; evento pull_request.
+- **Commit:** [7ebdd5242b17](https://github.com/gulinodesign-maker/EMT/commit/7ebdd5242b177f7c8cb407ef12738005c27acd72); versione **1.0**; build **114**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_custom_themes_build64.py, Tests/verify_map_alignment_odo_keyboard52.py, Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py.
+
 <!-- EMT_RUN:44090761340:ATTEMPT:1 -->
 ### 2026-11-17T13:14:33Z — CI #404 · main · tentativo 1
 
