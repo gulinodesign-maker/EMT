@@ -1,5 +1,17 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 114 — Ferrari/Cupra fedeli al cockpit, tavolozza ampliabile e media TRIP settimanale (17 novembre 2026)
+
+**Autorizzazione:** l'utente ha confermato «Procedi» dopo il recap per correggere i kit Ferrari/Cupra dai JSON forniti, aggiungere «Salva colore» nella STESSA griglia dei 20 predefiniti (nessuna card separata) e visualizzare nella telemetria una barra TRIP con fondoscala pari alla media delle distanze dei viaggi degli ultimi sette giorni.
+
+**Causa tema:** nella 113 CockpitTheme.savedPalette veniva valorizzata soltanto per gli slot personalizzati: sui sei kit il cockpit usava valori di fallback generici di metallo, sfondo, Day Mode, sfumature, anello interno e alcune luminosità. Ora CockpitTheme risolve la palette completa anche per i sei temi di fabbrica, inclusi tutti i 27 campi JSON Ferrari/Cupra e i 23 ruoli di colori/luce; i due JSON originali restano invariati, e i tre slot personali non vengono alterati. Nessun cambiamento a dati GPS/BMS, Apple Music e stemmi originali Ecojumbo.
+
+**Tavolozza:** il popup conserva intatti i 20 colori predefiniti e aggiunge in fondo allo stesso LazyVGrid a cinque colonne i colori salvati dall'utente con il tasto «Salva colore», inclusa la tonalità corrente dopo lo slider. I nuovi HEX sono persistiti in UserDefaults (ecojumbo.theme.savedSwatches.v1) e deduplicati. «Salva colore» memorizza soltanto un campione: il tasto ✓ rimane la distinta conferma di applicazione al tema. Nessuna card o sezione «I miei colori».
+
+**TRIP:** storico EcoCompletedTrip solo locale, con data di completamento e distanza GPS realmente accumulata, senza coordinate o dati simulati. Un viaggio viene considerato concluso solo con l'azzeramento esplicito TRIP, scartando reset inferiori a 0,05 km. La media aritmetica per singolo viaggio è calcolata nei sette giorni mobili precedenti, escludendo il viaggio corrente. Nella card TRIP di Telemetria compaiono la scala «Media 7 gg: X km» e la barra, piena a X km; oltre X il valore reale continua ad aumentare. Senza viaggi completati la barra resta vuota e viene indicato «Media 7 gg: —». Lo storico mantiene al massimo 128 viaggi recenti. ODO non viene toccato.
+
+**Versione:** Xcode Debug e Release 1.0 (114), suite regressiva storica allineata e nuovo test dedicato. **CI PR, compilazione iOS e TestFlight: in attesa di verifica**; non dichiarare upload né disponibilità per il gruppo TE prima delle conferme rispettive.
+
 ## Build 113 — solo Apple Music, stemmi originali e preset JSON Ferrari/Cupra (17 novembre 2026)
 
 **Richiesta utente:** eliminare Spotify e ogni servizio musicale esterno, mantenendo Apple Music come unico player; sostituire i sei loghi automobilistici con stemmi Ecojumbo originali e uniformi (A Alfa Romeo, B BMW, C Cupra, L Lamborghini, F Ferrari, M Mercedes); applicare ai preset Ferrari e Cupra l'intero contenuto dei JSON `F.json` e `Ecojumbo-Cupra.json` senza alterare gli slot personalizzati.

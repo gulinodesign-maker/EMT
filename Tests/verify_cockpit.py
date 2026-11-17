@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 113;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 114;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -93,7 +93,7 @@ assert legacy.count('showsBar: true')==3 and legacy.count('showsBar: false')==3
 for sym in ('bolt.fill','voltage','road.lanes','chart.bar.fill','mappin','speedometer'):
     assert f'icon: "{sym}"' in c
 assert 'if reading.showsBar {' in c and 'MetricGlowBar(fraction: reading.fraction' in c
-assert c.count('CockpitBarMath.unit(')==3
+assert c.count('CockpitBarMath.unit(')==4
 assert 'CockpitBarMath.odometerCycle(' not in c
 assert 'rangeKm.map' in c and 'gps.tripKm' in c and 'gps.totalKm' in c
 assert 'let instantKW = live.map { -($0.power) / 1000.0 }' in c
@@ -400,7 +400,7 @@ assert '.init(color: .clear, location: 0.62)' not in c
 expanded = c[c.index('private struct GPSExpandedReadings: View {'):]
 assert 'LazyVGrid(columns: [GridItem(.flexible(), spacing: tileGap),' in expanded
 assert expanded.count('telemetryTile("') == 4
-assert expanded.count('showsBar: true') == 3
+assert expanded.count('showsBar: true') == 4
 assert 'telemetryTile("SOC"' in expanded and 'telemetryTile("V BAT"' in expanded
 assert 'telemetryTile("AUT"' in expanded and 'telemetryTile("TRIP"' in expanded
 assert 'let dislHeight = 2 * cardHeight' in expanded
