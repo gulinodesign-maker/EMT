@@ -448,11 +448,11 @@ struct EcoThemePalette: Codable, Equatable {
         self.dayShadowOpacity *= self.dayShadowIntensity
         self.dayHighOpacity *= self.dayTopBar.highIntensity
         self.dayLowOpacity *= self.dayTopBar.lowIntensity
-        normalizeLegacyFadeIntensities()
         self.glowLevels = glowLevels?.count == Self.colorCount
             ? glowLevels!.map { $0.isFinite ? min(1, max(0, $0)) : 1 }
             : Self.defaultGlowLevels(legacyGlow: self.glowIntensity)
         self.lightingVersion = 109
+        normalizeLegacyFadeIntensities()
     }
 
     private mutating func normalizeLegacyFadeIntensities() {
