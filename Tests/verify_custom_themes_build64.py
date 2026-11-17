@@ -18,7 +18,7 @@ assert len(re.findall(r'^\s*"[^"]+"', details, flags=re.M)) == 22
 for label in (
     "Sfondo del cockpit", "Colore principale · top bar e icone Setup",
     "Barre telemetria · colore scuro", "Numeri kW · energia in ingresso (ruolo storico nascosto)",
-    "Barre di potenza · energia in uscita", "Barre di potenza · energia in entrata",
+    "Cursore potenza · uscita", "Cursore potenza · ingresso",
     "Velocità GPS · fase normale", "Numeri del tachimetro · km/h",
     "Navigatore · svolta a destra", "Navigatore · svolta a sinistra",
     "Velocità GPS · fase decelerazione",
