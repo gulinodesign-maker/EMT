@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44050215726:ATTEMPT:1 -->
+### 2026-11-17T08:50:45Z — CI #356 · build-107-gradient-opacity-icon-ui · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44050215726](https://github.com/gulinodesign-maker/EMT/actions/runs/44050215726); avvio 2026-11-17T08:50:45Z UTC; aggiornamento finale 2026-11-17T08:53:38Z UTC; registrazione 2026-11-17T08:53:50+00:00 UTC; evento pull_request.
+- **Commit:** [a3b6fe87a649](https://github.com/gulinodesign-maker/EMT/commit/a3b6fe87a649750afc50af2b267d3081d8c56077); versione **1.0**; build **107**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_cockpit.py.
+
 <!-- EMT_RUN:44050061399:ATTEMPT:1 -->
 ### 2026-11-17T08:49:42Z — CI #355 · build-107-gradient-opacity-icon-ui · tentativo 1
 
