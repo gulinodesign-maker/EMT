@@ -1216,42 +1216,7 @@ private struct EcoThemeEditorView: View {
 
                     // La selezione diretta elimina l'intercettazione incerta
                     // del tocco nel Menu: ogni kit è un unico Button da 48 pt.
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("Kit", systemImage: "paintpalette")
-                            .font(.subheadline.weight(.semibold))
-
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 134), spacing: 8)],
-                                  spacing: 8) {
-                            ForEach(CockpitTheme.allCases.filter { $0.slotIndex == nil }) { theme in
-                                Button {
-                                    draft = EcoThemePalette.template(theme)
-                                    selectedKit = theme
-                                } label: {
-                                    HStack(spacing: 8) {
-                                        EcoAutomotiveBrandLogo(brand: theme.displayName, size: 36)
-                                        Text(theme.displayName)
-                                            .font(.subheadline.weight(.medium))
-                                            .lineLimit(1)
-                                        Spacer(minLength: 0)
-                                        if selectedKit == theme {
-                                            Image(systemName: "checkmark.circle.fill")
-                                                .foregroundStyle(theme.accent)
-                                        }
-                                    }
-                                    .padding(.horizontal, 12)
-                                    .frame(maxWidth: .infinity, minHeight: 48)
-                                    .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 10))
-                                    .overlay(RoundedRectangle(cornerRadius: 10)
-                                        .strokeBorder(selectedKit == theme ? theme.accent : .secondary.opacity(0.22),
-                                                      lineWidth: selectedKit == theme ? 2 : 1))
-                                    .contentShape(RoundedRectangle(cornerRadius: 10))
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel("Seleziona kit " + theme.displayName)
-                                .accessibilityAddTraits(selectedKit == theme ? .isSelected : [])
-                            }
-                        }
-                    }
+                    automotiveKitSection
 
                     HStack(spacing: 10) {
                         Button {
@@ -1475,6 +1440,51 @@ private struct EcoThemeEditorView: View {
         }
     }
 
+
+    // Isolato dal grande body dell'editor per contenere la complessità
+    // del type-check Swift anche durante l'archivio Release/iphoneos.
+    private var automotiveKitSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Kit", systemImage: "paintpalette")
+                .font(.subheadline.weight(.semibold))
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 134), spacing: 8)],
+                      spacing: 8) {
+                ForEach(CockpitTheme.allCases.filter { $0.slotIndex == nil }) { theme in
+                    automotiveKitButton(theme)
+                }
+            }
+        }
+    }
+
+    private func automotiveKitButton(_ theme: CockpitTheme) -> some View {
+        let active = selectedKit == theme
+        let strokeColor: Color = active ? theme.accent : Color.secondary.opacity(0.22)
+        return Button {
+            draft = EcoThemePalette.template(theme)
+            selectedKit = theme
+        } label: {
+            HStack(spacing: 8) {
+                EcoAutomotiveBrandLogo(brand: theme.displayName, size: 36)
+                Text(theme.displayName)
+                    .font(.subheadline.weight(.medium))
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                if active {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(theme.accent)
+                }
+            }
+            .padding(.horizontal, 12)
+            .frame(maxWidth: .infinity, minHeight: 48)
+            .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 10))
+            .overlay(RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(strokeColor, lineWidth: active ? 2 : 1))
+            .contentShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Seleziona kit " + theme.displayName)
+        .accessibilityAddTraits(active ? .isSelected : [])
+    }
 
     private var exportFileName: String {
         let safe = draft.name.filter { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }

@@ -8,6 +8,8 @@
 
 **Import/export:** due tasti «Importa tema» e «Esporta tema» nell'editor. Documento `.json` portabile `{format:"ecojumbo.theme",version:1,theme:{...}}` con tutti i campi Codabili, compresi Day/Night, illuminazione per ruolo, grafico DISL e logo brand; controllo dimensione (128 KB), valori e schema; selettore File iOS con accesso security-scoped; anteprima bozza con conferma prima del caricamento; gli slot cambiano solo dopo «Salva» e la consueta conferma di sovrascrittura. Nessuna localizzazione, GPS, BLE o password esportata. Nuovo test `Tests/verify_build112_auto_themes_transfer.py` e test legacy/versione aggiornati.
 
+**Diagnostica archiviazione (17/11/2026):** primo workflow TestFlight [44076409554](https://github.com/gulinodesign-maker/EMT/actions/runs/44076409554) **FAILURE prima dell'upload**: Swift compiler Release/iphoneos `CockpitTabs.swift:1226:33` unable to type-check il `Button` complesso dei kit nel grande `body`; step `Invia a TestFlight` saltato, **112 non caricata su Apple**. Nel ramo `build-112-release-typecheck-fix` l'intero blocco kit è stato estratto in `automotiveKitSection` e ogni pulsante è gestito da `automotiveKitButton` con colore bordi esplicito. Ripetere CI e archivio prima di affermare upload; conservare numero 112, non esiste duplicato.
+
 **Versione progettata:** `1.0 (112)` Debug/Release. **Da completare:** CI PR test Python/JK/barre e compilazione iOS simulator; merge solo a CI verde; CI main e upload Apple TestFlight con `Upload succeeded`. Fine processing Apple, gruppo tester TE e resa SVG su iPhone reale richiedono verifiche distinte. Non duplicare upload 112.
 
 ## Build 111 — Cockpit: anello 3 pt dal LED, icone specifiche e card grafico altimetrico (17 novembre 2026)
