@@ -286,8 +286,8 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     static var turnLeftAccent: Color {
         Color(themeHex: EcoThemePalette.active?.colors[13] ?? "#FFFFFF")
     }
-    // Il colore di decelerazione è ricavato dal calo della velocità GPS,
-    // non da un sensore sul freno meccanico (non disponibile).
+    // Ruolo storico GPS, conservato nelle palette personalizzate.
+    // Il colore energia del nuovo LED usa invece i ruoli 8 e 9.
     static var decelerationAccent: Color {
         Color(themeHex: EcoThemePalette.active?.colors[14] ?? "#FFB224")
     }
@@ -1020,42 +1020,28 @@ private struct SpeedScaleTicks: View {
 /// Stream LED ARANCIONE progressivo: accesa solo quando esiste una misura GPS valida.
 /// L'arco è posto all'interno delle tacche bianche, sotto le due corone segmentate.
 /// Il punto luminoso segue la punta effettiva dell'arco; a 0 km/h resta spento.
-// Fasi determinate dalla sola variazione della velocità GPS reale.
-private enum GPSSpeedMovement {
-    case normal, accelerating, decelerating
-
-    static func classify(deltaKmh: Double) -> Self {
-        guard deltaKmh.isFinite else { return .normal }
-        if deltaKmh > 5 { return .accelerating }
-        if deltaKmh < -5 { return .decelerating }
-        return .normal
-    }
-}
-
-private struct GPSSpeedObservation {
-    let value: Double
-    let time: Date
-}
-
+// Il LED segue la velocità GPS ma la scelta del colore arriva da
+// Core Motion oppure dai watt JK reali, mai dai delta velocità GPS.
 private struct SpeedLEDStream: View {
     let d: CGFloat
     let speed: Double?
+    let powerFlow: EcoPowerFlow
     @AppStorage("ecojumbo.bars.vehicleSpeedMaxKmh") private var vehicleSpeedMaxKmh = 120.0
     @AppStorage("ecojumbo.bars.speedColorThresholdKmh") private var speedColorThresholdKmh = 80.0
     @AppStorage("ecojumbo.bars.speedLimitColorEnabled") private var speedLimitColorEnabled = true
-    @State private var speedHistory: [GPSSpeedObservation] = []
-    @State private var lastSpeedUpdate = Date.distantPast
-    @State private var movement: GPSSpeedMovement = .normal
 
-    private var ledOrange: Color {
-        if speedLimitColorEnabled, let speed, speed.isFinite,
-           speed >= min(max(30, vehicleSpeedMaxKmh), max(10, speedColorThresholdKmh)) {
-            return CockpitTheme.speedLimitAccent
-        }
-        switch movement {
-        case .accelerating: return CockpitTheme.accelerationAccent
-        case .decelerating: return CockpitTheme.decelerationAccent
-        case .normal: return CockpitTheme.speedLEDAccent
+    private var ledColor: Color {
+        // I due colori energia provengono dai ruoli tema 9 (A/ingresso)
+        // e 8 (B/uscita), non dalle vecchie fasi GPS.
+        switch powerFlow {
+        case .incoming: return CockpitTheme.recoveryRingAccent
+        case .outgoing: return CockpitTheme.dischargeAccent
+        case .neutral:
+            if speedLimitColorEnabled, let speed, speed.isFinite,
+               speed >= min(max(30, vehicleSpeedMaxKmh), max(10, speedColorThresholdKmh)) {
+                return CockpitTheme.speedLimitAccent
+            }
+            return CockpitTheme.speedLEDAccent
         }
     }
 
@@ -1073,13 +1059,13 @@ private struct SpeedLEDStream: View {
                 .frame(width: d * 0.722, height: d * 0.722)
             if let progress, progress > 0 {
                 GaugeArc(start: 146, end: 394, fraction: progress)
-                    .stroke(ledOrange.opacity(0.80),
+                    .stroke(ledColor.opacity(0.80),
                             style: StrokeStyle(lineWidth: GPSInnerLED.haloWidth(d), lineCap: .round))
                     .blur(radius: GPSInnerLED.haloBlur(d))
                     .frame(width: d * 0.722, height: d * 0.722)
                 GaugeArc(start: 146, end: 394, fraction: progress)
-                    .stroke(ledOrange, style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d), lineCap: .round))
-                    .shadow(color: ledOrange.opacity(0.94), radius: GPSInnerLED.outerBlur(d))
+                    .stroke(ledColor, style: StrokeStyle(lineWidth: GPSInnerLED.coreWidth(d), lineCap: .round))
+                    .shadow(color: ledColor.opacity(0.94), radius: GPSInnerLED.outerBlur(d))
                     .frame(width: d * 0.722, height: d * 0.722)
                 GaugeArc(start: 146, end: 394, fraction: progress)
                     .stroke(Color.white.opacity(0.65),
@@ -1092,46 +1078,15 @@ private struct SpeedLEDStream: View {
                 Circle()
                     .fill(.white)
                     .frame(width: d * 0.020, height: d * 0.020)
-                    .shadow(color: ledOrange, radius: d * 0.027)
-                    .shadow(color: ledOrange.opacity(0.95), radius: d * 0.014)
+                    .shadow(color: ledColor, radius: d * 0.027)
+                    .shadow(color: ledColor.opacity(0.95), radius: d * 0.014)
                     .position(endPoint)
             }
         }
         .frame(width: d, height: d)
         .animation(.easeInOut(duration: 0.38), value: progress)
-        .onChange(of: speed) { _, current in
-            let now = Date()
-            guard let current, current.isFinite, current >= 0 else {
-                speedHistory.removeAll()
-                movement = .normal
-                lastSpeedUpdate = .distantPast
-                return
-            }
-            // Finestra GPS mobile di 4 secondi: cambio fase solo per una variazione
-            // rigorosamente > 5 km/h. Oscillazioni fino a ±5 restano normali.
-            if now.timeIntervalSince(lastSpeedUpdate) > 5 {
-                speedHistory.removeAll()
-            }
-            speedHistory.removeAll { now.timeIntervalSince($0.time) > 4 }
-            speedHistory.append(GPSSpeedObservation(value: current, time: now))
-            if let reference = speedHistory.first,
-               now.timeIntervalSince(reference.time) >= 0.2 {
-                movement = GPSSpeedMovement.classify(deltaKmh: current - reference.value)
-            } else {
-                movement = .normal
-            }
-            lastSpeedUpdate = now
-        }
-        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { now in
-            // Una variazione GPS non è la lettura di un accelerometro/freno.
-            // Senza aggiornamenti recenti si torna al colore normale.
-            if now.timeIntervalSince(lastSpeedUpdate) > 4 {
-                movement = .normal
-                speedHistory.removeAll()
-            }
-        }
         .accessibilityLabel(progress.map {
-            "Indicatore LED velocità: \(Int(($0 * 100).rounded()))% della scala impostata, massimo \(Int(vehicleSpeedMaxKmh)) chilometri orari"
+            "LED velocità: \(Int(($0 * 100).rounded()))%, fonte potenza \(powerFlow == .incoming ? "ingresso" : (powerFlow == .outgoing ? "uscita" : "neutra"))"
         } ?? "GPS non disponibile")
     }
 }
@@ -1200,6 +1155,7 @@ private struct OpenSpeedCluster: View {
     var showsPowerReadings: Bool = true
     var showsCircularPowerGauges: Bool = true // La Home conserva le corone.
     var maximizesGPSSpeedScale: Bool = false // Solo GPS, senza alterare la Home.
+    var powerFlow: EcoPowerFlow = .neutral
     private var outerDiameterFactor: CGFloat {
         maximizesGPSSpeedScale ? GPSDialLayout.outerProfileDiameterFactor : 0.986
     }
@@ -1278,12 +1234,12 @@ private struct OpenSpeedCluster: View {
                 }
                 // La striscia LED arancione della velocità richiede GPS valido.
                 if maximizesGPSSpeedScale {
-                    SpeedLEDStream(d: d, speed: speed)
+                    SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow)
                         .scaleEffect(GPSDialLayout.speedScaleMagnification)
                     SpeedScaleTicks(d: d)
                         .scaleEffect(GPSDialLayout.speedScaleMagnification)
                 } else {
-                    SpeedLEDStream(d: d, speed: speed)
+                    SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow)
                     SpeedScaleTicks(d: d)
                 }
 
@@ -1454,61 +1410,6 @@ private struct GPSCockpitPowerReading: View {
 // Build 69: uno stesso spessore misurabile per le linee top bar e ponte.
 private enum GPSContourStroke {
     static func width(height h: CGFloat) -> CGFloat { max(1.4, h * 0.003) }
-}
-
-// Build 102: 10 tacche totali, 3 azzurre rigenerazione e 7 rosse
-// erogazione (30%/70%): più strette, più alte e centrate nel ponte.
-// I watt JK validi determinano le sole tacche accese; mai dati simulati.
-private struct GPSPowerHorizontalGauge: View {
-    let d: CGFloat
-    let powerWatts: Double?
-    let bridgeMaxWidth: CGFloat
-    private let regenTacks = 3
-    private let dischargeTacks = 7
-    private var normalizedPower: Double? {
-        guard let powerWatts, powerWatts.isFinite else { return nil }
-        return max(-1.0, min(1.0, powerWatts / 13_000.0))
-    }
-    var body: some View {
-        let regenFraction = normalizedPower.map { $0 < 0 ? abs($0) : 0 } ?? 0
-        let dischargeFraction = normalizedPower.map { $0 > 0 ? $0 : 0 } ?? 0
-        GeometryReader { geo in
-            // Dieci QUADRATI esatti, affiancati e senza interstizi.
-            // Il lato è limitato sia dall'altezza sia dai piedi reali
-            // del ponte (bridgeMaxWidth calcolato dal layout).
-            let count = regenTacks + dischargeTacks
-            let tickSide = min(geo.size.width / CGFloat(count), geo.size.height)
-            HStack(spacing: 0) {
-                ForEach(0..<(regenTacks + dischargeTacks), id: \.self) { index in
-                    let isRegen = index < regenTacks
-                    let threshold = isRegen
-                        ? Double(regenTacks - index) / Double(regenTacks)
-                        : Double(index - regenTacks + 1) / Double(dischargeTacks)
-                    let active = isRegen ? regenFraction >= threshold : dischargeFraction >= threshold
-                    Rectangle()
-                        .fill(isRegen
-                              ? CockpitTheme.regenAccent.opacity(active ? 1.0 : 0.26)
-                              : CockpitTheme.dischargeAccent.opacity(active ? 1.0 : 0.26))
-                        .frame(width: tickSide, height: tickSide)
-                        // Ogni cella ha un bordo visibile: mai una barra unica.
-                        .overlay(Rectangle().strokeBorder(.white.opacity(0.65),
-                                                         lineWidth: max(0.7, tickSide * 0.045)))
-                }
-            }
-            .frame(width: geo.size.width, height: geo.size.height,
-                   alignment: .center)
-        }
-        // Le dieci tacche rimangono interamente dentro il ponte,
-        // allineate una all'altra con spaziatura rigorosamente zero.
-        .frame(width: min(d * 0.54, max(1, bridgeMaxWidth)),
-               height: max(16, d * 0.045))
-        .animation(.easeOut(duration: 0.30), value: normalizedPower)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Potenza: 30 percento recupero azzurro, 70 percento erogazione rossa")
-        .accessibilityValue(normalizedPower.map {
-            $0 < 0 ? "Rigenerazione" : ($0 > 0 ? "Erogazione" : "Potenza zero")
-        } ?? "Potenza non disponibile")
-    }
 }
 
 // Costanti LED storiche, non più applicate ai tre contorni GPS.
@@ -1819,6 +1720,8 @@ private struct GPSLowerGlow: View {
 struct GPSCockpitDashboard: View {
     @EnvironmentObject private var gps: GPSRideManager
     @EnvironmentObject private var bluetooth: JKBluetoothManager
+    @EnvironmentObject private var powerMotion: EcoPowerMotionManager
+    @AppStorage("ecojumbo.power.source") private var powerSource = EcoPowerSource.inertia.rawValue
     @StateObject private var navigation = EcoNavigationStore.shared
     let theme: CockpitTheme
     let now: Date
@@ -1830,6 +1733,19 @@ struct GPSCockpitDashboard: View {
         navigation.isNavigating
             ? GPSManeuverIcon.symbol(for: navigation.guidanceInstruction)
             : nil
+    }
+
+    // Scelta sorgente: BMS solo con pacchetto verificato e recente.
+    // Se assente o scollegato, il LED usa l'inerzia; non genera watt.
+    private func selectedPowerFlow(snapshot: JKSnapshot?, at now: Date) -> EcoPowerFlow {
+        if powerSource == EcoPowerSource.bms.rawValue, let snapshot {
+            let watts = snapshot.power
+            guard watts.isFinite else { return .neutral }
+            if watts > 30 { return .incoming }
+            if watts < -30 { return .outgoing }
+            return .neutral
+        }
+        return powerMotion.currentFlow(at: now)
     }
 
     var body: some View {
@@ -1869,7 +1785,12 @@ struct GPSCockpitDashboard: View {
                                  max(70, railBottomBound - railTopBound - 2 * railSafeMargin))
             let railCenterY = (railTopBound + railBottomBound) / 2
             let railRightInset = max(9, w * 0.010)
-            let live = bluetooth.snapshot
+            let live: JKSnapshot? = {
+                guard bluetooth.isConnected, let sample = bluetooth.snapshot,
+                      abs(now.timeIntervalSince(sample.date)) < 10 else { return nil }
+                return sample
+            }()
+            let flow = selectedPowerFlow(snapshot: live, at: now)
             ZStack {
                 CarbonBackdrop(theme: theme)
                 CockpitTopSoftShade()
@@ -1939,6 +1860,7 @@ struct GPSCockpitDashboard: View {
                                      showsPowerReadings: false,
                                      showsCircularPowerGauges: false,
                                      maximizesGPSSpeedScale: true,
+                                     powerFlow: flow,
                                      navigationArrow: maneuverSymbol,
                                      navigationInstruction: navigation.guidanceInstruction,
                                      navigationDistance: navigation.isNavigating &&
@@ -1980,14 +1902,7 @@ struct GPSCockpitDashboard: View {
                     .position(x: dialCenterX, y: h * 0.494)
                     .zIndex(29)
 
-                // Barra orizzontale sotto il kW; non oltrepassa il ponte.
-                GPSPowerHorizontalGauge(d: dialSize,
-                                        powerWatts: live.map { -$0.power },
-                                        bridgeMaxWidth: GPSLowerLineGeometry.powerBarMaxWidth(
-                                            in: CGSize(width: w, height: h)))
-                    .position(x: dialCenterX, y: h * 0.963)
-                    .zIndex(30)
-
+                // 108: sotto il ponte rimane soltanto il numero kW.
                 // Build 103: solo testo reale, senza pill, in prossimità
                 // del riferimento indaco (lato sinistro, sotto il logo).
                 EcoOutsideTemperature(now: now, plain: true)
@@ -2396,10 +2311,6 @@ struct EcoCockpitThemeMiniature: View {
                     .font(.system(size: d * 0.066, weight: .bold))
                     .foregroundStyle(tone(9))
                     .position(x: cx, y: h * 0.875)
-                miniaturePowerBar(d: d,
-                                 bridgeMaxWidth: GPSLowerLineGeometry.powerBarMaxWidth(
-                                    in: CGSize(width: w, height: h)))
-                    .position(x: cx, y: h * 0.963)
 
                 miniatureTelemetry(width: panelWidth, height: h * 0.60)
                     .frame(width: panelWidth, height: h * 0.60)
@@ -2422,7 +2333,7 @@ struct EcoCockpitThemeMiniature: View {
         .aspectRatio(2.16, contentMode: .fit)
         .allowsHitTesting(false)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Anteprima completa del cockpit: tachimetro, top bar, ponte kilowatt, barra potenza, telemetria e comandi")
+        .accessibilityLabel("Anteprima completa del cockpit: tachimetro, top bar, ponte kilowatt senza barra, telemetria e comandi")
     }
 
     private func miniatureLayer(d: CGFloat) -> some View {
@@ -2470,22 +2381,6 @@ struct EcoCockpitThemeMiniature: View {
         }
         .mask(GPSDialExteriorMask().fill(style: FillStyle(eoFill: true)))
         .mask(GPSBridgeExteriorMask().fill(style: FillStyle(eoFill: true)))
-    }
-
-    private func miniaturePowerBar(d: CGFloat, bridgeMaxWidth: CGFloat) -> some View {
-        let width = min(d * 0.54, max(1, bridgeMaxWidth))
-        let height = max(16, d * 0.045)
-        let tickSide = min(width / 10, height)
-        return HStack(spacing: 0) {
-            ForEach(0..<10, id: \.self) { i in
-                Rectangle()
-                    .fill((i < 3 ? tone(9) : tone(8)).opacity(0.28))
-                    .frame(width: tickSide, height: tickSide)
-                    .overlay(Rectangle().strokeBorder(.white.opacity(0.65),
-                                                     lineWidth: max(0.7, tickSide * 0.045)))
-            }
-        }
-        .frame(width: width, height: height)
     }
 
     private func miniatureTelemetry(width: CGFloat, height: CGFloat) -> some View {
