@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44065557604:ATTEMPT:1 -->
+### 2026-11-17T10:31:08Z — CI #391 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44065557604](https://github.com/gulinodesign-maker/EMT/actions/runs/44065557604); avvio 2026-11-17T10:31:08Z UTC; aggiornamento finale 2026-11-17T10:35:20Z UTC; registrazione 2026-11-17T10:35:34+00:00 UTC; evento pull_request.
+- **Commit:** [24a1d864defd](https://github.com/gulinodesign-maker/EMT/commit/24a1d864defd1660c4cea5524cc0098687eec455); versione **1.0**; build **110**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build98_inapp_music.py.
+
 <!-- EMT_RUN:44065399443:ATTEMPT:1 -->
 ### 2026-11-17T10:30:10Z — CI #390 · build-109-inner-ring-per-element-glow-inertia · tentativo 1
 
