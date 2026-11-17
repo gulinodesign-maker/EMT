@@ -20,7 +20,7 @@ assert "static func remove(slot: Int)" in tabs
 assert "static var active: EcoThemePalette?" in tabs
 assert "ForEach(1...3, id:" in tabs
 assert "ForEach(CockpitTheme.allCases.filter { $0.slotIndex == nil })" in tabs
-assert 'Label("Crea un nuovo tema", systemImage: "paintbrush.pointed")' in tabs
+assert 'Label("Nuovo tema", systemImage: "paintbrush.pointed")' in tabs
 assert "private struct EcoThemeEditorView: View" in tabs
 assert "private struct EcoThemeColorPicker: View" in tabs
 assert "EcoThemePreview(palette: draft)" in tabs
