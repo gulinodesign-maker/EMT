@@ -559,8 +559,8 @@ struct EcoThemePalette: Codable, Equatable {
         "Barre telemetria · colore intermedio",
         "Barre telemetria · colore luminoso",
         "Numeri kW · energia in ingresso (ruolo storico nascosto)",
-        "Barre di potenza · energia in uscita",
-        "Barre di potenza · energia in entrata",
+        "Cursore potenza · uscita",
+        "Cursore potenza · ingresso",
         "Velocità GPS · fase normale",
         "Numeri del tachimetro · km/h",
         "Navigatore · svolta a destra",
@@ -583,8 +583,8 @@ struct EcoThemePalette: Codable, Equatable {
         "Tonalità centrale delle barre di telemetria.",
         "Tonalità brillante delle barre di telemetria.",
         "Ruolo kW storico conservato nei temi salvati, ora unificato con il colore Energia in entrata.",
-        "Segmenti rossi della scala potenza nel ponte kW: energia in uscita.",
-        "Segmenti azzurri della scala potenza nel ponte kW: energia in entrata o recupero.",
+        "Colore B del LED cursore velocità quando il BMS scarica o l'iPhone accelera.",
+        "Colore A del LED cursore velocità quando il BMS carica o l'iPhone decelera.",
         "Colore normale dell’arco GPS quando la variazione resta entro ±5 km/h.",
         "Cifre grandi della velocità GPS al centro.",
         "Freccia e distanza della prossima svolta verso destra.",
@@ -1006,7 +1006,7 @@ private struct EcoThemeEditorView: View {
                         if selectedGroup == 1 {
                             colorRoleSection("Anelli e luci", roles: [1, 3, 21, 2])
                             colorRoleSection("Numeri e velocità GPS", roles: [11, 10, 14, 18, 17])
-                            colorRoleSection("Barre di potenza", roles: [8, 9])
+                            colorRoleSection("LED potenza", roles: [8, 9])
                         } else if selectedGroup != 4 {
                             LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 10)],
                                       spacing: 10) {
