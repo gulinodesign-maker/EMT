@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44303230022:ATTEMPT:1 -->
+### 2026-11-18T12:22:02Z — CI #423 · build-118-gps-fresh-native-speed · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44303230022](https://github.com/gulinodesign-maker/EMT/actions/runs/44303230022); avvio 2026-11-18T12:22:02Z UTC; aggiornamento finale 2026-11-18T12:32:16Z UTC; registrazione 2026-11-18T12:32:31+00:00 UTC; evento pull_request.
+- **Commit:** [b69d9ad65a88](https://github.com/gulinodesign-maker/EMT/commit/b69d9ad65a88e126e0573decfc3112b9210315bc); versione **1.0**; build **118**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_battery_rail_range49.py, Tests/verify_cockpit.py, Tests/verify_map_alignment_odo_keyboard52.py, Tests/verify_map_contour_build48.py, Tests/verify_map_fade_build47.py, Tests/verify_odo_reset_51.py, Tests/verify_speed_font_build53.py, Tests/verify_trip_altitude.py.
+
 <!-- EMT_RUN:44303143363:ATTEMPT:1 -->
 ### 2026-11-18T12:21:29Z — CI #422 · build-118-gps-fresh-native-speed · tentativo 1
 
