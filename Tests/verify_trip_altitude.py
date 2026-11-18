@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 # Velocità GPS della build 45: nessuna modifica consentita.
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "let freshSpeedFix = fixAge >= -0.5 && fixAge < 2.0" in gps
-assert "fix.speedAccuracy <= 5" and "fix.speed <= maxTrustedSpeed" in gps
+assert "fix.speedAccuracy <= 5" in gps and "fix.speed <= maxTrustedSpeed" in gps
 assert "date.timeIntervalSince(lastValidAt) < 2.5" in gps
 
 # Profilo altimetrico GPS reale, persistente, non calcolato dalla mappa.
