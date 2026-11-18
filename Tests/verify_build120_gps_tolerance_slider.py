@@ -23,7 +23,7 @@ assert 'let receivedAge = date.timeIntervalSince(lastSpeedReceivedAt)' in access
 assert 'receivedAge >= -1.6' in accessor
 assert 'receivedAge < speedDisplayToleranceSeconds' in accessor
 assert 'return speedKmh' in accessor
-assert 'guard age >= -1.6 && age < 6.0' not in accessor
+assert 'receivedAge < speedDisplayToleranceSeconds' not in accessor
 assert 'func isSpeedHeld(at date: Date = Date()) -> Bool' in gps
 assert 'date.timeIntervalSince(lastValidAt) > 2.0' in gps
 assert 'func displayedSpeedSampleAge(at date: Date = Date()) -> TimeInterval?' in gps
