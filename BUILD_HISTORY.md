@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44316978775:ATTEMPT:1 -->
+### 2026-11-18T13:45:36Z — CI #428 · build-120-gps-adjustable-display-tolerance · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44316978775](https://github.com/gulinodesign-maker/EMT/actions/runs/44316978775); avvio 2026-11-18T13:45:36Z UTC; aggiornamento finale 2026-11-18T13:53:36Z UTC; registrazione 2026-11-18T13:53:47+00:00 UTC; evento pull_request.
+- **Commit:** [c551bae400f2](https://github.com/gulinodesign-maker/EMT/commit/c551bae400f28b5a510ce4d5f1b5ded01eb46aa4); versione **1.0**; build **120**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Ecojumbo/Models/GPSRideManager.swift, Tests/verify_build120_gps_tolerance_slider.py.
+
 <!-- EMT_RUN:44310766612:ATTEMPT:1 -->
 ### 2026-11-18T13:08:58Z — CI #427 · main · tentativo 1
 
