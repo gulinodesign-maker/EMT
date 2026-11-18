@@ -1,5 +1,13 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Tema Audi — richiesta del 18 novembre 2026 (feature/audi-automotive-preset)
+
+**Richiesta utente:** aggiungere **Audi** ai temi automobilistici predefiniti di Ecojumbo, non modificare l'audio dell'app.
+
+**Implementazione su branch dedicato:** aggiunto il settimo preset `Audi` selezionabile da **Temi automobilistici** e dai kit dell'editor, con palette notturna/day antracite (`#07090C`), rosso (`#D61F2C`), argento (`#AEB7BF`) e contrasto bianco; i 23 ruoli seguono la stessa generazione completa degli altri kit e l'allarme limite conserva `#FF3B30`. Aggiunto stemma **originale Ecojumbo A** (non logo Audi ufficiale) negli asset vettoriali, con mappatura marca e identificatore `brandID` per import/export. I tre slot personalizzati e i sei preset esistenti restano immutati.
+
+**Verifiche:** aggiunto `Tests/verify_audi_theme_preset.py` con controlli su selezione, 23 colori, brand/export, asset e sicurezza. Esito del workflow CI da verificare sulla PR. **Nessuna distribuzione TestFlight né aumento numero build con questa modifica:** la build 121 in corso non va duplicata. Per la successiva release verificare CI, scegliere numero build ancora disponibile, aggiornare i test di versione, fare merge e controllare upload Apple e disponibilità tester separatamente.
+
 ## Ripristino della build 117 — release tecnica 1.0 (121) (18 novembre 2026)
 
 **Richiesta esplicita utente:** «Niente, ripristina la 117», dopo ripetute segnalazioni di GPS lento/inesatto e di numeri che compaiono e scompaiono nelle build 118–120. Si ripristina **esattamente l'albero dei sorgenti e degli asset della build 117** dal commit GitHub `4bbb29f3a41bed96406c8c1e9a983b738802017d`, senza applicare alcuna ottimizzazione/nuovo filtro GPS. L'unica differenza obbligatoria nel progetto app è `CURRENT_PROJECT_VERSION = 121` in Debug e Release: Apple ha già ricevuto la 117 e accetta solo un numero di build superiore per un nuovo upload. Versione marketing 1.0 e bundle identifier invariati.
