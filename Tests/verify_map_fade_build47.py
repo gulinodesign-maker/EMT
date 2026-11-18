@@ -51,5 +51,5 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "let freshSpeedFix = fixAge >= -1.5 && fixAge < 8.0" in gps
 assert "fix.speedAccuracy <= 5" in gps and "fix.speed <= maxTrustedSpeed" in gps
-assert "guard age >= -1.6 && age < 6.0" in gps
+assert "receivedAge < speedDisplayToleranceSeconds" in gps
 print("OK — build 47: mappa curva, ricerca trasparente, parametri GPS preservati")
