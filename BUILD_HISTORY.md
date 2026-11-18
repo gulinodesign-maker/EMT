@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44302933084:ATTEMPT:1 -->
+### 2026-11-18T12:20:11Z — CI #421 · build-118-gps-fresh-native-speed · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44302933084](https://github.com/gulinodesign-maker/EMT/actions/runs/44302933084); avvio 2026-11-18T12:20:11Z UTC; aggiornamento finale 2026-11-18T12:20:45Z UTC; registrazione 2026-11-18T12:20:56+00:00 UTC; evento pull_request.
+- **Commit:** [675b9ccfa207](https://github.com/gulinodesign-maker/EMT/commit/675b9ccfa207a97f5c1b943e3e6eaa1829c40245); versione **1.0**; build **118**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:44148874486:ATTEMPT:1 -->
 ### 2026-11-17T18:32:03Z — CI #420 · main · tentativo 1
 
