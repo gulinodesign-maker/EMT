@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44336469131:ATTEMPT:1 -->
+### 2026-11-18T15:30:43Z — CI #432 · main · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44336469131](https://github.com/gulinodesign-maker/EMT/actions/runs/44336469131); avvio 2026-11-18T15:30:43Z UTC; aggiornamento finale 2026-11-18T15:34:23Z UTC; registrazione 2026-11-18T15:34:34+00:00 UTC; evento push.
+- **Commit:** [fddbb8878ce5](https://github.com/gulinodesign-maker/EMT/commit/fddbb8878ce57e69454812bbdeb51b00e64c345e); versione **1.0**; build **121**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Ecojumbo.xcodeproj/project.pbxproj.
+
 <!-- EMT_RUN:44334403053:ATTEMPT:1 -->
 ### 2026-11-18T15:20:01Z — CI #431 · restore-build117-behavior-release121 · tentativo 1
 
