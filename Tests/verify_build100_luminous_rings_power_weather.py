@@ -9,7 +9,7 @@ tabs = (r / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (r / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (r / "STATO_PROGETTO.md").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 117;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 118;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert "## Build 100" in state
 
