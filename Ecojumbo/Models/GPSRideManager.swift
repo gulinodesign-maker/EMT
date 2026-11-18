@@ -292,7 +292,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             return "Attiva Posizione precisa per la velocità"
         }
         if currentCoordinate(at: date) == nil { return state }
-        if let lastHorizontalAccuracy, lastHorizontalAccuracy > 35 {
+        if let lastHorizontalAccuracy, lastHorizontalAccuracy > 70 {
             return "Posizione ±\(Int(lastHorizontalAccuracy)) m: velocità non affidabile"
         }
         if currentSpeed(at: date) != nil { return speedDiagnostic }
@@ -474,7 +474,11 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard started else { return }
         for fix in locations.sorted(by: { $0.timestamp < $1.timestamp }) {
-            if abs(fix.timestamp.timeIntervalSinceNow) <= 25 {
+            // Core Location può consegnare in blocco posizioni storiche.
+            // Una posizione vecchia non deve sovrascrivere la velocità corrente.
+            let fixAge = Date().timeIntervalSince(fix.timestamp)
+            if fixAge >= -0.5, fixAge < 5,
+               lastGPSFixTime.map({ fix.timestamp > $0 }) ?? true {
                 lastGPSFixTime = fix.timestamp
                 lastNativeSpeed = fix.speed
                 lastNativeSpeedAccuracy = fix.speedAccuracy
@@ -511,24 +515,34 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             // superiori a 180 km/h; precisione e limiti anti-salto restano.
             let maxTrustedSpeed: Double = UserDefaults.standard.string(
                 forKey: "ecojumbo.vehicle.mode") == EcoVehicleMode.universal.rawValue ? 80 : 50
-            // Identici criteri di precisione GPS della build 33.
-            // Nessuna stima da coordinate e nessuna lettura simulata.
-            let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10
-                && fix.horizontalAccuracy >= 0 && fix.horizontalAccuracy <= 35
+            // Tachimetro: usa esclusivamente la velocità NATIVA più recente.
+            // La qualità speedAccuracy è indipendente dalla precisione della
+            // posizione: non scartare una buona velocità a causa del vecchio
+            // limite di 35 m (che resta per TRIP/ODO).
+            // Nessun filtraggio ritardante o calcolo da coordinate.
+            let freshSpeedFix = fixAge >= -0.5 && fixAge < 2.0
+            let newerSpeedFix = lastValidAt.map { fix.timestamp > $0 } ?? true
+            let usableSpeed = freshSpeedFix && newerSpeedFix
+                && manager.accuracyAuthorization == .fullAccuracy
+                && fix.horizontalAccuracy >= 0 && fix.horizontalAccuracy <= 70
                 && fix.speed >= 0 && fix.speedAccuracy >= 0
-                && fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed
+                && fix.speedAccuracy <= 2.5 && fix.speed <= maxTrustedSpeed
             if usableSpeed {
                 let kmh = fix.speed * 3.6
                 speedKmh = kmh < 1.5 ? 0 : kmh
                 lastValidAt = fix.timestamp
-                speedDiagnostic = "Velocità GPS nativa (parametri build 33)"
+                speedDiagnostic = "Velocità GPS nativa recente (precisione ≤2,5 m/s)"
                 state = "GPS attivo"
             } else if fix.speed < 0 {
                 speedDiagnostic = "Core Location non fornisce la velocità"
-            } else if fix.horizontalAccuracy > 35 {
-                speedDiagnostic = "Precisione posizione oltre 35 m"
-            } else if fix.speedAccuracy < 0 || fix.speedAccuracy > 5 {
-                speedDiagnostic = "Precisione velocità fuori 0–5 m/s"
+            } else if manager.accuracyAuthorization != .fullAccuracy {
+                speedDiagnostic = "Attiva Posizione precisa per la velocità"
+            } else if fix.horizontalAccuracy > 70 {
+                speedDiagnostic = "Precisione posizione oltre 70 m"
+            } else if fix.speedAccuracy < 0 || fix.speedAccuracy > 2.5 {
+                speedDiagnostic = "Precisione velocità fuori 0–2,5 m/s"
+            } else if !freshSpeedFix {
+                speedDiagnostic = "Fix GPS troppo vecchio per il tachimetro"
             } else {
                 speedDiagnostic = "Velocità nativa non valida o non recente"
             }
@@ -682,8 +696,11 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
 
     /// I dati GPS non devono restare visibili come correnti se la localizzazione si interrompe.
     func currentSpeed(at date: Date = Date()) -> Double? {
-        // Build 33: non mantenere visibili misurazioni GPS oltre 8 secondi.
-        guard let lastValidAt, date.timeIntervalSince(lastValidAt) < 8 else { return nil }
+        // Tachimetro rapido: non mantenere un valore vecchio come se
+        // fosse attuale. L'aggiornamento avviene subito via @Published.
+        guard let lastValidAt,
+              date.timeIntervalSince(lastValidAt) >= 0,
+              date.timeIntervalSince(lastValidAt) < 2.5 else { return nil }
         return speedKmh
     }
 }
