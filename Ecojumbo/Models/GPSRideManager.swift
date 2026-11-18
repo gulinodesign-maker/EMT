@@ -211,6 +211,8 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     private let manager = CLLocationManager()
     private var previousLocation: CLLocation?
     private var lastValidAt: Date?
+    // Ricezione del campione accettato, distinta dal tempo reale del fix.
+    private var lastSpeedReceivedAt: Date?
     private var lastMotionAt: Date?
     private var started = false
 
@@ -340,6 +342,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         lastHorizontalAccuracy = nil
         lastGoodCoordinateAt = nil
         lastValidAt = nil
+        lastSpeedReceivedAt = nil
         courseDegrees = nil
         lastCourseAt = nil
         compassHeadingDegrees = nil
@@ -462,6 +465,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             retryLocation()
         case .denied, .restricted:
             speedKmh = nil
+            lastSpeedReceivedAt = nil
             isReceiving = false
             state = "Permesso posizione negato"
         case .notDetermined:
@@ -533,6 +537,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
                 let kmh = fix.speed * 3.6
                 speedKmh = kmh < 1.5 ? 0 : kmh
                 lastValidAt = fix.timestamp
+                lastSpeedReceivedAt = Date()
                 speedDiagnostic = "Velocità GPS nativa (fix recente, precisione ≤5 m/s)"
                 state = "GPS attivo"
             } else if fix.speed < 0 {
@@ -677,6 +682,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             return
         }
         speedKmh = nil
+        lastSpeedReceivedAt = nil
         isReceiving = false
         state = "GPS: " + error.localizedDescription
     }
@@ -696,16 +702,35 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         return courseDegrees
     }
 
-    /// I dati GPS non devono restare visibili come correnti se la localizzazione si interrompe.
+    // Finestra configurabile di sola VISUALIZZAZIONE, non modifica la qualità
+    // delle misurazioni GPS né i filtri TRIP/ODO. Default 8s, valori 2...10s.
+    var speedDisplayToleranceSeconds: Double {
+        let saved = UserDefaults.standard.object(forKey: "ecojumbo.gps.speedDisplayToleranceSeconds")
+            as? Double ?? 8.0
+        guard saved.isFinite else { return 8.0 }
+        return min(10.0, max(2.0, saved))
+    }
+
+    /// L'orologio dell'ultimo FIX valida qualità e ordine. La tolleranza
+    /// comincia invece dalla ricezione del dato nell'app: un campione GPS
+    /// consegnato in ritardo non deve lampeggiare e scomparire immediatamente.
     func currentSpeed(at date: Date = Date()) -> Double? {
-        // Il cockpit ridisegna il display ogni secondo ma CLLocation può
-        // pubblicare un nuovo fix tra due tick: il "now" della vista è allora
-        // leggermente precedente al timestamp nativo. Non nascondere il fix
-        // nuovo per questo disallineamento (regressione della build 118).
-        // Non mantenere invece una velocità come attuale oltre 6 secondi.
-        guard let lastValidAt else { return nil }
-        let age = date.timeIntervalSince(lastValidAt)
-        guard age >= -1.6 && age < 6.0 else { return nil }
+        guard let speedKmh, let lastSpeedReceivedAt else { return nil }
+        let receivedAge = date.timeIntervalSince(lastSpeedReceivedAt)
+        // Il clock della vista può precedere il callback appena pubblicato.
+        guard receivedAge >= -1.6,
+              receivedAge < speedDisplayToleranceSeconds else { return nil }
         return speedKmh
+    }
+
+    /// Una lettura trattenuta è reale ma NON è una velocità corrente.
+    func isSpeedHeld(at date: Date = Date()) -> Bool {
+        guard currentSpeed(at: date) != nil, let lastValidAt else { return false }
+        return date.timeIntervalSince(lastValidAt) > 2.0
+    }
+
+    func displayedSpeedSampleAge(at date: Date = Date()) -> TimeInterval? {
+        guard currentSpeed(at: date) != nil, let lastValidAt else { return nil }
+        return max(0, date.timeIntervalSince(lastValidAt))
     }
 }
