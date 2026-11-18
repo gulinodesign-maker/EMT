@@ -3,7 +3,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 source = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 117;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 121;") == 2
 speed = source.split("private struct SpeedLEDStream: View {",1)[1].split("private struct SegmentedGaugeBar",1)[0]
 top = source.split("private struct GPSHorizonLine: View {",1)[1].split("@MainActor",1)[0]
 lower = source.split("private struct GPSLowerGlow: View {",1)[1].split("// EJ 1.22",1)[0]
