@@ -6,7 +6,7 @@ read = lambda p: (root / p).read_text(encoding="utf-8")
 gps = read("Ecojumbo/Models/GPSRideManager.swift")
 cockpit = read("Ecojumbo/Views/CockpitComponents.swift")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 118;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 119;") == 2
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "manager.activityType = .automotiveNavigation" in gps
 assert "manager.distanceFilter = kCLDistanceFilterNone" in gps
