@@ -15,7 +15,7 @@ assert 'cursore non accelera la ricezione' in ui
 assert 'private var lastSpeedReceivedAt: Date?' in gps
 assert 'lastSpeedReceivedAt = Date()' in gps
 assert gps.count('lastSpeedReceivedAt = nil') >= 3
-assert 'as? Double ?? 8.0' in gps
+assert 'as? Double) ?? 8.0' in gps
 assert 'return min(10.0, max(2.0, saved))' in gps
 accessor = gps.split("func currentSpeed(at date: Date = Date()) -> Double? {",1)[1].split("\n    }",1)[0]
 assert 'guard let speedKmh, let lastSpeedReceivedAt else { return nil }' in accessor
@@ -23,7 +23,7 @@ assert 'let receivedAge = date.timeIntervalSince(lastSpeedReceivedAt)' in access
 assert 'receivedAge >= -1.6' in accessor
 assert 'receivedAge < speedDisplayToleranceSeconds' in accessor
 assert 'return speedKmh' in accessor
-assert 'receivedAge < speedDisplayToleranceSeconds' not in accessor
+assert 'let age = date.timeIntervalSince(lastValidAt)' not in accessor
 assert 'func isSpeedHeld(at date: Date = Date()) -> Bool' in gps
 assert 'date.timeIntervalSince(lastValidAt) > 2.0' in gps
 assert 'func displayedSpeedSampleAge(at date: Date = Date()) -> TimeInterval?' in gps

@@ -705,8 +705,8 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     // Finestra configurabile di sola VISUALIZZAZIONE, non modifica la qualità
     // delle misurazioni GPS né i filtri TRIP/ODO. Default 8s, valori 2...10s.
     var speedDisplayToleranceSeconds: Double {
-        let saved = UserDefaults.standard.object(forKey: "ecojumbo.gps.speedDisplayToleranceSeconds")
-            as? Double ?? 8.0
+        let saved = (UserDefaults.standard.object(forKey: "ecojumbo.gps.speedDisplayToleranceSeconds")
+            as? Double) ?? 8.0
         guard saved.isFinite else { return 8.0 }
         return min(10.0, max(2.0, saved))
     }
