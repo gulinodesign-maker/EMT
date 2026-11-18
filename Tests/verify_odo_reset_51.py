@@ -7,7 +7,7 @@ source=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 120;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 121;") == 2
 dashboard=source.split("struct GPSCockpitDashboard: View {",1)[1].split(
     "private struct GPSHorizonLine: View {",1)[0]
 speed=source.split("private struct OpenSpeedCluster: View {",1)[1].split(
@@ -69,9 +69,9 @@ assert 'UserDefaults.standard.set(0, forKey: "ecojumbo.gps.totalKm")' not in fn
 
 # Speeds must remain measured, not estimated. Do not regress build 45.
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
-assert "let freshSpeedFix = fixAge >= -1.5 && fixAge < 8.0" in gps
-assert "fix.speedAccuracy <= 5" in gps and "fix.speed <= maxTrustedSpeed" in gps
-assert "receivedAge < speedDisplayToleranceSeconds" in gps
+assert "let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10" in gps
+assert "fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed" in gps
+assert "date.timeIntervalSince(lastValidAt) < 8" in gps
 assert "SpeedLEDStream(d: d, speed: speed, powerFlow: powerFlow," in speed
 
 # The reset button sits to the lower left OUTSIDE the gauge ring on

@@ -1,5 +1,15 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Ripristino della build 117 — release tecnica 1.0 (121) (18 novembre 2026)
+
+**Richiesta esplicita utente:** «Niente, ripristina la 117», dopo ripetute segnalazioni di GPS lento/inesatto e di numeri che compaiono e scompaiono nelle build 118–120. Si ripristina **esattamente l'albero dei sorgenti e degli asset della build 117** dal commit GitHub `4bbb29f3a41bed96406c8c1e9a983b738802017d`, senza applicare alcuna ottimizzazione/nuovo filtro GPS. L'unica differenza obbligatoria nel progetto app è `CURRENT_PROJECT_VERSION = 121` in Debug e Release: Apple ha già ricevuto la 117 e accetta solo un numero di build superiore per un nuovo upload. Versione marketing 1.0 e bundle identifier invariati.
+
+**Funzionalità conservate dalla 117:** tachimetro nativo Core Location con filtro speedAccuracy ≤ 5 m/s, posizione ≤ 35 m, timestamp GPS ≤ 10 s e visualizzazione fino a 8 s dall'ora del fix; `CLLocationManager` con `bestForNavigation`, GPS, Mappa/viaggi, TRIP/ODO, carburante e distanza manuale dal pieno della 116, modalità BMS e Universale, frecce ↑/↓/− al posto di ACCEL./DECEL./INERZIA sotto il ponte, tutti i temi e la musica Apple. Nessun algoritmo di velocità sintetica o interpolata.
+
+**Rimosso con il rollback:** filtri e soglie di velocità 118/119, cursore di tolleranza 2–10 s, timestamp di ricezione e indicazione «ULTIMO GPS» della 120, nonché i test delle sole 118–120. Test storici ripresi esattamente dallo snapshot 117 con adeguamento esclusivo del numero di build per i test di versione. `BUILD_HISTORY.md` e cronologia in questo file rimangono conservati per audit. La preferenza UserDefaults del cursore può rimanere nel dispositivo senza alcun effetto nel codice ripristinato.
+
+**Rischi e verifica:** il ripristino non garantisce in sé la qualità dell'antenna iPhone né che il GPS migliori in tutte le condizioni; richiede prove reali e Posizione precisa nelle autorizzazioni iOS. La 120 è stata già caricata ad Apple tramite workflow [44329014490](https://github.com/gulinodesign-maker/EMT/actions/runs/44329014490), successo GitHub verificato; NON ripubblicarla. Procedura per 121: CI completa sulla PR, merge solo dopo verde, CI main, workflow TestFlight fino a `Upload succeeded`; processing ASC/gruppo TE/installazione iPhone non deducibili da GitHub.
+
 ## Build 120 — tolleranza GPS regolabile da 2 a 10 secondi (18 novembre 2026)
 
 **Problema segnalato:** dopo 119 le cifre velocità arrivano in ritardo e poi scompaiono; richiesta di un cursore 2–10 s per evitare intervalli vuoti. La 119 usa il timestamp ORIGINALE del fix per un timeout fisso di 6 s, benché possa accettare fix fino a 8 s vecchi: una misura arrivata in ritardo può apparire solo un attimo o mai. È una spiegazione del codice, non una misurazione diretta del telefono.

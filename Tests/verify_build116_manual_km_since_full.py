@@ -6,7 +6,7 @@ read = lambda p: (root / p).read_text(encoding="utf-8")
 settings = read("Ecojumbo/Views/OtherViews.swift")
 gps = read("Ecojumbo/Models/GPSRideManager.swift")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 120;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 121;") == 2
 assert '@State private var kmSinceFullText = ""' in settings
 assert '@FocusState private var distanceFieldFocused: Bool' in settings
 assert 'Text("Distanza dal pieno")' in settings
