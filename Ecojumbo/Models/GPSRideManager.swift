@@ -211,8 +211,6 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     private let manager = CLLocationManager()
     private var previousLocation: CLLocation?
     private var lastValidAt: Date?
-    // Ricezione del campione accettato, distinta dal tempo reale del fix.
-    private var lastSpeedReceivedAt: Date?
     private var lastMotionAt: Date?
     private var started = false
 
@@ -294,7 +292,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             return "Attiva Posizione precisa per la velocità"
         }
         if currentCoordinate(at: date) == nil { return state }
-        if let lastHorizontalAccuracy, lastHorizontalAccuracy > 70 {
+        if let lastHorizontalAccuracy, lastHorizontalAccuracy > 35 {
             return "Posizione ±\(Int(lastHorizontalAccuracy)) m: velocità non affidabile"
         }
         if currentSpeed(at: date) != nil { return speedDiagnostic }
@@ -342,7 +340,6 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         lastHorizontalAccuracy = nil
         lastGoodCoordinateAt = nil
         lastValidAt = nil
-        lastSpeedReceivedAt = nil
         courseDegrees = nil
         lastCourseAt = nil
         compassHeadingDegrees = nil
@@ -465,7 +462,6 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             retryLocation()
         case .denied, .restricted:
             speedKmh = nil
-            lastSpeedReceivedAt = nil
             isReceiving = false
             state = "Permesso posizione negato"
         case .notDetermined:
@@ -478,12 +474,7 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard started else { return }
         for fix in locations.sorted(by: { $0.timestamp < $1.timestamp }) {
-            // I fix Core Location possono essere consegnati in batch con ritardo.
-            // Non scartare tutta la diagnostica dopo appena 5 secondi: conserva
-            // il timestamp nativo per distinguere un fix tardivo da uno recente.
-            let fixAge = Date().timeIntervalSince(fix.timestamp)
-            if fixAge >= -1.5, fixAge < 12,
-               lastGPSFixTime.map({ fix.timestamp > $0 }) ?? true {
+            if abs(fix.timestamp.timeIntervalSinceNow) <= 25 {
                 lastGPSFixTime = fix.timestamp
                 lastNativeSpeed = fix.speed
                 lastNativeSpeedAccuracy = fix.speedAccuracy
@@ -520,40 +511,26 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             // superiori a 180 km/h; precisione e limiti anti-salto restano.
             let maxTrustedSpeed: Double = UserDefaults.standard.string(
                 forKey: "ecojumbo.vehicle.mode") == EcoVehicleMode.universal.rawValue ? 80 : 50
-            // Build 119: ripristina la disponibilità GPS anche con aggiornamenti
-            // non regolari. La build 118 scartava tutti i fix più vecchi di 2 s,
-            // richiedeva accuratezza ≤2,5 m/s e Posizione precisa obbligatoria,
-            // lasciando spesso il tachimetro privo di una misura.
-            // Usa solo CLLocation.speed reale (mai calcolato da coordinate).
-            // Il valore va accettato solo se più recente del precedente;
-            // la precisione del TRIP resta più restrittiva e indipendente.
-            let freshSpeedFix = fixAge >= -1.5 && fixAge < 8.0
-            let newerSpeedFix = lastValidAt.map { fix.timestamp > $0 } ?? true
-            let usableSpeed = freshSpeedFix && newerSpeedFix
-                && fix.horizontalAccuracy >= 0 && fix.horizontalAccuracy <= 70
+            // Identici criteri di precisione GPS della build 33.
+            // Nessuna stima da coordinate e nessuna lettura simulata.
+            let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10
+                && fix.horizontalAccuracy >= 0 && fix.horizontalAccuracy <= 35
                 && fix.speed >= 0 && fix.speedAccuracy >= 0
                 && fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed
             if usableSpeed {
                 let kmh = fix.speed * 3.6
-                lastValidAt = fix.timestamp
-                lastSpeedReceivedAt = Date()
-                // Pubblica soltanto dopo aver registrato il momento di ricezione:
-                // il primo ridisegno SwiftUI può già leggere il timeout corretto.
                 speedKmh = kmh < 1.5 ? 0 : kmh
-                speedDiagnostic = "Velocità GPS nativa (fix recente, precisione ≤5 m/s)"
+                lastValidAt = fix.timestamp
+                speedDiagnostic = "Velocità GPS nativa (parametri build 33)"
                 state = "GPS attivo"
             } else if fix.speed < 0 {
                 speedDiagnostic = "Core Location non fornisce la velocità"
-            } else if fix.horizontalAccuracy > 70 {
-                speedDiagnostic = "Precisione posizione oltre 70 m"
+            } else if fix.horizontalAccuracy > 35 {
+                speedDiagnostic = "Precisione posizione oltre 35 m"
             } else if fix.speedAccuracy < 0 || fix.speedAccuracy > 5 {
                 speedDiagnostic = "Precisione velocità fuori 0–5 m/s"
-            } else if !freshSpeedFix {
-                speedDiagnostic = "Fix GPS arrivato in ritardo"
-            } else if !newerSpeedFix {
-                speedDiagnostic = "Campione GPS già elaborato"
             } else {
-                speedDiagnostic = "Velocità nativa non valida"
+                speedDiagnostic = "Velocità nativa non valida o non recente"
             }
 
             // Trip/odometro: filtri severi invariati contro il rumore GPS.
@@ -684,7 +661,6 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
             return
         }
         speedKmh = nil
-        lastSpeedReceivedAt = nil
         isReceiving = false
         state = "GPS: " + error.localizedDescription
     }
@@ -704,35 +680,10 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
         return courseDegrees
     }
 
-    // Finestra configurabile di sola VISUALIZZAZIONE, non modifica la qualità
-    // delle misurazioni GPS né i filtri TRIP/ODO. Default 8s, valori 2...10s.
-    var speedDisplayToleranceSeconds: Double {
-        let saved = (UserDefaults.standard.object(forKey: "ecojumbo.gps.speedDisplayToleranceSeconds")
-            as? Double) ?? 8.0
-        guard saved.isFinite else { return 8.0 }
-        return min(10.0, max(2.0, saved))
-    }
-
-    /// L'orologio dell'ultimo FIX valida qualità e ordine. La tolleranza
-    /// comincia invece dalla ricezione del dato nell'app: un campione GPS
-    /// consegnato in ritardo non deve lampeggiare e scomparire immediatamente.
+    /// I dati GPS non devono restare visibili come correnti se la localizzazione si interrompe.
     func currentSpeed(at date: Date = Date()) -> Double? {
-        guard let speedKmh, let lastSpeedReceivedAt else { return nil }
-        let receivedAge = date.timeIntervalSince(lastSpeedReceivedAt)
-        // Il clock della vista può precedere il callback appena pubblicato.
-        guard receivedAge >= -1.6,
-              receivedAge < speedDisplayToleranceSeconds else { return nil }
+        // Build 33: non mantenere visibili misurazioni GPS oltre 8 secondi.
+        guard let lastValidAt, date.timeIntervalSince(lastValidAt) < 8 else { return nil }
         return speedKmh
-    }
-
-    /// Una lettura trattenuta è reale ma NON è una velocità corrente.
-    func isSpeedHeld(at date: Date = Date()) -> Bool {
-        guard currentSpeed(at: date) != nil, let lastValidAt else { return false }
-        return date.timeIntervalSince(lastValidAt) > 2.0
-    }
-
-    func displayedSpeedSampleAge(at date: Date = Date()) -> TimeInterval? {
-        guard currentSpeed(at: date) != nil, let lastValidAt else { return nil }
-        return max(0, date.timeIntervalSince(lastValidAt))
     }
 }

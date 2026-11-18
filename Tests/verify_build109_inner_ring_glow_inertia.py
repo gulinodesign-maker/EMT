@@ -6,7 +6,7 @@ tabs = read("Ecojumbo/Views/CockpitTabs.swift")
 cockpit = read("Ecojumbo/Views/CockpitComponents.swift")
 motion = read("Ecojumbo/Models/GPSRideManager.swift")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 120;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 117;") == 2
 palette = tabs.split("struct EcoThemePalette: Codable, Equatable {", 1)[1].split("extension Color {", 1)[0]
 assert "static let colorCount = 23" in palette
 assert '"Anello interno · tachimetro"' in palette
