@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44309405117:ATTEMPT:1 -->
+### 2026-11-18T13:00:46Z — CI #425 · fix-119-gps-speed-reliability · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44309405117](https://github.com/gulinodesign-maker/EMT/actions/runs/44309405117); avvio 2026-11-18T13:00:46Z UTC; aggiornamento finale 2026-11-18T13:01:15Z UTC; registrazione 2026-11-18T13:01:31+00:00 UTC; evento pull_request.
+- **Commit:** [ebb8061177ec](https://github.com/gulinodesign-maker/EMT/commit/ebb8061177ecd3d2c89112fe5353843c78db9cb2); versione **1.0**; build **119**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:44304962555:ATTEMPT:1 -->
 ### 2026-11-18T12:32:51Z — CI #424 · main · tentativo 1
 
