@@ -1,5 +1,15 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 119 — hotfix GPS senza velocità dopo la 118 (18 novembre 2026)
+
+**Segnalazione:** dopo l'installazione della 118 l'utente riferisce «Ora il gps non funziona». Non è ancora chiarito se sia scomparsa la velocità soltanto o anche la posizione sulla mappa. Dal codice emergono criteri troppo restrittivi introdotti con la 118: fix accettati entro 2,0 s, `speedAccuracy ≤2,5 m/s`, richiesta incondizionata di `accuracyAuthorization == .fullAccuracy`, e scadenza a 2,5 s che rifiuta perfino il fix nuovo se il `now` del display aggiornato una volta al secondo precede di poco il timestamp del GPS.
+
+**Correzione hotfix:** con 119 il tachimetro accetta nuovamente letture `CLLocation.speed` reali con `speedAccuracy ≤5 m/s`, orizzontale entro 70 m e fix non più vecchi di 8 s, conservando l'ordine temporale dei fix e senza imporre `fullAccuracy` come secondo blocco (le preferenze di precisione iOS sono ancora diagnosticate). Il valore corrente è visibile fino a 6 s e `currentSpeed(at:)` tollera fino a 1,6 s di disallineamento dovuto al tick SwiftUI: questo evita che il GPS sembri morto proprio quando arriva una nuova misura. Non vengono introdotti smoothing, interpolazioni o velocità derivate da coordinate. Nessuna modifica al disegno del cockpit o alle impostazioni di Core Location.
+
+**Compatibilità e limiti:** acquisizione continua `bestForNavigation`, mappa e navigazione restano indipendenti dal tachimetro; TRIP/ODO, distanza dal pieno e percorso mantengono `horizontalAccuracy ≤35 m`, `speedAccuracy ≤5 m/s` e i filtri anti-salto. I parametri più permissivi della velocità non implicano accuratezza metrologica garantita; durante errori di ricezione il display mostra trattino anziché inventare dati. Serve verifica su iPhone effettivo, possibilmente inviando screenshot della diagnostica GPS, e distinzione esplicita tra errore della mappa e tachimetro.
+
+**Versione:** 1.0 (119) Debug e Release; aggiornamento test GPS strutturali e regressioni storiche, nuovo test hotfix. **Rilascio:** PR e CI da verificare prima del merge; upload Apple TestFlight dopo CI verde; processing/gruppo TE/installazione richiedono conferma separata. **Non ripubblicare 118**, già ricevuta da Apple.
+
 ## Build 118 — latenza e precisione del tachimetro GPS (18 novembre 2026)
 
 **Segnalazione:** l'utente riferisce una velocità GPS lenta, con latenza, e imprecisa sul cockpit. La build 117 usa già `CLLocation.speed` reale, ma accetta fix fino a 10 secondi vecchi e mantiene i valori per 8 secondi; inoltre rifiuta velocità native con incertezza orizzontale superiore a 35 m, anche quando `speedAccuracy` risulta sufficientemente buona. Nessuna prova strumentale disponibile sul dispositivo dell'utente: sono cause concrete possibili, non una misura diretta della latenza percepita.

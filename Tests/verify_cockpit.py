@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 118;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 119;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -455,11 +455,11 @@ assert 'PremiumWing(readings: leftRows' in c and 'PremiumWing(readings: rightRow
 assert 'func speedStatus(at date: Date = Date()) -> String' in g
 assert 'lastHorizontalAccuracy = fix.horizontalAccuracy' in g
 assert 'fix.horizontalAccuracy <= 35' in g  # soglia rigorosa mantenuta per TRIP/ODO
-assert 'let freshSpeedFix = fixAge >= -0.5 && fixAge < 2.0' in g
+assert 'let freshSpeedFix = fixAge >= -1.5 && fixAge < 8.0' in g
 assert 'fix.speedAccuracy >= 0' in g and 'fix.speedAccuracy <= 5' in g
-assert 'date.timeIntervalSince(lastValidAt) < 2.5' in g
+assert 'guard age >= -1.6 && age < 6.0' in g
 assert 'if usableSpeed {' in g
-assert 'date.timeIntervalSince(lastValidAt) < 2.5' in g
+assert 'guard age >= -1.6 && age < 6.0' in g
 assert 'if speedKmh < 1.5 {' not in g
 assert 'fix.horizontalAccuracy <= 35' in g and 'fix.speedAccuracy <= 5' in g
 assert 'gps.retryLocation()' in (r/'Ecojumbo/EcojumboApp.swift').read_text()

@@ -57,9 +57,9 @@ assert "autonomy?.fractionOfFull" in standard
 # Speedometer and navigation remain connected to real GPS as in build 45.
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in dashboard
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in g
-assert "let freshSpeedFix = fixAge >= -0.5 && fixAge < 2.0" in g
+assert "let freshSpeedFix = fixAge >= -1.5 && fixAge < 8.0" in g
 assert "fix.speedAccuracy <= 5" in g and "fix.speed <= maxTrustedSpeed" in g
-assert "date.timeIntervalSince(lastValidAt) < 2.5" in g
+assert "guard age >= -1.6 && age < 6.0" in g
 assert "if mapEnabled && selected == .gps {" in u
 
 # Landscape proportions: percent rail does not overlap search or button dock.

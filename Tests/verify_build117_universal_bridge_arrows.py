@@ -5,7 +5,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text(encoding="utf-8")
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text(encoding="utf-8")
-assert project.count("CURRENT_PROJECT_VERSION = 118;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 119;") == 2
 
 bridge = cockpit.split("private struct GPSCockpitPowerReading: View {", 1)[1].split(
     "// Calcola la posizione più a sinistra possibile", 1)[0]
