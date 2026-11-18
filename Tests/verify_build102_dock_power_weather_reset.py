@@ -7,7 +7,7 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 117;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 121;") == 2
 assert "## Build 102" in (root / "STATO_PROGETTO.md").read_text()
 
 dock = home.split("private struct CockpitCornerControls: View {", 1)[1].split(
