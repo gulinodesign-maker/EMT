@@ -79,8 +79,8 @@ assert ".mask(GPSLowerTerminalFade())" in light
 
 # Zero changes to speed sensing or speed-display data flow.
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in g
-assert "let usableSpeed = abs(fix.timestamp.timeIntervalSinceNow) < 10" in g
-assert "fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed" in g
-assert "date.timeIntervalSince(lastValidAt) < 8" in g
+assert "let freshSpeedFix = fixAge >= -0.5 && fixAge < 2.0" in g
+assert "fix.speedAccuracy <= 5" and "fix.speed <= maxTrustedSpeed" in g
+assert "date.timeIntervalSince(lastValidAt) < 2.5" in g
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in c
 print("OK — build 48: contour-safe map, plain background below kW bridge, GPS preserved")

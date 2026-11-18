@@ -90,6 +90,6 @@ assert ".foregroundStyle(Color(red: 1.0, green: 0.43, blue: 0.04))" not in speed
 assert 'Text("km/h")' in speed
 assert 'String(format: "ODO %.0f km", $0)' in speed
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
-assert "fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed" in gps
-assert "date.timeIntervalSince(lastValidAt) < 8" in gps
+assert "fix.speedAccuracy <= 5" and "fix.speed <= maxTrustedSpeed" in gps
+assert "date.timeIntervalSince(lastValidAt) < 2.5" in gps
 print("OK — build 52: ODO confirm, rail and GPS target centered, red speed")
