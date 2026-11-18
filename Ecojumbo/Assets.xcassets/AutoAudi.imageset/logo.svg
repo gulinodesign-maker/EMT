@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Ecojumbo A">
+  <path d="M64 5 C87 5 108 13 115 22 V69 C115 94 94 112 64 123 C34 112 13 94 13 69 V22 C20 13 41 5 64 5 Z" fill="#08090C" stroke="#D61F2C" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M30 25 Q64 11 98 25" fill="none" stroke="#D61F2C" stroke-width="4" opacity=".7"/>
+  <path d="M36 87 L60 33 L72 33 L95 87 M46 66 H85" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M109 49 L71 64 L86 68 L21 100 L49 76 L35 72 Z" fill="#FF7900" stroke="#09090B" stroke-width="1" stroke-linejoin="round"/>
+  <path d="M38 106 Q64 117 90 106" fill="none" stroke="#D61F2C" stroke-width="3" opacity=".8"/>
+</svg>
