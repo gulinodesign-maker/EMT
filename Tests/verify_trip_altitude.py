@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "let freshSpeedFix = fixAge >= -1.5 && fixAge < 8.0" in gps
 assert "fix.speedAccuracy <= 5" in gps and "fix.speed <= maxTrustedSpeed" in gps
-assert "guard age >= -1.6 && age < 6.0" in gps
+assert "receivedAge < speedDisplayToleranceSeconds" in gps
 
 # Profilo altimetrico GPS reale, persistente, non calcolato dalla mappa.
 assert "struct TripAltitudePoint: Codable, Equatable" in gps
