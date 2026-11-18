@@ -7,7 +7,7 @@ cockpit=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 settings=(root/"Ecojumbo/Views/OtherViews.swift").read_text()
 gps=(root/"Ecojumbo/Models/GPSRideManager.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 119;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 120;") == 2
 
 dashboard=cockpit.split("struct GPSCockpitDashboard: View {",1)[1].split(
     "private struct GPSTripResetControl: View {",1)[0]
@@ -91,5 +91,5 @@ assert 'Text("km/h")' in speed
 assert 'String(format: "ODO %.0f km", $0)' in speed
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "fix.speedAccuracy <= 5" in gps and "fix.speed <= maxTrustedSpeed" in gps
-assert "guard age >= -1.6 && age < 6.0" in gps
+assert "receivedAge < speedDisplayToleranceSeconds" in gps
 print("OK — build 52: ODO confirm, rail and GPS target centered, red speed")

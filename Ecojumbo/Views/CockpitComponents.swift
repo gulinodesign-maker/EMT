@@ -896,6 +896,7 @@ struct CockpitDashboard:View {
 
                 // Disco carbonio opaco in PRIMO PIANO: i dati laterali restano dietro.
                 OpenSpeedCluster(speed: liveSpeed,
+                                 speedHeld: gps.isSpeedHeld(at: now),
                                  incomingPower: live.map { Swift.max(0, $0.power) },
                                  outgoingPower: live.map { Swift.max(0, -$0.power) },
                                  theme: theme,
@@ -1240,6 +1241,7 @@ private struct SegmentedGaugeBar: View {
 private struct OpenSpeedCluster: View {
     @Environment(\.colorScheme) private var colorScheme
     let speed: Double?
+    var speedHeld: Bool = false
     let incomingPower: Double?
     let outgoingPower: Double?
     let theme: CockpitTheme
@@ -1412,6 +1414,17 @@ private struct OpenSpeedCluster: View {
                     }
                 }
                 .position(x: d * 0.5, y: d * 0.495)
+
+                // Etichetta discreta: velocità realmente misurata ma non recente.
+                if speedHeld && speed != nil {
+                    Text("ULTIMO GPS")
+                        .font(.system(size: d * 0.025, weight: .semibold))
+                        .foregroundStyle(colorScheme == .light
+                                         ? Color(white: 0.33) : .white.opacity(0.78))
+                        .frame(width: d * 0.30, height: d * 0.03)
+                        .position(x: d * 0.5, y: d * 0.808)
+                        .accessibilityLabel("Ultima velocità GPS ricevuta, in attesa di aggiornamento")
+                }
 
                 // Chilometraggio TOTALE persistente, distinto dal Trip.
                 // Si trova all'interno del quadrante, subito sopra "km/h".
@@ -2021,6 +2034,7 @@ struct GPSCockpitDashboard: View {
                 // La maschera segue esattamente le curve di GPSLowerContour.
                 ZStack {
                     OpenSpeedCluster(speed: gps.currentSpeed(at: now),
+                                     speedHeld: gps.isSpeedHeld(at: now),
                                      incomingPower: live.map { Swift.max(0, $0.power) },
                                      outgoingPower: live.map { Swift.max(0, -$0.power) },
                                      theme: theme,
@@ -2838,6 +2852,17 @@ private struct GPSDiagnosticsView: View {
                                    value: gps.currentSpeed().map {
                                        String(format: "%.1f km/h", $0)
                                    } ?? "Non disponibile")
+                    LabeledContent("Tolleranza visualizzazione",
+                                   value: "\(Int(gps.speedDisplayToleranceSeconds)) s")
+                    LabeledContent("Età velocità mostrata",
+                                   value: gps.displayedSpeedSampleAge().map {
+                                       String(format: "%.1f s", $0)
+                                   } ?? "Non disponibile")
+                    if gps.isSpeedHeld() {
+                        Text("ULTIMO GPS: lettura conservata, non velocità corrente.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 Section("Ultimo aggiornamento Core Location") {
                     LabeledContent("Età ultimo fix",

@@ -7,7 +7,7 @@ project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
 
 # The old fingerprint was specific to the 85 source; later builds extend it.
-assert project.count("CURRENT_PROJECT_VERSION = 119;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 120;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 assert "Build 85" in state and "Build 84" in state and "Build 83" in state

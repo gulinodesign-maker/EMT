@@ -59,7 +59,7 @@ assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in dashboard
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in g
 assert "let freshSpeedFix = fixAge >= -1.5 && fixAge < 8.0" in g
 assert "fix.speedAccuracy <= 5" in g and "fix.speed <= maxTrustedSpeed" in g
-assert "guard age >= -1.6 && age < 6.0" in g
+assert "receivedAge < speedDisplayToleranceSeconds" in g
 assert "if mapEnabled && selected == .gps {" in u
 
 # Landscape proportions: percent rail does not overlap search or button dock.

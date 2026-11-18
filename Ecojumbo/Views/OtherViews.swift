@@ -238,6 +238,7 @@ struct EcoSettingsView: View {
     @AppStorage("ecojumbo.vehicle.mode") private var vehicleMode = EcoVehicleMode.bms.rawValue
     @AppStorage("ecojumbo.vehicle.fullRangeKm") private var fullRangeKm = 0.0
     @AppStorage("ecojumbo.vehicle.averageSpeedScaleKmh") private var averageSpeedScaleKmh = 130.0
+    @AppStorage("ecojumbo.gps.speedDisplayToleranceSeconds") private var gpsSpeedDisplayToleranceSeconds = 8.0
     @AppStorage("ecojumbo.power.motionSensitivity") private var motionSensitivity = 0.5
     @AppStorage("ecojumbo.power.motionAxis") private var motionAxis = "z"
     @AppStorage("ecojumbo.power.reverseMotion") private var reverseMotion = false
@@ -444,6 +445,24 @@ struct EcoSettingsView: View {
                         "Distanza del TRIP divisa per il tempo di movimento GPS registrato. " +
                         "Senza dati sufficienti appare un trattino. La barra è solo indicativa.")
                 }
+            }
+            Section("Tachimetro GPS") {
+                HStack {
+                    Text("Tolleranza senza aggiornamenti")
+                    Spacer()
+                    Text("\(Int(gpsSpeedDisplayToleranceSeconds.rounded())) s")
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+                Slider(value: $gpsSpeedDisplayToleranceSeconds, in: 2...10, step: 1)
+                    .accessibilityLabel("Tolleranza velocità GPS")
+                    .accessibilityValue("\(Int(gpsSpeedDisplayToleranceSeconds.rounded())) secondi")
+                Text("Mantiene visibile l'ultima velocità GPS ricevuta per 2–10 secondi. " +
+                     "Dopo 2 secondi senza un fix fresco appare «ULTIMO GPS»: " +
+                     "il valore non è una misura in tempo reale. " +
+                     "Questo cursore non accelera la ricezione né migliora la precisione del GPS.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         case .appearance:
             Section("Aspetto dell'app") {

@@ -1,5 +1,15 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 120 — tolleranza GPS regolabile da 2 a 10 secondi (18 novembre 2026)
+
+**Problema segnalato:** dopo 119 le cifre velocità arrivano in ritardo e poi scompaiono; richiesta di un cursore 2–10 s per evitare intervalli vuoti. La 119 usa il timestamp ORIGINALE del fix per un timeout fisso di 6 s, benché possa accettare fix fino a 8 s vecchi: una misura arrivata in ritardo può apparire solo un attimo o mai. È una spiegazione del codice, non una misurazione diretta del telefono.
+
+**Correzione:** **Impostazioni → Veicolo → Tachimetro GPS** presenta uno Slider 2–10 secondi, passo 1 s, predefinito **8 s**, persistito in `ecojumbo.gps.speedDisplayToleranceSeconds`. Il timeout di visualizzazione parte dalla **ricezione** del fix di velocità nativa valido (`lastSpeedReceivedAt`) anziché dal timestamp originale; viene limitato a 2–10 s anche in presenza di preferenze anomale. Non modifica l'acquisizione, il filtro di qualità (`CLLocation.speed` realmente misurata, `speedAccuracy ≤5 m/s`, incertezza orizzontale ≤70 m, età max 8s all'accettazione, ordine dei timestamp), la mappa o TRIP/ODO/dal pieno. La lettura viene eliminata allo stop GPS, revoca permessi o errore reale.
+
+**Trasparenza:** se la velocità visualizzata proviene da un fix misurato oltre 2 s prima, nel quadrante appare la piccola dicitura «ULTIMO GPS»; indica che è una LETTURA CONSERVATA, non un valore istantaneo. In Diagnostica GPS compaiono tolleranza ed età del dato. Non viene inventata/interpolata alcuna velocità, né garantita la precisione di un sensore certificato: un segnale realmente mancante continuerà a mostrare il trattino alla scadenza. Il cursore non può velocizzare Core Location o migliorare il segnale del dispositivo.
+
+**Versione:** 1.0 (120), Debug/Release. Nuovo test strutturale su slider, timeout da ricezione, provenienza del campione e filtri TRIP; regressioni storiche da aggiornare. **Rilascio da verificare:** test PR, merge, CI main, upload Apple, processing App Store Connect e assegnazione al gruppo TE.
+
 ## Build 119 — hotfix GPS senza velocità dopo la 118 (18 novembre 2026)
 
 **Segnalazione:** dopo l'installazione della 118 l'utente riferisce «Ora il gps non funziona». Non è ancora chiarito se sia scomparsa la velocità soltanto o anche la posizione sulla mappa. Dal codice emergono criteri troppo restrittivi introdotti con la 118: fix accettati entro 2,0 s, `speedAccuracy ≤2,5 m/s`, richiesta incondizionata di `accuracyAuthorization == .fullAccuracy`, e scadenza a 2,5 s che rifiuta perfino il fix nuovo se il `now` del display aggiornato una volta al secondo precede di poco il timestamp del GPS.

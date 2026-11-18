@@ -30,7 +30,7 @@ assert "let freshSpeedFix = fixAge >= -1.5 && fixAge < 8.0" in gps
 assert "let newerSpeedFix = lastValidAt.map { fix.timestamp > $0 } ?? true" in gps
 assert "let kmh = fix.speed * 3.6" in gps
 assert "speedKmh = kmh < 1.5 ? 0 : kmh" in gps
-assert "guard age >= -1.6 && age < 6.0" in gps
+assert "receivedAge < speedDisplayToleranceSeconds" in gps
 # TRIP/ODO preservano i filtri più restrittivi; nessun chilometro inventato.
 trip = gps.split("// Trip/odometro: filtri severi invariati", 1)[1].split(
     "// Primo campione attendibile del viaggio", 1)[0]

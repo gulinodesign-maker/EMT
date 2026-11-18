@@ -6,7 +6,7 @@ read = lambda p: (root / p).read_text(encoding="utf-8")
 gps = read("Ecojumbo/Models/GPSRideManager.swift")
 cockpit = read("Ecojumbo/Views/CockpitComponents.swift")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 119;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 120;") == 2
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "manager.activityType = .automotiveNavigation" in gps
 assert "manager.distanceFilter = kCLDistanceFilterNone" in gps
@@ -26,10 +26,10 @@ assert "fix.speed <= maxTrustedSpeed" in speed
 assert "let kmh = fix.speed * 3.6" in gps
 assert "speedKmh = kmh < 1.5 ? 0 : kmh" in gps
 speed_accessor = gps.split("func currentSpeed(at date: Date = Date()) -> Double? {",1)[1].split("\n    }",1)[0]
-assert "let age = date.timeIntervalSince(lastValidAt)" in speed_accessor
-assert "guard age >= -1.6 && age < 6.0" in speed_accessor
+assert "let receivedAge = date.timeIntervalSince(lastSpeedReceivedAt)" in speed_accessor
+assert "receivedAge < speedDisplayToleranceSeconds" in speed_accessor
 assert "return speedKmh" in speed_accessor
-assert "guard age >= -1.6 && age < 6.0" in gps
+assert "receivedAge < speedDisplayToleranceSeconds" in gps
 # Independent trip, odometer and fuel tracking keep strict GPS controls.
 trip = gps.split("// Trip/odometro: filtri severi invariati",1)[1].split(
     "// Primo campione attendibile del viaggio",1)[0]
