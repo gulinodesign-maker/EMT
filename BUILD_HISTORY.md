@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44348340169:ATTEMPT:1 -->
+### 2026-11-18T16:32:06Z — CI #433 · feature/audi-automotive-preset · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44348340169](https://github.com/gulinodesign-maker/EMT/actions/runs/44348340169); avvio 2026-11-18T16:32:06Z UTC; aggiornamento finale 2026-11-18T16:47:56Z UTC; registrazione 2026-11-18T16:48:09+00:00 UTC; evento pull_request.
+- **Commit:** [adaf4f72e881](https://github.com/gulinodesign-maker/EMT/commit/adaf4f72e881dbeeff9f5bae77891f39ed45d5a6); versione **1.0**; build **121**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_audi_theme_preset.py.
+
 <!-- EMT_RUN:44336469131:ATTEMPT:1 -->
 ### 2026-11-18T15:30:43Z — CI #432 · main · tentativo 1
 
