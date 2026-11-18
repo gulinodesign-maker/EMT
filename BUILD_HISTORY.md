@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44334403053:ATTEMPT:1 -->
+### 2026-11-18T15:20:01Z — CI #431 · restore-build117-behavior-release121 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44334403053](https://github.com/gulinodesign-maker/EMT/actions/runs/44334403053); avvio 2026-11-18T15:20:01Z UTC; aggiornamento finale 2026-11-18T15:25:46Z UTC; registrazione 2026-11-18T15:25:59+00:00 UTC; evento pull_request.
+- **Commit:** [886255edc424](https://github.com/gulinodesign-maker/EMT/commit/886255edc4249c3fbebffff690213531c042c882); versione **1.0**; build **121**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:44329013511:ATTEMPT:1 -->
 ### 2026-11-18T14:52:05Z — CI #430 · main · tentativo 1
 
