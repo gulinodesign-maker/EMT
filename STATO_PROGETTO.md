@@ -1,5 +1,15 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Build 118 — latenza e precisione del tachimetro GPS (18 novembre 2026)
+
+**Segnalazione:** l'utente riferisce una velocità GPS lenta, con latenza, e imprecisa sul cockpit. La build 117 usa già `CLLocation.speed` reale, ma accetta fix fino a 10 secondi vecchi e mantiene i valori per 8 secondi; inoltre rifiuta velocità native con incertezza orizzontale superiore a 35 m, anche quando `speedAccuracy` risulta sufficientemente buona. Nessuna prova strumentale disponibile sul dispositivo dell'utente: sono cause concrete possibili, non una misura diretta della latenza percepita.
+
+**Modifica:** in `GPSRideManager` il tachimetro utilizza solo il fix nativo più recente (età da -0,5 a meno di 2,0 secondi, timestamp più nuovo dell'ultimo valore accettato) con `speedAccuracy` valida entro 2,5 m/s, posizione precisa attiva e incertezza orizzontale entro 70 m. Campioni datati, duplicati, imprecisi o con velocità negativa non sovrascrivono la lettura corrente. La lettura scade dopo 2,5 secondi anziché 8; nessuna velocità stimata, accelerata o dedotta dalle coordinate. `@Published` continua a notificare subito il valore al cockpit; nessun filtro di smoothing che introduca ritardo. Il diagnostico evidenzia motivi di rifiuto.
+
+**Compatibilità:** parametri di acquisizione `kCLLocationAccuracyBestForNavigation`, `.automotiveNavigation`, `kCLDistanceFilterNone` invariati. TRIP/ODO, carburante dal pieno e route tracking mantengono i loro controlli severi: precisione posizione ≤35 m e `speedAccuracy` ≤5 m/s. App Store/TestFlight potranno distribuire solo dopo CI realmente verde. Il comportamento su iPhone reale (antenna, tempi fix e confronto con GPS attendibile) resta da verificare in prova sicura a veicolo fermo per i controlli di setup e durante guida con passeggero dedicato.
+
+**Versione:** 1.0 (118) Debug e Release; test regressione dedicato e test storici di versione aggiornati. **Rilascio:** da verificare PR, CI, main, upload Apple e successivamente elaborazione/gruppo TE.
+
 ## Build 117 — frecce inerziali al posto delle scritte sotto il ponte (17 novembre 2026)
 
 **Richiesta utente:** screenshot cockpit Universale della build 116 con «INERZIA» cerchiato; sostituire le parole sotto il ponte con freccia alta (accelerazione), freccia bassa (decelerazione) e segno meno (inerzia), quindi realizzare una nuova build e pubblicarla su TestFlight.
