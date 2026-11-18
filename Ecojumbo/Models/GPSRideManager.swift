@@ -535,9 +535,11 @@ final class GPSRideManager: NSObject, ObservableObject, @preconcurrency CLLocati
                 && fix.speedAccuracy <= 5 && fix.speed <= maxTrustedSpeed
             if usableSpeed {
                 let kmh = fix.speed * 3.6
-                speedKmh = kmh < 1.5 ? 0 : kmh
                 lastValidAt = fix.timestamp
                 lastSpeedReceivedAt = Date()
+                // Pubblica soltanto dopo aver registrato il momento di ricezione:
+                // il primo ridisegno SwiftUI può già leggere il timeout corretto.
+                speedKmh = kmh < 1.5 ? 0 : kmh
                 speedDiagnostic = "Velocità GPS nativa (fix recente, precisione ≤5 m/s)"
                 state = "GPS attivo"
             } else if fix.speed < 0 {

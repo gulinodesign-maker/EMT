@@ -14,6 +14,7 @@ assert 'Slider(value: $gpsSpeedDisplayToleranceSeconds, in: 2...10, step: 1)' in
 assert 'cursore non accelera la ricezione' in ui
 assert 'private var lastSpeedReceivedAt: Date?' in gps
 assert 'lastSpeedReceivedAt = Date()' in gps
+assert gps.index('lastSpeedReceivedAt = Date()') < gps.index('speedKmh = kmh < 1.5 ? 0 : kmh')
 assert gps.count('lastSpeedReceivedAt = nil') >= 3
 assert 'as? Double) ?? 8.0' in gps
 assert 'return min(10.0, max(2.0, saved))' in gps
