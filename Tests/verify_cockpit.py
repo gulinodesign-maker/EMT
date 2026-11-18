@@ -455,11 +455,11 @@ assert 'PremiumWing(readings: leftRows' in c and 'PremiumWing(readings: rightRow
 assert 'func speedStatus(at date: Date = Date()) -> String' in g
 assert 'lastHorizontalAccuracy = fix.horizontalAccuracy' in g
 assert 'fix.horizontalAccuracy <= 35' in g  # soglia rigorosa mantenuta per TRIP/ODO
-assert 'let freshSpeedFix = fixAge >= -0.5 && fixAge < 2.0' in g
+assert 'let freshSpeedFix = fixAge >= -1.5 && fixAge < 8.0' in g
 assert 'fix.speedAccuracy >= 0' in g and 'fix.speedAccuracy <= 5' in g
-assert 'date.timeIntervalSince(lastValidAt) < 2.5' in g
+assert 'guard age >= -1.6 && age < 6.0' in g
 assert 'if usableSpeed {' in g
-assert 'date.timeIntervalSince(lastValidAt) < 2.5' in g
+assert 'guard age >= -1.6 && age < 6.0' in g
 assert 'if speedKmh < 1.5 {' not in g
 assert 'fix.horizontalAccuracy <= 35' in g and 'fix.speedAccuracy <= 5' in g
 assert 'gps.retryLocation()' in (r/'Ecojumbo/EcojumboApp.swift').read_text()

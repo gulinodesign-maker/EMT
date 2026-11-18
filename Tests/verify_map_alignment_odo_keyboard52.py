@@ -91,5 +91,5 @@ assert 'Text("km/h")' in speed
 assert 'String(format: "ODO %.0f km", $0)' in speed
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps
 assert "fix.speedAccuracy <= 5" in gps and "fix.speed <= maxTrustedSpeed" in gps
-assert "date.timeIntervalSince(lastValidAt) < 2.5" in gps
+assert "guard age >= -1.6 && age < 6.0" in gps
 print("OK — build 52: ODO confirm, rail and GPS target centered, red speed")
