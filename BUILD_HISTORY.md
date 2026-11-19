@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:44505398459:ATTEMPT:1 -->
+### 2026-11-19T10:24:40Z — CI #437 · release/liquid-glass-123-verified · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 44505398459](https://github.com/gulinodesign-maker/EMT/actions/runs/44505398459); avvio 2026-11-19T10:24:40Z UTC; aggiornamento finale 2026-11-19T10:28:00Z UTC; registrazione 2026-11-19T10:28:12+00:00 UTC; evento pull_request.
+- **Commit:** [8d59b0b634e0](https://github.com/gulinodesign-maker/EMT/commit/8d59b0b634e0a8ac307fb4ab1e2ecd4f8c7f5843); versione **1.0**; build **123**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** BUILD_HISTORY.md.
+
 <!-- EMT_RUN:44504015272:ATTEMPT:1 -->
 ### 2026-11-19T10:15:49Z — CI #436 · feature/liquid-glass-ios26-build123 · tentativo 1
 
