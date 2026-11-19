@@ -8,7 +8,7 @@
 
 **Requisiti:** il workflow CI passa a `macos-26` con Xcode 26 (il precedente `macos-15-intel` usava Xcode 16.4 e non conosce le API); TestFlight usa già `macos-26`. Build progressiva `123` in Debug/Release, marketing 1.0 e deployment target iOS 17.0 invariati, test versione aggiornati; aggiunta regressione `Tests/verify_liquid_glass_ios26.py`.
 
-**Stato:** nuova CI PR, build simulatore + Release, merge, CI main e upload TestFlight **da verificare**, senza dichiarare disponibile su iPhone prima del messaggio Apple `Upload succeeded`. Processing Apple, gruppo TE e disponibilità per tester richiedono verifiche distinte. La 122 con Audi è stata già caricata: non ripetere l'upload.
+**Stato:** prima [CI PR 44504015272](https://github.com/gulinodesign-maker/EMT/actions/runs/44504015272) **FAILURE** nei soli controlli Python, prima delle compilazioni: 5 asserzioni storiche attendevano letterali del vecchio UI/runner e due file del tema Audi + il relativo test erano erroneamente assenti dal primo tree della nuova feature. Ripristinati asset e test Audi dal main 122, aggiornate le cinque asserzioni a controllare il nuovo layout, mantenendo le verifiche di sicurezza; successiva CI, build simulatore + Release, merge, CI main e upload TestFlight **da verificare**, senza dichiarare disponibile su iPhone prima del messaggio Apple `Upload succeeded`. Processing Apple, gruppo TE e disponibilità per tester richiedono verifiche distinte. La 122 con Audi è stata già caricata: non ripetere l'upload.
 
 ## Tema Audi — richiesta del 18 novembre 2026 (feature/audi-automotive-preset)
 

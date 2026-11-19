@@ -20,7 +20,7 @@ assert "GPSSearchTopBand" not in map_section
 assert "GPSSearchBottomFade" not in map_section
 assert "Color.black.opacity(0.27)" not in map_section
 assert "fadeStart + 0.055" not in map_section
-assert ".background(Color.clear)" in map_section
+assert ".ecoLiquidGlassFloatingField(cornerRadius: 15)" in map_section
 
 # I segmenti della top bar e del ponte kW sono limiti di clipping reali.
 assert ".mask(GPSMapTopContourClip())" in map_section

@@ -62,7 +62,7 @@ assert "theme.topBarGradientStart" in telemetry and "theme.topBarGradientEnd" in
 assert "startPoint: direction.start, endPoint: direction.end" not in telemetry
 assert "startPoint: .leading, endPoint: .trailing" in telemetry
 assert "from.opacity((day ? 0.38 : 0.32) * lightOpacity)" in telemetry
-assert telemetry.count(".background(telemetryCardBackground)")==2
+assert telemetry.count(".background(adaptiveTelemetryBackground)")==2
 assert "telemetryTile(\"SOC\"" in telemetry
 assert "dislevelCard(height: dislHeight)" in telemetry
 assert "let snapshot = bluetooth.snapshot" in telemetry

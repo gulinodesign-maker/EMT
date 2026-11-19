@@ -135,7 +135,7 @@ assert 'static let mapToDialClearance: CGFloat = 2' in c
 assert 'GPSSearchTopBand' not in c
 assert 'GPSSearchBottomFade' not in c
 assert '.mask(GPSMapDialClearanceClip()' in c
-assert '.background(Color.clear)' in c
+assert '.ecoLiquidGlassFloatingField(cornerRadius: 15)' in c
 assert 'clipShape(RoundedRectangle(cornerRadius: 16' not in c
 assert 'GPSCompactReadings' not in c  # nessun pannello sopra la mappa
 assert 'buttonStart - max(9, w * 0.012)' in c
