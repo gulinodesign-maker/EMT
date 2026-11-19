@@ -6,7 +6,7 @@ root=Path(__file__).resolve().parents[1]
 tabs=(root/"Ecojumbo/Views/CockpitTabs.swift").read_text()
 c=(root/"Ecojumbo/Views/CockpitComponents.swift").read_text()
 project=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 123;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 124;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 # Deliberately remove ONLY the extra second ring. The original luminous

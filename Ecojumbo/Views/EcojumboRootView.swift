@@ -29,103 +29,13 @@ extension Color {
     static let ecoGreen = Color(red: 0.98, green: 0.48, blue: 0.08)
 }
 
-// MARK: - Liquid Glass (iOS 26+) with a real iOS 17–25 fallback.
-// Glass belongs to navigation and interactive chrome. Data-heavy content stays
-// readable using system material; GPS speed and BMS figures never become glass.
-extension View {
-    @ViewBuilder func ecoLiquidGlassControl(
-        cornerRadius: CGFloat = 14, tint: Color? = nil, legacyCard: Bool = false
-    ) -> some View {
-        if #available(iOS 26.0, *) {
-            self.glassEffect(.regular.tint(tint).interactive(),
-                             in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-        } else if legacyCard {
-            self.background(Color.ecoCard,
-                            in: RoundedRectangle(cornerRadius: cornerRadius))
-        } else {
-            self
-        }
-    }
-
-    // Floating search and status fields are native Glass over the map / artwork;
-    // retain the exact original background on iOS 17–25.
-    @ViewBuilder func ecoLiquidGlassFloatingField(
-        cornerRadius: CGFloat = 12, legacyBackground: Color = .clear
-    ) -> some View {
-        if #available(iOS 26.0, *) {
-            self.glassEffect(.regular.interactive(),
-                             in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-        } else {
-            self.background(legacyBackground,
-                            in: RoundedRectangle(cornerRadius: cornerRadius))
-        }
-    }
-
-    @ViewBuilder func ecoLiquidGlassCircularControl(
-        tint: Color? = nil, legacyBackground: Color = .clear
-    ) -> some View {
-        if #available(iOS 26.0, *) {
-            self.glassEffect(.regular.tint(tint).interactive(), in: Circle())
-        } else {
-            self.background(legacyBackground, in: Circle())
-        }
-    }
-
-    @ViewBuilder func ecoLiquidGlassChrome(cornerRadius: CGFloat = 18) -> some View {
-        if #available(iOS 26.0, *) {
-            self.glassEffect(.regular,
-                             in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-        } else {
-            self
-        }
-    }
-
-    @ViewBuilder func ecoLiquidGlassPanel(
-        cornerRadius: CGFloat = 16, legacyOpacity: Double = 1
-    ) -> some View {
-        if #available(iOS 26.0, *) {
-            self.background(.regularMaterial,
-                            in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        .strokeBorder(.primary.opacity(0.10), lineWidth: 0.8)
-                        .allowsHitTesting(false)
-                }
-        } else {
-            self.background(Color.ecoCard.opacity(legacyOpacity),
-                            in: RoundedRectangle(cornerRadius: cornerRadius))
-        }
-    }
-
-    // A GlassEffectContainer groups adjacent native glass controls for iOS 26,
-    // including their system-driven merging and interactive transformations.
-    @ViewBuilder func ecoLiquidGlassContainer(spacing: CGFloat = 8) -> some View {
-        if #available(iOS 26.0, *) {
-            GlassEffectContainer(spacing: spacing) { self }
-        } else {
-            self
-        }
-    }
-
-    @ViewBuilder func ecoLiquidGlassNavigationBar(accent: Color) -> some View {
-        if #available(iOS 26.0, *) {
-            self
-        } else {
-            self.background(Color.ecoCard)
-                .overlay(alignment: .top) {
-                    Rectangle().fill(accent.opacity(0.35)).frame(height: 1)
-                }
-        }
-    }
-}
-
 struct EcoCard<Content: View>: View {
     @ViewBuilder let content: Content
     var body: some View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(16)
-            .ecoLiquidGlassPanel(cornerRadius: 16)
+            .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 16))
     }
 }
 
@@ -396,7 +306,7 @@ private struct PortraitServiceTabBar: View {
     let theme: CockpitTheme
 
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 2) {
             ForEach([EcoTab.gps, .trips, .settings, .themes]) { tab in
                 Button { selected = tab } label: {
                     EcoMinimalNavigationLabel(
@@ -414,16 +324,16 @@ private struct PortraitServiceTabBar: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .ecoLiquidGlassControl(cornerRadius: 17,
-                                       tint: selected == tab ? theme.accent.opacity(0.24) : nil)
                 .accessibilityLabel(tab == .gps ? "Tachimetro GPS" : tab.label)
                 .accessibilityAddTraits(selected == tab ? .isSelected : [])
             }
         }
-        .ecoLiquidGlassContainer(spacing: 10)
         .padding(.horizontal, 8)
         .padding(.top, 8)
-        .ecoLiquidGlassNavigationBar(accent: theme.accent)
+        .background(Color.ecoCard)
+        .overlay(alignment: .top) {
+            Rectangle().fill(theme.accent.opacity(0.35)).frame(height: 1)
+        }
     }
 }
 
@@ -577,7 +487,6 @@ private struct CockpitCornerControls: View {
                 // Il centro coincide esattamente con quello della Telemetria;
                 // allineamento a destra del dock resta invariato in Mappa.
                 .frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .center)
-                .ecoLiquidGlassContainer(spacing: 9)
                 if selected != .gps {
                     Spacer(minLength: 0)
                 }
@@ -602,8 +511,6 @@ private struct CockpitCornerControls: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .ecoLiquidGlassControl(cornerRadius: 15,
-                               tint: tab == selected ? theme.accent.opacity(0.25) : nil)
         .accessibilityLabel(tab.label)
         .accessibilityAddTraits(tab == selected ? .isSelected : [])
     }
@@ -626,8 +533,6 @@ private struct CockpitCornerControls: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .ecoLiquidGlassControl(cornerRadius: 15,
-                               tint: active ? theme.accent.opacity(0.25) : nil)
         .disabled(!enabled)
         .opacity(enabled ? 1 : 0.45)
         .accessibilityLabel(accessibility)

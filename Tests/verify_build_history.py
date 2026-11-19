@@ -14,7 +14,7 @@ assert "actions: read" in logger and "contents: write" in logger
 assert "ref: main" in logger and "ci/history-fallback-" in logger
 assert "git push origin HEAD:refs/heads/main" in logger
 assert "paths-ignore:" in ci and "'BUILD_HISTORY.md'" in ci
-assert "macos-26" in ci and "pull_request:" in ci
+assert "macos-15-intel" in ci and "pull_request:" in ci
 assert "BUILD_HISTORY_AUTO_START" in history
 assert "CI_STATUS_START" in state
 

@@ -148,7 +148,7 @@ struct BluetoothView: View {
                             }
                             .padding(14)
                             .foregroundStyle(.primary)
-                            .ecoLiquidGlassControl(cornerRadius: 14, legacyCard: true)
+                            .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 14))
                         }.buttonStyle(.plain)
                     }
                 }
@@ -295,13 +295,12 @@ struct EcoSettingsView: View {
                             }
                             .frame(maxWidth: .infinity)
                             .frame(height: tileHeight)
-                            .ecoLiquidGlassControl(cornerRadius: 12, tint: setupIconColor.opacity(0.12), legacyCard: true)
+                            .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Apri \(section.title)")
                     }
                 }
-                    .ecoLiquidGlassContainer(spacing: 10)
                     .padding(.horizontal, landscape ? 16 : 18)
                     .padding(.vertical, landscape ? 8 : 16)
                 }

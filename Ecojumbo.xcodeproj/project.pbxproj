@@ -1,5 +1,5 @@
 // !$*UTF8*$!
-// Release 123: native iOS 26 Liquid Glass interface, legacy iOS 17–25 fallback.
+// Release 124: restore exact build 122 source tree, without iOS 26 Liquid Glass changes.
 {
 archiveVersion = 1;
 classes = {};
@@ -93,7 +93,7 @@ objects = {
 		E20000000000000000000003 /* Target Debug */ = {isa = XCBuildConfiguration; buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 123;
+				CURRENT_PROJECT_VERSION = 124;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Ecojumbo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -111,7 +111,7 @@ objects = {
 		E20000000000000000000004 /* Target Release */ = {isa = XCBuildConfiguration; buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 123;
+				CURRENT_PROJECT_VERSION = 124;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Ecojumbo/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
