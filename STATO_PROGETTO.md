@@ -1,5 +1,13 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Tema Audi — richiesta del 18 novembre 2026 (feature/audi-automotive-preset)
+
+**Richiesta utente:** aggiungere **Audi** ai temi automobilistici predefiniti di Ecojumbo, non modificare l'audio dell'app.
+
+**Implementazione su branch dedicato:** aggiunto il settimo preset `Audi` selezionabile da **Temi automobilistici** e dai kit dell'editor, con palette notturna/day antracite (`#07090C`), rosso (`#D61F2C`), argento (`#AEB7BF`) e contrasto bianco; i 23 ruoli seguono la stessa generazione completa degli altri kit e l'allarme limite conserva `#FF3B30`. Aggiunto stemma **originale Ecojumbo A** (non logo Audi ufficiale) negli asset vettoriali, con mappatura marca e identificatore `brandID` per import/export. I tre slot personalizzati e i sei preset esistenti restano immutati.
+
+**Rilascio 1.0 (122) in preparazione:** il test `Tests/verify_audi_theme_preset.py` e la CI PR iniziale [44348340169](https://github.com/gulinodesign-maker/EMT/actions/runs/44348340169) sono riusciti, inclusa la compilazione iPhone Release senza firma. Il nuovo commit sincronizza `CURRENT_PROJECT_VERSION = 122` in Debug/Release e le asserzioni di versione storiche. **Non dichiarare pubblicata 122 finché la nuova CI della PR, il merge, la CI main e il workflow TestFlight non risultano verificati con `Upload succeeded`.** La build 121 è già stata caricata e non va ripubblicata. Processing, gruppo TE e installazione iPhone restano verifiche separate.
+
 ## Ripristino della build 117 — release tecnica 1.0 (121) (18 novembre 2026)
 
 **Richiesta esplicita utente:** «Niente, ripristina la 117», dopo ripetute segnalazioni di GPS lento/inesatto e di numeri che compaiono e scompaiono nelle build 118–120. Si ripristina **esattamente l'albero dei sorgenti e degli asset della build 117** dal commit GitHub `4bbb29f3a41bed96406c8c1e9a983b738802017d`, senza applicare alcuna ottimizzazione/nuovo filtro GPS. L'unica differenza obbligatoria nel progetto app è `CURRENT_PROJECT_VERSION = 121` in Debug e Release: Apple ha già ricevuto la 117 e accetta solo un numero di build superiore per un nuovo upload. Versione marketing 1.0 e bundle identifier invariati.

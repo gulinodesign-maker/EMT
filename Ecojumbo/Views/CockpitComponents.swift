@@ -128,7 +128,7 @@ private struct EcoOutsideTemperature: View {
 // Geometry, rings, numerals and panels are real SwiftUI controls (no reference bitmap as UI).
 // Misure esclusivamente da Core Location / JK BLE, senza campioni sintetici.
 enum CockpitTheme: String, CaseIterable, Identifiable {
-    // I sei colori storici rimangono esclusivamente modelli di partenza.
+    // I sei colori storici restano compatibili; Audi è un nuovo preset di fabbrica.
     // I tre slot sono i soli preset persistenti visibili in Kit colori.
     case copper = "Rame"
     case glacier = "Ghiaccio"
@@ -136,6 +136,7 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     case aquamarine = "Acquamarina"
     case brown = "Marrone"
     case racing = "Racing"
+    case audi = "Audi"
     case slot1 = "Slot 1"
     case slot2 = "Slot 2"
     case slot3 = "Slot 3"
@@ -151,6 +152,7 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
         case .aquamarine: return "Alfa Romeo"
         case .brown: return "Lamborghini"
         case .racing: return "Cupra"
+        case .audi: return "Audi"
         case .slot1, .slot2, .slot3: return nil
         }
     }
@@ -163,6 +165,7 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
         case .aquamarine: return "AutoAlfaRomeo"
         case .brown: return "AutoLamborghini"
         case .racing: return "AutoCupra"
+        case .audi: return "AutoAudi"
         case .slot1, .slot2, .slot3: return nil
         }
     }
@@ -175,7 +178,7 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
         }
     }
 
-    // I sei kit di fabbrica devono risolvere la palette COMPLETA:
+    // Tutti i kit di fabbrica devono risolvere la palette COMPLETA:
     // in particolare Ferrari/Cupra mantengono i 23 colori, Day/Night,
     // 23 glow, sfumature, anello interno e grafico DISL dei JSON utente.
     // Prima venivano usati solo per alcuni colori, lasciando fallback generici.

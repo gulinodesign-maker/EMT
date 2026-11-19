@@ -396,7 +396,7 @@ struct EcoThemePalette: Codable, Equatable {
     var brandID: String?
 
     static let automotiveBrands: Set<String> = [
-        "BMW", "Ferrari", "Mercedes", "Alfa Romeo", "Lamborghini", "Cupra"
+        "BMW", "Ferrari", "Mercedes", "Alfa Romeo", "Lamborghini", "Cupra", "Audi"
     ]
 
     static let luminousRoles: [Int] = [1, 2, 4, 5, 6, 8, 9, 10, 14, 17, 18, 21, 22]
@@ -696,7 +696,7 @@ struct EcoThemePalette: Codable, Equatable {
         return try! JSONDecoder().decode(EcoThemePalette.self, from: Data(json.utf8))
     }()
 
-    // Sei preset automobilistici basati sulle identità cromatiche dei marchi.
+    // Sette preset automobilistici basati sulle identità cromatiche dei marchi.
     // In tutti restano distinti gli allarmi di sicurezza (rosso limite).
     static func template(_ preset: CockpitTheme) -> EcoThemePalette {
         if preset == .glacier { return ferrariFactory }
@@ -727,6 +727,9 @@ struct EcoThemePalette: Codable, Equatable {
         case .racing:   // CUPRA: rame e Petrol Blue scuro
             (base, main, shade, bright, metal, contrast, signal) =
                 ("#07151C", "#B87333", "#163E4A", "#DEAB82", "#A9ACAA", "#FFFFFF", "#B87333")
+        case .audi:     // Audi: antracite, argento e rosso
+            (base, main, shade, bright, metal, contrast, signal) =
+                ("#07090C", "#D61F2C", "#2F353D", "#E6EAED", "#AEB7BF", "#FFFFFF", "#D61F2C")
         case .slot1, .slot2, .slot3:
             return template(.copper)
         }
@@ -961,7 +964,7 @@ private struct EcoThemeColorID: Identifiable {
     let isDay: Bool
 }
 
-// Sei stemmi originali Ecojumbo: stessa forma e fulmine dell'app,
+// Sette stemmi originali Ecojumbo: stessa forma e fulmine dell'app,
 // iniziale e colore diversi. Nessun logo ufficiale dei produttori.
 private struct EcoAutomotiveBrandLogo: View {
     let brand: String
@@ -975,6 +978,7 @@ private struct EcoAutomotiveBrandLogo: View {
         case "Alfa Romeo": return "AutoAlfaRomeo"
         case "Lamborghini": return "AutoLamborghini"
         case "Cupra": return "AutoCupra"
+        case "Audi": return "AutoAudi"
         default: return nil
         }
     }
