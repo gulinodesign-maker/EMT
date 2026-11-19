@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 status = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 122;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 123;") == 2
 assert "## Build 104" in status
 
 # A single angle, never a second setting for the cards or for Day Mode.
@@ -89,7 +89,7 @@ for surface in (upper, preview):
     assert "high.opacity(highOpacity)" in surface
     assert "low.opacity(lowOpacity)" in surface
 assert "theme.dayTopBar.left" in telemetry and "theme.dayTopBar.right" in telemetry
-assert telemetry.count(".background(telemetryCardBackground)") == 2
+assert telemetry.count(".background(adaptiveTelemetryBackground)") == 2
 assert "theme.topBarGradientStart" in telemetry and "theme.topBarGradientEnd" in telemetry
 assert "GPSPowerHorizontalGauge" not in cockpit
 assert "miniaturePowerBar" not in cockpit

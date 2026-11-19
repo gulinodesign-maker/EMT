@@ -1,5 +1,15 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Liquid Glass nativo — build 1.0 (123), richiesta 19 novembre 2026
+
+**Richiesta esplicita:** conversione visiva di tutta Ecojumbo al design Liquid Glass Apple, incluso il cockpit, mantenendo GPS leggibile, telemetria autentica e navigazione, Apple Music, BMS, TRIP/ODO e sette temi automobilistici. Non riscrivere funzioni GPS/BMS/music o dati.
+
+**Implementazione in sviluppo:** branch `feature/liquid-glass-ios26-build123`. In `EcojumboRootView.swift` introdotte API SwiftUI native `glassEffect(_:in:)`, `GlassEffectContainer`, `Glass.regular.interactive()` e `tint` racchiuse in `#available(iOS 26.0, *)` per controlli e barre. Dock cockpit e barra portrait, tastiere/ricerca GPS e musica, tema Audi e altri preset, fogli di configurazione, celle JK, Bluetooth e pulsanti reset/fuel adottano superficie coerente. I contenuti densi (telemetria, tabelle/grafici, BMS) usano `regularMaterial` con tonalità del tema per preservare le cifre; secondo le linee guida Apple non si applica vetro a ogni dato. La geometria del quadrante e del ponte, posizionamento della mappa, pulsanti e comandi resta invariata. `iOS 17–25` conserva le superfici precedenti tramite fallback espliciti, incluso il fondo nero della ricerca musica e le card storiche. Non toccati i modelli di acquisizione.
+
+**Requisiti:** il workflow CI passa a `macos-26` con Xcode 26 (il precedente `macos-15-intel` usava Xcode 16.4 e non conosce le API); TestFlight usa già `macos-26`. Build progressiva `123` in Debug/Release, marketing 1.0 e deployment target iOS 17.0 invariati, test versione aggiornati; aggiunta regressione `Tests/verify_liquid_glass_ios26.py`.
+
+**Stato:** prima [CI PR 44504015272](https://github.com/gulinodesign-maker/EMT/actions/runs/44504015272) **FAILURE** nei soli controlli Python, prima delle compilazioni: 5 asserzioni storiche attendevano letterali del vecchio UI/runner e due file del tema Audi + il relativo test erano erroneamente assenti dal primo tree della nuova feature. Ripristinati asset e test Audi dal main 122, aggiornate le cinque asserzioni a controllare il nuovo layout, mantenendo le verifiche di sicurezza; successiva CI, build simulatore + Release, merge, CI main e upload TestFlight **da verificare**, senza dichiarare disponibile su iPhone prima del messaggio Apple `Upload succeeded`. Processing Apple, gruppo TE e disponibilità per tester richiedono verifiche distinte. La 122 con Audi è stata già caricata: non ripetere l'upload.
+
 ## Tema Audi — richiesta del 18 novembre 2026 (feature/audi-automotive-preset)
 
 **Richiesta utente:** aggiungere **Audi** ai temi automobilistici predefiniti di Ecojumbo, non modificare l'audio dell'app.

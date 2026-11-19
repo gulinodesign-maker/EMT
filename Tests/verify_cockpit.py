@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 122;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 123;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -135,7 +135,7 @@ assert 'static let mapToDialClearance: CGFloat = 2' in c
 assert 'GPSSearchTopBand' not in c
 assert 'GPSSearchBottomFade' not in c
 assert '.mask(GPSMapDialClearanceClip()' in c
-assert '.background(Color.clear)' in c
+assert '.ecoLiquidGlassFloatingField(cornerRadius: 15)' in c
 assert 'clipShape(RoundedRectangle(cornerRadius: 16' not in c
 assert 'GPSCompactReadings' not in c  # nessun pannello sopra la mappa
 assert 'buttonStart - max(9, w * 0.012)' in c

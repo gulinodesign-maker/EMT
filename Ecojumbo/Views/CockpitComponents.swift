@@ -2100,7 +2100,8 @@ struct GPSCockpitDashboard: View {
                         }
                         .foregroundStyle(theme.accent)
                         .frame(width: resetSide, height: resetSide)
-                        .background(.black.opacity(0.78), in: Circle())
+                        .ecoLiquidGlassCircularControl(tint: theme.accent.opacity(0.12),
+                                                       legacyBackground: .black.opacity(0.78))
                         .overlay(Circle().stroke(theme.accent.opacity(0.72), lineWidth: 1))
                         .contentShape(Circle())
                     }
@@ -2172,11 +2173,10 @@ private struct GPSTripResetControl: View {
             .foregroundStyle(colorScheme == .light
                              ? Color(white: 0.20) : .white.opacity(0.93))
             .frame(width: side, height: side)
-            .background {
-                Circle().fill(colorScheme == .light
-                              ? Color.white.opacity(0.88)
-                              : Color.black.opacity(0.78))
-            }
+            .ecoLiquidGlassCircularControl(
+                tint: theme.accent.opacity(0.12),
+                legacyBackground: colorScheme == .light
+                    ? Color.white.opacity(0.88) : Color.black.opacity(0.78))
             .overlay {
                 Circle().stroke(theme.accent.opacity(0.72), lineWidth: 1.2)
             }
@@ -2794,6 +2794,7 @@ private struct GPSHeader: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
+                .ecoLiquidGlassControl(cornerRadius: 12, tint: theme.accent.opacity(0.12))
                 .accessibilityLabel("Apri diagnostica GPS e velocità")
                 .accessibilityHint(speedAvailable ? "Velocità GPS disponibile"
                     : (positionAvailable ? "Posizione attiva, velocità non misurata" : "Posizione assente"))
@@ -2817,6 +2818,7 @@ private struct GPSHeader: View {
             .padding(.horizontal, max(14, w * 0.031))
             .padding(.bottom, h * 0.08)
             .frame(width: w, height: h)
+            .ecoLiquidGlassChrome(cornerRadius: 18)
         }
         .sheet(isPresented: $showGPSDiagnostics) {
             GPSDiagnosticsView()
@@ -3136,7 +3138,7 @@ private struct GPSCockpitMap: View {
                     .frame(height: max(43, min(60, h * 0.089)))
                     // La fascia sagomata sottostante fornisce il fondo:
                     // nessun riquadro nero arrotondato che stacchi il ginocchio.
-                    .background(Color.clear)
+                    .ecoLiquidGlassFloatingField(cornerRadius: 15)
                     // La mappa parte dietro al quadrante; la ricerca rimane
                     // a destra del bordo del tachimetro, sempre cliccabile.
                     .padding(.leading, w * 0.285)
@@ -3148,8 +3150,10 @@ private struct GPSCockpitMap: View {
                         ProgressView("Calcolo il percorso…")
                             .font(.caption)
                             .padding(8)
-                            .background(colorScheme == .light ? Color.white.opacity(0.88) : .black.opacity(0.78),
-                                        in: RoundedRectangle(cornerRadius: 8))
+                            .ecoLiquidGlassFloatingField(
+                                cornerRadius: 10,
+                                legacyBackground: colorScheme == .light
+                                    ? Color.white.opacity(0.88) : .black.opacity(0.78))
                             .padding(.leading, w * 0.255)
                     } else if let errorMessage = navigation.errorMessage {
                         Text(errorMessage)
@@ -3157,8 +3161,10 @@ private struct GPSCockpitMap: View {
                             .foregroundStyle(.orange)
                             .lineLimit(2)
                             .padding(8)
-                            .background(colorScheme == .light ? Color.white.opacity(0.88) : .black.opacity(0.78),
-                                        in: RoundedRectangle(cornerRadius: 8))
+                            .ecoLiquidGlassFloatingField(
+                                cornerRadius: 10,
+                                legacyBackground: colorScheme == .light
+                                    ? Color.white.opacity(0.88) : .black.opacity(0.78))
                             .padding(.leading, w * 0.255)
                     }
                     Spacer(minLength: 0)
@@ -3613,6 +3619,19 @@ private struct GPSExpandedReadings: View {
         ], startPoint: .leading, endPoint: .trailing)
     }
 
+    // Apple recommends keeping dense telemetry in the content layer.
+    // In iOS 26 native material gains depth while the original day/night
+    // gradient remains a soft tint; the numeric layout is unchanged.
+    @ViewBuilder private var adaptiveTelemetryBackground: some View {
+        if #available(iOS 26.0, *) {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(.regularMaterial)
+                .overlay(telemetryCardBackground.opacity(colorScheme == .light ? 0.42 : 0.62))
+        } else {
+            telemetryCardBackground
+        }
+    }
+
     private var telemetryCardBackground: some View {
         let day = colorScheme == .light
         let high = day ? Color(themeHex: theme.dayTopBar.high) : theme.topBarHighFade
@@ -3684,7 +3703,7 @@ private struct GPSExpandedReadings: View {
         .padding(.vertical, max(5, height * 0.10))
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(height: height)
-        .background(telemetryCardBackground)
+        .background(adaptiveTelemetryBackground)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(scaleLabel.map { "\(label): \(value). \($0)" }
             ?? "\(label): \(value)")
@@ -3721,7 +3740,7 @@ private struct GPSExpandedReadings: View {
         .padding(.vertical, 4)
         .frame(maxWidth: .infinity)
         .frame(height: height)
-        .background(telemetryCardBackground)
+        .background(adaptiveTelemetryBackground)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("DISL: " + (gps.tripElevationMeters.map {
             String(format: "%+.0f m", $0)
