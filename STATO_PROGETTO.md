@@ -1,5 +1,13 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Ripristino esatto della 122 — release 1.0 (124), 19 novembre 2026
+
+**Richiesta esplicita:** «Ripristina la 122» dopo la release Liquid Glass 123. **L'intero albero `Ecojumbo/`** (Swift, plist, asset SVG/JSON e temi incluso Audi) viene ripristinato byte per byte dal commit storico `07e4c560a7687fc91e81994526ff91d9022dee74` con tree `6b5e92550bb3bcde5aa9fae59755009e487c5032`. Sono ripristinati anche workflow CI `.github/workflows/ios-build.yml` e i test originali della 122; rimosso `Tests/verify_liquid_glass_ios26.py`. Nessun algoritmo o file di GPS, BMS, musica, MapKit, telemetria o temi cambia rispetto alla 122. La documentazione e il registro automatico delle build restano aggiornati e non vengono cancellati.
+
+**Numero:** la 123 è già stata caricata ad Apple (workflow 44506093373, `Upload succeeded`). Per distribuire nuovamente l'esatta esperienza 122, il progetto usa `CURRENT_PROJECT_VERSION = 124` in Debug e Release e i test storici di versione vengono riallineati a 124. `MARKETING_VERSION=1.0`, bundle ID `it.ecojumbo.battery` e iOS 17 restano immutati. Regressione `Tests/verify_build124_restore122.py`: confronta tutti i blob del pacchetto `Ecojumbo/` con i blob dell'archivio Git 122, per dimostrare l'assenza di Liquid Glass e la presenza dello stemma Audi originale.
+
+**Stato della procedura:** preparazione 124; la CI PR, CI main e l'upload TestFlight devono ancora essere verificati. Non dichiarare una build installabile finché non sono stati osservati `Upload succeeded` e il successivo processing su App Store Connect; l'associazione al gruppo TE è una verifica separata.
+
 ## Liquid Glass nativo — build 1.0 (123), richiesta 19 novembre 2026
 
 **Richiesta esplicita:** conversione visiva di tutta Ecojumbo al design Liquid Glass Apple, incluso il cockpit, mantenendo GPS leggibile, telemetria autentica e navigazione, Apple Music, BMS, TRIP/ODO e sette temi automobilistici. Non riscrivere funzioni GPS/BMS/music o dati.

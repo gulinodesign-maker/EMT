@@ -321,9 +321,6 @@ struct EcoMusicCockpitPanel: View {
                 }
                 .foregroundStyle(theme.accent)
                 .buttonStyle(.plain)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .ecoLiquidGlassControl(cornerRadius: 12, tint: theme.accent.opacity(0.18))
             }
             let note = usesInAppPlayer ? apple.errorMessage : music.message
             if !note.isEmpty {
@@ -364,8 +361,7 @@ struct EcoMusicCockpitPanel: View {
             .foregroundStyle(.white)
             .tint(theme.accent)
             .padding(11)
-            .ecoLiquidGlassFloatingField(cornerRadius: 12,
-                                         legacyBackground: .black.opacity(0.76))
+            .background(.black.opacity(0.76), in: RoundedRectangle(cornerRadius: 10))
 
                 if !apple.isAuthorized || !music.appleAuthorized {
                     Button("Autorizza Apple Music e la libreria") {
@@ -375,9 +371,6 @@ struct EcoMusicCockpitPanel: View {
                     .buttonStyle(.plain)
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(theme.accent)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 7)
-                    .ecoLiquidGlassControl(cornerRadius: 12, tint: theme.accent.opacity(0.15))
                     .accessibilityLabel("Autorizza l'accesso alla libreria e al catalogo musicale")
                 }
                 if searching {
@@ -400,9 +393,6 @@ struct EcoMusicCockpitPanel: View {
                     .font(.footnote.weight(.medium))
                     .foregroundStyle(theme.accent)
                     .buttonStyle(.plain)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 7)
-                    .ecoLiquidGlassControl(cornerRadius: 12)
                 }
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 5) {
