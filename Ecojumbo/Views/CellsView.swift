@@ -113,6 +113,6 @@ struct CellsView: View {
             Spacer(minLength: 0)
         }
         .padding(13)
-        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+        .ecoLiquidGlassPanel(cornerRadius: 12)
     }
 }

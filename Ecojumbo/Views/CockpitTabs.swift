@@ -1049,7 +1049,7 @@ struct ThemePickerView: View {
                                 }
                                 .frame(maxWidth: .infinity, minHeight: 114)
                                 .padding(8)
-                                .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+                                .ecoLiquidGlassControl(cornerRadius: 12, legacyCard: true)
                                 .overlay(RoundedRectangle(cornerRadius: 12)
                                     .strokeBorder(active ? theme.accent : .secondary.opacity(0.2),
                                                   lineWidth: active ? 2 : 1))
@@ -1059,6 +1059,7 @@ struct ThemePickerView: View {
                             .accessibilityLabel("Attiva tema " + theme.displayName)
                         }
                     }
+                    .ecoLiquidGlassContainer(spacing: 10)
                 }
 
                 LazyVGrid(columns: portrait ? portraitColumns : landscapeColumns, spacing: 13) {
@@ -1076,7 +1077,7 @@ struct ThemePickerView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(CockpitTheme(rawValue: selection)?.accent ?? .orange)
 
-                EcoInfoIcon(title: "Kit", message: "I sei kit sono punti di partenza. Le modifiche si applicano solo dopo il salvataggio.")
+                EcoInfoIcon(title: "Kit", message: "I sette kit sono punti di partenza. Le modifiche si applicano solo dopo il salvataggio.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             .padding(15)
@@ -1142,7 +1143,7 @@ struct ThemePickerView: View {
                             .foregroundStyle(.secondary)
                     }
                     .frame(maxWidth: .infinity, minHeight: portrait ? 150 : 135)
-                    .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 14))
+                    .ecoLiquidGlassControl(cornerRadius: 14, legacyCard: true)
                     .overlay(RoundedRectangle(cornerRadius: 14)
                         .strokeBorder(.secondary.opacity(0.3), style: StrokeStyle(lineWidth: 1, dash: [6, 4])))
                 }
@@ -1150,7 +1151,7 @@ struct ThemePickerView: View {
             }
         }
         .padding(10)
-        .background(Color.ecoCard.opacity(0.5), in: RoundedRectangle(cornerRadius: 16))
+        .ecoLiquidGlassPanel(cornerRadius: 16, legacyOpacity: 0.5)
     }
 
     private func openEditor(slot: Int?) {
@@ -1192,7 +1193,7 @@ private struct EcoThemePreview: View {
             }
         }
         .padding(10)
-        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 14))
+        .ecoLiquidGlassPanel(cornerRadius: 14)
         .overlay(RoundedRectangle(cornerRadius: 14)
             .stroke(active ? Color(themeHex: palette.colors[1]) : .secondary.opacity(0.23),
                     lineWidth: active ? 2 : 1))
@@ -1231,7 +1232,7 @@ private struct EcoThemeEditorView: View {
                     TextField("Nome del tema", text: $draft.name)
                         .textInputAutocapitalization(.words)
                         .padding(12)
-                        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 10))
+                        .ecoLiquidGlassPanel(cornerRadius: 10)
 
                     // La selezione diretta elimina l'intercettazione incerta
                     // del tocco nel Menu: ogni kit è un unico Button da 48 pt.
@@ -1472,6 +1473,7 @@ private struct EcoThemeEditorView: View {
                     automotiveKitButton(theme)
                 }
             }
+            .ecoLiquidGlassContainer(spacing: 9)
         }
     }
 
@@ -1495,7 +1497,7 @@ private struct EcoThemeEditorView: View {
             }
             .padding(.horizontal, 12)
             .frame(maxWidth: .infinity, minHeight: 48)
-            .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 10))
+            .ecoLiquidGlassControl(cornerRadius: 10, legacyCard: true)
             .overlay(RoundedRectangle(cornerRadius: 10)
                 .strokeBorder(strokeColor, lineWidth: active ? 2 : 1))
             .contentShape(RoundedRectangle(cornerRadius: 10))
@@ -1573,7 +1575,7 @@ private struct EcoThemeEditorView: View {
         }
         .frame(maxWidth: .infinity, minHeight: 134)
         .padding(12)
-        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 14))
+        .ecoLiquidGlassControl(cornerRadius: 14, legacyCard: true)
         .contentShape(RoundedRectangle(cornerRadius: 14))
     }
 
@@ -1666,7 +1668,7 @@ private struct EcoThemeEditorView: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity)
-        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+        .ecoLiquidGlassPanel(cornerRadius: 12)
     }
 
     // Build 109: stessa riga delle sfumature: campione colore, icona,
@@ -1763,7 +1765,7 @@ private struct EcoThemeEditorView: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity)
-        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+        .ecoLiquidGlassPanel(cornerRadius: 12)
     }
 
     private func altitudeGraphTile() -> some View {
@@ -1804,7 +1806,7 @@ private struct EcoThemeEditorView: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity)
-        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 12))
+        .ecoLiquidGlassPanel(cornerRadius: 12)
     }
 
     private func glowRoleSection(_ title: String, roles: [Int]) -> some View {
@@ -1860,7 +1862,7 @@ private struct EcoThemeEditorView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(12)
-            .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 11))
+            .ecoLiquidGlassControl(cornerRadius: 11, legacyCard: true)
             .contentShape(RoundedRectangle(cornerRadius: 11))
         }
         .buttonStyle(.plain)
@@ -1970,7 +1972,7 @@ private struct EcoThemeColorPicker: View {
                                 .font(.title2.bold())
                                 .foregroundStyle(.white)
                                 .frame(width: 54, height: 54)
-                                .background(.blue, in: Circle())
+                                .ecoLiquidGlassCircularControl(tint: .blue, legacyBackground: .blue)
                         }
                         .accessibilityLabel("Conferma colore")
                         Button {
@@ -1980,7 +1982,7 @@ private struct EcoThemeColorPicker: View {
                                 .font(.title2.bold())
                                 .foregroundStyle(.white)
                                 .frame(width: 54, height: 54)
-                                .background(.red, in: Circle())
+                                .ecoLiquidGlassCircularControl(tint: .red, legacyBackground: .red)
                         }
                         .accessibilityLabel("Annulla modifica")
                     }
