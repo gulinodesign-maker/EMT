@@ -5,7 +5,7 @@ root = Path(__file__).resolve().parents[1]
 c = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 t = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 p = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 126;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 127;") == 2
 dash = c.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "private struct GPSTripResetControl: View {", 1)[0]
 assert "let metalLowerEdge = h * 0.099 + GPSMetalContourStyle.inset(for: dialSize)" in dash
@@ -16,7 +16,7 @@ assert "GPSExpandedReadings(theme: theme, now: now)" in dash
 assert ".frame(width: panelWidth, height: cardsHeight)" in dash
 
 panel = c.split("private struct GPSInclinationPanel: View {", 1)[1]
-assert 'Image(systemName: roll ? "car.side.fill" : "car.rear.fill")' in panel
+assert 'Image(systemName: roll ? "car.rear.fill" : "car.side.fill")' in panel
 assert "Relativo · azzera in piano" not in panel
 assert 'Label("AZZERA", systemImage: "scope")' in panel
 footer = panel.split("VStack(spacing: 2) {", 1)[1].split(
