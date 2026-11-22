@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify byte-exact restoration of Ecojumbo build 122 source and assets."""
+"""Verify that unchanged build-122 code and all assets survive feature build 125."""
 from pathlib import Path
 from hashlib import sha1
 
@@ -31,18 +31,22 @@ expected = {
     "Ecojumbo/Info.plist": "74f1691f1860c46f636659efd7dc482cf20444c6",
     "Ecojumbo/Models/CockpitBarMath.swift": "9070cd65c3f45c7fa61be3c3aad6155c7bac4574",
     "Ecojumbo/Models/EcoMusicManager.swift": "bdf3741beaef702cf24e1e2d503337e38c90cf78",
-    "Ecojumbo/Models/GPSRideManager.swift": "63ef1e779cd8fc7b2354710b3a18e4bae5e5b719",
     "Ecojumbo/Models/JKProtocol.swift": "295887fc9f9d26ad54ab6c835b48cf431209d311",
     "Ecojumbo/Models/RideSession.swift": "c503a0dd4011a44bc122c9878c69bcfec1addff8",
     "Ecojumbo/Views/CellsView.swift": "790c8009147a510e92be566cce9b6f3442a0f068",
-    "Ecojumbo/Views/CockpitComponents.swift": "ffa1fef0ebf26ede08c63b3bb21be2e4ff6e4fb9",
     "Ecojumbo/Views/CockpitTabs.swift": "95fbfea2b9db9f54999dc13132b6108dbea99089",
     "Ecojumbo/Views/EcoMusicCockpitPanel.swift": "cc13016276ce2b2760c5c05c0b0fc45fadb358da",
-    "Ecojumbo/Views/EcojumboRootView.swift": "6804481e918073ec86be63bdea2f77a324470ae7",
     "Ecojumbo/Views/OtherViews.swift": "16d71058274e5dac9da62cca5d211e8fca44eb5b",
 }
 actual = {p.relative_to(root).as_posix() for p in (root / "Ecojumbo").rglob("*") if p.is_file()}
-assert actual == set(expected), f"Ecojumbo file set changed: added {actual-set(expected)}, missing {set(expected)-actual}"
+changed_for_125 = {
+    "Ecojumbo/Models/GPSRideManager.swift",
+    "Ecojumbo/Views/CockpitComponents.swift",
+    "Ecojumbo/Views/EcojumboRootView.swift",
+}
+assert actual == set(expected) | changed_for_125, (
+    f"Unexpected Ecojumbo files: {actual - set(expected) - changed_for_125}"
+)
 for path, object_sha in expected.items():
     content = (root / path).read_bytes()
     raw = b"blob " + str(len(content)).encode("ascii") + b"\x00" + content
@@ -53,4 +57,4 @@ assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("IPHONEOS_DEPLOYMENT_TARGET = 17.0;") == 4
 assert "runs-on: macos-15-intel" in (root / ".github/workflows/ios-build.yml").read_text(encoding="utf-8")
 assert (root / "Ecojumbo/Assets.xcassets/AutoAudi.imageset/logo.svg").exists()
-print("OK — build 124 source/assets are byte-exact build 122; original Audi preserved")
+print("OK — unchanged 122 files/assets remain byte-exact; Audi preserved in build 125")
