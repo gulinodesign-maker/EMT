@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45065124292:ATTEMPT:1 -->
+### 2026-11-22T20:12:40Z — CI #456 · feature/inclinometer-swap-vehicle-axes-build128 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45065124292](https://github.com/gulinodesign-maker/EMT/actions/runs/45065124292); avvio 2026-11-22T20:12:40Z UTC; aggiornamento finale 2026-11-22T20:13:36Z UTC; registrazione 2026-11-22T20:13:45+00:00 UTC; evento pull_request.
+- **Commit:** [974c307a6d67](https://github.com/gulinodesign-maker/EMT/commit/974c307a6d6701b817aa9fd3d02d4b483241daa0); versione **1.0**; build **128**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build96_topbar_flush.py, Tests/verify_build97_music_cockpit.py, Tests/verify_build98_inapp_music.py, Tests/verify_build99_music_search_clip.py, Tests/verify_cockpit.py.
+
 <!-- EMT_RUN:45065102284:ATTEMPT:1 -->
 ### 2026-11-22T20:12:26Z — CI #455 · feature/inclinometer-swap-vehicle-axes-build128 · tentativo 1
 
