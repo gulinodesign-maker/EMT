@@ -116,8 +116,12 @@ final class EcoPowerMotionManager: ObservableObject {
         guard let reference = inclinationReference,
               let relative = attitude.copy() as? CMAttitude else { return }
         relative.multiply(byInverseOf: reference)
-        let roll = relative.roll * 180 / .pi
-        let pitch = relative.pitch * 180 / .pi
+        // In landscape, gli assi del telefono non coincidono con quelli
+        // dell'auto: il rollio laterale proviene dal pitch Core Motion,
+        // mentre il beccheggio (muso su/giu) proviene dal roll Core Motion.
+        // La taratura resta relativa all'attitude acquisita con AZZERA.
+        let roll = relative.pitch * 180 / .pi
+        let pitch = relative.roll * 180 / .pi
         guard roll.isFinite, pitch.isFinite else { return }
         lastInclinationPublish = date
         inclinationRollDegrees = (inclinationRollDegrees ?? roll) * 0.70 + roll * 0.30
