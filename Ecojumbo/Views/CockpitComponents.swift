@@ -3924,7 +3924,7 @@ private struct GPSInclinationPanel: View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
-            let dial = max(48, min((w - 42) * 0.46, h * 0.58))
+            let dial = max(48, min((w - 42) * 0.46, h * 0.48))
             let quiet = colorScheme == .light ? Color(white: 0.35) : Color(white: 0.74)
 
             VStack(spacing: 0) {
@@ -3989,9 +3989,21 @@ private struct GPSInclinationPanel: View {
         .accessibilityLabel("Inclinometro del veicolo")
     }
 
+    // Rollio = vista posteriore, beccheggio = vista laterale.
+    // Auto e piano di appoggio ruotano insieme intorno al centro dello strumento;
+    // le 72 tacche a intervalli di 5° formano una graduazione completa a 360°.
     private func dialView(label: String, value: Double?, roll: Bool,
                           side: CGFloat) -> some View {
-        VStack(spacing: max(3, side * 0.03)) {
+        VStack(spacing: max(3, side * 0.020)) {
+            Text(label)
+                .font(.system(size: max(10, min(14, side * 0.095)),
+                              weight: .semibold, design: .rounded))
+                .tracking(1.0)
+                .foregroundStyle(ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity)
+
             ZStack {
                 Circle()
                     .fill(RadialGradient(colors: [
@@ -4005,51 +4017,54 @@ private struct GPSInclinationPanel: View {
                     .stroke(theme.inclinometerRingColor.opacity(0.85), lineWidth: 2)
                     .padding(2)
                     .shadow(color: theme.inclinometerRingColor.opacity(0.52), radius: 6)
-                Circle().stroke(ink.opacity(0.17), lineWidth: 1)
+                Circle()
+                    .stroke(ink.opacity(0.17), lineWidth: 1)
                     .padding(side * 0.22)
-                ForEach(-6...6, id: \.self) { tick in
+
+                ForEach(0..<72, id: \.self) { tick in
                     Capsule()
-                        .fill(tick == 0 ? theme.inclinometerRingColor : ink.opacity(0.49))
-                        .frame(width: tick == 0 ? 2.5 : 1.2,
-                               height: tick.isMultiple(of: 3) ? 10 : 6)
-                        .offset(y: -side * 0.40)
-                        .rotationEffect(.degrees(Double(tick) * 12))
+                        .fill(tick.isMultiple(of: 6)
+                              ? theme.inclinometerRingColor : ink.opacity(0.49))
+                        .frame(width: tick.isMultiple(of: 6) ? 2.5 : 1.2,
+                               height: tick.isMultiple(of: 6) ? 10
+                                   : (tick.isMultiple(of: 3) ? 7 : 4))
+                        .offset(y: -side * 0.43)
+                        .rotationEffect(.degrees(Double(tick) * 5))
                 }
+
+                // Assi fissi di riferimento: non ruotano con il veicolo.
                 Rectangle().fill(ink.opacity(0.22))
                     .frame(width: side * 0.65, height: 1)
                 Rectangle().fill(ink.opacity(0.14))
                     .frame(width: 1, height: side * 0.40)
-                if let value {
+
+                // Veicolo e barra condividono la medesima rotazione,
+                // sia nel rollio sia nel beccheggio. Nessuna traslazione.
+                ZStack {
                     Capsule()
                         .fill(theme.inclinometerHorizonColor)
-                        .frame(width: side * 0.58, height: 3)
-                        .rotationEffect(.degrees(roll ? -value : 0))
-                        .offset(y: roll ? 0 :
-                                CGFloat(max(-1.0, min(1.0, value / 45.0))) * side * 0.25)
-                        .shadow(color: theme.inclinometerHorizonColor.opacity(0.75), radius: 5)
+                        .frame(width: side * 0.64, height: 3)
+                        .shadow(color: theme.inclinometerHorizonColor.opacity(0.75),
+                                radius: 5)
+                    Image(systemName: roll ? "car.rear.fill" : "car.side.fill")
+                        .font(.system(size: side * 0.24, weight: .medium))
+                        .foregroundStyle(theme.inclinometerVehicleColor)
+                        .offset(y: -side * 0.11)
                 }
-                Image(systemName: roll ? "car.side.fill" : "car.rear.fill")
-                    .font(.system(size: side * 0.20, weight: .medium))
-                    .foregroundStyle(theme.inclinometerVehicleColor)
-                    .offset(y: -side * 0.10)
-                Text(value.map { String(format: "%+.1f°", $0) } ?? "—°")
-                    .font(.system(size: side * 0.14,
-                                  weight: .bold, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(ink)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                    .offset(y: side * 0.25)
+                .opacity(value == nil ? 0.35 : 1)
+                .rotationEffect(.degrees(-(value ?? 0)))
+                .animation(.easeOut(duration: 0.16), value: value)
             }
             .frame(width: side, height: side)
 
-            Text(label)
-                .font(.system(size: max(10, min(14, side * 0.093)),
-                              weight: .semibold, design: .rounded))
-                .tracking(1.0)
+            Text(value.map { String(format: "%+.1f°", $0) } ?? "—°")
+                .font(.system(size: max(16, side * 0.17),
+                              weight: .bold, design: .rounded))
+                .monospacedDigit()
                 .foregroundStyle(ink)
                 .lineLimit(1)
-                .minimumScaleFactor(0.8)
+                .minimumScaleFactor(0.7)
+                .frame(maxWidth: .infinity)
         }
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .ignore)
