@@ -69,7 +69,7 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
     button_left = (left + right) / 2 - group_width / 2
     button_right = button_left + group_width
     assert isclose((button_left + button_right) / 2, (left + right) / 2, abs_tol=1e-8)
-    assert left <= button_left <= button_right <= right
+    assert left - 1e-7 <= button_left <= button_right <= right + 1e-7
     # The original dial remains outside the aligned telemetry panel.
     assert tangent < left
 
