@@ -44,7 +44,7 @@ assert "let panelWidth = max(1, w - EcoCockpitDockGeometry.rightInset(width: w) 
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
 assert "let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)" in home
-assert "let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)" in home
+assert "let justifiedGap = max(0, (telemetryPanelWidth - 7 * gpsSide) / 6)" in home
 assert ".frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .center)" in home
 
 for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
@@ -62,10 +62,10 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
     safe_left = cx + d * 0.50 + max(10, w * 0.010)
     gap = w * 0.008
     side = min(ideal_side, max(20, (w - margin - safe_left - 6 * gap) / 7))
-    assert width >= 6 * side, (w, h, width, side)
-    justified_gap = (width - 6 * side) / 5
+    assert width >= 7 * side, (w, h, width, side)
+    justified_gap = (width - 7 * side) / 6
     standard_gap = min(justified_gap, max(8, w * 0.013))
-    group_width = 6 * side + 5 * standard_gap
+    group_width = 7 * side + 6 * standard_gap
     button_left = (left + right) / 2 - group_width / 2
     button_right = button_left + group_width
     assert isclose((button_left + button_right) / 2, (left + right) / 2, abs_tol=1e-8)

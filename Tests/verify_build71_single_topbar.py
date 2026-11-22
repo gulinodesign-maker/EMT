@@ -58,7 +58,7 @@ for w, h in ((736, 414), (844, 390), (932, 430), (956, 440),
     assert isclose((left + right) / 2, (cx + d * 0.508 + w) / 2)
 assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)" in dashboard
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
-assert "let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)" in home
+assert "let justifiedGap = max(0, (telemetryPanelWidth - 7 * gpsSide) / 6)" in home
 assert "GPSCockpitMap(theme: theme)" in source
 assert "GPSOuterProfileReinforcement" in state  # decision logged, not drawn
 print("OK — build 71: single original top bar, no double 3x contour, GPS and telemetry preserved")
