@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45054820856:ATTEMPT:1 -->
+### 2026-11-22T18:23:39Z — CI #441 · feature/inclinometer-home-build125 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45054820856](https://github.com/gulinodesign-maker/EMT/actions/runs/45054820856); avvio 2026-11-22T18:23:39Z UTC; aggiornamento finale 2026-11-22T18:24:10Z UTC; registrazione 2026-11-22T18:24:19+00:00 UTC; evento pull_request.
+- **Commit:** [3bba0500568a](https://github.com/gulinodesign-maker/EMT/commit/3bba0500568aae7d42e08ffdb13665d5192b6c73); versione **1.0**; build **125**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py.
+
 <!-- EMT_RUN:44510476892:ATTEMPT:1 -->
 ### 2026-11-19T10:57:58Z — CI #440 · main · tentativo 1
 
