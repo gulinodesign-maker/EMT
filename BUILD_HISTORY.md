@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45065038641:ATTEMPT:1 -->
+### 2026-11-22T20:11:45Z — CI #453 · feature/inclinometer-swap-vehicle-axes-build128 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45065038641](https://github.com/gulinodesign-maker/EMT/actions/runs/45065038641); avvio 2026-11-22T20:11:45Z UTC; aggiornamento finale 2026-11-22T20:12:18Z UTC; registrazione 2026-11-22T20:12:30+00:00 UTC; evento pull_request.
+- **Commit:** [12897fd52d00](https://github.com/gulinodesign-maker/EMT/commit/12897fd52d009059bb239a56a42afbae9eda0962); versione **1.0**; build **128**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build124_restore122.py, Tests/verify_build60_setup_navigation.py, Tests/verify_build61_setup_grid.py, Tests/verify_build65_ui.py, Tests/verify_build66_symmetry_ring.py, Tests/verify_build67_user_fixes.py, Tests/verify_build68_gradient_layout.py, Tests/verify_build69_filled_areas_profile.py, Tests/verify_build70_no_gradients_centered.py, Tests/verify_build71_single_topbar.py.
+
 <!-- EMT_RUN:45065018076:ATTEMPT:1 -->
 ### 2026-11-22T20:11:34Z — CI #452 · feature/inclinometer-swap-vehicle-axes-build128 · tentativo 1
 
