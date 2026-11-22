@@ -1893,6 +1893,7 @@ struct GPSCockpitDashboard: View {
     let theme: CockpitTheme
     let now: Date
     let mapEnabled: Bool
+    let inclinometerEnabled: Bool
     let musicEnabled: Bool
     @Binding var musicSearchVisible: Bool
 
@@ -2000,8 +2001,14 @@ struct GPSCockpitDashboard: View {
                             .zIndex(29)
                     }
                 } else {
-                    // Cinque schede principali, centrate fino al dock inferiore.
-                    GPSExpandedReadings(theme: theme, now: now)
+                    // Stessa area esatta delle schede telemetria e del grafico DISL.
+                    Group {
+                        if inclinometerEnabled {
+                            GPSInclinationPanel(theme: theme)
+                        } else {
+                            GPSExpandedReadings(theme: theme, now: now)
+                        }
+                    }
                         .frame(width: panelWidth, height: cardsHeight)
                         .position(x: panelLeft + panelWidth / 2, y: cardsCenterY)
                         .zIndex(6)
@@ -3839,5 +3846,172 @@ private struct GPSTripAltitudeSparkline: View {
                 path.closeSubpath()
             }
         }
+    }
+}
+
+
+// Unica grande card pari all'intero blocco Telemetria, senza Liquid Glass.
+@MainActor
+private struct GPSInclinationPanel: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @EnvironmentObject private var motion: EcoPowerMotionManager
+    let theme: CockpitTheme
+
+    private var ink: Color {
+        colorScheme == .light ? Color(white: 0.13) : .white
+    }
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            let dial = max(48, min((w - 42) * 0.46, h * 0.62))
+            let quiet = colorScheme == .light ? Color(white: 0.35) : Color(white: 0.74)
+
+            VStack(spacing: 0) {
+                HStack(spacing: 9) {
+                    Rectangle().fill(theme.accent.opacity(0.8))
+                        .frame(width: max(14, w * 0.06), height: 1)
+                    Text("INCLINOMETRO")
+                        .font(.system(size: max(11, min(17, h * 0.055)),
+                                      weight: .semibold, design: .rounded))
+                        .tracking(1.4)
+                        .foregroundStyle(quiet)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.75)
+                    Rectangle().fill(theme.accent.opacity(0.8))
+                        .frame(width: max(14, w * 0.06), height: 1)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: h * 0.14)
+
+                HStack(spacing: max(6, w * 0.017)) {
+                    dialView(label: "ROLLIO", value: motion.inclinationRollDegrees,
+                             roll: true, side: dial)
+                    dialView(label: "BECCHEGGIO", value: motion.inclinationPitchDegrees,
+                             roll: false, side: dial)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                HStack(spacing: 8) {
+                    Text(motion.available ? "Relativo · azzera in piano" :
+                         "Sensore non disponibile")
+                        .font(.system(size: max(9, min(12, h * 0.038)),
+                                      weight: .medium, design: .rounded))
+                        .foregroundStyle(quiet)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    Spacer(minLength: 0)
+                    Button {
+                        motion.zeroInclination()
+                    } label: {
+                        Label("AZZERA", systemImage: "scope")
+                            .font(.system(size: max(10, min(13, h * 0.045)),
+                                          weight: .bold, design: .rounded))
+                            .foregroundStyle(ink)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(theme.accent.opacity(0.17), in: Capsule())
+                            .overlay(Capsule().stroke(theme.accent.opacity(0.70), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(motion.inclinationRollDegrees == nil)
+                    .accessibilityLabel("Azzera inclinometro: fermarsi in piano")
+                }
+                .frame(height: h * 0.18)
+            }
+            .padding(.horizontal, max(9, w * 0.025))
+            .padding(.vertical, max(5, h * 0.02))
+            .frame(width: w, height: h)
+            .background {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(colorScheme == .light
+                          ? Color.white.opacity(0.42) : Color.black.opacity(0.29))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(LinearGradient(colors: [
+                                theme.accent.opacity(0.12), .clear,
+                                theme.accent.opacity(0.07)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    }
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(theme.accent.opacity(0.45), lineWidth: 1)
+                    }
+            }
+        }
+        .onAppear { motion.setInclinationActive(true) }
+        .onDisappear { motion.setInclinationActive(false) }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Inclinometro del veicolo")
+    }
+
+    private func dialView(label: String, value: Double?, roll: Bool,
+                          side: CGFloat) -> some View {
+        VStack(spacing: max(3, side * 0.03)) {
+            ZStack {
+                Circle()
+                    .fill(RadialGradient(colors: [
+                        theme.accent.opacity(0.12),
+                        colorScheme == .light ? Color.white.opacity(0.32)
+                                               : Color.black.opacity(0.65)
+                    ], center: .center, startRadius: 0, endRadius: side * 0.50))
+                Circle()
+                    .stroke(theme.accent.opacity(0.14), lineWidth: side * 0.055)
+                Circle()
+                    .stroke(theme.accent.opacity(0.85), lineWidth: 2)
+                    .padding(2)
+                    .shadow(color: theme.accent.opacity(0.52), radius: 6)
+                Circle().stroke(ink.opacity(0.17), lineWidth: 1)
+                    .padding(side * 0.22)
+                ForEach(-6...6, id: \.self) { tick in
+                    Capsule()
+                        .fill(tick == 0 ? theme.accent : ink.opacity(0.49))
+                        .frame(width: tick == 0 ? 2.5 : 1.2,
+                               height: tick.isMultiple(of: 3) ? 10 : 6)
+                        .offset(y: -side * 0.40)
+                        .rotationEffect(.degrees(Double(tick) * 12))
+                }
+                Rectangle().fill(ink.opacity(0.22))
+                    .frame(width: side * 0.65, height: 1)
+                Rectangle().fill(ink.opacity(0.14))
+                    .frame(width: 1, height: side * 0.40)
+                if let value {
+                    Capsule()
+                        .fill(theme.accent)
+                        .frame(width: side * 0.58, height: 3)
+                        .rotationEffect(.degrees(roll ? -value : 0))
+                        .offset(y: roll ? 0 :
+                                CGFloat(max(-1.0, min(1.0, value / 45.0))) * side * 0.25)
+                        .shadow(color: theme.accent.opacity(0.75), radius: 5)
+                }
+                Image(systemName: "car.side.fill")
+                    .font(.system(size: side * 0.20, weight: .medium))
+                    .foregroundStyle(ink)
+                    .offset(y: -side * 0.10)
+                Text(value.map { String(format: "%+.1f°", $0) } ?? "—°")
+                    .font(.system(size: side * 0.14,
+                                  weight: .bold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(ink)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                    .offset(y: side * 0.25)
+            }
+            .frame(width: side, height: side)
+
+            Text(label)
+                .font(.system(size: max(10, min(14, side * 0.093)),
+                              weight: .semibold, design: .rounded))
+                .tracking(1.0)
+                .foregroundStyle(ink)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(label + ": " + (value.map {
+            String(format: "%+.1f gradi", $0)
+        } ?? "misura non disponibile"))
     }
 }
