@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45065018076:ATTEMPT:1 -->
+### 2026-11-22T20:11:34Z — CI #452 · feature/inclinometer-swap-vehicle-axes-build128 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45065018076](https://github.com/gulinodesign-maker/EMT/actions/runs/45065018076); avvio 2026-11-22T20:11:34Z UTC; aggiornamento finale 2026-11-22T20:12:10Z UTC; registrazione 2026-11-22T20:12:21+00:00 UTC; evento pull_request.
+- **Commit:** [74e65169979f](https://github.com/gulinodesign-maker/EMT/commit/74e65169979f7986da0e84f461574de4a968415f); versione **1.0**; build **128**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build109_inner_ring_glow_inertia.py, Tests/verify_build111_cockpit_altitude.py, Tests/verify_build112_auto_themes_transfer.py, Tests/verify_build113_apple_only_emblems_json.py, Tests/verify_build114_full_themes_swatches_trip.py, Tests/verify_build115_universal_vehicle_mode.py, Tests/verify_build116_manual_km_since_full.py, Tests/verify_build117_universal_bridge_arrows.py, Tests/verify_build121_restore_117.py, Tests/verify_build122_audi_release.py.
+
 <!-- EMT_RUN:45064994165:ATTEMPT:1 -->
 ### 2026-11-22T20:11:19Z — CI #451 · feature/inclinometer-swap-vehicle-axes-build128 · tentativo 1
 
