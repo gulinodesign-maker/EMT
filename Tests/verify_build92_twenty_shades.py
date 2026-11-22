@@ -52,7 +52,9 @@ assert "onConfirm(" not in picker.split('accessibilityLabel("Annulla modifica")'
 # explicit confirmation, with existing 21-color palettes untouched.
 assert "static let colorCount = 23" in tabs
 assert "draft.colors[selected.id] = hex" in tabs
-assert "initialHex: selected.isDay" in tabs
+assert "selected.isDay" in tabs
+assert "draft.dayTopBar.hex(for: selected.id)" in tabs
+assert "draft.inclinometerColors[selected.id - EcoThemePalette.colorCount]" in tabs
 assert '("Sfumature", [15, 16, 19, 20])' in tabs
 assert "gradientOpacityBinding(for role: Int)" in tabs
 assert "Slider(value: transparency, in: 0...1, step: 0.01)" in tabs

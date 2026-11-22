@@ -96,7 +96,9 @@ assert ".onLongPressGesture" not in role
 assert ".accessibilityHint(EcoThemePalette.details[index])" in role
 assert 'Text("☀️ Day Mode").tag(true)' in editor
 assert 'Text("🌙 Night Mode").tag(false)' in editor
-assert "initialHex: selected.isDay" in editor
+assert "selected.isDay" in editor
+assert "draft.dayTopBar.hex(for: selected.id)" in editor
+assert "draft.inclinometerColors[selected.id - EcoThemePalette.colorCount]" in editor
 assert "draft.dayTopBar.set(hex, for: selected.id)" in editor
 assert "gradientOpacityBinding(for role: Int)" in editor
 assert ".preferredColorScheme(selectedGroup == 4" in editor
