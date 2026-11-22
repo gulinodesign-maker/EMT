@@ -108,6 +108,7 @@ struct EcojumboRootView: View {
     @State private var lastMenu: EcoTab = .trips
     @AppStorage("ecojumbo.mapEnabled") private var mapEnabled = true
     @State private var musicEnabled = false
+    @State private var inclinometerEnabled = false
     @State private var musicSearchVisible = false
     @State private var tick = Date()
     // Il movimento fisico in portrait apre Impostazioni, anche con GPS bloccato landscape.
@@ -145,6 +146,7 @@ struct EcojumboRootView: View {
                         NavigationStack { TripsPanel() }
                     case .gps:
                         GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled,
+                                            inclinometerEnabled: inclinometerEnabled,
                                             musicEnabled: musicEnabled,
                                             musicSearchVisible: $musicSearchVisible)
                     case .battery:
@@ -163,6 +165,7 @@ struct EcojumboRootView: View {
                 // Dock flottante, NON parte del contenuto scrollabile. La posizione
                 // dipende dal bordo inferiore dello schermo, mai da padding esterni.
                 CockpitCornerControls(selected: $selected, mapEnabled: $mapEnabled,
+                                      inclinometerEnabled: $inclinometerEnabled,
                                       musicEnabled: $musicEnabled,
                                       musicSearchVisible: $musicSearchVisible,
                                       appearanceMode: $appearanceMode, theme: theme,
@@ -185,6 +188,9 @@ struct EcojumboRootView: View {
             gps.start()
             bluetooth.applyFormat(JKFrameFormat(rawValue: UserDefaults.standard.string(forKey: "ecojumbo.frameFormat") ?? "Automatico") ?? .automatic,
                                   cells: UserDefaults.standard.integer(forKey: "ecojumbo.cellCount") == 0 ? 20 : UserDefaults.standard.integer(forKey: "ecojumbo.cellCount"))
+        }
+        .onChange(of: mapEnabled) { _, enabled in
+            if enabled { inclinometerEnabled = false }
         }
         .onChange(of: selected) { _, newTab in
             if newTab != .gps { lastMenu = newTab }
@@ -349,6 +355,7 @@ private struct CockpitCornerControls: View {
     @StateObject private var apple = EcoAppleMusicPlayback.shared
     @Binding var selected: EcoTab
     @Binding var mapEnabled: Bool
+    @Binding var inclinometerEnabled: Bool
     @Binding var musicEnabled: Bool
     @Binding var musicSearchVisible: Bool
     @Binding var appearanceMode: String
@@ -381,7 +388,7 @@ private struct CockpitCornerControls: View {
             // centrato nella stessa fascia tra quadrante e lato destro
             // delle schede; non occupano tutta la larghezza distribuendo
             // lo spazio vuoto fra i singoli pulsanti.
-            let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)
+            let justifiedGap = max(0, (telemetryPanelWidth - 7 * gpsSide) / 6)
             let standardGap = min(justifiedGap, max(8, width * 0.013))
             let musicGap = max(0, (telemetryPanelWidth - 5 * gpsSide) / 4)
             let musicDock = selected == .gps && musicEnabled
@@ -438,11 +445,21 @@ private struct CockpitCornerControls: View {
                                 selected = .gps
                             }
                         }
+                        if selected == .gps && !mapEnabled {
+                            gpsButton("gyroscope", text: "Inclin.",
+                                      active: inclinometerEnabled,
+                                      accessibility: inclinometerEnabled
+                                          ? "Torna alla telemetria" : "Mostra inclinometro",
+                                      side: gpsSide) {
+                                inclinometerEnabled.toggle()
+                            }
+                        }
                         if selected == .gps {
                             // Disponibile SIA in Telemetria SIA sulla Mappa.
                             gpsButton("music.note", active: false,
                                       accessibility: "Apri musica", side: gpsSide) {
                                 musicEnabled = true
+                                inclinometerEnabled = false
                                 musicSearchVisible = false
                                 music.select(.apple)
                                 // Non cancellare mapEnabled né la rotta MapKit.
