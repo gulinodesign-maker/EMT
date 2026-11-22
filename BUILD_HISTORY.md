@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45064796019:ATTEMPT:1 -->
+### 2026-11-22T20:09:15Z — CI #450 · feature/inclinometer-swap-vehicle-axes-build128 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45064796019](https://github.com/gulinodesign-maker/EMT/actions/runs/45064796019); avvio 2026-11-22T20:09:15Z UTC; aggiornamento finale 2026-11-22T20:10:01Z UTC; registrazione 2026-11-22T20:10:09+00:00 UTC; evento pull_request.
+- **Commit:** [7b4911be76e3](https://github.com/gulinodesign-maker/EMT/commit/7b4911be76e3c9b5e6a58546e1d7b4475ce6ee1c); versione **1.0**; build **128**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build128_inclinometer_vehicle_axes.py.
+
 <!-- EMT_RUN:45063145583:ATTEMPT:1 -->
 ### 2026-11-22T19:51:50Z — CI #449 · main · tentativo 1
 
