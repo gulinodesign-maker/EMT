@@ -1,6 +1,6 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
-## Inclinometro Home — release tecnica in sviluppo 1.0 (125), 22 novembre 2026
+## Inclinometro Home — build 1.0 (125) integrata e caricata, 22 novembre 2026
 
 **Richiesta utente:** aggiungere alla Home un pulsante «Inclinometro» che faccia scomparire le quattro letture della Telemetria e la card DISL, mostrando al loro posto una sola card di identiche dimensioni complessive. La card ha due strumenti circolari, rollio e beccheggio; premendo nuovamente il pulsante si torna alla Telemetria.
 
@@ -8,7 +8,7 @@
 
 **Release:** per la nuova build è necessario il numero **125** in Debug/Release, perché la 124 è già stata caricata correttamente. Marketing 1.0, bundle id, compatibilità iOS 17 e progetto senza Liquid Glass sono conservati. I test del ripristino 122 continuano a verificare tutti i file rimasti immutati con gli hash storici, eccettuando i tre sorgenti modificati dalla funzionalità. Aggiornati i test di versione e il calcolo geometrico del dock da sei a sette comandi.
 
-**Verifiche da eseguire:** CI Python/JK/barre, compilazioni iOS Simulator e iPhone Release su PR; soltanto con esito positivo integrare in main e verificare il caricamento Apple `Upload succeeded`, poi separatamente App Store Connect/gruppo TE. **Limitazione sensori:** gli angoli dipendono dal montaggio e dagli assi del telefono; tarare da fermo su piano e verificare l'orientamento su iPhone reale. Non usare come strumento omologato di sicurezza o di stabilità del veicolo.
+**Rilascio 1.0 (125) verificato:** [PR #115](https://github.com/gulinodesign-maker/EMT/pull/115) integrata su `main` al commit `48277c17d5c10564ad8dfa993e05e711f23c5b47`. [CI PR 45055025719](https://github.com/gulinodesign-maker/EMT/actions/runs/45055025719) **SUCCESS**: test Python, protocollo JK, barre, compilazione simulatore e Release iPhone. [CI `main` 45055454953](https://github.com/gulinodesign-maker/EMT/actions/runs/45055454953) **SUCCESS** negli stessi controlli. [TestFlight 45055454864](https://github.com/gulinodesign-maker/EMT/actions/runs/45055454864) **SUCCESS**: build 125, `ARCHIVE SUCCEEDED`, `Upload succeeded` alle **18:33:39 UTC / 19:33:39 Europe/Rome** del 22 novembre 2026 e `EXPORT SUCCEEDED`. Apple ha ricevuto la 125 e ha segnalato `Uploaded package is processing`, quindi **non ripetere l'upload**. Rimangono **non verificati** il termine dell'elaborazione App Store Connect, l'assegnazione al gruppo TE e l'aspetto fisico sul dispositivo. **Limitazione sensori:** gli angoli dipendono dal montaggio e dagli assi del telefono; tarare da fermo su piano e verificare l'orientamento su iPhone reale. Non usare come strumento omologato di sicurezza o di stabilità del veicolo.
 
 ## Ripristino esatto della 122 — release 1.0 (124), 19 novembre 2026
 
