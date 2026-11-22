@@ -5,7 +5,7 @@ root = Path(__file__).resolve().parents[1]
 c = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 t = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 p = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 127;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 128;") == 2
 dash = c.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "private struct GPSTripResetControl: View {", 1)[0]
 assert "let metalLowerEdge = h * 0.099 + GPSMetalContourStyle.inset(for: dialSize)" in dash
