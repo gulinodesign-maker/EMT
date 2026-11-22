@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45055025719:ATTEMPT:1 -->
+### 2026-11-22T18:25:47Z — CI #443 · feature/inclinometer-home-build125 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45055025719](https://github.com/gulinodesign-maker/EMT/actions/runs/45055025719); avvio 2026-11-22T18:25:47Z UTC; aggiornamento finale 2026-11-22T18:30:02Z UTC; registrazione 2026-11-22T18:30:17+00:00 UTC; evento pull_request.
+- **Commit:** [4a257f07a39c](https://github.com/gulinodesign-maker/EMT/commit/4a257f07a39c20e9374be2dfdff18cb6f2c7004a); versione **1.0**; build **125**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build70_no_gradients_centered.py.
+
 <!-- EMT_RUN:45054939967:ATTEMPT:1 -->
 ### 2026-11-22T18:24:55Z — CI #442 · feature/inclinometer-home-build125 · tentativo 1
 
