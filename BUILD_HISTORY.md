@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45065145723:ATTEMPT:1 -->
+### 2026-11-22T20:12:54Z — CI #457 · feature/inclinometer-swap-vehicle-axes-build128 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45065145723](https://github.com/gulinodesign-maker/EMT/actions/runs/45065145723); avvio 2026-11-22T20:12:54Z UTC; aggiornamento finale 2026-11-22T20:16:45Z UTC; registrazione 2026-11-22T20:16:59+00:00 UTC; evento pull_request.
+- **Commit:** [b6691daf08d4](https://github.com/gulinodesign-maker/EMT/commit/b6691daf08d4d8d3332e6b1300b1ec8f4d97ea7a); versione **1.0**; build **128**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_custom_themes_build63.py, Tests/verify_custom_themes_build64.py, Tests/verify_map_alignment_odo_keyboard52.py, Tests/verify_menu_orientation_build58.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_odo_reset_51.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py.
+
 <!-- EMT_RUN:45065124292:ATTEMPT:1 -->
 ### 2026-11-22T20:12:40Z — CI #456 · feature/inclinometer-swap-vehicle-axes-build128 · tentativo 1
 
