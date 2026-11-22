@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45058955666:ATTEMPT:1 -->
+### 2026-11-22T19:07:32Z — CI #446 · feature/inclinometer-theme-layout-build126 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45058955666](https://github.com/gulinodesign-maker/EMT/actions/runs/45058955666); avvio 2026-11-22T19:07:32Z UTC; aggiornamento finale 2026-11-22T19:11:28Z UTC; registrazione 2026-11-22T19:11:41+00:00 UTC; evento pull_request.
+- **Commit:** [701d524c8c53](https://github.com/gulinodesign-maker/EMT/commit/701d524c8c531c2fe493d288584f7838d9b152ec); versione **1.0**; build **126**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build101_daynight_theme_cleanup.py, Tests/verify_build92_twenty_shades.py.
+
 <!-- EMT_RUN:45058833051:ATTEMPT:1 -->
 ### 2026-11-22T19:06:19Z — CI #445 · feature/inclinometer-theme-layout-build126 · tentativo 1
 
