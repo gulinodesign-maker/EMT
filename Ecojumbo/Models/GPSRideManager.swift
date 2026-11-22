@@ -26,6 +26,8 @@ final class EcoPowerMotionManager: ObservableObject {
     @Published private(set) var flow: EcoPowerFlow = .neutral
     @Published private(set) var available = false
     @Published private(set) var lastUpdate: Date = .distantPast
+    @Published private(set) var inclinationRollDegrees: Double?
+    @Published private(set) var inclinationPitchDegrees: Double?
 
     private let sensor = CMMotionManager()
     private var filteredAcceleration: Double = 0
@@ -33,6 +35,10 @@ final class EcoPowerMotionManager: ObservableObject {
     private var pendingSince: Date?
     private var lastTransition: Date = .distantPast
     private var started = false
+    private var inclinationActive = false
+    private var latestAttitude: CMAttitude?
+    private var inclinationReference: CMAttitude?
+    private var lastInclinationPublish: Date = .distantPast
 
     func start() {
         guard !started else { return }
@@ -51,13 +57,16 @@ final class EcoPowerMotionManager: ObservableObject {
         sensor.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
             guard let motion else { return }
             let accel = motion.userAcceleration
+            let attitude = motion.attitude.copy() as? CMAttitude
             let rotation = motion.rotationRate
             let turnRate = sqrt(rotation.x * rotation.x
                                 + rotation.y * rotation.y
                                 + rotation.z * rotation.z)
             Task { @MainActor [weak self] in
+                let time = Date()
                 self?.consume(x: accel.x, y: accel.y, z: accel.z,
-                              rotationRate: turnRate, at: Date())
+                              rotationRate: turnRate, at: time)
+                if let attitude { self?.consumeInclination(attitude: attitude, at: time) }
             }
         }
     }
@@ -71,6 +80,48 @@ final class EcoPowerMotionManager: ObservableObject {
         flow = .neutral
         lastUpdate = .distantPast
         lastTransition = .distantPast
+        latestAttitude = nil
+        inclinationReference = nil
+        inclinationRollDegrees = nil
+        inclinationPitchDegrees = nil
+    }
+
+    // Condivide Core Motion con l'inerzia; UI aggiornata solo quando visibile.
+    func setInclinationActive(_ active: Bool) {
+        guard inclinationActive != active else { return }
+        inclinationActive = active
+        inclinationReference = active ? (latestAttitude?.copy() as? CMAttitude) : nil
+        if !active {
+            inclinationRollDegrees = nil
+            inclinationPitchDegrees = nil
+        }
+    }
+
+    // Taratura quando il veicolo è fermo in piano e il telefono è fissato.
+    func zeroInclination() {
+        guard inclinationActive, let latestAttitude else { return }
+        inclinationReference = latestAttitude.copy() as? CMAttitude
+        inclinationRollDegrees = 0
+        inclinationPitchDegrees = 0
+    }
+
+    private func consumeInclination(attitude: CMAttitude, at date: Date) {
+        latestAttitude = attitude
+        guard inclinationActive, date.timeIntervalSince(lastInclinationPublish) >= 0.09 else {
+            return
+        }
+        if inclinationReference == nil {
+            inclinationReference = attitude.copy() as? CMAttitude
+        }
+        guard let reference = inclinationReference,
+              let relative = attitude.copy() as? CMAttitude else { return }
+        relative.multiply(byInverseOf: reference)
+        let roll = relative.roll * 180 / .pi
+        let pitch = relative.pitch * 180 / .pi
+        guard roll.isFinite, pitch.isFinite else { return }
+        lastInclinationPublish = date
+        inclinationRollDegrees = (inclinationRollDegrees ?? roll) * 0.70 + roll * 0.30
+        inclinationPitchDegrees = (inclinationPitchDegrees ?? pitch) * 0.70 + pitch * 0.30
     }
 
     private func consume(x: Double, y: Double, z: Double,

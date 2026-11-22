@@ -1,5 +1,15 @@
 # STATO PROGETTO — Ecojumbo / EMT
 
+## Inclinometro Home — release tecnica in sviluppo 1.0 (125), 22 novembre 2026
+
+**Richiesta utente:** aggiungere alla Home un pulsante «Inclinometro» che faccia scomparire le quattro letture della Telemetria e la card DISL, mostrando al loro posto una sola card di identiche dimensioni complessive. La card ha due strumenti circolari, rollio e beccheggio; premendo nuovamente il pulsante si torna alla Telemetria.
+
+**Implementazione:** sul cockpit GPS con mappa disattivata il dock ha sette comandi, con larghezze e spazi ricalcolati senza spostare il tachimetro. In `GPSCockpitDashboard` una condizione scambia `GPSExpandedReadings` e `GPSInclinationPanel` mantenendo lo stesso `panelWidth`, `cardsHeight`, `cardsCenterY` e `panelLeft`. Inclinometro: un'unica card traslucida classica (senza Liquid Glass), due quadranti circolari graduati, linee dinamiche, gradi con segno, accessibilità e tasto AZZERA. Si riusa il `CMMotionManager` già avviato da `EcoPowerMotionManager` e si mostrano solo misure realmente osservate: angoli relativi al riferimento acquisito all'apertura, calibrabili a veicolo fermo su terreno piano. In assenza del sensore, dato non disponibile. La pubblicazione degli angoli è sospesa fuori dalla modalità inclinometro; GPS, accelerazione, JK BMS, mappe, musica e preset Audi non vengono alterati. Aprire mappa o musica riporta al comportamento originale.
+
+**Release:** per la nuova build è necessario il numero **125** in Debug/Release, perché la 124 è già stata caricata correttamente. Marketing 1.0, bundle id, compatibilità iOS 17 e progetto senza Liquid Glass sono conservati. I test del ripristino 122 continuano a verificare tutti i file rimasti immutati con gli hash storici, eccettuando i tre sorgenti modificati dalla funzionalità. Aggiornati i test di versione e il calcolo geometrico del dock da sei a sette comandi.
+
+**Verifiche da eseguire:** CI Python/JK/barre, compilazioni iOS Simulator e iPhone Release su PR; soltanto con esito positivo integrare in main e verificare il caricamento Apple `Upload succeeded`, poi separatamente App Store Connect/gruppo TE. **Limitazione sensori:** gli angoli dipendono dal montaggio e dagli assi del telefono; tarare da fermo su piano e verificare l'orientamento su iPhone reale. Non usare come strumento omologato di sicurezza o di stabilità del veicolo.
+
 ## Ripristino esatto della 122 — release 1.0 (124), 19 novembre 2026
 
 **Richiesta esplicita:** «Ripristina la 122» dopo la release Liquid Glass 123. **L'intero albero `Ecojumbo/`** (Swift, plist, asset SVG/JSON e temi incluso Audi) viene ripristinato byte per byte dal commit storico `07e4c560a7687fc91e81994526ff91d9022dee74` con tree `6b5e92550bb3bcde5aa9fae59755009e487c5032`. Sono ripristinati anche workflow CI `.github/workflows/ios-build.yml` e i test originali della 122; rimosso `Tests/verify_liquid_glass_ios26.py`. Nessun algoritmo o file di GPS, BMS, musica, MapKit, telemetria o temi cambia rispetto alla 122. La documentazione e il registro automatico delle build restano aggiornati e non vengono cancellati.

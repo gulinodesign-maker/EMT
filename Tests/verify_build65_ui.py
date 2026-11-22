@@ -8,7 +8,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 gps = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 124;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 125;") == 2
 
 editor = tabs.split("private struct EcoThemeEditorView: View {", 1)[1].split(
     "private struct EcoThemeColorPicker: View {", 1)[0]
@@ -72,7 +72,7 @@ assert "let panelLeft = EcoCockpitDockGeometry.standardLeft(width: w, height: h)
 assert "let cardsBottom = h - dockBottom - dockHeight - outerMargin" in cockpit
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in cockpit
 assert "let telemetryDock = selected == .gps && !mapEnabled" in home
-assert "let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)" in home
+assert "let justifiedGap = max(0, (telemetryPanelWidth - 7 * gpsSide) / 6)" in home
 assert "GPSCockpitMap(theme: theme)" in cockpit
 assert "OpenSpeedCluster(speed: gps.currentSpeed(at: now)" in cockpit
 assert 'onLongPressGesture(minimumDuration: 0.5)' in cockpit

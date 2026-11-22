@@ -30,7 +30,7 @@ assert 'case "music.note": "Musica"' in root_view
 assert "musicEnabled = true" in root_view
 assert "Non cancellare mapEnabled" in root_view
 assert "mapEnabled = false" in root_view
-assert "telemetryPanelWidth - 6 * gpsSide" in root_view
+assert "telemetryPanelWidth - 7 * gpsSide" in root_view
 assert "GPSCockpitDashboard(theme: theme, now: tick, mapEnabled: mapEnabled," in root_view
 
 # Solo Apple Music; nessun provider esterno nel prodotto pubblicabile.
@@ -57,7 +57,7 @@ assert "kSecClassGenericPassword" in manager  # pulizia vecchi token
 assert "handleSpotifyCallback" not in app
 assert "<key>NSAppleMusicUsageDescription</key>" in plist
 assert "<string>ecojumbo-spotify</string>" not in plist
-assert project.count("CURRENT_PROJECT_VERSION = 124;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 125;") == 2
 for filename in ("EcoMusicManager.swift", "EcoMusicCockpitPanel.swift"):
     assert project.count(f"{filename} in Sources") >= 2
 

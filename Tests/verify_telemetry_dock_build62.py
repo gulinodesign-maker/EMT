@@ -1,4 +1,4 @@
-"""Build 102: six standard GPS buttons form a compact centered group under telemetry."""
+"""Build 125: seven standard GPS buttons form a compact centred group under telemetry."""
 from pathlib import Path
 from math import isclose
 import hashlib
@@ -9,7 +9,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 source = cockpit.decode("utf-8")
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 124;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 125;") == 2
 
 # Preserve telemetry, dial and map source from the approved landscape cockpit.
 blob = b"blob " + str(len(cockpit)).encode() + b"\0" + cockpit
@@ -25,7 +25,7 @@ dock = home.split("private struct CockpitCornerControls: View", 1)[1].split("///
 assert "let telemetryDock = selected == .gps && !mapEnabled" in dock
 assert "let telemetryPanelLeft = EcoCockpitDockGeometry.standardLeft(width: width, height: screenHeight)" in dock
 assert "width - EcoCockpitDockGeometry.rightInset(width: width)" in dock
-assert "let justifiedGap = max(0, (telemetryPanelWidth - 6 * gpsSide) / 5)" in dock
+assert "let justifiedGap = max(0, (telemetryPanelWidth - 7 * gpsSide) / 6)" in dock
 assert "let standardGap = min(justifiedGap, max(8, width * 0.013))" in dock
 assert "HStack(spacing: musicDock ? musicGap : (telemetryDock ? standardGap : gpsGap))" in dock
 assert ".frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .center)" in dock
@@ -51,9 +51,9 @@ for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),
     # Build 68: tangente al bordo reale del tachimetro e inset simmetrici.
     panel_left = dial_x + dial * (.986 * .90) / 2 + 1.5 + max(2.4, min(4.2, dial * .0051)) / 2 + right
     panel_width = w - right - panel_left
-    justified_gap = max(0, (panel_width - 6 * side) / 5)
+    justified_gap = max(0, (panel_width - 7 * side) / 6)
     standard_gap = min(justified_gap, max(8, w * 0.013))
-    group_width = 6 * side + 5 * standard_gap
+    group_width = 7 * side + 6 * standard_gap
     button_left = panel_left + (panel_width - group_width) / 2
     button_right = button_left + group_width
     assert justified_gap >= gap
@@ -64,4 +64,4 @@ for w, h in [(736, 414), (844, 390), (932, 430), (956, 440),
     assert isclose(panel_left - dial_tangent, right, abs_tol=1e-7)
     assert isclose((button_left + button_right) / 2,
                    (dial_tangent + w) / 2, abs_tol=1e-7)
-print("OK — build 102: six GPS buttons compact and centred under telemetry")
+print("OK — build 102: seven GPS buttons compact and centred under telemetry")
