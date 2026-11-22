@@ -5,7 +5,7 @@ root = Path(__file__).resolve().parents[1]
 code = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 motion = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 127;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 128;") == 2
 
 panel = code.split("private struct GPSInclinationPanel: View {", 1)[1]
 assert 'dialView(label: "ROLLIO", value: motion.inclinationRollDegrees,' in panel
@@ -50,8 +50,8 @@ assert "inclinometerVehicleColor" in panel
 
 # Inertial data must remain from true sensor relative attitude and never GPS-speed estimates.
 assert "relative.multiply(byInverseOf: reference)" in motion
-assert "let roll = relative.roll * 180 / .pi" in motion
-assert "let pitch = relative.pitch * 180 / .pi" in motion
+assert "let roll = relative.pitch * 180 / .pi" in motion
+assert "let pitch = relative.roll * 180 / .pi" in motion
 assert "inclinationRollDegrees = (inclinationRollDegrees ?? roll)" in motion
 assert "inclinationPitchDegrees = (inclinationPitchDegrees ?? pitch)" in motion
 assert "sensor.isDeviceMotionAvailable" in motion
