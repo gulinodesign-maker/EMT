@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify that unchanged build-122 code and all assets survive feature build 125."""
+"""Verify that unchanged build-122 code and all assets survive feature builds 125–126."""
 from pathlib import Path
 from hashlib import sha1
 
@@ -34,7 +34,6 @@ expected = {
     "Ecojumbo/Models/JKProtocol.swift": "295887fc9f9d26ad54ab6c835b48cf431209d311",
     "Ecojumbo/Models/RideSession.swift": "c503a0dd4011a44bc122c9878c69bcfec1addff8",
     "Ecojumbo/Views/CellsView.swift": "790c8009147a510e92be566cce9b6f3442a0f068",
-    "Ecojumbo/Views/CockpitTabs.swift": "95fbfea2b9db9f54999dc13132b6108dbea99089",
     "Ecojumbo/Views/EcoMusicCockpitPanel.swift": "cc13016276ce2b2760c5c05c0b0fc45fadb358da",
     "Ecojumbo/Views/OtherViews.swift": "16d71058274e5dac9da62cca5d211e8fca44eb5b",
 }
@@ -42,6 +41,7 @@ actual = {p.relative_to(root).as_posix() for p in (root / "Ecojumbo").rglob("*")
 changed_for_125 = {
     "Ecojumbo/Models/GPSRideManager.swift",
     "Ecojumbo/Views/CockpitComponents.swift",
+    "Ecojumbo/Views/CockpitTabs.swift",
     "Ecojumbo/Views/EcojumboRootView.swift",
 }
 assert actual == set(expected) | changed_for_125, (
@@ -52,7 +52,7 @@ for path, object_sha in expected.items():
     raw = b"blob " + str(len(content)).encode("ascii") + b"\x00" + content
     assert sha1(raw).hexdigest() == object_sha, f"Build 122 source mismatch: {path}"
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text(encoding="utf-8")
-assert project.count("CURRENT_PROJECT_VERSION = 125;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 126;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("IPHONEOS_DEPLOYMENT_TARGET = 17.0;") == 4
 assert "runs-on: macos-15-intel" in (root / ".github/workflows/ios-build.yml").read_text(encoding="utf-8")

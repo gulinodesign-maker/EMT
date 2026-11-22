@@ -394,6 +394,20 @@ struct EcoThemePalette: Codable, Equatable {
     var altitudeGraphGlow: Double
     // Associazione stabile del logo anche nei tre slot e nei file esportati.
     var brandID: String?
+    // [Anelli, orizzonte, veicolo] — indipendenti dai 23 ruoli storici.
+    var inclinometerColors: [String]
+
+    static let inclinometerLabels = [
+        "Inclinometro · anelli e tacche",
+        "Inclinometro · orizzonte e indicatore",
+        "Inclinometro · sagome del veicolo"
+    ]
+    static func defaultInclinometerColors(from colors: [String]) -> [String] {
+        let accent = colors.indices.contains(1) ? colors[1] : "#FF7008"
+        let horizon = colors.indices.contains(14) ? colors[14] : accent
+        let vehicle = colors.indices.contains(11) ? colors[11] : "#FFFFFF"
+        return [accent, horizon, vehicle]
+    }
 
     static let automotiveBrands: Set<String> = [
         "BMW", "Ferrari", "Mercedes", "Alfa Romeo", "Lamborghini", "Cupra", "Audi"
@@ -426,7 +440,7 @@ struct EcoThemePalette: Codable, Equatable {
          dayHighOpacity: Double = 1, dayLowOpacity: Double = 1,
          glowLevels: [Double]? = nil,
          altitudeGraphColor: String? = nil, altitudeGraphGlow: Double = 0.55,
-         brandID: String? = nil) {
+         brandID: String? = nil, inclinometerColors: [String]? = nil) {
         self.name = name
         self.colors = colors
         self.glowIntensity = glowIntensity.isFinite ? min(1, max(0, glowIntensity)) : 0.60
@@ -470,6 +484,9 @@ struct EcoThemePalette: Codable, Equatable {
         self.altitudeGraphGlow = altitudeGraphGlow.isFinite
             ? min(1, max(0, altitudeGraphGlow)) : 0.55
         self.brandID = brandID.flatMap { Self.automotiveBrands.contains($0) ? $0 : nil }
+        self.inclinometerColors = inclinometerColors.flatMap {
+            $0.count == 3 && $0.allSatisfy(Self.validHex) ? $0 : nil
+        } ?? Self.defaultInclinometerColors(from: colors)
         normalizeLegacyFadeIntensities()
     }
 
@@ -492,7 +509,7 @@ struct EcoThemePalette: Codable, Equatable {
              lightOpacity, shadowOpacity, highOpacity, lowOpacity,
              dayLightOpacity, dayShadowOpacity, dayHighOpacity, dayLowOpacity,
              directionalVersion, glowLevels, lightingVersion,
-              altitudeGraphColor, altitudeGraphGlow, brandID
+              altitudeGraphColor, altitudeGraphGlow, brandID, inclinometerColors
     }
 
     init(from decoder: Decoder) throws {
@@ -576,6 +593,10 @@ struct EcoThemePalette: Codable, Equatable {
         altitudeGraphGlow = storedGlow.isFinite ? min(1, max(0, storedGlow)) : 0.55
         let storedBrand = try data.decodeIfPresent(String.self, forKey: .brandID)
         brandID = storedBrand.flatMap { Self.automotiveBrands.contains($0) ? $0 : nil }
+        let savedInclinometer = try data.decodeIfPresent([String].self, forKey: .inclinometerColors)
+        inclinometerColors = savedInclinometer.flatMap {
+            $0.count == 3 && $0.allSatisfy(Self.validHex) ? $0 : nil
+        } ?? Self.defaultInclinometerColors(from: colors)
         normalizeLegacyFadeIntensities()
     }
 
@@ -608,6 +629,7 @@ struct EcoThemePalette: Codable, Equatable {
         try data.encode(altitudeGraphColor, forKey: .altitudeGraphColor)
         try data.encode(altitudeGraphGlow, forKey: .altitudeGraphGlow)
         try data.encodeIfPresent(brandID, forKey: .brandID)
+        try data.encode(inclinometerColors, forKey: .inclinometerColors)
     }
 
     // L'ordine 0...7 resta invariato per migrare gli slot personalizzati della build 63.
@@ -668,7 +690,8 @@ struct EcoThemePalette: Codable, Equatable {
         ("Cockpit", [1, 3, 21, 22, 2, 11, 10, 14, 18, 17, 8, 9]),
         ("Barre telemetria", [4, 5, 6]),
         ("Navigatore", [12, 13]),
-        ("Sfumature", [15, 16, 19, 20])
+        ("Sfumature", [15, 16, 19, 20]),
+        ("Inclinometro", [])
     ]
     static let colorCount = 23
     static let extraDefaults = [
@@ -760,6 +783,8 @@ struct EcoThemePalette: Codable, Equatable {
             && p.glowLevels.count == colorCount
             && p.glowLevels.allSatisfy { $0.isFinite && (0...1).contains($0) }
             && p.dayTopBar.isValid
+            && p.inclinometerColors.count == 3
+            && p.inclinometerColors.allSatisfy(validHex)
             && validHex(p.altitudeGraphColor)
             && p.altitudeGraphGlow.isFinite && (0...1).contains(p.altitudeGraphGlow)
             && (p.brandID == nil || automotiveBrands.contains(p.brandID!))
@@ -1296,7 +1321,9 @@ private struct EcoThemeEditorView: View {
                             .foregroundStyle(.primary)
 
 
-                        if selectedGroup == 1 {
+                        if selectedGroup == 5 {
+                            inclinometerRoleSection()
+                        } else if selectedGroup == 1 {
                             glowRoleSection("Anelli", roles: [1, 21, 22, 2])
                             colorRoleSection("Metallo e numeri", roles: [3, 11])
                             glowRoleSection("LED velocità · inerzia", roles: [10, 14, 18, 17])
@@ -1339,6 +1366,8 @@ private struct EcoThemeEditorView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(draft.colors.count != EcoThemePalette.colorCount ||
+                              draft.inclinometerColors.count != 3 ||
+                              !draft.inclinometerColors.allSatisfy(EcoThemePalette.validHex) ||
                               draft.glowLevels.count != EcoThemePalette.colorCount ||
                               !draft.glowLevels.allSatisfy({ $0.isFinite && (0...1).contains($0) }) ||
                                !EcoThemePalette.validHex(draft.altitudeGraphColor) ||
@@ -1412,13 +1441,19 @@ private struct EcoThemeEditorView: View {
             }
             .sheet(item: $colorID) { selected in
                 EcoThemeColorPicker(
-                    title: EcoThemePalette.labels[selected.id]
-                        + (selected.isDay ? " · Day Mode" : ""),
-                    initialHex: selected.isDay
-                        ? draft.dayTopBar.hex(for: selected.id)
-                        : draft.colors[selected.id]
+                    title: selected.id >= EcoThemePalette.colorCount
+                        ? EcoThemePalette.inclinometerLabels[selected.id - EcoThemePalette.colorCount]
+                        : EcoThemePalette.labels[selected.id]
+                            + (selected.isDay ? " · Day Mode" : ""),
+                    initialHex: selected.id >= EcoThemePalette.colorCount
+                        ? draft.inclinometerColors[selected.id - EcoThemePalette.colorCount]
+                        : (selected.isDay
+                            ? draft.dayTopBar.hex(for: selected.id)
+                            : draft.colors[selected.id])
                 ) { hex in
-                    if selected.isDay {
+                    if selected.id >= EcoThemePalette.colorCount {
+                        draft.inclinometerColors[selected.id - EcoThemePalette.colorCount] = hex
+                    } else if selected.isDay {
                         draft.dayTopBar.set(hex, for: selected.id)
                     } else {
                         draft.colors[selected.id] = hex
@@ -1534,6 +1569,54 @@ private struct EcoThemeEditorView: View {
         }
     }
 
+    // Una categoria separata con tre colori e anteprima fronte/posteriore.
+    private func inclinometerRoleSection() -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 18) {
+                Image(systemName: "car.side.fill")
+                Image(systemName: "car.rear.fill")
+            }
+            .font(.system(size: 31))
+            .foregroundStyle(Color(themeHex: draft.inclinometerColors[2]))
+            .frame(maxWidth: .infinity)
+            .padding(12)
+            .background(
+                LinearGradient(colors: [
+                    Color(themeHex: draft.colors[15]).opacity(0.32),
+                    Color(themeHex: draft.colors[16]).opacity(0.32)
+                ], startPoint: .leading, endPoint: .trailing),
+                in: RoundedRectangle(cornerRadius: 12)
+            )
+
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)],
+                      spacing: 12) {
+                ForEach(0..<3, id: \.self) { index in
+                    Button {
+                        colorID = EcoThemeColorID(id: EcoThemePalette.colorCount + index,
+                                                  isDay: false)
+                    } label: {
+                        HStack(spacing: 12) {
+                            RoundedRectangle(cornerRadius: 7)
+                                .fill(Color(themeHex: draft.inclinometerColors[index]))
+                                .frame(width: 38, height: 38)
+                                .overlay(RoundedRectangle(cornerRadius: 7)
+                                    .strokeBorder(.secondary.opacity(0.30), lineWidth: 1))
+                            Text(EcoThemePalette.inclinometerLabels[index])
+                                .font(.subheadline.weight(.medium))
+                                .foregroundStyle(.primary)
+                                .multilineTextAlignment(.leading)
+                            Spacer(minLength: 0)
+                        }
+                        .padding(12)
+                        .background(Color.ecoCard, in: RoundedRectangle(cornerRadius: 11))
+                        .contentShape(RoundedRectangle(cornerRadius: 11))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
     private func categorySymbol(_ index: Int) -> String {
         switch index {
         case 0: "paintpalette"
@@ -1541,6 +1624,7 @@ private struct EcoThemeEditorView: View {
         case 2: "chart.bar.fill"
         case 3: "arrow.triangle.turn.up.right.diamond"
         case 4: "sun.horizon"
+        case 5: "gyroscope"
         default: "paintpalette"
         }
     }
@@ -1561,13 +1645,22 @@ private struct EcoThemeEditorView: View {
                 .frame(minHeight: 36)
 
             HStack(spacing: 5) {
-                ForEach(group.range, id: \.self) { colorIndex in
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(Color(themeHex: draft.colors[colorIndex]))
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 12)
-                        .overlay(RoundedRectangle(cornerRadius: 3)
-                            .strokeBorder(.white.opacity(0.16), lineWidth: 0.5))
+                if index == 5 {
+                    ForEach(draft.inclinometerColors.indices, id: \.self) { i in
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color(themeHex: draft.inclinometerColors[i]))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 12)
+                    }
+                } else {
+                    ForEach(group.range, id: \.self) { colorIndex in
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color(themeHex: draft.colors[colorIndex]))
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 12)
+                            .overlay(RoundedRectangle(cornerRadius: 3)
+                                .strokeBorder(.white.opacity(0.16), lineWidth: 0.5))
+                    }
                 }
             }
         }
