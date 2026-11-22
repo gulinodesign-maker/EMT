@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45054939967:ATTEMPT:1 -->
+### 2026-11-22T18:24:55Z — CI #442 · feature/inclinometer-home-build125 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45054939967](https://github.com/gulinodesign-maker/EMT/actions/runs/45054939967); avvio 2026-11-22T18:24:55Z UTC; aggiornamento finale 2026-11-22T18:25:17Z UTC; registrazione 2026-11-22T18:25:25+00:00 UTC; evento pull_request.
+- **Commit:** [01a50a0388b1](https://github.com/gulinodesign-maker/EMT/commit/01a50a0388b1883bea4530b121a9fb99734ea420); versione **1.0**; build **125**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build65_ui.py, Tests/verify_build66_symmetry_ring.py, Tests/verify_build68_gradient_layout.py, Tests/verify_build70_no_gradients_centered.py, Tests/verify_build71_single_topbar.py, Tests/verify_build97_music_cockpit.py, Tests/verify_custom_themes_build63.py, Tests/verify_custom_themes_build64.py.
+
 <!-- EMT_RUN:45054820856:ATTEMPT:1 -->
 ### 2026-11-22T18:23:39Z — CI #441 · feature/inclinometer-home-build125 · tentativo 1
 
