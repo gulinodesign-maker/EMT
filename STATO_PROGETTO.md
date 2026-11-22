@@ -1,3 +1,9 @@
+## Inclinometro — restyling build 1.0 (126), 22 novembre 2026
+
+Richiesta da screenshot: la card non deve intersecare il profilo metallico alto della top bar; il testo «Relativo · azzera in piano» va rimosso; il pulsante AZZERA va centrato; la superficie deve usare le stesse quattro sfumature/colori e trasparenze delle card Telemetria (Day/Night). Nel menu Configura tema viene aggiunta una sesta categoria «Inclinometro» con tre colori autonomi e persistenti: anelli/tacche, orizzonte/indicatore, sagome auto. Ogni preset di fabbrica (BMW, Ferrari, Mercedes, Alfa Romeo, Lamborghini, Cupra, Audi) riceve tre tonalità derivate dalla propria palette, senza alterare i 23 ruoli precedenti o gli asset. Gli slot storici e JSON senza le nuove chiavi vengono migrati automaticamente; import/export include i nuovi campi. Ulteriore richiesta: nel quadrante BECCHEGGIO viene mostrato il posteriore dell'auto (SF Symbol car.rear.fill); ROLLIO mantiene la sagoma laterale. Le funzioni GPS, BLE e sensori non vengono alterate.
+
+Il pannello inclinometro conserva le dimensioni orizzontali della Telemetria e il margine inferiore del dock; un inset superiore calcolato dal bordo inferiore del profilo grigio evita l'intersezione con la top bar. Il controllo di azzeramento resta accessibile e usa il riferimento inerziale esistente, senza valori fittizi. Build 126 da testare in CI (simulatore + Release iphoneos) e caricare una sola volta su TestFlight dopo merge. Non dichiarare riuscito l'upload prima dei log Apple; l'elaborazione Apple e la prova iPhone sono separate.
+
 # STATO PROGETTO — Ecojumbo / EMT
 
 ## Inclinometro Home — build 1.0 (125) integrata e caricata, 22 novembre 2026

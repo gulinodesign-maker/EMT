@@ -7,7 +7,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 status = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 125;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 126;") == 2
 assert "## Build 112" in status
 brand_assets = {
     "BMW": "AutoBMW", "Ferrari": "AutoFerrari", "Mercedes": "AutoMercedes",

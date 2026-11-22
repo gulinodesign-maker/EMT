@@ -275,6 +275,15 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
         }
         return accent
     }
+    var inclinometerRingColor: Color {
+        Color(themeHex: (savedPalette ?? EcoThemePalette.template(self)).inclinometerColors[0])
+    }
+    var inclinometerHorizonColor: Color {
+        Color(themeHex: (savedPalette ?? EcoThemePalette.template(self)).inclinometerColors[1])
+    }
+    var inclinometerVehicleColor: Color {
+        Color(themeHex: (savedPalette ?? EcoThemePalette.template(self)).inclinometerColors[2])
+    }
     var altitudeGraphColor: Color {
         Color(themeHex: savedPalette?.altitudeGraphColor ?? EcoThemePalette.template(self).altitudeGraphColor)
     }
@@ -1943,6 +1952,13 @@ struct GPSCockpitDashboard: View {
             let cardsBottom = h - dockBottom - dockHeight - outerMargin
             let cardsHeight = max(1, cardsBottom - cardsTop)
             let cardsCenterY = (cardsTop + cardsBottom) / 2
+            // La card inclinometro parte SOTTO il bordo inferiore del metallo:
+            // non invade mai il raccordo angolare della top bar.
+            let metalLowerEdge = h * 0.099 + GPSMetalContourStyle.inset(for: dialSize)
+                + GPSMetalContourStyle.strokeWidth(for: dialSize) / 2
+            let inclinometerTopClearance = max(
+                18, metalLowerEdge + max(12, h * 0.020) - cardsTop
+            )
             // Indicatore SOC mappa: intero corpo centrato VERTICALMENTE tra
             // linea arancione della top bar e bordo superiore del dock.
             let railWidth = max(36, min(52, w * 0.037))
@@ -2005,6 +2021,7 @@ struct GPSCockpitDashboard: View {
                     Group {
                         if inclinometerEnabled {
                             GPSInclinationPanel(theme: theme)
+                                .padding(.top, inclinometerTopClearance)
                         } else {
                             GPSExpandedReadings(theme: theme, now: now)
                         }
@@ -3861,16 +3878,58 @@ private struct GPSInclinationPanel: View {
         colorScheme == .light ? Color(white: 0.13) : .white
     }
 
+    // Identico gradiente delle card Telemetria: sinistra/destra/alto/basso
+    // con le rispettive opacità Day e Night e il colore del tema selezionato.
+    private var telemetryStyleBackground: some View {
+        let day = colorScheme == .light
+        let from = day ? Color(themeHex: theme.dayTopBar.left) : theme.topBarGradientStart
+        let to = day ? Color(themeHex: theme.dayTopBar.right) : theme.topBarGradientEnd
+        let high = day ? Color(themeHex: theme.dayTopBar.high) : theme.topBarHighFade
+        let low = day ? Color(themeHex: theme.dayTopBar.low) : theme.topBarLowFade
+        let lightOpacity = day ? theme.dayGradientLightOpacity : theme.gradientLightOpacity
+        let shadowOpacity = day ? theme.dayGradientShadowOpacity : theme.gradientShadowOpacity
+        let highOpacity = day ? theme.dayGradientHighOpacity : theme.gradientHighOpacity
+        let lowOpacity = day ? theme.dayGradientLowOpacity : theme.gradientLowOpacity
+        return RoundedRectangle(cornerRadius: 16)
+            .fill(day ? Color.white.opacity(0.36) : Color.white.opacity(0.038))
+            .overlay {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(LinearGradient(stops: [
+                        .init(color: from.opacity((day ? 0.38 : 0.32) * lightOpacity), location: 0),
+                        .init(color: .clear, location: 0.50),
+                        .init(color: to.opacity((day ? 0.38 : 0.32) * shadowOpacity), location: 1)
+                    ], startPoint: .leading, endPoint: .trailing))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(LinearGradient(stops: [
+                        .init(color: high.opacity(highOpacity * 0.32), location: 0),
+                        .init(color: .clear, location: 0.48)
+                    ], startPoint: .top, endPoint: .bottom))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(LinearGradient(stops: [
+                        .init(color: .clear, location: 0.52),
+                        .init(color: low.opacity(lowOpacity * 0.32), location: 1)
+                    ], startPoint: .top, endPoint: .bottom))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(theme.inclinometerRingColor.opacity(0.35), lineWidth: 1)
+            }
+    }
+
     var body: some View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
-            let dial = max(48, min((w - 42) * 0.46, h * 0.62))
+            let dial = max(48, min((w - 42) * 0.46, h * 0.58))
             let quiet = colorScheme == .light ? Color(white: 0.35) : Color(white: 0.74)
 
             VStack(spacing: 0) {
                 HStack(spacing: 9) {
-                    Rectangle().fill(theme.accent.opacity(0.8))
+                    Rectangle().fill(theme.inclinometerRingColor.opacity(0.8))
                         .frame(width: max(14, w * 0.06), height: 1)
                     Text("INCLINOMETRO")
                         .font(.system(size: max(11, min(17, h * 0.055)),
@@ -3879,7 +3938,7 @@ private struct GPSInclinationPanel: View {
                         .foregroundStyle(quiet)
                         .lineLimit(1)
                         .minimumScaleFactor(0.75)
-                    Rectangle().fill(theme.accent.opacity(0.8))
+                    Rectangle().fill(theme.inclinometerRingColor.opacity(0.8))
                         .frame(width: max(14, w * 0.06), height: 1)
                 }
                 .frame(maxWidth: .infinity)
@@ -3893,15 +3952,7 @@ private struct GPSInclinationPanel: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                HStack(spacing: 8) {
-                    Text(motion.available ? "Relativo · azzera in piano" :
-                         "Sensore non disponibile")
-                        .font(.system(size: max(9, min(12, h * 0.038)),
-                                      weight: .medium, design: .rounded))
-                        .foregroundStyle(quiet)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                    Spacer(minLength: 0)
+                VStack(spacing: 2) {
                     Button {
                         motion.zeroInclination()
                     } label: {
@@ -3909,36 +3960,28 @@ private struct GPSInclinationPanel: View {
                             .font(.system(size: max(10, min(13, h * 0.045)),
                                           weight: .bold, design: .rounded))
                             .foregroundStyle(ink)
-                            .padding(.horizontal, 10)
+                            .padding(.horizontal, 13)
                             .padding(.vertical, 6)
-                            .background(theme.accent.opacity(0.17), in: Capsule())
-                            .overlay(Capsule().stroke(theme.accent.opacity(0.70), lineWidth: 1))
+                            .background(theme.inclinometerRingColor.opacity(0.17), in: Capsule())
+                            .overlay(Capsule().stroke(
+                                theme.inclinometerRingColor.opacity(0.70), lineWidth: 1))
                     }
                     .buttonStyle(.plain)
                     .disabled(motion.inclinationRollDegrees == nil)
                     .accessibilityLabel("Azzera inclinometro: fermarsi in piano")
+                    if !motion.available {
+                        Text("Sensore non disponibile")
+                            .font(.caption2)
+                            .foregroundStyle(quiet)
+                    }
                 }
+                .frame(maxWidth: .infinity)
                 .frame(height: h * 0.18)
             }
             .padding(.horizontal, max(9, w * 0.025))
             .padding(.vertical, max(5, h * 0.02))
             .frame(width: w, height: h)
-            .background {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(colorScheme == .light
-                          ? Color.white.opacity(0.42) : Color.black.opacity(0.29))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(LinearGradient(colors: [
-                                theme.accent.opacity(0.12), .clear,
-                                theme.accent.opacity(0.07)
-                            ], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    }
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(theme.accent.opacity(0.45), lineWidth: 1)
-                    }
-            }
+            .background(telemetryStyleBackground)
         }
         .onAppear { motion.setInclinationActive(true) }
         .onDisappear { motion.setInclinationActive(false) }
@@ -3952,21 +3995,21 @@ private struct GPSInclinationPanel: View {
             ZStack {
                 Circle()
                     .fill(RadialGradient(colors: [
-                        theme.accent.opacity(0.12),
+                        theme.inclinometerRingColor.opacity(0.12),
                         colorScheme == .light ? Color.white.opacity(0.32)
                                                : Color.black.opacity(0.65)
                     ], center: .center, startRadius: 0, endRadius: side * 0.50))
                 Circle()
-                    .stroke(theme.accent.opacity(0.14), lineWidth: side * 0.055)
+                    .stroke(theme.inclinometerRingColor.opacity(0.14), lineWidth: side * 0.055)
                 Circle()
-                    .stroke(theme.accent.opacity(0.85), lineWidth: 2)
+                    .stroke(theme.inclinometerRingColor.opacity(0.85), lineWidth: 2)
                     .padding(2)
-                    .shadow(color: theme.accent.opacity(0.52), radius: 6)
+                    .shadow(color: theme.inclinometerRingColor.opacity(0.52), radius: 6)
                 Circle().stroke(ink.opacity(0.17), lineWidth: 1)
                     .padding(side * 0.22)
                 ForEach(-6...6, id: \.self) { tick in
                     Capsule()
-                        .fill(tick == 0 ? theme.accent : ink.opacity(0.49))
+                        .fill(tick == 0 ? theme.inclinometerRingColor : ink.opacity(0.49))
                         .frame(width: tick == 0 ? 2.5 : 1.2,
                                height: tick.isMultiple(of: 3) ? 10 : 6)
                         .offset(y: -side * 0.40)
@@ -3978,16 +4021,16 @@ private struct GPSInclinationPanel: View {
                     .frame(width: 1, height: side * 0.40)
                 if let value {
                     Capsule()
-                        .fill(theme.accent)
+                        .fill(theme.inclinometerHorizonColor)
                         .frame(width: side * 0.58, height: 3)
                         .rotationEffect(.degrees(roll ? -value : 0))
                         .offset(y: roll ? 0 :
                                 CGFloat(max(-1.0, min(1.0, value / 45.0))) * side * 0.25)
-                        .shadow(color: theme.accent.opacity(0.75), radius: 5)
+                        .shadow(color: theme.inclinometerHorizonColor.opacity(0.75), radius: 5)
                 }
-                Image(systemName: "car.side.fill")
+                Image(systemName: roll ? "car.side.fill" : "car.rear.fill")
                     .font(.system(size: side * 0.20, weight: .medium))
-                    .foregroundStyle(ink)
+                    .foregroundStyle(theme.inclinometerVehicleColor)
                     .offset(y: -side * 0.10)
                 Text(value.map { String(format: "%+.1f°", $0) } ?? "—°")
                     .font(.system(size: side * 0.14,

@@ -8,7 +8,7 @@ c = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 t = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 p = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 state = (root / "STATO_PROGETTO.md").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 125;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 126;") == 2
 assert "Build 95" in state
 
 dial = c.split("private enum GPSDialLayout {", 1)[1].split(

@@ -10,7 +10,7 @@ settings = read("Ecojumbo/Views/OtherViews.swift")
 app = read("Ecojumbo/EcojumboApp.swift")
 plist = read("Ecojumbo/Info.plist")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 125;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 126;") == 2
 assert 'NSMotionUsageDescription' in plist
 palette = tabs.split("struct EcoThemePalette: Codable, Equatable {", 1)[1].split("extension Color", 1)[0]
 assert '("Sfumature", [15, 16, 19, 20])' in palette
