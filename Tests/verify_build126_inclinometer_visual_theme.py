@@ -51,6 +51,10 @@ assert "draft.inclinometerColors[index]" in t
 assert "draft.inclinometerColors[selected.id - EcoThemePalette.colorCount] = hex" in t
 assert "static let colorCount = 23" in t
 assert "inclinometerColors.count == 3" in t
+assert "return [accent, horizon, vehicle]" in t
+assert "defaultInclinometerColors(from: colors)" in t
+assert "try data.encode(inclinometerColors, forKey: .inclinometerColors)" in t
+assert "savedPalette ?? EcoThemePalette.template(self)" in c
 
 for w,h in ((736,414),(844,390),(932,430),(1179,510),(1536,706),(1806,831)):
     d=min(h*.965,w*.55)
