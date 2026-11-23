@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45198329460:ATTEMPT:1 -->
+### 2026-11-23T14:49:24Z — CI #485 · feature/compass-gforce-switch · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45198329460](https://github.com/gulinodesign-maker/EMT/actions/runs/45198329460); avvio 2026-11-23T14:49:24Z UTC; aggiornamento finale 2026-11-23T14:49:58Z UTC; registrazione 2026-11-23T14:50:11+00:00 UTC; evento pull_request.
+- **Commit:** [88834e911a10](https://github.com/gulinodesign-maker/EMT/commit/88834e911a10eab89a4fa73f298bc60ba8d5f778); versione **1.0**; build **135**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build133_inclinometer_card_layout.py.
+
 <!-- EMT_RUN:45198309325:ATTEMPT:1 -->
 ### 2026-11-23T14:49:17Z — CI #484 · feature/compass-gforce-switch · tentativo 1
 
