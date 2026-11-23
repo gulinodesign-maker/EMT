@@ -40,6 +40,7 @@ expected = {
 actual = {p.relative_to(root).as_posix() for p in (root / "Ecojumbo").rglob("*") if p.is_file()}
 changed_for_125 = {
     "Ecojumbo/Models/GPSRideManager.swift",
+    "Ecojumbo/Models/VehicleInclinationMath.swift",
     "Ecojumbo/Views/CockpitComponents.swift",
     "Ecojumbo/Views/CockpitTabs.swift",
     "Ecojumbo/Views/EcojumboRootView.swift",
