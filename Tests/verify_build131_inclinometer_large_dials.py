@@ -8,7 +8,7 @@ project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 motion = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 math = (root / "Ecojumbo/Models/VehicleInclinationMath.swift").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 133;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 134;") == 2
 assert "let enlargedDial = baseDial * 1.20" in view
 assert "let dial = max(1, min(enlargedDial, dialWidthLimit, dialHeightLimit))" in view
 assert "let dialWidthLimit = (w - 2 * horizontalInset - 2 * dialGap - resetWidth) / 2" in view

@@ -12,14 +12,15 @@ shape = code.split("private struct GPSInclinationCardShape: Shape {", 1)[1].spli
 )[0]
 panel = code.split("private struct GPSInclinationPanel: View {", 1)[1]
 
-assert project.count("CURRENT_PROJECT_VERSION = 133;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 134;") == 2
 assert "let topBarCorners = GPSHorizonSymmetry.corners(width: w, height: h)" in dashboard
 assert "topBarCorners.rightContact.y - topBarCorners.rightKnee.y" in dashboard
 assert "topBarCorners.rightKnee.x - topBarCorners.rightContact.x" in dashboard
 assert "theme: theme, topLeftSlope: inclinationCardSlope" in dashboard
 assert "GPSInclinationPanel(theme: theme)" not in dashboard
 assert "let rise = run * slope" in shape
-assert "h * 0.20 / slope" in shape
+assert "let previousRun = min(min(42, max(16, w * 0.10))" in shape
+assert "let run = previousRun * 1.50" in shape
 assert "path.move(to: CGPoint(x: run, y: 0))" in shape
 assert "path.addLine(to: CGPoint(x: 0, y: rise))" in shape
 assert "path.closeSubpath()" in shape
@@ -35,7 +36,8 @@ left = panel.index('dialView(label: "ROLLIO"')
 button = panel.index("motion.zeroInclination()")
 right = panel.index('dialView(label: "BECCHEGGIO"')
 assert left < button < right
-assert ".frame(width: resetWidth, height: dial, alignment: .center)" in panel
+assert ".frame(width: resetWidth, height: dial, alignment: .bottom)" in panel
+assert "Spacer(minLength: 0)" in panel
 assert ".position(x: w / 2, y: dialGroupCenterY)" in panel
 assert ".frame(height: valueHeight)" in panel
 assert 'Text("AZZERA")' in panel

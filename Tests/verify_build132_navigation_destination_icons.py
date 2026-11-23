@@ -6,7 +6,7 @@ source = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 dock = source.split("private struct CockpitCornerControls: View {", 1)[1].split("/// EJ 1.19", 1)[0]
 
-assert project.count("CURRENT_PROJECT_VERSION = 133;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 134;") == 2
 
 # The map button shows its destination: Map from telemetry, Telemetry from Map.
 assert 'gpsButton(mapEnabled ? "chart.bar.xaxis" : "map.fill",' in dock

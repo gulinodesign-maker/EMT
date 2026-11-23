@@ -8,7 +8,7 @@ home=(root/"Ecojumbo/Views/EcojumboRootView.swift").read_text()
 proj=(root/"Ecojumbo.xcodeproj/project.pbxproj").read_text()
 status=(root/"STATO_PROGETTO.md").read_text()
 
-assert proj.count("CURRENT_PROJECT_VERSION = 133;")==2
+assert proj.count("CURRENT_PROJECT_VERSION = 134;")==2
 assert "## Build 103" in status
 assert 'Image("CarbonWeave")' not in cockpit
 assert "private struct CarbonBackdrop: View" in cockpit # smooth backdrop still shared

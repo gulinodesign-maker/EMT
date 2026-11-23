@@ -3882,10 +3882,11 @@ private struct GPSInclinationCardShape: Shape {
         let h = rect.height
         let radius = min(16, min(w, h) * 0.08)
         let slope = max(0.05, topLeftSlope)
-        // La corsa del taglio si riduce sui pannelli compatti, senza cambiarne
-        // mai l'angolo: rise / run rimane uguale a quello della top bar.
-        let run = min(min(42, max(16, w * 0.10)),
-                      min(w * 0.20, h * 0.20 / slope))
+        // Smusso maggiore del 50% rispetto alla build 133;
+        // la pendenza resta esattamente quella della top bar.
+        let previousRun = min(min(42, max(16, w * 0.10)),
+                              min(w * 0.20, h * 0.20 / slope))
+        let run = previousRun * 1.50
         let rise = run * slope
         var path = Path()
         path.move(to: CGPoint(x: run, y: 0))
@@ -3963,8 +3964,8 @@ private struct GPSInclinationPanel: View {
             let horizontalInset = max(4, w * 0.012)
             let verticalInset = max(4, h * 0.014)
             let dialGap = max(4, w * 0.010)
-            // AZZERA è ora un comando verticale compatto, tra i due cerchi.
-            // Lo spazio centrale è riservato nel calcolo del diametro.
+            // AZZERA resta tra i cerchi ma nella loro parte inferiore;
+            // il diametro riserva spazio orizzontale per evitare collisioni.
             let resetWidth = max(40, min(46, w * 0.145))
             let resetHeight = max(34, min(40, h * 0.15))
             // Il target +20% della build 131 resta valido dove c'è spazio.
@@ -4004,6 +4005,14 @@ private struct GPSInclinationPanel: View {
                              roll: true, side: dial, valueHeight: valueHeight)
 
                     VStack(spacing: 4) {
+                        Spacer(minLength: 0)
+                        if !motion.available {
+                            Text("Sensore non disponibile")
+                                .font(.system(size: 8))
+                                .multilineTextAlignment(.center)
+                                .foregroundStyle(quiet)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                         Button {
                             motion.zeroInclination()
                         } label: {
@@ -4024,15 +4033,8 @@ private struct GPSInclinationPanel: View {
                         .buttonStyle(.plain)
                         .disabled(!motion.available)
                         .accessibilityLabel("Azzera inclinometro: fermarsi in piano")
-                        if !motion.available {
-                            Text("Sensore non disponibile")
-                                .font(.system(size: 8))
-                                .multilineTextAlignment(.center)
-                                .foregroundStyle(quiet)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
                     }
-                    .frame(width: resetWidth, height: dial, alignment: .center)
+                    .frame(width: resetWidth, height: dial, alignment: .bottom)
 
                     dialView(label: "BECCHEGGIO", value: motion.inclinationPitchDegrees,
                              roll: false, side: dial, valueHeight: valueHeight)
