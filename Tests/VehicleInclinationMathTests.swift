@@ -11,7 +11,7 @@ import Foundation
             let p = radians(pitch)
             return VehicleGravityVector(x: (left ? 1 : -1) * cos(r) * cos(p),
                                         y: (left ? 1 : -1) * sin(r) * cos(p),
-                                        z: sin(p))
+                                        z: -sin(p))
         }
 
         for left in [false, true] {
@@ -26,6 +26,23 @@ import Foundation
                 near(angles.rollDegrees, roll)
                 near(angles.pitchDegrees, pitch)
             }
+        }
+
+        // Display rivolto al posteriore: il muso che SALE restituisce
+        // beccheggio positivo; quando il muso SCENDE il segno è negativo.
+        // Il rollio non deve cambiare durante una rotazione solo longitudinale.
+        for left in [false, true] {
+            let level = gravity(roll: 0, pitch: 0, left: left)
+            let noseUp = VehicleInclinationMath.angles(
+                gravity: gravity(roll: 0, pitch: 15, left: left),
+                landscapeLeft: left, zeroGravity: level)!
+            let noseDown = VehicleInclinationMath.angles(
+                gravity: gravity(roll: 0, pitch: -12, left: left),
+                landscapeLeft: left, zeroGravity: level)!
+            near(noseUp.pitchDegrees, 15)
+            near(noseDown.pitchDegrees, -12)
+            near(noseUp.rollDegrees, 0)
+            near(noseDown.rollDegrees, 0)
         }
 
         // The mount may be 25° tilted while the car is on level ground.
@@ -50,6 +67,6 @@ import Foundation
         assert(VehicleInclinationMath.angles(gravity: .init(x: .nan, y: 0, z: 1),
                                             landscapeLeft: false,
                                             zeroGravity: gravity(roll: 0, pitch: 0, left: false)) == nil)
-        print("OK — roll/pitch gravity in degrees, both orientations, mount calibration and invalid readings")
+        print("OK — rear-facing pitch sign, roll unchanged, gravity degrees and calibration")
     }
 }
