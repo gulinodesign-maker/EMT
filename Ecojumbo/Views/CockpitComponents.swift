@@ -4003,7 +4003,6 @@ private struct GPSInclinationPanel: View {
             let verticalInset = max(4, h * 0.014)
             let dialGap = max(4, w * 0.010)
             let resetWidth = max(40, min(46, w * 0.145))
-            let resetHeight = max(30, min(38, h * 0.12))
             let baseDial = max(48, min((w - 42) * 0.46, h * 0.48))
             let enlargedDial = baseDial * 1.20
             let dialWidthLimit = (w - 2 * horizontalInset - 2 * dialGap - resetWidth) / 2
@@ -4020,6 +4019,8 @@ private struct GPSInclinationPanel: View {
             let pillWidth = centerDistance + pillHeight
             let pillCenterY = h / 2
             let valueGap = pillInset + 4
+            let controlSize = max(18, min(32, dial * 0.16))
+            let controlOffset = dial * 0.32
             let quiet = colorScheme == .light ? Color(white: 0.35) : Color(white: 0.74)
 
             ZStack {
@@ -4040,7 +4041,7 @@ private struct GPSInclinationPanel: View {
                 .position(x: w / 2, y: h * 0.065)
 
                 // Fondo unico, estremità concentriche ai due strumenti.
-                // Nessun comando o testo si trova sulla superficie della pill.
+                // I due comandi bianchi occupano gli spazi centrali interni alla pill.
                 telemetryStyleBackground
                     .frame(width: pillWidth, height: pillHeight)
                     .position(x: w / 2, y: pillCenterY)
@@ -4066,34 +4067,29 @@ private struct GPSInclinationPanel: View {
                     compassGForce.toggle()
                     if compassGForce { extraSensors.start() } else { extraSensors.stop() }
                 } label: {
-                    Image(systemName: "arrow.left.arrow.right.circle.fill")
-                        .font(.system(size: max(20, min(27, dial * 0.16))))
-                        .foregroundStyle(theme.inclinometerRingColor)
-                        .frame(width: resetWidth, height: max(26, h * 0.10))
+                    Image(systemName: "arrow.left.arrow.right")
+                        .font(.system(size: controlSize * 0.66, weight: .semibold))
+                        .foregroundStyle(Color.white)
+                        .frame(width: controlSize, height: controlSize)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .position(x: w / 2, y: pillCenterY - pillHeight / 2 - max(26, h * 0.10) / 2 - 3)
+                .position(x: w / 2, y: pillCenterY - controlOffset)
                 .accessibilityLabel(compassGForce
                     ? "Passa a rollio e beccheggio" : "Passa a bussola e forza G")
 
                 Button {
                     if !compassGForce { motion.zeroInclination() }
                 } label: {
-                    VStack(spacing: 2) {
-                        Image(systemName: "scope")
-                            .font(.system(size: 14, weight: .semibold))
-                        Text("AZZERA")
-                            .font(.system(size: 8, weight: .bold, design: .rounded))
-                    }
-                    .foregroundStyle(ink)
-                    .frame(width: resetWidth, height: resetHeight)
-                    .background(theme.inclinometerRingColor.opacity(0.17), in: Capsule())
-                    .overlay(Capsule().stroke(
-                        theme.inclinometerRingColor.opacity(0.70), lineWidth: 1))
+                    Image(systemName: "scope")
+                        .font(.system(size: controlSize * 0.66, weight: .semibold))
+                        .foregroundStyle(Color.white)
+                        .frame(width: controlSize, height: controlSize)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
                 .disabled(compassGForce || !motion.available)
-                .position(x: w / 2, y: pillCenterY + pillHeight / 2 + resetHeight / 2 + 4)
+                .position(x: w / 2, y: pillCenterY + controlOffset)
                 .accessibilityLabel(compassGForce
                     ? "Azzeramento non disponibile per bussola e forza G"
                     : "Azzera inclinometro: fermarsi in piano")
