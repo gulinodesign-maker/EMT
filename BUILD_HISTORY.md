@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45174650763:ATTEMPT:1 -->
+### 2026-11-23T12:28:34Z — CI #473 · feature/inclinometer-card-restyle-build133 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45174650763](https://github.com/gulinodesign-maker/EMT/actions/runs/45174650763); avvio 2026-11-23T12:28:34Z UTC; aggiornamento finale 2026-11-23T12:29:09Z UTC; registrazione 2026-11-23T12:29:22+00:00 UTC; evento pull_request.
+- **Commit:** [55f486a6a864](https://github.com/gulinodesign-maker/EMT/commit/55f486a6a8648b5752aaab920f5922b7bba0f2bd); versione **1.0**; build **133**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Ecojumbo.xcodeproj/project.pbxproj, STATO_PROGETTO.md, Tests/verify_build133_inclinometer_card.py, Tests/verify_secondary_telemetry50.py, Tests/verify_speed_font_build53.py, Tests/verify_system_clock_build54.py, Tests/verify_telemetry_dock_build62.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:45174029168:ATTEMPT:1 -->
 ### 2026-11-23T12:24:39Z — CI #471 · feature/inclinometer-card-and-telemetry-icons-build133 · tentativo 1
 
