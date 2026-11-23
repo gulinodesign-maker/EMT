@@ -8,7 +8,7 @@ tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 status = (root / "STATO_PROGETTO.md").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 130;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 131;") == 2
 assert "## Build 104" in status
 
 # A single angle, never a second setting for the cards or for Day Mode.

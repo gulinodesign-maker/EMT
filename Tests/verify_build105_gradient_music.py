@@ -9,7 +9,7 @@ panel = read("Ecojumbo/Views/EcoMusicCockpitPanel.swift")
 manager = read("Ecojumbo/Models/EcoMusicManager.swift")
 dock = read("Ecojumbo/Views/EcojumboRootView.swift")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 130;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 131;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 
 editor = tabs.split("private struct EcoThemeEditorView: View {", 1)[1].split(
