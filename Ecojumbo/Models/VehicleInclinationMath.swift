@@ -1,7 +1,7 @@
 import Foundation
 
 /// Gravity in the iPhone's fixed Core Motion device axes, in g units.
-struct VehicleGravityVector: Equatable {
+struct VehicleGravityVector: Equatable, Sendable {
     let x: Double
     let y: Double
     let z: Double
@@ -16,7 +16,7 @@ struct VehicleGravityVector: Equatable {
     }
 }
 
-struct VehicleInclinationAngles: Equatable {
+struct VehicleInclinationAngles: Equatable, Sendable {
     /// Positive when the vehicle's right side is lower (rear view, clockwise).
     let rollDegrees: Double
     /// Positive when the vehicle nose is higher (side view).
