@@ -2,6 +2,7 @@ import Foundation
 import CoreLocation
 import Combine
 import CoreMotion
+import UIKit
 
 // Direzione visualizzata dal cursore velocità, non misura dei watt fittizi.
 enum EcoPowerFlow: Equatable {
@@ -36,8 +37,9 @@ final class EcoPowerMotionManager: ObservableObject {
     private var lastTransition: Date = .distantPast
     private var started = false
     private var inclinationActive = false
-    private var latestAttitude: CMAttitude?
-    private var inclinationReference: CMAttitude?
+    private var latestInclinationGravity: VehicleGravityVector?
+    private var inclinationZeroGravity: VehicleGravityVector?
+    private var inclinationZeroLandscapeLeft: Bool?
     private var lastInclinationPublish: Date = .distantPast
 
     func start() {
@@ -57,7 +59,7 @@ final class EcoPowerMotionManager: ObservableObject {
         sensor.startDeviceMotionUpdates(to: .main) { [weak self] motion, _ in
             guard let motion else { return }
             let accel = motion.userAcceleration
-            let attitude = motion.attitude.copy() as? CMAttitude
+            let gravity = VehicleGravityVector(x: motion.gravity.x, y: motion.gravity.y, z: motion.gravity.z)
             let rotation = motion.rotationRate
             let turnRate = sqrt(rotation.x * rotation.x
                                 + rotation.y * rotation.y
@@ -66,7 +68,7 @@ final class EcoPowerMotionManager: ObservableObject {
                 let time = Date()
                 self?.consume(x: accel.x, y: accel.y, z: accel.z,
                               rotationRate: turnRate, at: time)
-                if let attitude { self?.consumeInclination(attitude: attitude, at: time) }
+                self?.consumeInclination(gravity: gravity, at: time)
             }
         }
     }
@@ -80,50 +82,75 @@ final class EcoPowerMotionManager: ObservableObject {
         flow = .neutral
         lastUpdate = .distantPast
         lastTransition = .distantPast
-        latestAttitude = nil
-        inclinationReference = nil
+        latestInclinationGravity = nil
         inclinationRollDegrees = nil
         inclinationPitchDegrees = nil
     }
 
-    // Condivide Core Motion con l'inerzia; UI aggiornata solo quando visibile.
+    // Il cockpit e' landscape, ma Core Motion usa gli assi fissi dell'iPhone.
+    // L'interfaccia (non UIDeviceOrientation) determina destra/sinistra.
+    private func inclinationLandscapeLeft() -> Bool {
+        for case let scene as UIWindowScene in UIApplication.shared.connectedScenes {
+            guard scene.activationState != .background else { continue }
+            switch scene.interfaceOrientation {
+            case .landscapeLeft: return true
+            case .landscapeRight: return false
+            default: continue
+            }
+        }
+        return false
+    }
+
+    // Condivide Core Motion con l'inerzia. Aprire la card NON azzera la pendenza:
+    // fino a una taratura esplicita su strada piana mostriamo —°, mai gradi inventati.
     func setInclinationActive(_ active: Bool) {
         guard inclinationActive != active else { return }
         inclinationActive = active
-        inclinationReference = active ? (latestAttitude?.copy() as? CMAttitude) : nil
+        lastInclinationPublish = .distantPast
         if !active {
             inclinationRollDegrees = nil
             inclinationPitchDegrees = nil
         }
     }
 
-    // Taratura quando il veicolo è fermo in piano e il telefono è fissato.
+    // AZZERA va premuto SOLO quando l'auto e' ferma e su una superficie piana.
+    // Memorizza la direzione reale di gravita', non un attitude Euler arbitrario.
     func zeroInclination() {
-        guard inclinationActive, let latestAttitude else { return }
-        inclinationReference = latestAttitude.copy() as? CMAttitude
+        guard inclinationActive, let gravity = latestInclinationGravity else { return }
+        let landscapeLeft = inclinationLandscapeLeft()
+        guard VehicleInclinationMath.angles(gravity: gravity, landscapeLeft: landscapeLeft,
+                                            zeroGravity: gravity) != nil else { return }
+        inclinationZeroGravity = gravity
+        inclinationZeroLandscapeLeft = landscapeLeft
         inclinationRollDegrees = 0
         inclinationPitchDegrees = 0
     }
 
-    private func consumeInclination(attitude: CMAttitude, at date: Date) {
-        latestAttitude = attitude
+    private func consumeInclination(gravity: VehicleGravityVector, at date: Date) {
+        latestInclinationGravity = gravity
         guard inclinationActive, date.timeIntervalSince(lastInclinationPublish) >= 0.09 else {
             return
         }
-        if inclinationReference == nil {
-            inclinationReference = attitude.copy() as? CMAttitude
+        let landscapeLeft = inclinationLandscapeLeft()
+        if let original = inclinationZeroLandscapeLeft, original != landscapeLeft {
+            // Se il telefono viene ruotato, la taratura precedente non e' piu' valida.
+            inclinationZeroGravity = nil
+            inclinationZeroLandscapeLeft = nil
         }
-        guard let reference = inclinationReference,
-              let relative = attitude.copy() as? CMAttitude else { return }
-        relative.multiply(byInverseOf: reference)
-        // In landscape, gli assi del telefono non coincidono con quelli
-        // dell'auto: il rollio laterale proviene dal pitch Core Motion,
-        // mentre il beccheggio (muso su/giu) proviene dal roll Core Motion.
-        // La taratura resta relativa all'attitude acquisita con AZZERA.
-        let roll = relative.pitch * 180 / .pi
-        let pitch = relative.roll * 180 / .pi
-        guard roll.isFinite, pitch.isFinite else { return }
+        guard let angles = VehicleInclinationMath.angles(
+            gravity: gravity, landscapeLeft: landscapeLeft,
+            zeroGravity: inclinationZeroGravity
+        ) else {
+            inclinationRollDegrees = nil
+            inclinationPitchDegrees = nil
+            return
+        }
+
+        // I valori sono in gradi fisici dal vettore gravita' normalizzato.
+        // Il filtro attenua vibrazioni senza alterare la scala angolare.
         lastInclinationPublish = date
+        let roll = angles.rollDegrees
+        let pitch = angles.pitchDegrees
         inclinationRollDegrees = (inclinationRollDegrees ?? roll) * 0.70 + roll * 0.30
         inclinationPitchDegrees = (inclinationPitchDegrees ?? pitch) * 0.70 + pitch * 0.30
     }

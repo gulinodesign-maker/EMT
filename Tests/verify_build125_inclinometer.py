@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 motion = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 128;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 129;") == 2
 assert '@State private var inclinometerEnabled = false' in rootview
 assert 'inclinometerEnabled: $inclinometerEnabled' in rootview
 assert 'gpsButton("gyroscope", text: "Inclin."' in rootview
@@ -35,7 +35,7 @@ for snippet in [
 ]:
     assert snippet in card, snippet
 assert "private let sensor = CMMotionManager()" in motion
-assert "relative.multiply(byInverseOf: reference)" in motion
+assert "VehicleInclinationMath.angles(" in motion
 assert "lastInclinationPublish" in motion
 assert "setInclinationActive(_ active: Bool)" in motion
 assert "func zeroInclination()" in motion

@@ -3967,7 +3967,7 @@ private struct GPSInclinationPanel: View {
                                 theme.inclinometerRingColor.opacity(0.70), lineWidth: 1))
                     }
                     .buttonStyle(.plain)
-                    .disabled(motion.inclinationRollDegrees == nil)
+                    .disabled(!motion.available)
                     .accessibilityLabel("Azzera inclinometro: fermarsi in piano")
                     if !motion.available {
                         Text("Sensore non disponibile")
@@ -4039,7 +4039,8 @@ private struct GPSInclinationPanel: View {
                     .frame(width: 1, height: side * 0.40)
 
                 // Veicolo e barra condividono la medesima rotazione,
-                // sia nel rollio sia nel beccheggio. Nessuna traslazione.
+                // rollio orario quando il lato destro scende; beccheggio opposto.
+                // Nessuna traslazione.
                 ZStack {
                     Capsule()
                         .fill(theme.inclinometerHorizonColor)
@@ -4052,7 +4053,7 @@ private struct GPSInclinationPanel: View {
                         .offset(y: -side * 0.11)
                 }
                 .opacity(value == nil ? 0.35 : 1)
-                .rotationEffect(.degrees(-(value ?? 0)))
+                .rotationEffect(.degrees(roll ? (value ?? 0) : -(value ?? 0)))
                 .animation(.easeOut(duration: 0.16), value: value)
             }
             .frame(width: side, height: side)

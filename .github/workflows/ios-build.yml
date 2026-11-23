@@ -55,6 +55,12 @@ jobs:
           swiftc Ecojumbo/Models/CockpitBarMath.swift Tests/CockpitBarMathTests.swift -o "$RUNNER_TEMP/bar_tests"
           "$RUNNER_TEMP/bar_tests"
 
+      - name: Test inclinometro fisico (gravita' e assi auto)
+        run: |
+          set -euo pipefail
+          swiftc Ecojumbo/Models/VehicleInclinationMath.swift Tests/VehicleInclinationMathTests.swift -o "$RUNNER_TEMP/inclinometer_tests"
+          "$RUNNER_TEMP/inclinometer_tests"
+
       - name: Compila app per simulatore iOS (senza firma Apple)
         run: |
           set -euo pipefail

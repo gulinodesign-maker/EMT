@@ -5,7 +5,7 @@ root = Path(__file__).resolve().parents[1]
 code = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 motion = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 128;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 129;") == 2
 
 panel = code.split("private struct GPSInclinationPanel: View {", 1)[1]
 assert 'dialView(label: "ROLLIO", value: motion.inclinationRollDegrees,' in panel
@@ -24,8 +24,8 @@ assert sorted({(i * 5) % 360 for i in range(72)}) == list(range(0, 360, 5))
 # Shared rotation wraps BOTH the real horizon bar and the chosen vehicle.
 group = dial.split("// Veicolo e barra condividono la medesima rotazione", 1)[1]
 assert group.index("ZStack {") < group.index("Capsule()") < group.index("Image(systemName:")
-assert group.index("Image(systemName:") < group.index(".rotationEffect(.degrees(-(value ?? 0)))")
-assert dial.count(".rotationEffect(.degrees(-(value ?? 0)))") == 1
+assert group.index("Image(systemName:") < group.index(".rotationEffect(.degrees(roll ? (value ?? 0) : -(value ?? 0)))")
+assert dial.count(".rotationEffect(.degrees(roll ? (value ?? 0) : -(value ?? 0)))") == 1
 assert ".animation(.easeOut(duration: 0.16), value: value)" in group
 assert ".offset(y: roll ?" not in dial
 assert "CGFloat(max(-1.0, min(1.0, value / 45.0)))" not in dial
@@ -49,9 +49,9 @@ assert "inclinometerHorizonColor" in panel
 assert "inclinometerVehicleColor" in panel
 
 # Inertial data must remain from true sensor relative attitude and never GPS-speed estimates.
-assert "relative.multiply(byInverseOf: reference)" in motion
-assert "let roll = relative.pitch * 180 / .pi" in motion
-assert "let pitch = relative.roll * 180 / .pi" in motion
+assert "VehicleInclinationMath.angles(" in motion
+assert "let roll = angles.rollDegrees" in motion
+assert "let pitch = angles.pitchDegrees" in motion
 assert "inclinationRollDegrees = (inclinationRollDegrees ?? roll)" in motion
 assert "inclinationPitchDegrees = (inclinationPitchDegrees ?? pitch)" in motion
 assert "sensor.isDeviceMotionAvailable" in motion

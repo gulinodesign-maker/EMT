@@ -40,6 +40,7 @@ expected = {
 actual = {p.relative_to(root).as_posix() for p in (root / "Ecojumbo").rglob("*") if p.is_file()}
 changed_for_125 = {
     "Ecojumbo/Models/GPSRideManager.swift",
+    "Ecojumbo/Models/VehicleInclinationMath.swift",
     "Ecojumbo/Views/CockpitComponents.swift",
     "Ecojumbo/Views/CockpitTabs.swift",
     "Ecojumbo/Views/EcojumboRootView.swift",
@@ -52,7 +53,7 @@ for path, object_sha in expected.items():
     raw = b"blob " + str(len(content)).encode("ascii") + b"\x00" + content
     assert sha1(raw).hexdigest() == object_sha, f"Build 122 source mismatch: {path}"
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text(encoding="utf-8")
-assert project.count("CURRENT_PROJECT_VERSION = 128;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 129;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert project.count("IPHONEOS_DEPLOYMENT_TARGET = 17.0;") == 4
 assert "runs-on: macos-15-intel" in (root / ".github/workflows/ios-build.yml").read_text(encoding="utf-8")
