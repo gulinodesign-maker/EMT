@@ -4012,15 +4012,26 @@ private struct GPSInclinationPanel: View {
             let dial = max(1, min(enlargedDial, dialWidthLimit, dialHeightLimit))
             // Ripristina la distanza originale fra i centri.
             let centerDistance = dial + resetWidth + 2 * dialGap
-            let leftX = (w - centerDistance) / 2
-            let rightX = (w + centerDistance) / 2
-            let pillInset = max(10, min(18, dial * 0.10))
-            let pillHeight = dial + 2 * pillInset
-            let pillWidth = centerDistance + pillHeight
-            let pillCenterY = h / 2
+            // Contenuto ancorato alle proporzioni landscape della 136.
+            // Su iPad (e nelle finestre Stage Manager) il gruppo si riduce
+            // soltanto quando lo spazio disponibile non basta.
+            let requestedInset = max(10, min(18, dial * 0.10))
+            let pillAvailableWidth = max(1, w - 2 * horizontalInset)
+            let pillAvailableHeight = max(1, h * 0.72)
+            let pillScale = min(1,
+                                pillAvailableWidth / (centerDistance + dial + 2 * requestedInset),
+                                pillAvailableHeight / (dial + 2 * requestedInset))
+            let fittedDial = dial * pillScale
+            let fittedCenterDistance = centerDistance * pillScale
+            let pillInset = requestedInset * pillScale
+            let pillHeight = fittedDial + 2 * pillInset
+            let pillWidth = fittedCenterDistance + pillHeight
+            let pillCenterY = h * 0.51
+            let fittedLeftX = (w - fittedCenterDistance) / 2
+            let fittedRightX = (w + fittedCenterDistance) / 2
             let valueGap = pillInset + 4
-            let controlSize = max(18, min(32, dial * 0.16))
-            let controlOffset = dial * 0.32
+            let controlSize = max(18, min(32, fittedDial * 0.16))
+            let controlOffset = fittedDial * 0.32
             let quiet = colorScheme == .light ? Color(white: 0.35) : Color(white: 0.74)
 
             ZStack {
@@ -4049,18 +4060,18 @@ private struct GPSInclinationPanel: View {
 
                 dialView(label: compassGForce ? "BUSSOLA" : "ROLLIO",
                          value: compassGForce ? extraSensors.heading : motion.inclinationRollDegrees,
-                         roll: true, side: dial, valueHeight: valueHeight, valueGap: valueGap,
+                         roll: true, side: fittedDial, valueHeight: valueHeight, valueGap: valueGap,
                          kind: compassGForce ? 1 : 0)
-                    .frame(width: dial)
-                    .position(x: leftX,
+                    .frame(width: fittedDial)
+                    .position(x: fittedLeftX,
                               y: pillCenterY + (valueGap + valueHeight) / 2)
 
                 dialView(label: compassGForce ? "FORZA G" : "BECCHEGGIO",
                          value: compassGForce ? extraSensors.lateralG : motion.inclinationPitchDegrees,
-                         roll: false, side: dial, valueHeight: valueHeight, valueGap: valueGap,
+                         roll: false, side: fittedDial, valueHeight: valueHeight, valueGap: valueGap,
                          kind: compassGForce ? 2 : 0)
-                    .frame(width: dial)
-                    .position(x: rightX,
+                    .frame(width: fittedDial)
+                    .position(x: fittedRightX,
                               y: pillCenterY + (valueGap + valueHeight) / 2)
 
                 Button {
