@@ -3924,7 +3924,17 @@ private struct GPSInclinationPanel: View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
-            let dial = max(48, min((w - 42) * 0.46, h * 0.48))
+            // +20% rispetto al diametro precedente. I titoli rimossi liberano
+            // altezza; sui display stretti il diametro viene limitato soltanto
+            // dallo spazio reale, evitando sovrapposizioni fra i due cerchi.
+            let baseDial = max(48, min((w - 42) * 0.46, h * 0.48))
+            let dialGap = max(4, w * 0.010)
+            let horizontalInset = max(4, w * 0.012)
+            let enlargedDial = baseDial * 1.20
+            let dialWidthLimit = (w - 2 * horizontalInset - dialGap) / 2
+            let dialHeightLimit = h * 0.73 - 2 * max(4, h * 0.014)
+                - max(16, enlargedDial * 0.17) - max(3, enlargedDial * 0.020)
+            let dial = min(enlargedDial, dialWidthLimit, dialHeightLimit)
             let quiet = colorScheme == .light ? Color(white: 0.35) : Color(white: 0.74)
 
             VStack(spacing: 0) {
@@ -3942,9 +3952,9 @@ private struct GPSInclinationPanel: View {
                         .frame(width: max(14, w * 0.06), height: 1)
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: h * 0.14)
+                .frame(height: h * 0.11)
 
-                HStack(spacing: max(6, w * 0.017)) {
+                HStack(spacing: dialGap) {
                     dialView(label: "ROLLIO", value: motion.inclinationRollDegrees,
                              roll: true, side: dial)
                     dialView(label: "BECCHEGGIO", value: motion.inclinationPitchDegrees,
@@ -3976,10 +3986,10 @@ private struct GPSInclinationPanel: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: h * 0.18)
+                .frame(height: h * 0.16)
             }
-            .padding(.horizontal, max(9, w * 0.025))
-            .padding(.vertical, max(5, h * 0.02))
+            .padding(.horizontal, horizontalInset)
+            .padding(.vertical, max(4, h * 0.014))
             .frame(width: w, height: h)
             .background(telemetryStyleBackground)
         }
@@ -3995,15 +4005,8 @@ private struct GPSInclinationPanel: View {
     private func dialView(label: String, value: Double?, roll: Bool,
                           side: CGFloat) -> some View {
         VStack(spacing: max(3, side * 0.020)) {
-            Text(label)
-                .font(.system(size: max(10, min(14, side * 0.095)),
-                              weight: .semibold, design: .rounded))
-                .tracking(1.0)
-                .foregroundStyle(ink)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-                .frame(maxWidth: .infinity)
-
+            // Nessun titolo visibile sopra i quadranti. Il label resta
+            // nell'accessibilità per distinguere rollio e beccheggio.
             ZStack {
                 Circle()
                     .fill(RadialGradient(colors: [
