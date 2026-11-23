@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45272260846:ATTEMPT:1 -->
+### 2026-11-23T21:41:42Z — CI #488 · feature/build136-concentric-pill · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45272260846](https://github.com/gulinodesign-maker/EMT/actions/runs/45272260846); avvio 2026-11-23T21:41:42Z UTC; aggiornamento finale 2026-11-23T21:42:37Z UTC; registrazione 2026-11-23T21:42:50+00:00 UTC; evento pull_request.
+- **Commit:** [c4e929c9876c](https://github.com/gulinodesign-maker/EMT/commit/c4e929c9876cafee0b8db42618ac4859ffad37fc); versione **1.0**; build **135**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Tests/verify_build100_luminous_rings_power_weather.py, Tests/verify_build101_daynight_theme_cleanup.py, Tests/verify_build102_dock_power_weather_reset.py, Tests/verify_build103_real_tangent_smooth_card_neon.py, Tests/verify_build104_light_shadow_square_kw.py, Tests/verify_build105_gradient_music.py, Tests/verify_build106_four_gradient_tiles.py, Tests/verify_build107_gradient_opacity_icon_ui.py, Tests/verify_build108_directional_motion_bms.py, Tests/verify_build109_cockpit_return_kit_tap.py, Tests/verify_build109_inner_ring_glow_inertia.py, Tests/verify_build111_cockpit_altitude.py.
+
 <!-- EMT_RUN:45201157119:ATTEMPT:1 -->
 ### 2026-11-23T15:04:51Z — CI #487 · feature/build136-concentric-pill · tentativo 1
 
