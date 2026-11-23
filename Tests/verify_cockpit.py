@@ -194,7 +194,7 @@ assert 'selected == .gps' in u and '? max(4, h * 0.006)' in u
 landscape_dock = u.split('private struct CockpitCornerControls: View', 1)[1]
 assert 'ForEach(EcoTab.allCases) { tab in' not in landscape_dock
 assert 'ForEach([EcoTab.gps, .trips, .settings, .themes]) { tab in' in u
-assert 'gpsButton("map.fill", active: mapEnabled' in u
+assert 'gpsButton(mapEnabled ? "chart.bar.xaxis" : "map.fill",' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
 assert 'gpsButton("play.fill"' in u
 assert 'mapControls.send(.toggleNavigation)' in u
