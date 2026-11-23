@@ -1959,6 +1959,9 @@ struct GPSCockpitDashboard: View {
             let inclinometerTopClearance = max(
                 18, metalLowerEdge + max(12, h * 0.020) - cardsTop
             )
+            let topBarCorners = GPSHorizonSymmetry.corners(width: w, height: h)
+            let inclinationCardSlope = (topBarCorners.rightContact.y - topBarCorners.rightKnee.y)
+                / max(1, topBarCorners.rightKnee.x - topBarCorners.rightContact.x)
             // Indicatore SOC mappa: intero corpo centrato VERTICALMENTE tra
             // linea arancione della top bar e bordo superiore del dock.
             let railWidth = max(36, min(52, w * 0.037))
@@ -2021,8 +2024,7 @@ struct GPSCockpitDashboard: View {
                     Group {
                         if inclinometerEnabled {
                             GPSInclinationPanel(
-                                theme: theme,
-                                topLeftSlope: (h * (0.244 - 0.099)) / (w * (0.54 - 0.45))
+                                theme: theme, topLeftSlope: inclinationCardSlope
                             )
                                 .padding(.top, inclinometerTopClearance)
                         } else {
