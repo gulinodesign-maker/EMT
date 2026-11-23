@@ -10,7 +10,7 @@ cockpit = read("Ecojumbo/Views/CockpitComponents.swift")
 setup = read("Ecojumbo/Views/OtherViews.swift")
 root_view = read("Ecojumbo/Views/EcojumboRootView.swift")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 130;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 131;") == 2
 
 # Modalità predefinita BMS conserva i vecchi dispositivi e gli slot personalizzati.
 assert 'enum EcoVehicleMode: String, CaseIterable, Identifiable' in gps

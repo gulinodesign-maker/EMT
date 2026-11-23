@@ -7,7 +7,7 @@ gps = read("Ecojumbo/Models/GPSRideManager.swift")
 cockpit = read("Ecojumbo/Views/CockpitComponents.swift")
 setup = read("Ecojumbo/Views/OtherViews.swift")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 130;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 131;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 # Check the original, unmodified 117 location and speed acceptance path.
 assert "manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation" in gps

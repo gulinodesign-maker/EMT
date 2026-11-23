@@ -5,7 +5,7 @@ root = Path(__file__).resolve().parents[1]
 code = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 motion = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 130;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 131;") == 2
 
 panel = code.split("private struct GPSInclinationPanel: View {", 1)[1]
 assert 'dialView(label: "ROLLIO", value: motion.inclinationRollDegrees,' in panel
@@ -31,18 +31,21 @@ assert ".offset(y: roll ?" not in dial
 assert "CGFloat(max(-1.0, min(1.0, value / 45.0)))" not in dial
 assert "value == nil ? 0.35 : 1" in group
 
-# Written hierarchy title / full circle / degrees; calibration stays below both.
-title_at = dial.index("Text(label)")
+# Build 131: no visible title above dials; circles remain above degree readouts.
+assert "Text(label)" not in dial
 circle_at = dial.index("ZStack {")
 degrees_at = dial.index('Text(value.map { String(format: "%+.1f°", $0) } ?? "—°")')
-assert title_at < circle_at < degrees_at
+assert circle_at < degrees_at
 assert degrees_at > dial.index(".frame(width: side, height: side)")
+assert 'accessibilityLabel(label + ": "' in dial
 assert 'Text("INCLINOMETRO")' in panel
 assert 'Label("AZZERA", systemImage: "scope")' in panel
 assert "motion.zeroInclination()" in panel
 assert "motion.setInclinationActive(true)" in panel
 assert "motion.setInclinationActive(false)" in panel
-assert "let dial = max(48, min((w - 42) * 0.46, h * 0.48))" in panel
+assert "let baseDial = max(48, min((w - 42) * 0.46, h * 0.48))" in panel
+assert "let enlargedDial = baseDial * 1.20" in panel
+assert "let dial = min(enlargedDial, dialWidthLimit, dialHeightLimit)" in panel
 assert "telemetryStyleBackground" in panel
 assert "inclinometerRingColor" in panel
 assert "inclinometerHorizonColor" in panel
