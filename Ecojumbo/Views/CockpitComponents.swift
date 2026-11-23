@@ -3968,7 +3968,7 @@ private struct GPSInclinationPanel: View {
         let shadowOpacity = day ? theme.dayGradientShadowOpacity : theme.gradientShadowOpacity
         let highOpacity = day ? theme.dayGradientHighOpacity : theme.gradientHighOpacity
         let lowOpacity = day ? theme.dayGradientLowOpacity : theme.gradientLowOpacity
-        let shape = GPSInclinationCardShape(topLeftSlope: topLeftSlope)
+        let shape = Capsule()
         return shape
             .fill(day ? Color.white.opacity(0.36) : Color.white.opacity(0.038))
             .overlay {
@@ -3999,20 +3999,27 @@ private struct GPSInclinationPanel: View {
         GeometryReader { geo in
             let w = geo.size.width
             let h = geo.size.height
-            let horizontalInset = max(5, w * 0.016)
-            let valueHeight = max(18, min(27, h * 0.085))
-            let resetWidth = max(42, min(58, w * 0.14))
+            let horizontalInset = max(4, w * 0.012)
+            let verticalInset = max(4, h * 0.014)
+            let dialGap = max(4, w * 0.010)
+            let resetWidth = max(40, min(46, w * 0.145))
             let resetHeight = max(30, min(38, h * 0.12))
-            // La pill è una capsula geometrica: il raggio delle estremità
-            // coincide con quello dei quadranti, più il margine costante.
-            let pillInset: CGFloat = max(5, min(9, h * 0.016))
-            let dial = max(1, min(h * 0.43, (w - 2 * horizontalInset) * 0.31))
+            let baseDial = max(48, min((w - 42) * 0.46, h * 0.48))
+            let enlargedDial = baseDial * 1.20
+            let dialWidthLimit = (w - 2 * horizontalInset - 2 * dialGap - resetWidth) / 2
+            let valueHeight = max(18, min(29, h * 0.095))
+            let dialHeightLimit = min(h * 0.70, h - 2 * verticalInset
+                                      - valueHeight - max(3, enlargedDial * 0.020))
+            let dial = max(1, min(enlargedDial, dialWidthLimit, dialHeightLimit))
+            // Ripristina la distanza originale fra i centri.
+            let centerDistance = dial + resetWidth + 2 * dialGap
+            let leftX = (w - centerDistance) / 2
+            let rightX = (w + centerDistance) / 2
+            let pillInset = max(10, min(18, dial * 0.10))
             let pillHeight = dial + 2 * pillInset
-            let pillWidth = w - 2 * horizontalInset
-            let pillCenterY = h * 0.48
-            let leftX = horizontalInset + pillHeight / 2
-            let rightX = w - leftX
-            let valueGap = max(4, dial * 0.035)
+            let pillWidth = centerDistance + pillHeight
+            let pillCenterY = h / 2
+            let valueGap = pillInset + 4
             let quiet = colorScheme == .light ? Color(white: 0.35) : Color(white: 0.74)
 
             ZStack {
@@ -4034,27 +4041,14 @@ private struct GPSInclinationPanel: View {
 
                 // Fondo unico, estremità concentriche ai due strumenti.
                 // Nessun comando o testo si trova sulla superficie della pill.
-                Capsule()
-                    .fill(LinearGradient(
-                        colors: [
-                            theme.inclinometerRingColor.opacity(0.19),
-                            colorScheme == .light ? Color.white.opacity(0.38)
-                                                   : Color.black.opacity(0.62),
-                            theme.inclinometerHorizonColor.opacity(0.14)
-                        ],
-                        startPoint: .leading, endPoint: .trailing))
-                    .overlay {
-                        Capsule().stroke(
-                            theme.inclinometerRingColor.opacity(0.72), lineWidth: 1.5)
-                    }
-                    .shadow(color: theme.inclinometerRingColor.opacity(0.20), radius: 7)
+                telemetryStyleBackground
                     .frame(width: pillWidth, height: pillHeight)
                     .position(x: w / 2, y: pillCenterY)
                     .allowsHitTesting(false)
 
                 dialView(label: compassGForce ? "BUSSOLA" : "ROLLIO",
                          value: compassGForce ? extraSensors.heading : motion.inclinationRollDegrees,
-                         roll: true, side: dial, valueHeight: valueHeight,
+                         roll: true, side: dial, valueHeight: valueHeight, valueGap: valueGap,
                          kind: compassGForce ? 1 : 0)
                     .frame(width: dial)
                     .position(x: leftX,
@@ -4062,7 +4056,7 @@ private struct GPSInclinationPanel: View {
 
                 dialView(label: compassGForce ? "FORZA G" : "BECCHEGGIO",
                          value: compassGForce ? extraSensors.lateralG : motion.inclinationPitchDegrees,
-                         roll: false, side: dial, valueHeight: valueHeight,
+                         roll: false, side: dial, valueHeight: valueHeight, valueGap: valueGap,
                          kind: compassGForce ? 2 : 0)
                     .frame(width: dial)
                     .position(x: rightX,
@@ -4078,7 +4072,7 @@ private struct GPSInclinationPanel: View {
                         .frame(width: resetWidth, height: max(26, h * 0.10))
                 }
                 .buttonStyle(.plain)
-                .position(x: w / 2, y: h * 0.17)
+                .position(x: w / 2, y: pillCenterY - pillHeight / 2 - max(26, h * 0.10) / 2 - 3)
                 .accessibilityLabel(compassGForce
                     ? "Passa a rollio e beccheggio" : "Passa a bussola e forza G")
 
@@ -4099,13 +4093,12 @@ private struct GPSInclinationPanel: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(compassGForce || !motion.available)
-                .position(x: w / 2, y: h * 0.89)
+                .position(x: w / 2, y: pillCenterY + pillHeight / 2 + resetHeight / 2 + 4)
                 .accessibilityLabel(compassGForce
                     ? "Azzeramento non disponibile per bussola e forza G"
                     : "Azzera inclinometro: fermarsi in piano")
             }
             .frame(width: w, height: h)
-            .background(telemetryStyleBackground)
         }
         .onAppear {
             motion.setInclinationActive(true)
@@ -4123,8 +4116,8 @@ private struct GPSInclinationPanel: View {
     // Auto e piano di appoggio ruotano insieme intorno al centro dello strumento;
     // le 72 tacche a intervalli di 5° formano una graduazione completa a 360°.
     private func dialView(label: String, value: Double?, roll: Bool,
-                          side: CGFloat, valueHeight: CGFloat, kind: Int = 0) -> some View {
-        VStack(spacing: max(3, side * 0.020)) {
+                          side: CGFloat, valueHeight: CGFloat, valueGap: CGFloat, kind: Int = 0) -> some View {
+        VStack(spacing: valueGap) {
             // Nessun titolo visibile sopra i quadranti. Il label resta
             // nell'accessibilità per distinguere rollio e beccheggio.
             ZStack {
