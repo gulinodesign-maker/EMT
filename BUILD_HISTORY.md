@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45126752719:ATTEMPT:1 -->
+### 2026-11-23T06:49:37Z — CI #463 · feature/inclinometer-rear-facing-pitch-sign-build130 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45126752719](https://github.com/gulinodesign-maker/EMT/actions/runs/45126752719); avvio 2026-11-23T06:49:37Z UTC; aggiornamento finale 2026-11-23T06:54:08Z UTC; registrazione 2026-11-23T06:54:22+00:00 UTC; evento pull_request.
+- **Commit:** [9e8acfd09aa6](https://github.com/gulinodesign-maker/EMT/commit/9e8acfd09aa6b49a3dc96b11c034a12fc7f70bc7); versione **1.0**; build **130**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build130_rear_facing_pitch.py.
+
 <!-- EMT_RUN:45125037627:ATTEMPT:1 -->
 ### 2026-11-23T06:34:45Z — CI #461 · main · tentativo 1
 
