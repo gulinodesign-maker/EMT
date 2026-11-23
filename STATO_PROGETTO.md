@@ -1,3 +1,13 @@
+## Build 133 — nuova geometria card inclinometro e pulsante AZZERA centrale (23 novembre 2026)
+
+**Richiesta utente:** nella stessa sessione delle icone dinamiche Telemetria/Mappa/Giroscopio, adeguare la card del giroscopio: spigolo superiore sinistro parallelo all'inclinazione del ginocchio della top bar, due cerchi centrati verticalmente nell'intera card e AZZERA ridotto fra i due cerchi.
+
+**Versione:** la build 132 con le icone dinamiche risulta già integrata su `main`; per non riutilizzarne il numero si prosegue con `CURRENT_PROJECT_VERSION=133`, mantenendo tutte le modifiche della 132.
+
+**Codice:** `GPSInclinationCardShape` ritaglia fondo, quattro gradienti/strati e contorno con il medesimo smusso. La pendenza viene calcolata tramite `GPSHorizonSymmetry.corners` e resta parallela al tratto reale `rightContact -> rightKnee`. I due cerchi sono centrati rispetto a `h/2`, i gradi restano sotto; un tasto AZZERA a sviluppo verticale riduce l'ingombro orizzontale e occupa lo spazio riservato fra i quadranti. Il diametro target 1,20× della build 131 è vincolato agli ingombri reali per evitare collisioni. Taratura, sensori, temi, animazioni e segni di rollio/beccheggio invariati.
+
+**Regressioni:** `Tests/verify_build133_inclinometer_card_layout.py` verifica smusso, pendenze, layout centrato, aree riservate e accessibilità; test precedenti adeguati e pin versione aggiornati. Verificare CI, merge, build e upload TestFlight prima di attestare la pubblicazione.
+
 ## Build 132 — icone contestuali del cockpit, 23 novembre 2026
 
 **Richiesta:** il pulsante Mappa mostra l'icona della mappa dalla Telemetria e l'icona della Telemetria quando la Mappa è attiva; il pulsante Giroscopio/Inclinometro mostra l'icona del giroscopio dalla Telemetria e l'icona della Telemetria quando l'Inclinometro è attivo. Ogni tasto indica la destinazione, non la vista corrente.
