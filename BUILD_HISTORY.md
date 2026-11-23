@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45124692338:ATTEMPT:1 -->
+### 2026-11-23T06:31:36Z — CI #460 · feature/inclinometer-gravity-real-angles-roll-fix-build129 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45124692338](https://github.com/gulinodesign-maker/EMT/actions/runs/45124692338); avvio 2026-11-23T06:31:36Z UTC; aggiornamento finale 2026-11-23T06:34:26Z UTC; registrazione 2026-11-23T06:34:38+00:00 UTC; evento pull_request.
+- **Commit:** [b927ededd365](https://github.com/gulinodesign-maker/EMT/commit/b927ededd3653a04af6c6d53cae1c1321181327e); versione **1.0**; build **129**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build124_restore122.py.
+
 <!-- EMT_RUN:45124590340:ATTEMPT:1 -->
 ### 2026-11-23T06:30:46Z — CI #459 · feature/inclinometer-gravity-real-angles-roll-fix-build129 · tentativo 1
 
