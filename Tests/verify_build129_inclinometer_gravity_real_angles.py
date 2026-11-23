@@ -9,7 +9,7 @@ panel = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text().split(
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 workflow = (root / ".github/workflows/ios-build.yml").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 132;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 133;") == 2
 assert "VehicleInclinationMath.swift in Sources" in project
 assert "let gravity = VehicleGravityVector(x: motion.gravity.x, y: motion.gravity.y, z: motion.gravity.z)" in motion
 assert "VehicleInclinationMath.angles(" in motion
@@ -25,7 +25,8 @@ assert "let pitch = angles.pitchDegrees" in motion
 assert ".rotationEffect(.degrees(roll ? (value ?? 0) : -(value ?? 0)))" in panel
 assert ".disabled(!motion.available)" in panel
 assert 'Image(systemName: roll ? "car.rear.fill" : "car.side.fill")' in panel
-assert 'Label("AZZERA", systemImage: "scope")' in panel
+assert 'Text("AZZERA")' in panel
+assert 'Image(systemName: "scope")' in panel
 assert 'ForEach(0..<72, id: \\.self) { tick in' in panel
 assert "guard gravity.isValid, let zeroGravity, zeroGravity.isValid" in math
 assert "let roll = atan2(lateral, vertical)" in math

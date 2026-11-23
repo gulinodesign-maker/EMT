@@ -5,7 +5,7 @@ root = Path(__file__).resolve().parents[1]
 c = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 t = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 p = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert p.count("CURRENT_PROJECT_VERSION = 132;") == 2
+assert p.count("CURRENT_PROJECT_VERSION = 133;") == 2
 dash = c.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "private struct GPSTripResetControl: View {", 1)[0]
 assert "let metalLowerEdge = h * 0.099 + GPSMetalContourStyle.inset(for: dialSize)" in dash
@@ -18,12 +18,12 @@ assert ".frame(width: panelWidth, height: cardsHeight)" in dash
 panel = c.split("private struct GPSInclinationPanel: View {", 1)[1]
 assert 'Image(systemName: roll ? "car.rear.fill" : "car.side.fill")' in panel
 assert "Relativo · azzera in piano" not in panel
-assert 'Label("AZZERA", systemImage: "scope")' in panel
-footer = panel.split("VStack(spacing: 2) {", 1)[1].split(
-    ".frame(height: h * 0.18)", 1)[0]
-assert "Spacer(minLength:" not in footer
-assert "motion.zeroInclination()" in footer
-assert "Sensore non disponibile" in footer
+assert 'Text("AZZERA")' in panel
+assert 'Image(systemName: "scope")' in panel
+assert 'HStack(alignment: .top, spacing: dialGap)' in panel
+assert "motion.zeroInclination()" in panel
+assert "Sensore non disponibile" in panel
+assert 'GPSInclinationCardShape(topLeftSlope: topLeftSlope)' in panel
 for prop in ("inclinometerRingColor", "inclinometerHorizonColor", "inclinometerVehicleColor"):
     assert "theme." + prop in panel
 assert "private var telemetryStyleBackground: some View" in panel
