@@ -434,8 +434,10 @@ private struct CockpitCornerControls: View {
                         // Nei menu si torna al cockpit, non si comanda MapKit.
                         // Il toggle Mappa resta disponibile soltanto nel cockpit.
                         if selected == .gps {
-                            gpsButton("map.fill", active: mapEnabled,
-                                      accessibility: mapEnabled ? "Disattiva la mappa" : "Attiva la mappa",
+                            gpsButton(mapEnabled ? "chart.bar.xaxis" : "map.fill",
+                                       text: mapEnabled ? "Telem." : "Mappa",
+                                       active: mapEnabled,
+                                       accessibility: mapEnabled ? "Torna alla telemetria" : "Attiva la mappa",
                                       side: gpsSide) {
                                 mapEnabled.toggle()
                             }
@@ -446,8 +448,9 @@ private struct CockpitCornerControls: View {
                             }
                         }
                         if selected == .gps && !mapEnabled {
-                            gpsButton("gyroscope", text: "Inclin.",
-                                      active: inclinometerEnabled,
+                            gpsButton(inclinometerEnabled ? "chart.bar.xaxis" : "gyroscope",
+                                       text: inclinometerEnabled ? "Telem." : "Inclin.",
+                                       active: inclinometerEnabled,
                                       accessibility: inclinometerEnabled
                                           ? "Torna alla telemetria" : "Mostra inclinometro",
                                       side: gpsSide) {

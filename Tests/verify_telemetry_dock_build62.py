@@ -9,7 +9,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_bytes()
 source = cockpit.decode("utf-8")
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 131;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 132;") == 2
 
 # Preserve telemetry, dial and map source from the approved landscape cockpit.
 blob = b"blob " + str(len(cockpit)).encode() + b"\0" + cockpit
@@ -30,7 +30,7 @@ assert "let standardGap = min(justifiedGap, max(8, width * 0.013))" in dock
 assert "HStack(spacing: musicDock ? musicGap : (telemetryDock ? standardGap : gpsGap))" in dock
 assert ".frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .center)" in dock
 assert "ForEach([EcoTab.trips, .settings, .themes])" in dock
-assert 'gpsButton("map.fill", active: mapEnabled' in dock
+assert 'gpsButton(mapEnabled ? "chart.bar.xaxis" : "map.fill",' in dock
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in dock
 # Menus remain centered; GPS map mode continues using original dock spacing.
 assert "if selected != .gps {\n                    Spacer(minLength: 0)" in dock

@@ -13,7 +13,7 @@ with (r/'Ecojumbo/Info.plist').open('rb') as f: info=plistlib.load(f)
 
 for item in ('CockpitComponents.swift','CockpitTabs.swift','EcojumboRootView.swift','CellsView.swift','CockpitBarMath.swift'):
     assert p.count(item)>=2,(item,p.count(item))
-assert p.count('CURRENT_PROJECT_VERSION = 131;')==2
+assert p.count('CURRENT_PROJECT_VERSION = 132;')==2
 assert p.count('MARKETING_VERSION = 1.0;')==2
 assert p.count('PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;')==2
 assert set(info['UISupportedInterfaceOrientations'])=={'UIInterfaceOrientationPortrait','UIInterfaceOrientationLandscapeLeft','UIInterfaceOrientationLandscapeRight'}
@@ -194,7 +194,7 @@ assert 'selected == .gps' in u and '? max(4, h * 0.006)' in u
 landscape_dock = u.split('private struct CockpitCornerControls: View', 1)[1]
 assert 'ForEach(EcoTab.allCases) { tab in' not in landscape_dock
 assert 'ForEach([EcoTab.gps, .trips, .settings, .themes]) { tab in' in u
-assert 'gpsButton("map.fill", active: mapEnabled' in u
+assert 'gpsButton(mapEnabled ? "chart.bar.xaxis" : "map.fill",' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
 assert 'gpsButton("play.fill"' in u
 assert 'mapControls.send(.toggleNavigation)' in u

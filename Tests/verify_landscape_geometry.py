@@ -218,7 +218,7 @@ for w,h in [(736,414),(844,390),(932,430),(956,440),(1536,706),(1806,831)]:
     dock_width=8*side+7*gap
     right_margin=max(12,w*.018)
     assert dock_width+right_margin < w*.66,(w,h,dock_width)
-assert 'gpsButton("map.fill", active: mapEnabled' in u
+assert 'gpsButton(mapEnabled ? "chart.bar.xaxis" : "map.fill",' in u
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in u
 assert '.frame(width: panelWidth, height: cardsHeight)' in c
 assert '.position(x: panelLeft + panelWidth / 2, y: cardsCenterY)' in c

@@ -6,12 +6,12 @@ home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 131;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 132;") == 2
 dock = home.split("private struct CockpitCornerControls: View", 1)[1].split(
     "private func iconButton(", 1
 )[0]
 assert 'if selected == .gps {' in dock
-assert 'gpsButton("map.fill", active: mapEnabled' in dock
+assert 'gpsButton(mapEnabled ? "chart.bar.xaxis" : "map.fill",' in dock
 assert 'gpsButton("speedometer", text: "Cockpit",' in dock
 assert 'accessibility: "Torna al cockpit"' in dock
 assert 'selected = .gps' in dock

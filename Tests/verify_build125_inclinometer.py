@@ -7,10 +7,10 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 motion = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 131;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 132;") == 2
 assert '@State private var inclinometerEnabled = false' in rootview
 assert 'inclinometerEnabled: $inclinometerEnabled' in rootview
-assert 'gpsButton("gyroscope", text: "Inclin."' in rootview
+assert 'gpsButton(inclinometerEnabled ? "chart.bar.xaxis" : "gyroscope",' in rootview
 assert 'inclinometerEnabled.toggle()' in rootview
 assert "let justifiedGap = max(0, (telemetryPanelWidth - 7 * gpsSide) / 6)" in rootview
 assert "if selected == .gps && !mapEnabled" in rootview
