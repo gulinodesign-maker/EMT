@@ -12,7 +12,7 @@ shape = code.split("private struct GPSInclinationCardShape: Shape {", 1)[1].spli
 )[0]
 panel = code.split("private struct GPSInclinationPanel: View {", 1)[1]
 
-assert project.count("CURRENT_PROJECT_VERSION = 134;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 135;") == 2
 assert "let topBarCorners = GPSHorizonSymmetry.corners(width: w, height: h)" in dashboard
 assert "topBarCorners.rightContact.y - topBarCorners.rightKnee.y" in dashboard
 assert "topBarCorners.rightKnee.x - topBarCorners.rightContact.x" in dashboard
@@ -32,9 +32,9 @@ assert "let enlargedDial = baseDial * 1.20" in panel
 assert "let dialWidthLimit = (w - 2 * horizontalInset - 2 * dialGap - resetWidth) / 2" in panel
 assert "let dialGroupCenterY = h / 2 + (valueGap + valueHeight) / 2" in panel
 assert "HStack(alignment: .top, spacing: dialGap)" in panel
-left = panel.index('dialView(label: "ROLLIO"')
+left = panel.index('dialView(label: compassGForce ? "BUSSOLA" : "ROLLIO"')
 button = panel.index("motion.zeroInclination()")
-right = panel.index('dialView(label: "BECCHEGGIO"')
+right = panel.index('dialView(label: compassGForce ? "FORZA G" : "BECCHEGGIO"')
 assert left < button < right
 assert ".frame(width: resetWidth, height: dial, alignment: .bottom)" in panel
 assert "Spacer(minLength: 0)" in panel
@@ -42,7 +42,7 @@ assert ".position(x: w / 2, y: dialGroupCenterY)" in panel
 assert ".frame(height: valueHeight)" in panel
 assert 'Text("AZZERA")' in panel
 assert 'Image(systemName: "scope")' in panel
-assert 'accessibilityLabel("Azzera inclinometro: fermarsi in piano")' in panel
+assert 'Azzera inclinometro: fermarsi in piano' in panel
 assert 'Label("AZZERA", systemImage: "scope")' not in panel
 assert 'Text("ROLLIO")' not in panel
 assert 'Text("BECCHEGGIO")' not in panel

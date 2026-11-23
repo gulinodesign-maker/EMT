@@ -9,7 +9,7 @@ panel = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text().split(
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 workflow = (root / ".github/workflows/ios-build.yml").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 134;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 135;") == 2
 assert "VehicleInclinationMath.swift in Sources" in project
 assert "let gravity = VehicleGravityVector(x: motion.gravity.x, y: motion.gravity.y, z: motion.gravity.z)" in motion
 assert "VehicleInclinationMath.angles(" in motion

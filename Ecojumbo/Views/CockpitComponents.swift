@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreMotion
 import MapKit
 import Combine
 import UIKit
@@ -283,6 +284,12 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     }
     var inclinometerVehicleColor: Color {
         Color(themeHex: (savedPalette ?? EcoThemePalette.template(self)).inclinometerColors[2])
+    }
+    var compassNeedleColor: Color {
+        Color(themeHex: (savedPalette ?? EcoThemePalette.template(self)).inclinometerColors[3])
+    }
+    var gForceMarkerColor: Color {
+        Color(themeHex: (savedPalette ?? EcoThemePalette.template(self)).inclinometerColors[4])
     }
     var altitudeGraphColor: Color {
         Color(themeHex: savedPalette?.altitudeGraphColor ?? EcoThemePalette.template(self).altitudeGraphColor)
@@ -3905,11 +3912,42 @@ private struct GPSInclinationCardShape: Shape {
     }
 }
 
+
+@MainActor
+private final class EcoCompassGForceSensor: ObservableObject {
+    @Published private(set) var heading: Double?
+    @Published private(set) var lateralG: Double?
+    @Published private(set) var longitudinalG: Double?
+    private let manager = CMMotionManager()
+
+    func start() {
+        guard manager.isDeviceMotionAvailable else { return }
+        manager.deviceMotionUpdateInterval = 1.0 / 30.0
+        manager.startDeviceMotionUpdates(using: .xMagneticNorthZVertical,
+                                         to: .main) { [weak self] motion, _ in
+            guard let self, let motion else { return }
+            Task { @MainActor in
+                self.heading = motion.heading >= 0 ? motion.heading : nil
+                self.lateralG = motion.userAcceleration.x
+                self.longitudinalG = motion.userAcceleration.y
+            }
+        }
+    }
+    func stop() {
+        manager.stopDeviceMotionUpdates()
+        heading = nil
+        lateralG = nil
+        longitudinalG = nil
+    }
+}
+
 // Unica grande card pari all'intero blocco Telemetria, senza Liquid Glass.
 @MainActor
 private struct GPSInclinationPanel: View {
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var motion: EcoPowerMotionManager
+    @StateObject private var extraSensors = EcoCompassGForceSensor()
+    @AppStorage("ecojumbo.inclinometer.compassGForce") private var compassGForce = false
     let theme: CockpitTheme
     let topLeftSlope: CGFloat
 
@@ -4001,12 +4039,25 @@ private struct GPSInclinationPanel: View {
                 .position(x: w / 2, y: h * 0.065)
 
                 HStack(alignment: .top, spacing: dialGap) {
-                    dialView(label: "ROLLIO", value: motion.inclinationRollDegrees,
-                             roll: true, side: dial, valueHeight: valueHeight)
+                    dialView(label: compassGForce ? "BUSSOLA" : "ROLLIO",
+                             value: compassGForce ? extraSensors.heading : motion.inclinationRollDegrees,
+                             roll: true, side: dial, valueHeight: valueHeight,
+                             kind: compassGForce ? 1 : 0)
 
                     VStack(spacing: 4) {
+                        Button {
+                            compassGForce.toggle()
+                            if compassGForce { extraSensors.start() } else { extraSensors.stop() }
+                        } label: {
+                            Image(systemName: "arrow.left.arrow.right.circle.fill")
+                                .font(.system(size: max(20, min(27, dial * 0.16))))
+                                .foregroundStyle(theme.inclinometerRingColor)
+                                .frame(width: resetWidth, height: max(30, dial * 0.22))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(compassGForce ? "Passa a rollio e beccheggio" : "Passa a bussola e forza G")
                         Spacer(minLength: 0)
-                        if !motion.available {
+                        if !motion.available && !compassGForce {
                             Text("Sensore non disponibile")
                                 .font(.system(size: 8))
                                 .multilineTextAlignment(.center)
@@ -4014,7 +4065,7 @@ private struct GPSInclinationPanel: View {
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         Button {
-                            motion.zeroInclination()
+                            if !compassGForce { motion.zeroInclination() }
                         } label: {
                             VStack(spacing: 2) {
                                 Image(systemName: "scope")
@@ -4031,13 +4082,15 @@ private struct GPSInclinationPanel: View {
                                 theme.inclinometerRingColor.opacity(0.70), lineWidth: 1))
                         }
                         .buttonStyle(.plain)
-                        .disabled(!motion.available)
-                        .accessibilityLabel("Azzera inclinometro: fermarsi in piano")
+                        .disabled(compassGForce || !motion.available)
+                        .accessibilityLabel(compassGForce ? "Azzeramento non disponibile per bussola e forza G" : "Azzera inclinometro: fermarsi in piano")
                     }
                     .frame(width: resetWidth, height: dial, alignment: .bottom)
 
-                    dialView(label: "BECCHEGGIO", value: motion.inclinationPitchDegrees,
-                             roll: false, side: dial, valueHeight: valueHeight)
+                    dialView(label: compassGForce ? "FORZA G" : "BECCHEGGIO",
+                             value: compassGForce ? extraSensors.lateralG : motion.inclinationPitchDegrees,
+                             roll: false, side: dial, valueHeight: valueHeight,
+                             kind: compassGForce ? 2 : 0)
                 }
                 .frame(width: w - 2 * horizontalInset)
                 .position(x: w / 2, y: dialGroupCenterY)
@@ -4045,8 +4098,14 @@ private struct GPSInclinationPanel: View {
             .frame(width: w, height: h)
             .background(telemetryStyleBackground)
         }
-        .onAppear { motion.setInclinationActive(true) }
-        .onDisappear { motion.setInclinationActive(false) }
+        .onAppear {
+            motion.setInclinationActive(true)
+            if compassGForce { extraSensors.start() }
+        }
+        .onDisappear {
+            motion.setInclinationActive(false)
+            extraSensors.stop()
+        }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Inclinometro del veicolo")
     }
@@ -4055,7 +4114,7 @@ private struct GPSInclinationPanel: View {
     // Auto e piano di appoggio ruotano insieme intorno al centro dello strumento;
     // le 72 tacche a intervalli di 5° formano una graduazione completa a 360°.
     private func dialView(label: String, value: Double?, roll: Bool,
-                          side: CGFloat, valueHeight: CGFloat) -> some View {
+                          side: CGFloat, valueHeight: CGFloat, kind: Int = 0) -> some View {
         VStack(spacing: max(3, side * 0.020)) {
             // Nessun titolo visibile sopra i quadranti. Il label resta
             // nell'accessibilità per distinguere rollio e beccheggio.
@@ -4096,6 +4155,26 @@ private struct GPSInclinationPanel: View {
                 // Veicolo e barra condividono la medesima rotazione,
                 // rollio orario quando il lato destro scende; beccheggio opposto.
                 // Nessuna traslazione.
+                if kind == 1 {
+                    Image(systemName: "location.north.fill")
+                        .font(.system(size: side * 0.27))
+                        .foregroundStyle(theme.compassNeedleColor)
+                        .rotationEffect(.degrees(-(value ?? 0)))
+                    Text("N")
+                        .font(.system(size: side * 0.10, weight: .bold))
+                        .foregroundStyle(theme.inclinometerHorizonColor)
+                        .offset(y: -side * 0.30)
+                } else if kind == 2 {
+                    Circle()
+                        .fill(theme.gForceMarkerColor)
+                        .frame(width: side * 0.10, height: side * 0.10)
+                        .offset(x: side * CGFloat(max(-1, min(1, extraSensors.lateralG ?? 0))) * 0.22,
+                                y: -side * CGFloat(max(-1, min(1, extraSensors.longitudinalG ?? 0))) * 0.22)
+                    Text("G")
+                        .font(.system(size: side * 0.10, weight: .bold))
+                        .foregroundStyle(theme.inclinometerHorizonColor)
+                        .offset(y: -side * 0.29)
+                } else {
                 ZStack {
                     Capsule()
                         .fill(theme.inclinometerHorizonColor)
@@ -4110,10 +4189,13 @@ private struct GPSInclinationPanel: View {
                 .opacity(value == nil ? 0.35 : 1)
                 .rotationEffect(.degrees(roll ? (value ?? 0) : -(value ?? 0)))
                 .animation(.easeOut(duration: 0.16), value: value)
+                }
             }
             .frame(width: side, height: side)
 
-            Text(value.map { String(format: "%+.1f°", $0) } ?? "—°")
+            Text(kind == 1 ? (value.map { String(format: "%.0f°", $0) } ?? "—°")
+                 : kind == 2 ? (value.map { String(format: "%.2f G", $0) } ?? "— G")
+                 : (value.map { String(format: "%+.1f°", $0) } ?? "—°"))
                 .font(.system(size: max(16, side * 0.17),
                               weight: .bold, design: .rounded))
                 .monospacedDigit()

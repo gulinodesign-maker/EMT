@@ -394,19 +394,21 @@ struct EcoThemePalette: Codable, Equatable {
     var altitudeGraphGlow: Double
     // Associazione stabile del logo anche nei tre slot e nei file esportati.
     var brandID: String?
-    // [Anelli, orizzonte, veicolo] — indipendenti dai 23 ruoli storici.
+    // [Anelli, orizzonte, veicolo, bussola, forza G] — indipendenti dai 23 ruoli storici.
     var inclinometerColors: [String]
 
     static let inclinometerLabels = [
         "Inclinometro · anelli e tacche",
         "Inclinometro · orizzonte e indicatore",
-        "Inclinometro · sagome del veicolo"
+        "Inclinometro · sagome del veicolo",
+        "Bussola · indicatore Nord",
+        "Forza G · indicatore dinamico"
     ]
     static func defaultInclinometerColors(from colors: [String]) -> [String] {
         let accent = colors.indices.contains(1) ? colors[1] : "#FF7008"
         let horizon = colors.indices.contains(14) ? colors[14] : accent
         let vehicle = colors.indices.contains(11) ? colors[11] : "#FFFFFF"
-        return [accent, horizon, vehicle]
+        return [accent, horizon, vehicle, vehicle, horizon]
     }
 
     static let automotiveBrands: Set<String> = [
@@ -485,7 +487,9 @@ struct EcoThemePalette: Codable, Equatable {
             ? min(1, max(0, altitudeGraphGlow)) : 0.55
         self.brandID = brandID.flatMap { Self.automotiveBrands.contains($0) ? $0 : nil }
         self.inclinometerColors = inclinometerColors.flatMap {
-            $0.count == 3 && $0.allSatisfy(Self.validHex) ? $0 : nil
+            $0.count == 5 && $0.allSatisfy(Self.validHex) ? $0
+                : ($0.count == 3 && $0.allSatisfy(Self.validHex)
+                    ? $0 + [$0[2], $0[1]] : nil)
         } ?? Self.defaultInclinometerColors(from: colors)
         normalizeLegacyFadeIntensities()
     }
@@ -595,7 +599,9 @@ struct EcoThemePalette: Codable, Equatable {
         brandID = storedBrand.flatMap { Self.automotiveBrands.contains($0) ? $0 : nil }
         let savedInclinometer = try data.decodeIfPresent([String].self, forKey: .inclinometerColors)
         inclinometerColors = savedInclinometer.flatMap {
-            $0.count == 3 && $0.allSatisfy(Self.validHex) ? $0 : nil
+            $0.count == 5 && $0.allSatisfy(Self.validHex) ? $0
+                : ($0.count == 3 && $0.allSatisfy(Self.validHex)
+                    ? $0 + [$0[2], $0[1]] : nil)
         } ?? Self.defaultInclinometerColors(from: colors)
         normalizeLegacyFadeIntensities()
     }
@@ -783,7 +789,7 @@ struct EcoThemePalette: Codable, Equatable {
             && p.glowLevels.count == colorCount
             && p.glowLevels.allSatisfy { $0.isFinite && (0...1).contains($0) }
             && p.dayTopBar.isValid
-            && p.inclinometerColors.count == 3
+            && p.inclinometerColors.count == 5
             && p.inclinometerColors.allSatisfy(validHex)
             && validHex(p.altitudeGraphColor)
             && p.altitudeGraphGlow.isFinite && (0...1).contains(p.altitudeGraphGlow)
@@ -1366,7 +1372,7 @@ private struct EcoThemeEditorView: View {
                     }
                     .buttonStyle(.borderedProminent)
                     .disabled(draft.colors.count != EcoThemePalette.colorCount ||
-                              draft.inclinometerColors.count != 3 ||
+                              draft.inclinometerColors.count != 5 ||
                               !draft.inclinometerColors.allSatisfy(EcoThemePalette.validHex) ||
                               draft.glowLevels.count != EcoThemePalette.colorCount ||
                               !draft.glowLevels.allSatisfy({ $0.isFinite && (0...1).contains($0) }) ||

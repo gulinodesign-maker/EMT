@@ -10,7 +10,7 @@ panel = code.split("private struct GPSInclinationPanel: View {", 1)[1]
 dash = code.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1)[0]
 
-assert project.count("CURRENT_PROJECT_VERSION = 134;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 135;") == 2
 assert "let previousRun = min(min(42, max(16, w * 0.10))" in shape
 assert "min(w * 0.20, h * 0.20 / slope)" in shape
 assert "let run = previousRun * 1.50" in shape
@@ -26,9 +26,9 @@ assert "HStack(alignment: .top, spacing: dialGap)" in panel
 assert '.frame(width: resetWidth, height: dial, alignment: .bottom)' in panel
 assert '.frame(width: resetWidth, height: dial, alignment: .center)' not in panel
 assert "Spacer(minLength: 0)" in panel
-assert panel.index('dialView(label: "ROLLIO"') < panel.index("motion.zeroInclination()")
-assert panel.index("motion.zeroInclination()") < panel.index('dialView(label: "BECCHEGGIO"')
-assert '.accessibilityLabel("Azzera inclinometro: fermarsi in piano")' in panel
+assert panel.index('dialView(label: compassGForce ? "BUSSOLA" : "ROLLIO"') < panel.index("motion.zeroInclination()")
+assert panel.index("motion.zeroInclination()") < panel.index('dialView(label: compassGForce ? "FORZA G" : "BECCHEGGIO"')
+assert "Azzera inclinometro: fermarsi in piano" in panel
 assert ".position(x: w / 2, y: dialGroupCenterY)" in panel
 assert "let dialGroupCenterY = h / 2 + (valueGap + valueHeight) / 2" in panel
 assert 'Text("ROLLIO")' not in panel and 'Text("BECCHEGGIO")' not in panel

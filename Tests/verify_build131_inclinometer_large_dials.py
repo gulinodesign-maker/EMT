@@ -8,7 +8,7 @@ project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 motion = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 math = (root / "Ecojumbo/Models/VehicleInclinationMath.swift").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 134;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 135;") == 2
 assert "let enlargedDial = baseDial * 1.20" in view
 assert "let dial = max(1, min(enlargedDial, dialWidthLimit, dialHeightLimit))" in view
 assert "let dialWidthLimit = (w - 2 * horizontalInset - 2 * dialGap - resetWidth) / 2" in view
@@ -18,8 +18,8 @@ assert "let dialGroupCenterY = h / 2 + (valueGap + valueHeight) / 2" in view
 assert ".frame(width: w - 2 * horizontalInset)" in view
 assert ".frame(height: h * 0.11)" in view
 assert "Text(label)" not in view
-assert 'dialView(label: "ROLLIO", value: motion.inclinationRollDegrees,' in view
-assert 'dialView(label: "BECCHEGGIO", value: motion.inclinationPitchDegrees,' in view
+assert 'dialView(label: compassGForce ? "BUSSOLA" : "ROLLIO",' in view
+assert 'dialView(label: compassGForce ? "FORZA G" : "BECCHEGGIO",' in view
 assert 'accessibilityLabel(label + ": "' in view
 assert 'Text("INCLINOMETRO")' in view
 assert 'Text(value.map { String(format: "%+.1f°", $0) } ?? "—°")' in view

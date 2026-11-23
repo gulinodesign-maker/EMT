@@ -5,11 +5,11 @@ root = Path(__file__).resolve().parents[1]
 code = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 motion = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 134;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 135;") == 2
 
 panel = code.split("private struct GPSInclinationPanel: View {", 1)[1]
-assert 'dialView(label: "ROLLIO", value: motion.inclinationRollDegrees,' in panel
-assert 'dialView(label: "BECCHEGGIO", value: motion.inclinationPitchDegrees,' in panel
+assert 'dialView(label: compassGForce ? "BUSSOLA" : "ROLLIO",' in panel
+assert 'dialView(label: compassGForce ? "FORZA G" : "BECCHEGGIO",' in panel
 assert 'Image(systemName: roll ? "car.rear.fill" : "car.side.fill")' in panel
 assert 'Image(systemName: roll ? "car.side.fill" : "car.rear.fill")' not in panel
 

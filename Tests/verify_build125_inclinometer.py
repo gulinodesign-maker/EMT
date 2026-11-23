@@ -7,7 +7,7 @@ cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 motion = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 134;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 135;") == 2
 assert '@State private var inclinometerEnabled = false' in rootview
 assert 'inclinometerEnabled: $inclinometerEnabled' in rootview
 assert 'gpsButton(inclinometerEnabled ? "chart.bar.xaxis" : "gyroscope",' in rootview
@@ -28,7 +28,7 @@ assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in dashboard
 
 card = cockpit.split("private struct GPSInclinationPanel: View {", 1)[1]
 for snippet in [
-    'Text("INCLINOMETRO")', 'label: "ROLLIO"', 'label: "BECCHEGGIO"',
+    'Text("INCLINOMETRO")', '"ROLLIO"', '"BECCHEGGIO"',
     'motion.inclinationRollDegrees', 'motion.inclinationPitchDegrees',
     'motion.zeroInclination()', 'motion.setInclinationActive(true)',
     'motion.setInclinationActive(false)', 'String(format: "%+.1f°", $0)',
