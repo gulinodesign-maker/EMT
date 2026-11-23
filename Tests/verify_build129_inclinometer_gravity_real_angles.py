@@ -29,6 +29,6 @@ assert 'Label("AZZERA", systemImage: "scope")' in panel
 assert 'ForEach(0..<72, id: \\.self) { tick in' in panel
 assert "guard gravity.isValid, let zeroGravity, zeroGravity.isValid" in math
 assert "let roll = atan2(lateral, vertical)" in math
-assert "let pitch = atan2(-longitudinal, hypot(lateral, vertical))" in math
+assert "let pitch = atan2(longitudinal, hypot(lateral, vertical))" in math
 assert "swiftc Ecojumbo/Models/VehicleInclinationMath.swift Tests/VehicleInclinationMathTests.swift" in workflow
 print("OK — build129: calibrated real degrees, right-down roll, no automatic arbitrary zero")
