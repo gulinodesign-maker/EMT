@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45151983100:ATTEMPT:1 -->
+### 2026-11-23T09:59:35Z — CI #465 · feature/inclinometer-larger-unlabeled-dials-build131 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45151983100](https://github.com/gulinodesign-maker/EMT/actions/runs/45151983100); avvio 2026-11-23T09:59:35Z UTC; aggiornamento finale 2026-11-23T10:03:36Z UTC; registrazione 2026-11-23T10:03:48+00:00 UTC; evento pull_request.
+- **Commit:** [22a1734d7bb1](https://github.com/gulinodesign-maker/EMT/commit/22a1734d7bb106e3f246ae742430a7f1de8bcba6); versione **1.0**; build **131**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_version.py.
+
 <!-- EMT_RUN:45127305156:ATTEMPT:1 -->
 ### 2026-11-23T06:54:22Z — CI #464 · main · tentativo 1
 
