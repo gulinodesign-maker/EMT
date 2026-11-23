@@ -1,3 +1,11 @@
+## Build 132 — card inclinometro armonizzata con la top bar (23 novembre 2026)
+
+**Richiesta aggiuntiva alla stessa build 132:** sagomare l'angolo superiore sinistro della card inclinometro/giroscopio parallelo al tratto inclinato verso il ginocchio della top bar, centrare verticalmente i due cerchi nella card e ridurre il pulsante AZZERA collocandolo in mezzo ai quadranti.
+
+**Implementazione:** `GPSInclinationCardShape` applica lo stesso profilo a fondo, sfumature e contorno. Il rapporto salita/corsa del taglio deriva direttamente da `GPSHorizonSymmetry.corners(width:height:)`, quindi resta parallelo anche al variare delle dimensioni. Il layout usa un `HStack(alignment: .top)` con AZZERA compatto centrale e riserva esplicitamente lo spazio necessario ai tre elementi; il centro geometrico dei cerchi coincide con quello verticale della card, mentre i gradi rimangono sotto. Il diametro bersaglio resta 120% della misura storica quando lo spazio lo consente. Sensori, taratura, temi e segni restano invariati.
+
+**Verifiche:** regressione `Tests/verify_build132_inclinometer_card_layout.py`, test storici allineati alla disposizione corrente; CI, merge e caricamento TestFlight da verificare prima di dichiarare concluso il rilascio.
+
 ## Build 132 — icone contestuali del cockpit, 23 novembre 2026
 
 **Richiesta:** il pulsante Mappa mostra l'icona della mappa dalla Telemetria e l'icona della Telemetria quando la Mappa è attiva; il pulsante Giroscopio/Inclinometro mostra l'icona del giroscopio dalla Telemetria e l'icona della Telemetria quando l'Inclinometro è attivo. Ogni tasto indica la destinazione, non la vista corrente.
