@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45274986222:ATTEMPT:1 -->
+### 2026-11-23T21:58:10Z — CI #489 · feature/build136-concentric-pill · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45274986222](https://github.com/gulinodesign-maker/EMT/actions/runs/45274986222); avvio 2026-11-23T21:58:10Z UTC; aggiornamento finale 2026-11-23T21:59:01Z UTC; registrazione 2026-11-23T21:59:11+00:00 UTC; evento pull_request.
+- **Commit:** [29946b0c191b](https://github.com/gulinodesign-maker/EMT/commit/29946b0c191b2fe5a1122cb1771a18e1ca389980); versione **1.0**; build **135**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Ecojumbo/Views/CockpitComponents.swift.
+
 <!-- EMT_RUN:45272260846:ATTEMPT:1 -->
 ### 2026-11-23T21:41:42Z — CI #488 · feature/build136-concentric-pill · tentativo 1
 
