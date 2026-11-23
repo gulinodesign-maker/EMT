@@ -7,7 +7,7 @@ panel = (root / "Ecojumbo/Views/EcoMusicCockpitPanel.swift").read_text()
 manager = (root / "Ecojumbo/Models/EcoMusicManager.swift").read_text()
 home = (root / "Ecojumbo/Views/EcojumboRootView.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert project.count("CURRENT_PROJECT_VERSION = 128;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 129;") == 2
 assert project.count("PRODUCT_BUNDLE_IDENTIFIER = it.ecojumbo.battery;") == 2
 
 # Both MapKit and artwork crop below the real lower edge of the gray metal

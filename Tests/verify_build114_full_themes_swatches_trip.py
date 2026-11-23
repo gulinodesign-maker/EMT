@@ -9,7 +9,7 @@ tabs = read("Ecojumbo/Views/CockpitTabs.swift")
 cockpit = read("Ecojumbo/Views/CockpitComponents.swift")
 gps = read("Ecojumbo/Models/GPSRideManager.swift")
 project = read("Ecojumbo.xcodeproj/project.pbxproj")
-assert project.count("CURRENT_PROJECT_VERSION = 128;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 129;") == 2
 
 expected = {
     "ferrariFactory": ("Ferrari", "0dec80e42a369102cbe716535a280d4405654dde73f2448b2cf9a15ae4febe94", "#6C6C6C"),
