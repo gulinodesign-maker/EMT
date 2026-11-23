@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45174164567:ATTEMPT:1 -->
+### 2026-11-23T12:25:30Z — CI #472 · feature/inclinometer-card-and-telemetry-icons-build133 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45174164567](https://github.com/gulinodesign-maker/EMT/actions/runs/45174164567); avvio 2026-11-23T12:25:30Z UTC; aggiornamento finale 2026-11-23T12:30:14Z UTC; registrazione 2026-11-23T12:30:29+00:00 UTC; evento pull_request.
+- **Commit:** [616fc10998a0](https://github.com/gulinodesign-maker/EMT/commit/616fc10998a0d277e8d30d85c353a5316b27aeb1); versione **1.0**; build **133**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build129_inclinometer_gravity_real_angles.py.
+
 <!-- EMT_RUN:45174650763:ATTEMPT:1 -->
 ### 2026-11-23T12:28:34Z — CI #473 · feature/inclinometer-card-restyle-build133 · tentativo 1
 
