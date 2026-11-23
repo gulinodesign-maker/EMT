@@ -15,4 +15,4 @@ assert plist['CFBundleShortVersionString'] == '$(MARKETING_VERSION)'
 assert plist['CFBundleVersion'] == '$(CURRENT_PROJECT_VERSION)'
 # Dichiarazione Apple per crittografia assente o esente (vale da nuove build).
 assert plist['ITSAppUsesNonExemptEncryption'] is False
-print('OK — Marketing version 1.0, build 129, bundle ID unchanged')
+print('OK — Marketing version 1.0, build 130, bundle ID unchanged')
