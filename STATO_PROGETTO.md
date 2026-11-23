@@ -1,3 +1,9 @@
+## Build 132 — icone contestuali del cockpit, 23 novembre 2026
+
+**Richiesta:** il pulsante Mappa mostra l'icona della mappa dalla Telemetria e l'icona della Telemetria quando la Mappa è attiva; il pulsante Giroscopio/Inclinometro mostra l'icona del giroscopio dalla Telemetria e l'icona della Telemetria quando l'Inclinometro è attivo. Ogni tasto indica la destinazione, non la vista corrente.
+
+**Implementazione:** in `EcojumboRootView.swift` simbolo, breve etichetta e descrizione accessibile sono contestuali a `mapEnabled` e `inclinometerEnabled`; restano invariati i callback, l'esclusività Mappa/Inclinometro, la geometria del dock, il tema, i sensori e le modalità musicali. Nuova regressione `Tests/verify_build132_navigation_destination_icons.py` e aggiornamento dei pin di versione in Debug/Release e nei test storici. **Numero previsto** 1.0 (132). CI e upload TestFlight da confermare nei run GitHub Actions prima di dichiarare completato il rilascio. App Store Connect, disponibilità al gruppo TE e verifica su iPhone restano distinte.
+
 ## Inclinometro — correzione scale e orientamento build 1.0 (127), 22 novembre 2026
 
 **Richiesta utente (successiva alla 126):** i quadranti Rollio e Beccheggio risultavano graficamente invertiti; la scala occupava solo una parte del cerchio; i titoli apparivano sotto e i valori in gradi all'interno; la barra dell'auto nel Beccheggio si spostava verticalmente invece di ruotare. Il comportamento atteso è **Rollio = veicolo visto da dietro ("car.rear.fill")** e **Beccheggio = veicolo visto di lato ("car.side.fill")**, con letture separate dai rispettivi angoli Core Motion.
