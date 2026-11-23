@@ -5,7 +5,7 @@ root = Path(__file__).resolve().parents[1]
 code = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 motion = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 pbx = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
-assert pbx.count("CURRENT_PROJECT_VERSION = 131;") == 2
+assert pbx.count("CURRENT_PROJECT_VERSION = 132;") == 2
 
 panel = code.split("private struct GPSInclinationPanel: View {", 1)[1]
 assert 'dialView(label: "ROLLIO", value: motion.inclinationRollDegrees,' in panel
