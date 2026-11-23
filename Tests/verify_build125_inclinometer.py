@@ -20,7 +20,8 @@ dashboard = cockpit.split("struct GPSCockpitDashboard: View {", 1)[1].split(
     "private struct GPSHorizonLine: View {", 1
 )[0]
 assert "if inclinometerEnabled {" in dashboard
-assert "GPSInclinationPanel(theme: theme)" in dashboard
+assert "GPSInclinationPanel(" in dashboard
+assert "topLeftSlope:" in dashboard
 assert "GPSExpandedReadings(theme: theme, now: now)" in dashboard
 assert ".frame(width: panelWidth, height: cardsHeight)" in dashboard
 assert ".position(x: panelLeft + panelWidth / 2, y: cardsCenterY)" in dashboard
