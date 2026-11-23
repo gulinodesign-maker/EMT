@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45198364404:ATTEMPT:1 -->
+### 2026-11-23T14:49:35Z — CI #486 · main · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45198364404](https://github.com/gulinodesign-maker/EMT/actions/runs/45198364404); avvio 2026-11-23T14:49:35Z UTC; aggiornamento finale 2026-11-23T14:50:15Z UTC; registrazione 2026-11-23T14:50:35+00:00 UTC; evento push.
+- **Commit:** [ad93c66b7bd7](https://github.com/gulinodesign-maker/EMT/commit/ad93c66b7bd7739b814f5c5737938c60a423cdc5); versione **1.0**; build **135**.
+- **Esito workflow:** **FAILURE**.
+- **Test automatici:** Controlli strutturali Python: **FAILURE**; Test protocollo JK Bluetooth (sola lettura): **NON ESEGUITO**; Test barre dinamiche: **NON ESEGUITO**.
+- **Compilazione simulatore:** **NON ESEGUITO**.
+- **Errori rilevati:** Controlli strutturali Python. Dettagli nei log GitHub.
+- **File modificati nel commit:** Ecojumbo.xcodeproj/project.pbxproj, Ecojumbo/Views/CockpitComponents.swift, Ecojumbo/Views/CockpitTabs.swift, Tests/verify_build125_inclinometer.py, Tests/verify_build126_inclinometer_visual_theme.py, Tests/verify_build127_inclinometer_full_circle_axes.py, Tests/verify_build129_inclinometer_gravity_real_angles.py, Tests/verify_build130_rear_facing_pitch.py, Tests/verify_build131_inclinometer_large_dials.py, Tests/verify_build133_inclinometer_card_layout.py, Tests/verify_build134_inclinometer_lower_reset_chamfer.py, Tests/verify_version.py.
+
 <!-- EMT_RUN:45198283055:ATTEMPT:1 -->
 ### 2026-11-23T14:49:09Z — CI #482 · feature/compass-gforce-switch · tentativo 1
 
