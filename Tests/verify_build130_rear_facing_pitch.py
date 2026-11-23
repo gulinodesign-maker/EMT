@@ -7,7 +7,7 @@ motion = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text()
 view = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 133;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 134;") == 2
 assert "let pitch = atan2(longitudinal, hypot(lateral, vertical))" in math
 assert "let roll = atan2(lateral, vertical)" in math
 assert "let pitch = atan2(-longitudinal" not in math

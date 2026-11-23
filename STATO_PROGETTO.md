@@ -1,3 +1,11 @@
+## Build 134 — smusso +50% e tasto AZZERA ribassato (23 novembre 2026)
+
+**Richiesta:** allargare lo smusso alto-sinistro della card inclinometro almeno del 50%, mantenendo la stessa pendenza parallela alla top bar; AZZERA più in basso, sempre centrato fra rollio e beccheggio.
+
+**Implementazione:** `GPSInclinationCardShape` calcola `previousRun` con la formula della build 133 e usa `run = previousRun * 1.50`, `rise = run * slope` (stessa pendenza reale `GPSHorizonSymmetry`). Il pulsante AZZERA resta fra i due cerchi ma è ancorato al bordo inferiore della fila circolare, sopra ai gradi, mediante uno `Spacer` e `alignment: .bottom`. Sono invariati calibrazione, sensori, sfumature, 72 tacche, icone dinamiche, titoli accessibili e schema temi.
+
+**Versione:** 1.0 (134) Debug/Release. Test dedicato `Tests/verify_build134_inclinometer_lower_reset_chamfer.py`; versionamento test storici aggiornato. CI, merge e upload TestFlight devono essere verificati prima di dichiarare la pubblicazione.
+
 ## Build 133 — nuova geometria card inclinometro e pulsante AZZERA centrale (23 novembre 2026)
 
 **Richiesta utente:** nella stessa sessione delle icone dinamiche Telemetria/Mappa/Giroscopio, adeguare la card del giroscopio: spigolo superiore sinistro parallelo all'inclinazione del ginocchio della top bar, due cerchi centrati verticalmente nell'intera card e AZZERA ridotto fra i due cerchi.

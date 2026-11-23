@@ -6,7 +6,7 @@ project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text(encoding="utf-
 cockpit = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text(encoding="utf-8")
 tabs = (root / "Ecojumbo/Views/CockpitTabs.swift").read_text(encoding="utf-8")
 gps = (root / "Ecojumbo/Models/GPSRideManager.swift").read_text(encoding="utf-8")
-assert project.count("CURRENT_PROJECT_VERSION = 133;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 134;") == 2
 assert project.count("MARKETING_VERSION = 1.0;") == 2
 assert 'case audi = "Audi"' in cockpit
 assert 'case .audi: return "Audi"' in cockpit
