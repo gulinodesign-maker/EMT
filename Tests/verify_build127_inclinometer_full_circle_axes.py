@@ -39,13 +39,13 @@ assert circle_at < degrees_at
 assert degrees_at > dial.index(".frame(width: side, height: side)")
 assert 'accessibilityLabel(label + ": "' in dial
 assert 'Text("INCLINOMETRO")' in panel
-assert 'Label("AZZERA", systemImage: "scope")' in panel
+assert 'Text("AZZERA")' in panel
 assert "motion.zeroInclination()" in panel
 assert "motion.setInclinationActive(true)" in panel
 assert "motion.setInclinationActive(false)" in panel
 assert "let baseDial = max(48, min((w - 42) * 0.46, h * 0.48))" in panel
 assert "let enlargedDial = baseDial * 1.20" in panel
-assert "let dial = min(enlargedDial, dialWidthLimit, dialHeightLimit)" in panel
+assert "let dial = max(1, min(enlargedDial, dialWidthLimit, dialHeightLimit))" in panel
 assert "telemetryStyleBackground" in panel
 assert "inclinometerRingColor" in panel
 assert "inclinometerHorizonColor" in panel
