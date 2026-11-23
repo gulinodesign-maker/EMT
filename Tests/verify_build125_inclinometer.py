@@ -35,7 +35,7 @@ for snippet in [
 ]:
     assert snippet in card, snippet
 assert "private let sensor = CMMotionManager()" in motion
-assert "relative.multiply(byInverseOf: reference)" in motion
+assert "VehicleInclinationMath.angles(" in motion
 assert "lastInclinationPublish" in motion
 assert "setInclinationActive(_ active: Bool)" in motion
 assert "func zeroInclination()" in motion
