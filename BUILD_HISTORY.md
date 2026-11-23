@@ -9,6 +9,17 @@ L'aggiornamento usa il `GITHUB_TOKEN` del workflow, con privilegi limitati. Se `
 ## Registro automatico
 
 <!-- BUILD_HISTORY_AUTO_START -->
+<!-- EMT_RUN:45171175176:ATTEMPT:1 -->
+### 2026-11-23T12:06:34Z — CI #469 · feature/cockpit-destination-icons-build132 · tentativo 1
+
+- **Esecuzione:** [GitHub Actions 45171175176](https://github.com/gulinodesign-maker/EMT/actions/runs/45171175176); avvio 2026-11-23T12:06:34Z UTC; aggiornamento finale 2026-11-23T12:10:45Z UTC; registrazione 2026-11-23T12:10:55+00:00 UTC; evento pull_request.
+- **Commit:** [41b49c2693a1](https://github.com/gulinodesign-maker/EMT/commit/41b49c2693a1afc154507dc03e3184ebcb47827d); versione **1.0**; build **132**.
+- **Esito workflow:** **SUCCESS**.
+- **Test automatici:** Controlli strutturali Python: **RIUSCITO**; Test protocollo JK Bluetooth (sola lettura): **RIUSCITO**; Test barre dinamiche: **RIUSCITO**.
+- **Compilazione simulatore:** **RIUSCITO**.
+- **Errori rilevati:** Nessun passaggio fallito riportato dall'API GitHub.
+- **File modificati nel commit:** Tests/verify_build109_cockpit_return_kit_tap.py, Tests/verify_landscape_geometry.py, Tests/verify_minimal_navigation_build59.py, Tests/verify_telemetry_dock_build62.py.
+
 <!-- EMT_RUN:45170820432:ATTEMPT:1 -->
 ### 2026-11-23T12:04:15Z — CI #468 · feature/cockpit-destination-icons-build132 · tentativo 1
 
