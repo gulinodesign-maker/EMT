@@ -16,6 +16,8 @@ assert "near(noseUp.pitchDegrees, 15)" in swift_tests
 assert "near(noseDown.pitchDegrees, -12)" in swift_tests
 assert "near(noseUp.rollDegrees, 0)" in swift_tests
 assert "near(noseDown.rollDegrees, 0)" in swift_tests
+assert "for left in [false, true]" in swift_tests
+assert "z: -sin(p)" in swift_tests
 assert "let pitch = angles.pitchDegrees" in motion
 assert "let roll = angles.rollDegrees" in motion
 assert ".rotationEffect(.degrees(roll ? (value ?? 0) : -(value ?? 0)))" in view
