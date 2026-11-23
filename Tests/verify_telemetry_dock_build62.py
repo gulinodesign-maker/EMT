@@ -30,7 +30,7 @@ assert "let standardGap = min(justifiedGap, max(8, width * 0.013))" in dock
 assert "HStack(spacing: musicDock ? musicGap : (telemetryDock ? standardGap : gpsGap))" in dock
 assert ".frame(width: fillsTelemetryWidth ? telemetryPanelWidth : nil, alignment: .center)" in dock
 assert "ForEach([EcoTab.trips, .settings, .themes])" in dock
-assert 'gpsButton("map.fill", active: mapEnabled' in dock
+assert 'gpsButton(mapEnabled ? "chart.bar.xaxis" : "map.fill",' in dock
 assert 'gpsButton(isDay ? "moon.stars.fill" : "sun.max.fill"' in dock
 # Menus remain centered; GPS map mode continues using original dock spacing.
 assert "if selected != .gps {\n                    Spacer(minLength: 0)" in dock

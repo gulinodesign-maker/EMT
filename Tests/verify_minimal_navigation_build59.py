@@ -18,7 +18,7 @@ assert 'PortraitServiceTabBar(selected: $selected, theme: theme)' in home
 controls = home.split("    private func iconButton(_ tab: EcoTab, side: CGFloat)", 1)[1].split("/// EJ 1.19:", 1)[0]
 for forbidden in ("LinearGradient(", ".shadow(", ".stroke(", "BluetoothGlyph()"):
     assert forbidden not in controls, forbidden
-assert "gpsButton(\"map.fill\", active: mapEnabled" in home
+assert "gpsButton(mapEnabled ? \"chart.bar.xaxis\" : \"map.fill\"," in home
 assert "ForEach([EcoTab.trips, .settings, .themes])" in home
 assert "mapControls.send(.toggleNavigation)" in home
 assert "mapControls.send(.recenter)" in home
