@@ -9,8 +9,8 @@ import Foundation
         func gravity(roll: Double, pitch: Double, left: Bool) -> VehicleGravityVector {
             let r = radians(roll)
             let p = radians(pitch)
-            return VehicleGravityVector(x: (left ? -1 : 1) * cos(r) * cos(p),
-                                        y: (left ? -1 : 1) * sin(r) * cos(p),
+            return VehicleGravityVector(x: (left ? 1 : -1) * cos(r) * cos(p),
+                                        y: (left ? 1 : -1) * sin(r) * cos(p),
                                         z: sin(p))
         }
 
