@@ -6,7 +6,7 @@ tabs = (r / "Ecojumbo/Views/CockpitTabs.swift").read_text()
 cockpit = (r / "Ecojumbo/Views/CockpitComponents.swift").read_text()
 project = (r / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 129;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 130;") == 2
 layout = cockpit.split("private enum GPSDialLayout {", 1)[1].split("// Anello esterno luminoso", 1)[0]
 assert "static func innerRingDiameter(for d: CGFloat)" in layout
 assert "GPSInnerLED.coreWidth(d) * speedScaleMagnification" in layout

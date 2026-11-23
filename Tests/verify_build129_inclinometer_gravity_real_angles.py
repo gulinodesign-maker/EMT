@@ -9,7 +9,7 @@ panel = (root / "Ecojumbo/Views/CockpitComponents.swift").read_text().split(
 project = (root / "Ecojumbo.xcodeproj/project.pbxproj").read_text()
 workflow = (root / ".github/workflows/ios-build.yml").read_text()
 
-assert project.count("CURRENT_PROJECT_VERSION = 129;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 130;") == 2
 assert "VehicleInclinationMath.swift in Sources" in project
 assert "let gravity = VehicleGravityVector(x: motion.gravity.x, y: motion.gravity.y, z: motion.gravity.z)" in motion
 assert "VehicleInclinationMath.angles(" in motion
@@ -29,6 +29,6 @@ assert 'Label("AZZERA", systemImage: "scope")' in panel
 assert 'ForEach(0..<72, id: \\.self) { tick in' in panel
 assert "guard gravity.isValid, let zeroGravity, zeroGravity.isValid" in math
 assert "let roll = atan2(lateral, vertical)" in math
-assert "let pitch = atan2(-longitudinal, hypot(lateral, vertical))" in math
+assert "let pitch = atan2(longitudinal, hypot(lateral, vertical))" in math
 assert "swiftc Ecojumbo/Models/VehicleInclinationMath.swift Tests/VehicleInclinationMathTests.swift" in workflow
 print("OK — build129: calibrated real degrees, right-down roll, no automatic arbitrary zero")

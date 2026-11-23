@@ -57,7 +57,7 @@ assert "kSecClassGenericPassword" in manager  # pulizia vecchi token
 assert "handleSpotifyCallback" not in app
 assert "<key>NSAppleMusicUsageDescription</key>" in plist
 assert "<string>ecojumbo-spotify</string>" not in plist
-assert project.count("CURRENT_PROJECT_VERSION = 129;") == 2
+assert project.count("CURRENT_PROJECT_VERSION = 130;") == 2
 for filename in ("EcoMusicManager.swift", "EcoMusicCockpitPanel.swift"):
     assert project.count(f"{filename} in Sources") >= 2
 

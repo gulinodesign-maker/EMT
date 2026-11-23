@@ -61,7 +61,10 @@ enum VehicleInclinationMath {
                                                   z: displayRight.z - up.z * alignment)
         guard rightCandidate.magnitude > 0.2 else { return nil }
         let right = rightCandidate.unit
-        // Right × Up points toward the driver; Up × Right points to the nose.
+        // Display rivolto verso il posteriore dell'auto. Per questo montaggio
+        // il segno del beccheggio va orientato rispetto all'asse longitudinale
+        // della vettura (muso su = positivo), non al verso precedente del display.
+        // Il rollio laterale e il riferimento AZZERA restano invariati.
         let forward = cross(up, right)
         let g = gravity.unit
         let vertical = -dot(g, up)
@@ -71,7 +74,7 @@ enum VehicleInclinationMath {
         // Orthogonal gravity projections give angles in physical degrees.
         // The pitch denominator includes roll to avoid inflated readings.
         let roll = atan2(lateral, vertical) * 180 / Double.pi
-        let pitch = atan2(-longitudinal, hypot(lateral, vertical)) * 180 / Double.pi
+        let pitch = atan2(longitudinal, hypot(lateral, vertical)) * 180 / Double.pi
         guard roll.isFinite && pitch.isFinite else { return nil }
         return VehicleInclinationAngles(rollDegrees: roll, pitchDegrees: pitch)
     }
