@@ -285,6 +285,12 @@ enum CockpitTheme: String, CaseIterable, Identifiable {
     var inclinometerVehicleColor: Color {
         Color(themeHex: (savedPalette ?? EcoThemePalette.template(self)).inclinometerColors[2])
     }
+    var compassNeedleColor: Color {
+        Color(themeHex: (savedPalette ?? EcoThemePalette.template(self)).inclinometerColors[3])
+    }
+    var gForceMarkerColor: Color {
+        Color(themeHex: (savedPalette ?? EcoThemePalette.template(self)).inclinometerColors[4])
+    }
     var altitudeGraphColor: Color {
         Color(themeHex: savedPalette?.altitudeGraphColor ?? EcoThemePalette.template(self).altitudeGraphColor)
     }
@@ -4059,7 +4065,7 @@ private struct GPSInclinationPanel: View {
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         Button {
-                            motion.zeroInclination()
+                            if !compassGForce { motion.zeroInclination() }
                         } label: {
                             VStack(spacing: 2) {
                                 Image(systemName: "scope")
@@ -4076,8 +4082,8 @@ private struct GPSInclinationPanel: View {
                                 theme.inclinometerRingColor.opacity(0.70), lineWidth: 1))
                         }
                         .buttonStyle(.plain)
-                        .disabled(!motion.available && !compassGForce)
-                        .accessibilityLabel("Azzera inclinometro: fermarsi in piano")
+                        .disabled(compassGForce || !motion.available)
+                        .accessibilityLabel(compassGForce ? "Azzeramento non disponibile per bussola e forza G" : "Azzera inclinometro: fermarsi in piano")
                     }
                     .frame(width: resetWidth, height: dial, alignment: .bottom)
 
@@ -4152,7 +4158,7 @@ private struct GPSInclinationPanel: View {
                 if kind == 1 {
                     Image(systemName: "location.north.fill")
                         .font(.system(size: side * 0.27))
-                        .foregroundStyle(theme.inclinometerVehicleColor)
+                        .foregroundStyle(theme.compassNeedleColor)
                         .rotationEffect(.degrees(-(value ?? 0)))
                     Text("N")
                         .font(.system(size: side * 0.10, weight: .bold))
@@ -4160,7 +4166,7 @@ private struct GPSInclinationPanel: View {
                         .offset(y: -side * 0.30)
                 } else if kind == 2 {
                     Circle()
-                        .fill(theme.inclinometerVehicleColor)
+                        .fill(theme.gForceMarkerColor)
                         .frame(width: side * 0.10, height: side * 0.10)
                         .offset(x: side * CGFloat(max(-1, min(1, extraSensors.lateralG ?? 0))) * 0.22,
                                 y: -side * CGFloat(max(-1, min(1, extraSensors.longitudinalG ?? 0))) * 0.22)
