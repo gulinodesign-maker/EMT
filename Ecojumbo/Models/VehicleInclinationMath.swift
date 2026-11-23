@@ -47,8 +47,8 @@ enum VehicleInclinationMath {
 
         // Screen coordinates differ in the two landscape interface orientations.
         // Never use UIDeviceOrientation: its left/right names are reversed relative
-        // to UIInterfaceOrientation.
-        let displayRight = VehicleGravityVector(x: 0, y: landscapeLeft ? -1 : 1, z: 0)
+        // to UIInterfaceOrientation. In interface landscapeLeft screen-right is device +Y.
+        let displayRight = VehicleGravityVector(x: 0, y: landscapeLeft ? 1 : -1, z: 0)
         let reference = zeroGravity.unit
         let up = VehicleGravityVector(x: -reference.x, y: -reference.y, z: -reference.z)
 
