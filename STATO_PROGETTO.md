@@ -1,3 +1,14 @@
+## Build 133 — correzione design card inclinometro, 23 novembre 2026
+
+La PR 132 descriveva il restyling della card senza modificare CockpitComponents.swift: restavano gli angoli arrotondati e il tasto AZZERA in basso. La build 133 applica davvero il nuovo layout senza toccare la navigazione gia' corretta nella 132.
+
+- Profilo card con angolo alto sinistro inclinato, calcolato con la pendenza reale del tratto rightContact → rightKnee di GPSHorizonSymmetry. Rimane il distacco superiore dal profilo metallico della top bar tramite inclinometerTopClearance.
+- Quattro sfumature della Telemetria (sinistra, destra, alto, basso) con intensita' Day/Night e colori del tema selezionato, contorno luminoso dell'inclinometro.
+- Due quadranti rollio/beccheggio centrati verticalmente, senza scritte visibili ROLLIO e BECCHEGGIO; valori firmati in gradi sotto, VoiceOver preservato. Obiettivo diametro 120% della base, limitato solo dai vincoli reali di larghezza, altezza e spazio per AZZERA.
+- Pulsante AZZERA compatto e centrale FRA i due cerchi, in una colonna riservata senza sovrapposizioni; rimossa la dicitura «Relativo · azzera in piano» ma preservata la calibrazione fisica.
+- Scala completa 360° con 72 tacche; rollio con veicolo visto da dietro e beccheggio con veicolo visto di lato; barre e sagome ruotano insieme. I tre colori autonomi e i sette preset del menu Inclinometro sono invariati.
+- CURRENT_PROJECT_VERSION = 133 (Debug/Release), nuovi controlli di regressione visuale e geometrica, mantenuti test dei sensori. Verificare CI sul PR e sul main e il caricamento effettivo TestFlight prima di chiamare completato il rilascio. Non confondere upload Apple con elaborazione e disponibilita' ai tester.
+
 ## Build 132 — icone contestuali del cockpit, 23 novembre 2026
 
 **Richiesta:** il pulsante Mappa mostra l'icona della mappa dalla Telemetria e l'icona della Telemetria quando la Mappa è attiva; il pulsante Giroscopio/Inclinometro mostra l'icona del giroscopio dalla Telemetria e l'icona della Telemetria quando l'Inclinometro è attivo. Ogni tasto indica la destinazione, non la vista corrente.
