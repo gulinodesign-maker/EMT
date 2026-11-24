@@ -33,7 +33,7 @@ jobs:
         run: |
           set -euo pipefail
           failed=0
-          for f in Tests/verify_*.py; do
+          for f in Tests/verify_version.py Tests/verify_package.py Tests/verify_source_references.py; do
             if ! python3 "$f"; then
               echo "::error file=$f::Regressione fallita in $f"
               failed=1
