@@ -3919,6 +3919,11 @@ private final class EcoCompassGForceSensor: ObservableObject {
     @Published private(set) var lateralG: Double?
     @Published private(set) var longitudinalG: Double?
     private let manager = CMMotionManager()
+    private var filteredX = 0.0
+    private var filteredY = 0.0
+    private var lastTimestamp: TimeInterval?
+    private let timeConstant = 0.25
+    private let deadZone = 0.02
 
     func start() {
         guard manager.isDeviceMotionAvailable else { return }
@@ -3928,8 +3933,15 @@ private final class EcoCompassGForceSensor: ObservableObject {
             guard let self, let motion else { return }
             Task { @MainActor in
                 self.heading = motion.heading >= 0 ? motion.heading : nil
-                self.lateralG = motion.userAcceleration.x
-                self.longitudinalG = motion.userAcceleration.y
+                let dt = max(0.001, min(0.1, motion.timestamp - (self.lastTimestamp ?? motion.timestamp - 1.0 / 30.0)))
+                self.lastTimestamp = motion.timestamp
+                let alpha = 1 - exp(-dt / self.timeConstant)
+                self.filteredX += alpha * (motion.userAcceleration.x - self.filteredX)
+                self.filteredY += alpha * (motion.userAcceleration.y - self.filteredY)
+                let magnitude = hypot(self.filteredX, self.filteredY)
+                let gain = magnitude > self.deadZone ? (magnitude - self.deadZone) / magnitude : 0
+                self.lateralG = self.filteredX * gain
+                self.longitudinalG = self.filteredY * gain
             }
         }
     }
@@ -3938,6 +3950,9 @@ private final class EcoCompassGForceSensor: ObservableObject {
         heading = nil
         lateralG = nil
         longitudinalG = nil
+        filteredX = 0
+        filteredY = 0
+        lastTimestamp = nil
     }
 }
 
@@ -4067,7 +4082,7 @@ private struct GPSInclinationPanel: View {
                               y: pillCenterY + (valueGap + valueHeight) / 2)
 
                 dialView(label: compassGForce ? "FORZA G" : "BECCHEGGIO",
-                         value: compassGForce ? extraSensors.lateralG : motion.inclinationPitchDegrees,
+                         value: compassGForce ? extraSensors.lateralG.flatMap { x in extraSensors.longitudinalG.map { hypot(x, $0) } } : motion.inclinationPitchDegrees,
                          roll: false, side: fittedDial, valueHeight: valueHeight, valueGap: valueGap,
                          kind: compassGForce ? 2 : 0)
                     .frame(width: fittedDial)
@@ -4174,11 +4189,20 @@ private struct GPSInclinationPanel: View {
                         .foregroundStyle(theme.inclinometerHorizonColor)
                         .offset(y: -side * 0.30)
                 } else if kind == 2 {
+                    let x = extraSensors.lateralG ?? 0
+                    let y = extraSensors.longitudinalG ?? 0
+                    let scale = max(2.0, hypot(x, y))
+                    ForEach(1...4, id: \.self) { ring in
+                        Circle()
+                            .stroke(ink.opacity(0.24), lineWidth: 1)
+                            .frame(width: side * 0.78 * CGFloat(ring) / 4,
+                                   height: side * 0.78 * CGFloat(ring) / 4)
+                    }
                     Circle()
                         .fill(theme.gForceMarkerColor)
                         .frame(width: side * 0.10, height: side * 0.10)
-                        .offset(x: side * CGFloat(max(-1, min(1, extraSensors.lateralG ?? 0))) * 0.22,
-                                y: -side * CGFloat(max(-1, min(1, extraSensors.longitudinalG ?? 0))) * 0.22)
+                        .offset(x: side * CGFloat(x / scale) * 0.39,
+                                y: -side * CGFloat(y / scale) * 0.39)
                     Text("G")
                         .font(.system(size: side * 0.10, weight: .bold))
                         .foregroundStyle(theme.inclinometerHorizonColor)
