@@ -3919,6 +3919,11 @@ private final class EcoCompassGForceSensor: ObservableObject {
     @Published private(set) var lateralG: Double?
     @Published private(set) var longitudinalG: Double?
     private let manager = CMMotionManager()
+    private var filteredX = 0.0
+    private var filteredY = 0.0
+    private var lastTimestamp: TimeInterval?
+    private let timeConstant = 0.25
+    private let deadZone = 0.02
 
     func start() {
         guard manager.isDeviceMotionAvailable else { return }
@@ -3928,8 +3933,15 @@ private final class EcoCompassGForceSensor: ObservableObject {
             guard let self, let motion else { return }
             Task { @MainActor in
                 self.heading = motion.heading >= 0 ? motion.heading : nil
-                self.lateralG = motion.userAcceleration.x
-                self.longitudinalG = motion.userAcceleration.y
+                let dt = max(0.001, min(0.1, motion.timestamp - (self.lastTimestamp ?? motion.timestamp - 1.0 / 30.0)))
+                self.lastTimestamp = motion.timestamp
+                let alpha = 1 - exp(-dt / self.timeConstant)
+                self.filteredX += alpha * (motion.userAcceleration.x - self.filteredX)
+                self.filteredY += alpha * (motion.userAcceleration.y - self.filteredY)
+                let magnitude = hypot(self.filteredX, self.filteredY)
+                let gain = magnitude > self.deadZone ? (magnitude - self.deadZone) / magnitude : 0
+                self.lateralG = self.filteredX * gain
+                self.longitudinalG = self.filteredY * gain
             }
         }
     }
@@ -3938,6 +3950,9 @@ private final class EcoCompassGForceSensor: ObservableObject {
         heading = nil
         lateralG = nil
         longitudinalG = nil
+        filteredX = 0
+        filteredY = 0
+        lastTimestamp = nil
     }
 }
 
@@ -3968,7 +3983,7 @@ private struct GPSInclinationPanel: View {
         let shadowOpacity = day ? theme.dayGradientShadowOpacity : theme.gradientShadowOpacity
         let highOpacity = day ? theme.dayGradientHighOpacity : theme.gradientHighOpacity
         let lowOpacity = day ? theme.dayGradientLowOpacity : theme.gradientLowOpacity
-        let shape = GPSInclinationCardShape(topLeftSlope: topLeftSlope)
+        let shape = Capsule()
         return shape
             .fill(day ? Color.white.opacity(0.36) : Color.white.opacity(0.038))
             .overlay {
@@ -4002,12 +4017,7 @@ private struct GPSInclinationPanel: View {
             let horizontalInset = max(4, w * 0.012)
             let verticalInset = max(4, h * 0.014)
             let dialGap = max(4, w * 0.010)
-            // AZZERA resta tra i cerchi ma nella loro parte inferiore;
-            // il diametro riserva spazio orizzontale per evitare collisioni.
             let resetWidth = max(40, min(46, w * 0.145))
-            let resetHeight = max(34, min(40, h * 0.15))
-            // Il target +20% della build 131 resta valido dove c'è spazio.
-            // Non si sovrappongono mai cerchi, comando centrale e margini.
             let baseDial = max(48, min((w - 42) * 0.46, h * 0.48))
             let enlargedDial = baseDial * 1.20
             let dialWidthLimit = (w - 2 * horizontalInset - 2 * dialGap - resetWidth) / 2
@@ -4015,9 +4025,28 @@ private struct GPSInclinationPanel: View {
             let dialHeightLimit = min(h * 0.70, h - 2 * verticalInset
                                       - valueHeight - max(3, enlargedDial * 0.020))
             let dial = max(1, min(enlargedDial, dialWidthLimit, dialHeightLimit))
-            let valueGap = max(3, dial * 0.020)
-            // Il centro dei CERCHI, non del gruppo cerchio+gradi, è a h/2.
-            let dialGroupCenterY = h / 2 + (valueGap + valueHeight) / 2
+            // Ripristina la distanza originale fra i centri.
+            let centerDistance = dial + resetWidth + 2 * dialGap
+            // Contenuto ancorato alle proporzioni landscape della 136.
+            // Su iPad (e nelle finestre Stage Manager) il gruppo si riduce
+            // soltanto quando lo spazio disponibile non basta.
+            let requestedInset = max(10, min(18, dial * 0.10))
+            let pillAvailableWidth = max(1, w - 2 * horizontalInset)
+            let pillAvailableHeight = max(1, h * 0.72)
+            let pillScale = min(1,
+                                pillAvailableWidth / (centerDistance + dial + 2 * requestedInset),
+                                pillAvailableHeight / (dial + 2 * requestedInset))
+            let fittedDial = dial * pillScale
+            let fittedCenterDistance = centerDistance * pillScale
+            let pillInset = requestedInset * pillScale
+            let pillHeight = fittedDial + 2 * pillInset
+            let pillWidth = fittedCenterDistance + pillHeight
+            let pillCenterY = h * 0.51
+            let fittedLeftX = (w - fittedCenterDistance) / 2
+            let fittedRightX = (w + fittedCenterDistance) / 2
+            let valueGap = pillInset + 4
+            let controlSize = max(18, min(32, fittedDial * 0.16))
+            let controlOffset = fittedDial * 0.32
             let quiet = colorScheme == .light ? Color(white: 0.35) : Color(white: 0.74)
 
             ZStack {
@@ -4035,68 +4064,63 @@ private struct GPSInclinationPanel: View {
                         .frame(width: max(14, w * 0.06), height: 1)
                 }
                 .frame(maxWidth: .infinity)
-                .frame(height: h * 0.11)
                 .position(x: w / 2, y: h * 0.065)
 
-                HStack(alignment: .top, spacing: dialGap) {
-                    dialView(label: compassGForce ? "BUSSOLA" : "ROLLIO",
-                             value: compassGForce ? extraSensors.heading : motion.inclinationRollDegrees,
-                             roll: true, side: dial, valueHeight: valueHeight,
-                             kind: compassGForce ? 1 : 0)
+                // Fondo unico, estremità concentriche ai due strumenti.
+                // I due comandi bianchi occupano gli spazi centrali interni alla pill.
+                telemetryStyleBackground
+                    .frame(width: pillWidth, height: pillHeight)
+                    .position(x: w / 2, y: pillCenterY)
+                    .allowsHitTesting(false)
 
-                    VStack(spacing: 4) {
-                        Button {
-                            compassGForce.toggle()
-                            if compassGForce { extraSensors.start() } else { extraSensors.stop() }
-                        } label: {
-                            Image(systemName: "arrow.left.arrow.right.circle.fill")
-                                .font(.system(size: max(20, min(27, dial * 0.16))))
-                                .foregroundStyle(theme.inclinometerRingColor)
-                                .frame(width: resetWidth, height: max(30, dial * 0.22))
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(compassGForce ? "Passa a rollio e beccheggio" : "Passa a bussola e forza G")
-                        Spacer(minLength: 0)
-                        if !motion.available && !compassGForce {
-                            Text("Sensore non disponibile")
-                                .font(.system(size: 8))
-                                .multilineTextAlignment(.center)
-                                .foregroundStyle(quiet)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        Button {
-                            if !compassGForce { motion.zeroInclination() }
-                        } label: {
-                            VStack(spacing: 2) {
-                                Image(systemName: "scope")
-                                    .font(.system(size: max(12, min(15, resetWidth * 0.32)),
-                                                  weight: .semibold))
-                                Text("AZZERA")
-                                    .font(.system(size: 8, weight: .bold, design: .rounded))
-                                    .tracking(0.2)
-                            }
-                            .foregroundStyle(ink)
-                            .frame(width: resetWidth, height: resetHeight)
-                            .background(theme.inclinometerRingColor.opacity(0.17), in: Capsule())
-                            .overlay(Capsule().stroke(
-                                theme.inclinometerRingColor.opacity(0.70), lineWidth: 1))
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(compassGForce || !motion.available)
-                        .accessibilityLabel(compassGForce ? "Azzeramento non disponibile per bussola e forza G" : "Azzera inclinometro: fermarsi in piano")
-                    }
-                    .frame(width: resetWidth, height: dial, alignment: .bottom)
+                dialView(label: compassGForce ? "BUSSOLA" : "ROLLIO",
+                         value: compassGForce ? extraSensors.heading : motion.inclinationRollDegrees,
+                         roll: true, side: fittedDial, valueHeight: valueHeight, valueGap: valueGap,
+                         kind: compassGForce ? 1 : 0)
+                    .frame(width: fittedDial)
+                    .position(x: fittedLeftX,
+                              y: pillCenterY + (valueGap + valueHeight) / 2)
 
-                    dialView(label: compassGForce ? "FORZA G" : "BECCHEGGIO",
-                             value: compassGForce ? extraSensors.lateralG : motion.inclinationPitchDegrees,
-                             roll: false, side: dial, valueHeight: valueHeight,
-                             kind: compassGForce ? 2 : 0)
+                dialView(label: compassGForce ? "FORZA G" : "BECCHEGGIO",
+                         value: compassGForce ? extraSensors.lateralG.flatMap { x in extraSensors.longitudinalG.map { hypot(x, $0) } } : motion.inclinationPitchDegrees,
+                         roll: false, side: fittedDial, valueHeight: valueHeight, valueGap: valueGap,
+                         kind: compassGForce ? 2 : 0)
+                    .frame(width: fittedDial)
+                    .position(x: fittedRightX,
+                              y: pillCenterY + (valueGap + valueHeight) / 2)
+
+                Button {
+                    compassGForce.toggle()
+                    if compassGForce { extraSensors.start() } else { extraSensors.stop() }
+                } label: {
+                    Image(systemName: "arrow.left.arrow.right")
+                        .font(.system(size: controlSize * 0.66, weight: .semibold))
+                        .foregroundStyle(Color.white)
+                        .frame(width: controlSize, height: controlSize)
+                        .contentShape(Rectangle())
                 }
-                .frame(width: w - 2 * horizontalInset)
-                .position(x: w / 2, y: dialGroupCenterY)
+                .buttonStyle(.plain)
+                .position(x: w / 2, y: pillCenterY - controlOffset)
+                .accessibilityLabel(compassGForce
+                    ? "Passa a rollio e beccheggio" : "Passa a bussola e forza G")
+
+                Button {
+                    if !compassGForce { motion.zeroInclination() }
+                } label: {
+                    Image(systemName: "scope")
+                        .font(.system(size: controlSize * 0.66, weight: .semibold))
+                        .foregroundStyle(Color.white)
+                        .frame(width: controlSize, height: controlSize)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .disabled(compassGForce || !motion.available)
+                .position(x: w / 2, y: pillCenterY + controlOffset)
+                .accessibilityLabel(compassGForce
+                    ? "Azzeramento non disponibile per bussola e forza G"
+                    : "Azzera inclinometro: fermarsi in piano")
             }
             .frame(width: w, height: h)
-            .background(telemetryStyleBackground)
         }
         .onAppear {
             motion.setInclinationActive(true)
@@ -4114,8 +4138,8 @@ private struct GPSInclinationPanel: View {
     // Auto e piano di appoggio ruotano insieme intorno al centro dello strumento;
     // le 72 tacche a intervalli di 5° formano una graduazione completa a 360°.
     private func dialView(label: String, value: Double?, roll: Bool,
-                          side: CGFloat, valueHeight: CGFloat, kind: Int = 0) -> some View {
-        VStack(spacing: max(3, side * 0.020)) {
+                          side: CGFloat, valueHeight: CGFloat, valueGap: CGFloat, kind: Int = 0) -> some View {
+        VStack(spacing: valueGap) {
             // Nessun titolo visibile sopra i quadranti. Il label resta
             // nell'accessibilità per distinguere rollio e beccheggio.
             ZStack {
@@ -4165,11 +4189,20 @@ private struct GPSInclinationPanel: View {
                         .foregroundStyle(theme.inclinometerHorizonColor)
                         .offset(y: -side * 0.30)
                 } else if kind == 2 {
+                    let x = extraSensors.lateralG ?? 0
+                    let y = extraSensors.longitudinalG ?? 0
+                    let scale = max(2.0, hypot(x, y))
+                    ForEach(1...4, id: \.self) { ring in
+                        Circle()
+                            .stroke(ink.opacity(0.24), lineWidth: 1)
+                            .frame(width: side * 0.78 * CGFloat(ring) / 4,
+                                   height: side * 0.78 * CGFloat(ring) / 4)
+                    }
                     Circle()
                         .fill(theme.gForceMarkerColor)
                         .frame(width: side * 0.10, height: side * 0.10)
-                        .offset(x: side * CGFloat(max(-1, min(1, extraSensors.lateralG ?? 0))) * 0.22,
-                                y: -side * CGFloat(max(-1, min(1, extraSensors.longitudinalG ?? 0))) * 0.22)
+                        .offset(x: side * CGFloat(x / scale) * 0.39,
+                                y: -side * CGFloat(y / scale) * 0.39)
                     Text("G")
                         .font(.system(size: side * 0.10, weight: .bold))
                         .foregroundStyle(theme.inclinometerHorizonColor)

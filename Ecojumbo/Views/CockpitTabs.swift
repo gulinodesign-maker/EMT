@@ -1581,6 +1581,10 @@ private struct EcoThemeEditorView: View {
             HStack(spacing: 18) {
                 Image(systemName: "car.side.fill")
                 Image(systemName: "car.rear.fill")
+                Image(systemName: "location.north.fill")
+                    .foregroundStyle(Color(themeHex: draft.inclinometerColors[3]))
+                Image(systemName: "circle.fill")
+                    .foregroundStyle(Color(themeHex: draft.inclinometerColors[4]))
             }
             .font(.system(size: 31))
             .foregroundStyle(Color(themeHex: draft.inclinometerColors[2]))
@@ -1596,7 +1600,7 @@ private struct EcoThemeEditorView: View {
 
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 240), spacing: 12)],
                       spacing: 12) {
-                ForEach(0..<3, id: \.self) { index in
+                ForEach(draft.inclinometerColors.indices, id: \.self) { index in
                     Button {
                         colorID = EcoThemeColorID(id: EcoThemePalette.colorCount + index,
                                                   isDay: false)
